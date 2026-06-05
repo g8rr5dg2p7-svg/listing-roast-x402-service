@@ -6,6 +6,8 @@ This is intentionally separate from ApexScout and any other active project. It h
 
 By default, local development uses Base Sepolia through the public x402 facilitator. Real `$1` Base mainnet deployment needs your `PAY_TO` wallet plus CDP facilitator credentials.
 
+Live testnet deployment: https://listing-roast-x402-service-production.up.railway.app
+
 ## Routes
 
 - `GET /` - public landing page.
