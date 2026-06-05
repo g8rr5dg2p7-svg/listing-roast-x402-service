@@ -1,7 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../src/app.js";
 import { requestExample } from "../src/roast.js";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 function listen(app) {
   return new Promise((resolve) => {
@@ -31,6 +35,37 @@ function readPaymentRequiredHeader(headers) {
   const encoded = headers.get("payment-required");
   expect(encoded).toBeTruthy();
   return JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
+}
+
+function mockFacilitatorSupportedKinds() {
+  const realFetch = globalThis.fetch;
+
+  vi.stubGlobal("fetch", async (input, init) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+
+    if (url.endsWith("/supported")) {
+      return new Response(JSON.stringify({
+        kinds: [
+          {
+            x402Version: 2,
+            scheme: "exact",
+            network: "eip155:84532",
+            extra: {
+              name: "USD Coin",
+              version: "2"
+            }
+          }
+        ],
+        extensions: ["bazaar"],
+        signers: {}
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    return realFetch(input, init);
+  });
 }
 
 describe("Listing Roast x402 service", () => {
@@ -73,6 +108,7 @@ describe("Listing Roast x402 service", () => {
   });
 
   it("protects the paid route with a $1 x402 challenge", async () => {
+    mockFacilitatorSupportedKinds();
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
     const server = await listen(app);
     try {
@@ -112,6 +148,7 @@ describe("Listing Roast x402 service", () => {
   });
 
   it("lets empty discovery probes reach the x402 challenge", async () => {
+    mockFacilitatorSupportedKinds();
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
     const server = await listen(app);
     try {

@@ -19,6 +19,10 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `POST /api/listing-roast` - protected $1 x402 route.
 - `GET /api/cash-register` - deployment-local paid completion count plus receiver wallet USDC balance on Base mainnet.
 
+## Promotion
+
+Share the homepage first with x402, MCP, and agent-service builders. The reusable posts, direct-message copy, and monitoring checklist live in [docs/promotion.md](docs/promotion.md).
+
 ## Run Locally
 
 ```bash
