@@ -1,10 +1,23 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { mkdtemp, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../src/app.js";
 import { requestExample } from "../src/roast.js";
 
-afterEach(() => {
+let testDataDir;
+
+beforeEach(async () => {
+  testDataDir = await mkdtemp(path.join(os.tmpdir(), "listing-roast-test-"));
+  process.env.DATA_DIR = testDataDir;
+});
+
+afterEach(async () => {
   vi.unstubAllGlobals();
+  delete process.env.DATA_DIR;
+  await rm(testDataDir, { recursive: true, force: true });
 });
 
 function listen(app) {
@@ -77,6 +90,10 @@ describe("Listing Roast x402 service", () => {
       expect(health.status).toBe(200);
       expect(health.json.paidRoute).toBe("/api/listing-roast");
 
+      const home = await fetchJson(server, "/");
+      expect(home.status).toBe(200);
+      expect(home.text).toContain("Copy payment command");
+
       const schema = await fetchJson(server, "/api/schema");
       expect(schema.status).toBe(200);
       expect(schema.json.service.price).toBe("$1.00");
@@ -98,10 +115,22 @@ describe("Listing Roast x402 service", () => {
       expect(sitemap.status).toBe(200);
       expect(sitemap.text).toContain("/api/examples");
 
+      const track = await fetchJson(server, "/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event: "commandCopyClicks" })
+      });
+      expect(track.status).toBe(204);
+
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.status).toBe(200);
       expect(cashRegister.json.receiverWallet.network).toBe("eip155:84532");
       expect(cashRegister.json.receiverWallet.source).toBe("disabled_for_non_mainnet");
+      expect(cashRegister.json.signals.homepageViews).toBe(1);
+      expect(cashRegister.json.signals.schemaViews).toBe(1);
+      expect(cashRegister.json.signals.examplesViews).toBe(1);
+      expect(cashRegister.json.signals.mcpViews).toBe(1);
+      expect(cashRegister.json.signals.commandCopyClicks).toBe(1);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
@@ -124,6 +153,9 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.url).toContain("/api/listing-roast");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000000");
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
@@ -158,6 +190,9 @@ describe("Listing Roast x402 service", () => {
 
       expect(response.status).toBe(402);
       expect(response.headers.get("payment-required")).toBeTruthy();
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }

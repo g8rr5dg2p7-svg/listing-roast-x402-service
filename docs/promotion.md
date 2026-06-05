@@ -78,6 +78,10 @@ Avoid cold spam. Prefer posts where builders are already discussing x402 discove
 ## What To Watch
 
 - `/api/cash-register` -> `receiverWallet.usdcBalance`
+- `/api/cash-register` -> `signals.homepageViews`
+- `/api/cash-register` -> `signals.commandCopyClicks`
+- `/api/cash-register` -> `signals.examplesViews`
+- `/api/cash-register` -> `signals.unpaidChallenges`
 - unpaid 402 challenge checks
 - paid completions
 - complaints or refund signals

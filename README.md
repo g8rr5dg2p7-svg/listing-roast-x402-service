@@ -17,7 +17,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /sitemap.xml` - public discovery URLs.
 - `GET /.well-known/mcp.json` - simple tool metadata.
 - `POST /api/listing-roast` - protected $1 x402 route.
-- `GET /api/cash-register` - deployment-local paid completion count plus receiver wallet USDC balance on Base mainnet.
+- `GET /api/cash-register` - deployment-local funnel counters, paid completion count, and receiver wallet USDC balance on Base mainnet.
 
 ## Promotion
 
@@ -68,5 +68,5 @@ CDP_API_KEY_SECRET=...
 1. Open `/api/schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
 2. Send one unpaid request and confirm the live route returns HTTP `402`.
 3. Confirm the live challenge uses `X402_NETWORK=eip155:8453` and amount `1000000`.
-4. Monitor `/api/cash-register`; use `receiverWallet.usdcBalance` as the durable revenue check across deploys.
+4. Monitor `/api/cash-register`; use `signals` for buyer interest and `receiverWallet.usdcBalance` as the durable revenue check across deploys.
 5. Promote the live route only after the production challenge and settlement proof are verified.

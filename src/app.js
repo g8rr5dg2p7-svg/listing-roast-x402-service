@@ -5,7 +5,7 @@ import { registerExactEvmScheme } from "@x402/evm/exact/server";
 import { paymentMiddleware } from "@x402/express";
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from "@x402/extensions/bazaar";
 
-import { getCashRegister, recordPaidCompletion } from "./cashRegister.js";
+import { getCashRegister, recordPaidCompletion, recordSignal } from "./cashRegister.js";
 import { buildListingRoast, listingRoastRequestSchema, requestExample } from "./roast.js";
 
 const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
@@ -270,6 +270,16 @@ function validateListingRoastRequest(request, response, next) {
   next();
 }
 
+function hasPaymentHeader(request) {
+  return Boolean(request.get("x-payment"));
+}
+
+function isAllowedSignal(value) {
+  return typeof value === "string" && [
+    "commandCopyClicks"
+  ].includes(value);
+}
+
 function createCdpAuthFactory(config) {
   const facilitatorUrl = new URL(config.facilitatorUrl);
   const requestHost = facilitatorUrl.host;
@@ -316,7 +326,8 @@ export function createApp(overrides = {}) {
     response.json({ ok: true, service: config.serviceName, paidRoute: "/api/listing-roast" });
   });
 
-  app.get("/", (_request, response) => {
+  app.get("/", async (_request, response) => {
+    await recordSignal("homepageViews");
     const cashRegisterUrl = absoluteUrl(config, "/api/cash-register");
     const paidRoute = absoluteUrl(config, "/api/listing-roast");
     const schemaUrl = absoluteUrl(config, "/api/schema");
@@ -502,9 +513,28 @@ score: 4/5</div>
     document.querySelectorAll("[data-copy-target]").forEach((button) => {
       button.addEventListener("click", async () => {
         const target = document.getElementById(button.dataset.copyTarget);
-        if (!target || !navigator.clipboard) return;
-        await navigator.clipboard.writeText(target.textContent.trim());
-        button.textContent = "Copied";
+        if (!target) return;
+        let copied = false;
+        try {
+          if (navigator.clipboard) {
+            await navigator.clipboard.writeText(target.textContent.trim());
+            copied = true;
+          }
+        } catch {}
+        if (!copied) {
+          const range = document.createRange();
+          range.selectNodeContents(target);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+        fetch("/api/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event: "commandCopyClicks" }),
+          keepalive: true
+        }).catch(() => {});
+        button.textContent = copied ? "Copied" : "Selected";
         setTimeout(() => { button.textContent = "Copy payment command"; }, 1600);
       });
     });
@@ -534,7 +564,8 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
   });
 
-  app.get("/api/examples", (_request, response) => {
+  app.get("/api/examples", async (_request, response) => {
+    await recordSignal("examplesViews");
     response.json({
       service: config.serviceName,
       paidRoute: absoluteUrl(config, "/api/listing-roast"),
@@ -546,11 +577,13 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
     });
   });
 
-  app.get("/api/schema", (_request, response) => {
+  app.get("/api/schema", async (_request, response) => {
+    await recordSignal("schemaViews");
     response.json(buildDiscovery(config));
   });
 
-  app.get("/.well-known/mcp.json", (_request, response) => {
+  app.get("/.well-known/mcp.json", async (_request, response) => {
+    await recordSignal("mcpViews");
     response.json({
       name: config.serviceName,
       tools: [
@@ -573,7 +606,24 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
     response.json({ ...cashRegister, receiverWallet });
   });
 
+  app.post("/api/track", async (request, response) => {
+    const event = request.body?.event;
+    if (!isAllowedSignal(event)) {
+      response.status(204).end();
+      return;
+    }
+
+    await recordSignal(event);
+    response.status(204).end();
+  });
+
   app.post("/api/listing-roast", validateListingRoastRequest);
+  app.post("/api/listing-roast", async (request, _response, next) => {
+    if (!hasPaymentHeader(request)) {
+      await recordSignal("unpaidChallenges");
+    }
+    next();
+  });
   app.use(createX402Middleware(config));
 
   app.post("/api/listing-roast", async (request, response) => {
