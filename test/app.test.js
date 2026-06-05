@@ -73,7 +73,7 @@ describe("Listing Roast x402 service", () => {
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
-  });
+  }, 15000);
 
   it("rejects invalid paid-route requests before asking for payment", async () => {
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });

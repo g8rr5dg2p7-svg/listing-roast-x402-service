@@ -159,6 +159,7 @@ function createCdpAuthFactory(config) {
 export function createApp(overrides = {}) {
   const config = getConfig(overrides);
   const app = express();
+  app.set("trust proxy", 1);
   app.use(express.json({ limit: "32kb" }));
 
   app.get("/health", (_request, response) => {
