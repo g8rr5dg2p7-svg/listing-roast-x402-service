@@ -5,7 +5,7 @@ Live production service:
 - Homepage: https://listing-roast-x402-service-production.up.railway.app
 - Paid route: https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Schema: https://listing-roast-x402-service-production.up.railway.app/api/schema
-- Cash register: https://listing-roast-x402-service-production.up.railway.app/api/cash-register
+- Cash register and receiver wallet balance: https://listing-roast-x402-service-production.up.railway.app/api/cash-register
 - GitHub: https://github.com/g8rr5dg2p7-svg/listing-roast-x402-service
 
 Current verified state:
@@ -16,8 +16,8 @@ Current verified state:
 - Payment amount: 1000000 USDC units.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
-- Gross paid completions: 1.
-- Gross recorded revenue: $1.00.
+- Receiver wallet balance is the durable revenue check across deploys.
+- The deployment-local cash counter can reset when Railway replaces the container.
 - First settlement transaction: 0x59f6d99257170dd796419a7d8a50dab7d113acb2198f0fafa993f6f30490fbf0.
 - CDP Bazaar merchant discovery: indexed for the receiver wallet.
 

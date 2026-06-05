@@ -49,6 +49,24 @@ describe("Listing Roast x402 service", () => {
       const mcp = await fetchJson(server, "/.well-known/mcp.json");
       expect(mcp.status).toBe(200);
       expect(mcp.json.tools[0].path).toBe("/api/listing-roast");
+
+      const examples = await fetchJson(server, "/api/examples");
+      expect(examples.status).toBe(200);
+      expect(examples.json.command).toContain("x402 pay");
+      expect(examples.json.output.price).toBe("$1.00");
+
+      const robots = await fetchJson(server, "/robots.txt");
+      expect(robots.status).toBe(200);
+      expect(robots.text).toContain("Sitemap:");
+
+      const sitemap = await fetchJson(server, "/sitemap.xml");
+      expect(sitemap.status).toBe(200);
+      expect(sitemap.text).toContain("/api/examples");
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.status).toBe(200);
+      expect(cashRegister.json.receiverWallet.network).toBe("eip155:84532");
+      expect(cashRegister.json.receiverWallet.source).toBe("disabled_for_non_mainnet");
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }

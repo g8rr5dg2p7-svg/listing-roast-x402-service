@@ -1,4 +1,5 @@
 const baseUrl = process.env.SMOKE_BASE_URL || "http://localhost:8787";
+const expectedNetwork = process.env.EXPECTED_X402_NETWORK || "eip155:84532";
 
 const response = await fetch(`${baseUrl}/api/listing-roast`, {
   method: "POST",
@@ -25,7 +26,7 @@ const passed =
   response.status === 402 &&
   challenge?.resource?.url?.includes("/api/listing-roast") &&
   firstAccept?.amount === "1000000" &&
-  firstAccept?.network === "eip155:84532";
+  firstAccept?.network === expectedNetwork;
 
 console.log(JSON.stringify({ status: response.status, passed, challenge }, null, 2));
 

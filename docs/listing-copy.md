@@ -44,7 +44,7 @@ Listing Roast x402 helps builders avoid promoting paid API/service listings that
 
 ## Promotion Targets
 
-- x402 Bazaar discovery once production mainnet is verified.
+- x402 Bazaar discovery.
 - x402/MCP builder communities.
 - GitHub README and repo topics.
 - Any directory that accepts live x402 endpoints with clear pricing.

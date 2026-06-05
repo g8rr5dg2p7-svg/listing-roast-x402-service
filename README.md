@@ -4,17 +4,20 @@ Standalone $1 x402 paid API for critiquing paid agent/API listing copy.
 
 This is intentionally separate from ApexScout and any other active project. It has one public page, one protected JSON API route, MCP-visible metadata, and a local aggregate cash register.
 
-By default, local development uses Base Sepolia through the public x402 facilitator. Real `$1` Base mainnet deployment needs your `PAY_TO` wallet plus CDP facilitator credentials.
+By default, local development can use Base Sepolia through the public x402 facilitator. The live Railway service uses Base mainnet, a separate receiver wallet, and CDP facilitator credentials.
 
-Live testnet deployment: https://listing-roast-x402-service-production.up.railway.app
+Live production deployment: https://listing-roast-x402-service-production.up.railway.app
 
 ## Routes
 
 - `GET /` - public landing page.
 - `GET /api/schema` - request/response shape.
+- `GET /api/examples` - copy-ready request, command, and sample output.
+- `GET /robots.txt` - public crawl hints.
+- `GET /sitemap.xml` - public discovery URLs.
 - `GET /.well-known/mcp.json` - simple tool metadata.
 - `POST /api/listing-roast` - protected $1 x402 route.
-- `GET /api/cash-register` - aggregate paid completion count.
+- `GET /api/cash-register` - deployment-local paid completion count plus receiver wallet USDC balance on Base mainnet.
 
 ## Run Locally
 
@@ -58,8 +61,8 @@ CDP_API_KEY_SECRET=...
 
 ## Launch Checklist
 
-1. Authenticate the local wallet and set `PAY_TO` to the receiving address.
-2. Deploy with `X402_NETWORK=eip155:8453` and the CDP facilitator credentials above.
-3. Open `/api/schema` and `/.well-known/mcp.json` on the live URL.
-4. Send one unpaid request and confirm the live route returns HTTP `402`.
-5. Submit the live service URL to x402 discovery/listing surfaces only after the live `402` challenge is verified.
+1. Open `/api/schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
+2. Send one unpaid request and confirm the live route returns HTTP `402`.
+3. Confirm the live challenge uses `X402_NETWORK=eip155:8453` and amount `1000000`.
+4. Monitor `/api/cash-register`; use `receiverWallet.usdcBalance` as the durable revenue check across deploys.
+5. Promote the live route only after the production challenge and settlement proof are verified.

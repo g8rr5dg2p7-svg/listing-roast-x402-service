@@ -9,6 +9,9 @@ import { getCashRegister, recordPaidCompletion } from "./cashRegister.js";
 import { buildListingRoast, listingRoastRequestSchema, requestExample } from "./roast.js";
 
 const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
+const BASE_MAINNET_NETWORK = "eip155:8453";
+const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const USDC_DECIMALS = 1_000_000n;
 
 export function getConfig(overrides = {}) {
   const payTo = overrides.payTo || process.env.PAY_TO || (process.env.NODE_ENV === "production" ? "" : DEFAULT_DEV_PAY_TO);
@@ -25,12 +28,114 @@ export function getConfig(overrides = {}) {
     network: overrides.network || process.env.X402_NETWORK || "eip155:84532",
     cdpApiKeyId: overrides.cdpApiKeyId || process.env.CDP_API_KEY_ID || "",
     cdpApiKeySecret: overrides.cdpApiKeySecret || process.env.CDP_API_KEY_SECRET || "",
+    baseRpcUrl: overrides.baseRpcUrl || process.env.BASE_RPC_URL || "https://mainnet.base.org",
     price: "$1.00"
   };
 }
 
 function absoluteUrl(config, pathname) {
   return `${config.serviceUrl}${pathname}`;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function prettyJson(value) {
+  return JSON.stringify(value, null, 2);
+}
+
+function shellQuote(value) {
+  return `'${String(value).replaceAll("'", "'\\''")}'`;
+}
+
+function buildPayCommand(config) {
+  return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, "/api/listing-roast")} \\
+  -X POST \\
+  -d ${shellQuote(JSON.stringify(requestExample))} \\
+  --max-amount 1000000`;
+}
+
+function encodeBalanceOf(address) {
+  const normalized = address.toLowerCase().replace(/^0x/, "");
+  return `0x70a08231${normalized.padStart(64, "0")}`;
+}
+
+function formatUsdc(rawUnits) {
+  const whole = rawUnits / USDC_DECIMALS;
+  const fraction = rawUnits % USDC_DECIMALS;
+  const fractionText = fraction.toString().padStart(6, "0").replace(/0+$/, "");
+  return fractionText ? `${whole}.${fractionText}` : `${whole}.00`;
+}
+
+async function getReceiverBalanceSnapshot(config) {
+  const checkedAt = new Date().toISOString();
+
+  if (config.network !== BASE_MAINNET_NETWORK) {
+    return {
+      address: config.payTo,
+      network: config.network,
+      asset: "USDC",
+      usdcBalance: null,
+      checkedAt,
+      source: "disabled_for_non_mainnet"
+    };
+  }
+
+  try {
+    const rpcResponse = await fetch(config.baseRpcUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "eth_call",
+        params: [
+          {
+            to: BASE_USDC_CONTRACT,
+            data: encodeBalanceOf(config.payTo)
+          },
+          "latest"
+        ]
+      }),
+      signal: AbortSignal.timeout(4500)
+    });
+
+    if (!rpcResponse.ok) {
+      throw new Error("rpc_unavailable");
+    }
+
+    const payload = await rpcResponse.json();
+    if (payload.error || !payload.result) {
+      throw new Error("rpc_error");
+    }
+
+    const rawUnits = BigInt(payload.result);
+    return {
+      address: config.payTo,
+      network: config.network,
+      asset: "USDC",
+      usdcBalance: formatUsdc(rawUnits),
+      usdcUnits: rawUnits.toString(),
+      checkedAt,
+      source: new URL(config.baseRpcUrl).hostname
+    };
+  } catch {
+    return {
+      address: config.payTo,
+      network: config.network,
+      asset: "USDC",
+      usdcBalance: null,
+      checkedAt,
+      source: "base_rpc",
+      error: "unavailable"
+    };
+  }
 }
 
 function buildDiscovery(config) {
@@ -212,41 +317,233 @@ export function createApp(overrides = {}) {
   });
 
   app.get("/", (_request, response) => {
+    const cashRegisterUrl = absoluteUrl(config, "/api/cash-register");
+    const paidRoute = absoluteUrl(config, "/api/listing-roast");
+    const schemaUrl = absoluteUrl(config, "/api/schema");
+    const mcpUrl = absoluteUrl(config, "/.well-known/mcp.json");
+    const payCommand = buildPayCommand(config);
+    const sampleOutput = buildListingRoast(requestExample);
+
     response.type("html").send(`<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${config.serviceName}</title>
+  <meta name="description" content="A $1 x402 paid API that critiques paid agent and API listing copy before launch." />
+  <meta property="og:title" content="${escapeHtml(config.serviceName)}" />
+  <meta property="og:description" content="Find out why buyer agents skip your paid API listing before you promote it." />
+  <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
+  <link rel="canonical" href="${escapeHtml(config.serviceUrl)}/" />
+  <title>${escapeHtml(config.serviceName)}</title>
   <style>
-    body { margin: 0; font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f7f5ef; color: #171717; }
-    main { max-width: 920px; margin: 0 auto; padding: 56px 24px; }
-    h1 { font-size: clamp(2rem, 5vw, 4rem); line-height: 1; margin: 0 0 20px; }
-    p { max-width: 760px; }
-    code, pre { background: #fff; border: 1px solid #ddd6c8; border-radius: 8px; }
-    code { padding: 2px 6px; }
-    pre { padding: 16px; overflow: auto; }
-    a.button { display: inline-block; background: #111; color: #fff; padding: 12px 16px; border-radius: 8px; text-decoration: none; margin-right: 8px; }
-    .muted { color: #5f5a50; }
+    :root { color-scheme: light; --ink: #171717; --muted: #5b6470; --line: #d8dee7; --paper: #fbfaf7; --panel: #ffffff; --blue: #1458d4; --green: #0d7a4f; --gold: #9c6a00; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--paper); color: var(--ink); }
+    header, section, footer { width: 100%; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; min-width: 0; }
+    .nav { display: flex; align-items: center; justify-content: space-between; min-height: 64px; border-bottom: 1px solid var(--line); }
+    .brand { font-weight: 800; letter-spacing: 0; }
+    .navlinks { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.95rem; }
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .hero { padding: 56px 0 36px; background: linear-gradient(180deg, #ffffff 0%, #f3f6f8 100%); border-bottom: 1px solid var(--line); }
+    .heroGrid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr); gap: 32px; align-items: center; }
+    .heroGrid > *, .grid2 > *, .grid3 > * { min-width: 0; }
+    h1 { font-size: clamp(2.4rem, 5vw, 4.9rem); line-height: 0.98; margin: 0 0 18px; letter-spacing: 0; max-width: 840px; }
+    h2 { font-size: 1.65rem; margin: 0 0 14px; letter-spacing: 0; }
+    h3 { font-size: 1rem; margin: 0 0 8px; letter-spacing: 0; }
+    p { margin: 0 0 16px; max-width: 760px; }
+    .lead { font-size: 1.18rem; color: #333c47; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 15px; border-radius: 8px; border: 1px solid #101010; background: #111; color: #fff; text-decoration: none; font-weight: 700; }
+    button.button { cursor: pointer; font: inherit; }
+    .button.secondary { background: #fff; color: #111; border-color: var(--line); }
+    .proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 24px; max-width: 780px; }
+    .proof div, .miniCard { border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,0.78); padding: 12px; }
+    .proof strong { display: block; font-size: 1.1rem; }
+    .device { border: 1px solid #cbd4df; border-radius: 8px; background: #111827; color: #e8eef6; box-shadow: 0 18px 40px rgba(17,24,39,0.16); overflow: hidden; }
+    .deviceTop { display: flex; gap: 7px; padding: 11px 14px; background: #0b1220; border-bottom: 1px solid #263449; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #ee6a5f; }
+    .dot:nth-child(2) { background: #f5bd4f; }
+    .dot:nth-child(3) { background: #61c454; }
+    .terminal { padding: 18px; min-height: 276px; font: 13px/1.48 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .terminal .ok { color: #7dd3a7; }
+    .terminal .warn { color: #f6cf72; }
+    .band { padding: 34px 0; border-bottom: 1px solid var(--line); }
+    .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; min-width: 0; }
+    code, pre { background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+    code { padding: 2px 6px; overflow-wrap: anywhere; word-break: break-word; }
+    pre { padding: 16px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; margin: 0; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .muted { color: var(--muted); }
+    .tag { display: inline-flex; align-items: center; min-height: 28px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: #2d3745; font-size: 0.9rem; margin: 0 6px 8px 0; }
+    .metric { color: var(--green); font-weight: 800; }
+    .warning { color: var(--gold); font-weight: 700; }
+    footer { padding: 26px 0 44px; color: var(--muted); }
+    @media (max-width: 820px) {
+      .heroGrid, .grid2, .grid3, .proof { grid-template-columns: 1fr; }
+      .hero { padding-top: 34px; }
+      .nav { align-items: flex-start; flex-direction: column; gap: 8px; padding: 14px 0; }
+      h1 { font-size: 2.55rem; }
+    }
   </style>
 </head>
 <body>
+  <header>
+    <div class="wrap nav">
+      <div class="brand">Listing Roast x402</div>
+      <nav class="navlinks" aria-label="Primary">
+        <a href="#pay">Pay</a>
+        <a href="#output">Output</a>
+        <a href="${schemaUrl}">Schema</a>
+        <a href="${cashRegisterUrl}">Cash register</a>
+      </nav>
+    </div>
+  </header>
   <main>
-    <h1>Listing Roast x402</h1>
-    <p>A standalone $1 Base mainnet x402 route for builders who want paid agent/API listing copy critiqued before promoting it.</p>
-    <p><strong>Paid route:</strong> <code>POST /api/listing-roast</code>. <strong>Price:</strong> ${config.price}. <strong>Output:</strong> JSON with skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
-    <p>
-      <a class="button" href="/api/schema">View schema</a>
-      <a class="button" href="/.well-known/mcp.json">MCP metadata</a>
-      <a class="button" href="/api/cash-register">Cash register</a>
-    </p>
-    <pre>curl -i -X POST ${absoluteUrl(config, "/api/listing-roast")} \\
-  -H 'Content-Type: application/json' \\
-  -d '${JSON.stringify(requestExample)}'</pre>
-    <p class="muted">No subscriptions. No accounts. The protected route returns HTTP 402 until a valid x402 payment is attached.</p>
+    <section class="hero">
+      <div class="wrap heroGrid">
+        <div>
+          <h1>Find out why buyer agents skip your paid API listing.</h1>
+          <p class="lead">Pay ${config.price} with x402 on Base mainnet. Send your listing copy and get skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade call before you promote.</p>
+          <div class="actions">
+            <button class="button" type="button" data-copy-target="pay-command">Copy payment command</button>
+            <a class="button secondary" href="${schemaUrl}">View JSON schema</a>
+          </div>
+          <div class="proof" aria-label="Proof points">
+            <div><strong class="metric">Live</strong><span class="muted">Production x402 route</span></div>
+            <div><strong>${config.price}</strong><span class="muted">Per paid roast</span></div>
+            <div><strong class="metric">Discoverable</strong><span class="muted">Declared for Bazaar</span></div>
+          </div>
+        </div>
+        <div class="device" aria-label="Terminal preview">
+          <div class="deviceTop"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="terminal">$ x402 pay /api/listing-roast
+<span class="warn">402 Payment Required</span>
+payTo: ${escapeHtml(config.payTo)}
+network: ${escapeHtml(config.network)}
+amount: 1000000 USDC units
+<span class="ok">200 OK after payment</span>
+verdict: ready_to_test
+score: 4/5</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap grid3">
+        <div class="card">
+          <h3>Who buys this</h3>
+          <p class="muted">x402, MCP, and agent-service builders who have a paid endpoint but weak listing copy.</p>
+        </div>
+        <div class="card">
+          <h3>What you send</h3>
+          <p class="muted">The service name, listing copy, target buyer, price, checkout path, and launch goal.</p>
+        </div>
+        <div class="card">
+          <h3>What you get</h3>
+          <p class="muted">A structured JSON critique that tells you what to fix before paying for traffic or posting widely.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="pay">
+      <div class="wrap grid2">
+        <div>
+          <h2>Pay ${config.price} and get a roast.</h2>
+          <p>The endpoint is protected by x402. The first unpaid request returns a payment challenge; the paid retry returns JSON.</p>
+          <p>
+            <span class="tag">Base mainnet</span>
+            <span class="tag">USDC</span>
+            <span class="tag">No account</span>
+            <span class="tag">Agent-readable JSON</span>
+          </p>
+        </div>
+        <div class="card">
+          <h3>Paid route</h3>
+          <p><code>POST ${escapeHtml(paidRoute)}</code></p>
+          <p class="muted">Maximum payment: <strong>1000000</strong> USDC units.</p>
+        </div>
+      </div>
+      <div class="wrap" style="margin-top: 18px;">
+        <pre id="pay-command">${escapeHtml(payCommand)}</pre>
+      </div>
+    </section>
+
+    <section class="band" id="output">
+      <div class="wrap grid2">
+        <div>
+          <h2>Output built for action.</h2>
+          <p>The response is not a generic compliment. It tells a builder whether the offer is clear enough to test, what buyer agents may skip, and what to change first.</p>
+          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. The schema is available at <a href="${schemaUrl}">/api/schema</a>.</p>
+        </div>
+        <pre>${escapeHtml(prettyJson(sampleOutput))}</pre>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap grid2">
+        <div class="card">
+          <h3>Discovery</h3>
+          <p class="muted">The route is declared for x402 Bazaar discovery with JSON body metadata and an example payload.</p>
+          <p><a href="${mcpUrl}">MCP metadata</a></p>
+        </div>
+        <div class="card">
+          <h3>When not to buy</h3>
+          <p class="muted">Do not buy if you need deep market research, legal advice, or a custom strategy call. This is a fast listing clarity check for paid agent/API offers.</p>
+        </div>
+      </div>
+    </section>
   </main>
+  <footer>
+    <div class="wrap">Listing Roast x402 runs as a standalone paid API. No subscriptions, no accounts, no ApexScout dependency.</div>
+  </footer>
+  <script>
+    document.querySelectorAll("[data-copy-target]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const target = document.getElementById(button.dataset.copyTarget);
+        if (!target || !navigator.clipboard) return;
+        await navigator.clipboard.writeText(target.textContent.trim());
+        button.textContent = "Copied";
+        setTimeout(() => { button.textContent = "Copy payment command"; }, 1600);
+      });
+    });
+  </script>
 </body>
 </html>`);
+  });
+
+  app.get("/robots.txt", (_request, response) => {
+    response
+      .type("text/plain")
+      .send(`User-agent: *
+Allow: /
+Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
+`);
+  });
+
+  app.get("/sitemap.xml", (_request, response) => {
+    const updated = new Date().toISOString();
+    const urls = ["/", "/api/schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+      return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
+    }).join("");
+
+    response
+      .type("application/xml")
+      .send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
+  });
+
+  app.get("/api/examples", (_request, response) => {
+    response.json({
+      service: config.serviceName,
+      paidRoute: absoluteUrl(config, "/api/listing-roast"),
+      price: config.price,
+      network: config.network,
+      request: requestExample,
+      command: buildPayCommand(config),
+      output: buildListingRoast(requestExample)
+    });
   });
 
   app.get("/api/schema", (_request, response) => {
@@ -271,7 +568,9 @@ export function createApp(overrides = {}) {
   });
 
   app.get("/api/cash-register", async (_request, response) => {
-    response.json(await getCashRegister());
+    const cashRegister = await getCashRegister();
+    const receiverWallet = await getReceiverBalanceSnapshot(config);
+    response.json({ ...cashRegister, receiverWallet });
   });
 
   app.post("/api/listing-roast", validateListingRoastRequest);
