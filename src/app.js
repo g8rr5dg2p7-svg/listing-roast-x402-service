@@ -87,6 +87,18 @@ function createX402Middleware(config) {
   const server = new x402ResourceServer(facilitator);
   registerExactEvmScheme(server);
   server.registerExtension(bazaarResourceServerExtension);
+  server.onAfterVerify((context) => {
+    console.log("[x402] verify ok", summarizePaymentContext(context));
+  });
+  server.onVerifyFailure((context) => {
+    console.warn("[x402] verify failed", summarizePaymentContext(context));
+  });
+  server.onAfterSettle((context) => {
+    console.log("[x402] settle ok", summarizePaymentContext(context));
+  });
+  server.onSettleFailure((context) => {
+    console.warn("[x402] settle failed", summarizePaymentContext(context));
+  });
 
   return paymentMiddleware(
     {
@@ -108,6 +120,21 @@ function createX402Middleware(config) {
     undefined,
     true
   );
+}
+
+function summarizePaymentContext(context) {
+  const result = context?.result ?? {};
+  const requirements = context?.requirements ?? context?.paymentRequirements ?? {};
+  return JSON.stringify({
+    network: requirements.network,
+    amount: requirements.amount,
+    payTo: requirements.payTo,
+    isValid: result.isValid,
+    success: result.success,
+    invalidReason: result.invalidReason,
+    errorReason: result.errorReason,
+    errorMessage: result.errorMessage
+  });
 }
 
 function isEmptyBody(body) {
