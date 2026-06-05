@@ -1,0 +1,27 @@
+{
+  "name": "listing-roast-x402-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "vitest run",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@coinbase/cdp-sdk": "1.51.0",
+    "@x402/core": "2.11.0",
+    "@x402/evm": "2.11.0",
+    "@x402/express": "2.11.0",
+    "@x402/extensions": "2.11.0",
+    "express": "5.2.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "vitest": "4.1.4"
+  }
+}
