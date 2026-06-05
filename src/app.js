@@ -125,6 +125,8 @@ function createX402Middleware(config) {
 function summarizePaymentContext(context) {
   const result = context?.result ?? {};
   const requirements = context?.requirements ?? context?.paymentRequirements ?? {};
+  const error = context?.error ?? {};
+  const errorResult = error?.result ?? error?.data ?? {};
   return JSON.stringify({
     network: requirements.network,
     amount: requirements.amount,
@@ -133,7 +135,13 @@ function summarizePaymentContext(context) {
     success: result.success,
     invalidReason: result.invalidReason,
     errorReason: result.errorReason,
-    errorMessage: result.errorMessage
+    errorMessage: result.errorMessage,
+    failureName: error.name,
+    failureMessage: error.message,
+    failureStatus: error.status,
+    failureInvalidReason: errorResult.invalidReason,
+    failureErrorReason: errorResult.errorReason,
+    failureErrorMessage: errorResult.errorMessage
   });
 }
 
