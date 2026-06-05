@@ -215,7 +215,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "A $1 x402 critique for paid agent/API listing copy, buyer-agent skip reasons, and stop-or-upgrade guidance.",
+        description: "Listing Roast x402: $1 paid API listing critique for x402/MCP builders, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildDiscovery(config))
       }

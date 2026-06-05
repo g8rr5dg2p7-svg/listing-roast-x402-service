@@ -17,7 +17,7 @@ Listing Roast x402 helps builders avoid promoting paid API/service listings that
 ```json
 {
   "agentName": "Example x402 API",
-  "listingText": "A paid x402 API that helps builders check whether buyer agents understand the offer before paying.",
+  "listingText": "A paid x402 API that helps builders check whether buyer agents understand the offer before paying. It returns JSON with skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade recommendation. Example payloads are included for quick testing.",
   "targetBuyer": "x402 and MCP builders",
   "currentPrice": "$1.00",
   "currentCheckoutPath": "/api/listing-roast",
@@ -32,8 +32,8 @@ Listing Roast x402 helps builders avoid promoting paid API/service listings that
   "service": "Listing Roast x402",
   "endpoint": "listing-roast",
   "price": "$1.00",
-  "verdict": "fix_before_paid_push",
-  "score": "3/5",
+  "verdict": "ready_to_test",
+  "score": "5/5",
   "buyerAgentSkipReasons": [],
   "topFixes": [],
   "rewrittenListing": "...",
