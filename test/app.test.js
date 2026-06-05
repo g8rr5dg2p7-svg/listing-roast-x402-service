@@ -92,4 +92,19 @@ describe("Listing Roast x402 service", () => {
       await new Promise((resolve) => server.close(resolve));
     }
   });
+
+  it("lets empty discovery probes reach the x402 challenge", async () => {
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      const response = await fetchJson(server, "/api/listing-roast", {
+        method: "POST"
+      });
+
+      expect(response.status).toBe(402);
+      expect(response.headers.get("payment-required")).toBeTruthy();
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  }, 15000);
 });

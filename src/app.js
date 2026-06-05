@@ -36,6 +36,7 @@ function absoluteUrl(config, pathname) {
 function buildDiscovery(config) {
   return {
     input: requestExample,
+    bodyType: "json",
     inputSchema: {
       type: "object",
       required: ["agentName", "listingText"],
@@ -109,7 +110,16 @@ function createX402Middleware(config) {
   );
 }
 
+function isEmptyBody(body) {
+  return body == null || (typeof body === "object" && !Array.isArray(body) && Object.keys(body).length === 0);
+}
+
 function validateListingRoastRequest(request, response, next) {
+  if (isEmptyBody(request.body)) {
+    next();
+    return;
+  }
+
   const parsed = listingRoastRequestSchema.safeParse(request.body);
   if (!parsed.success) {
     response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
@@ -233,7 +243,13 @@ export function createApp(overrides = {}) {
   app.use(createX402Middleware(config));
 
   app.post("/api/listing-roast", async (request, response) => {
-    const result = buildListingRoast(request.listingRoastInput);
+    const parsed = listingRoastRequestSchema.safeParse(request.listingRoastInput ?? request.body);
+    if (!parsed.success) {
+      response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
+      return;
+    }
+
+    const result = buildListingRoast(parsed.data);
     const cashRegister = await recordPaidCompletion();
     response.json({ ...result, cashRegister });
   });
