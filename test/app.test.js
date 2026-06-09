@@ -92,20 +92,27 @@ describe("Listing Roast x402 service", () => {
 
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
-      expect(home.text).toContain("Copy payment command");
+      expect(home.text).toContain("Copy $0.05 score command");
+      expect(home.text).toContain("Copy $1 roast command");
       expect(home.text).toContain("Open examples JSON");
 
       const schema = await fetchJson(server, "/api/schema");
       expect(schema.status).toBe(200);
       expect(schema.json.service.price).toBe("$1.00");
 
+      const scoreSchema = await fetchJson(server, "/api/score-schema");
+      expect(scoreSchema.status).toBe(200);
+      expect(scoreSchema.json.service.price).toBe("$0.05");
+
       const mcp = await fetchJson(server, "/.well-known/mcp.json");
       expect(mcp.status).toBe(200);
-      expect(mcp.json.tools[0].path).toBe("/api/listing-roast");
+      expect(mcp.json.tools.map((tool) => tool.path)).toEqual(["/api/listing-score", "/api/listing-roast"]);
 
       const examples = await fetchJson(server, "/api/examples");
       expect(examples.status).toBe(200);
       expect(examples.json.command).toContain("x402 pay");
+      expect(examples.json.scoreCommand).toContain("/api/listing-score");
+      expect(examples.json.scoreOutput.price).toBe("$0.05");
       expect(examples.json.output.price).toBe("$1.00");
 
       const robots = await fetchJson(server, "/robots.txt");
@@ -115,6 +122,7 @@ describe("Listing Roast x402 service", () => {
       const sitemap = await fetchJson(server, "/sitemap.xml");
       expect(sitemap.status).toBe(200);
       expect(sitemap.text).toContain("/api/examples");
+      expect(sitemap.text).toContain("/api/score-schema");
 
       const track = await fetchJson(server, "/api/track", {
         method: "POST",
@@ -128,11 +136,13 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.receiverWallet.network).toBe("eip155:84532");
       expect(cashRegister.json.receiverWallet.source).toBe("disabled_for_non_mainnet");
       expect(cashRegister.json.signals.homepageViews).toBe(1);
-      expect(cashRegister.json.signals.schemaViews).toBe(1);
+      expect(cashRegister.json.signals.schemaViews).toBe(2);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
       expect(cashRegister.json.signals.mcpViews).toBe(1);
       expect(cashRegister.json.signals.commandCopyClicks).toBe(1);
       expect(cashRegister.json.signals.validUnpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.roastValidUnpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.scoreValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
       expect(cashRegister.json.signals.invalidRequests).toBe(0);
     } finally {
@@ -161,6 +171,37 @@ describe("Listing Roast x402 service", () => {
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.validUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.roastValidUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.scoreValidUnpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  }, 15000);
+
+  it("protects the score route with a five cent x402 challenge", async () => {
+    mockFacilitatorSupportedKinds();
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      const response = await fetchJson(server, "/api/listing-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestExample)
+      });
+
+      expect(response.status).toBe(402);
+      const challenge = readPaymentRequiredHeader(response.headers);
+      expect(challenge.error).toBe("Payment required");
+      expect(challenge.resource.url).toContain("/api/listing-score");
+      expect(challenge.accepts[0].network).toBe("eip155:84532");
+      expect(challenge.accepts[0].amount).toBe("50000");
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.validUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.roastValidUnpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.scoreValidUnpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
     } finally {
       await new Promise((resolve) => server.close(resolve));

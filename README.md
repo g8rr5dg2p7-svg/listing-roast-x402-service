@@ -1,6 +1,6 @@
 # Listing Roast x402 Service
 
-Standalone $1 x402 paid API for critiquing paid agent/API listing copy.
+Standalone x402 paid API for critiquing paid agent/API listing copy. It has a $0.05 score endpoint and a $1 full-roast endpoint.
 
 This is intentionally separate from ApexScout and any other active project. It has one public page, one protected JSON API route, MCP-visible metadata, and a local aggregate cash register.
 
@@ -11,12 +11,14 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 ## Routes
 
 - `GET /` - public landing page.
-- `GET /api/schema` - request/response shape.
+- `GET /api/schema` - full-roast request/response shape.
+- `GET /api/score-schema` - score request/response shape.
 - `GET /api/examples` - copy-ready request, command, and sample output.
 - `GET /robots.txt` - public crawl hints.
 - `GET /sitemap.xml` - public discovery URLs.
 - `GET /.well-known/mcp.json` - simple tool metadata.
-- `POST /api/listing-roast` - protected $1 x402 route.
+- `POST /api/listing-score` - protected $0.05 x402 score route.
+- `POST /api/listing-roast` - protected $1 x402 full-roast route.
 - `GET /api/cash-register` - deployment-local funnel counters, paid completion count, and receiver wallet USDC balance on Base mainnet.
 
 ## Promotion
@@ -30,10 +32,10 @@ npm install
 PAY_TO=0x000000000000000000000000000000000000dEaD npm start
 ```
 
-Then check the unpaid x402 challenge:
+Then check an unpaid x402 challenge:
 
 ```bash
-curl -i -X POST http://localhost:8787/api/listing-roast \
+curl -i -X POST http://localhost:8787/api/listing-score \
   -H 'Content-Type: application/json' \
   -d '{"agentName":"Example API","listingText":"A paid API for agents.","targetBuyer":"x402 builders"}'
 ```
@@ -65,7 +67,7 @@ CDP_API_KEY_SECRET=...
 
 ## Launch Checklist
 
-1. Open `/api/schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
+1. Open `/api/schema`, `/api/score-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
 2. Send one unpaid request and confirm the live route returns HTTP `402`.
 3. Confirm the live challenge uses `X402_NETWORK=eip155:8453` and amount `1000000`.
 4. Monitor `/api/cash-register`; use `signals.validUnpaidChallenges` for buyer-shaped payment attempts, `signals.emptyDiscoveryProbes` for bot/discovery noise, and `receiverWallet.usdcBalance` as the durable revenue check across deploys.

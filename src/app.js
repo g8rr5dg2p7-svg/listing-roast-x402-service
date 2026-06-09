@@ -6,7 +6,7 @@ import { paymentMiddleware } from "@x402/express";
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from "@x402/extensions/bazaar";
 
 import { getCashRegister, recordPaidCompletion, recordSignal } from "./cashRegister.js";
-import { buildListingRoast, listingRoastRequestSchema, requestExample } from "./roast.js";
+import { buildListingRoast, buildListingScore, listingRoastRequestSchema, requestExample } from "./roast.js";
 
 const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
 const BASE_MAINNET_NETWORK = "eip155:8453";
@@ -29,7 +29,8 @@ export function getConfig(overrides = {}) {
     cdpApiKeyId: overrides.cdpApiKeyId || process.env.CDP_API_KEY_ID || "",
     cdpApiKeySecret: overrides.cdpApiKeySecret || process.env.CDP_API_KEY_SECRET || "",
     baseRpcUrl: overrides.baseRpcUrl || process.env.BASE_RPC_URL || "https://mainnet.base.org",
-    price: "$1.00"
+    price: "$1.00",
+    scorePrice: "$0.05"
   };
 }
 
@@ -54,11 +55,11 @@ function shellQuote(value) {
   return `'${String(value).replaceAll("'", "'\\''")}'`;
 }
 
-function buildPayCommand(config) {
-  return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, "/api/listing-roast")} \\
+function buildPayCommand(config, pathname = "/api/listing-roast", maxAmount = "1000000") {
+  return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, pathname)} \\
   -X POST \\
   -d ${shellQuote(JSON.stringify(requestExample))} \\
-  --max-amount 1000000`;
+  --max-amount ${maxAmount}`;
 }
 
 function encodeBalanceOf(address) {
@@ -138,7 +139,27 @@ async function getReceiverBalanceSnapshot(config) {
   }
 }
 
-function buildDiscovery(config) {
+function buildDiscovery(config, options = {}) {
+  const routePath = options.routePath || "/api/listing-roast";
+  const price = options.price || config.price;
+  const outputExample = options.outputExample || buildListingRoast(requestExample);
+  const outputSchema = options.outputSchema || {
+    type: "object",
+    required: ["service", "endpoint", "price", "verdict", "score", "buyerAgentSkipReasons", "topFixes", "rewrittenListing"],
+    properties: {
+      service: { type: "string" },
+      endpoint: { type: "string" },
+      price: { type: "string" },
+      verdict: { type: "string" },
+      score: { type: "string" },
+      buyerAgentSkipReasons: { type: "array", items: { type: "string" } },
+      topFixes: { type: "array", items: { type: "string" } },
+      rewrittenListing: { type: "string" },
+      stopOrUpgrade: { type: "string" },
+      nextMeasurement: { type: "string" }
+    }
+  };
+
   return {
     input: requestExample,
     bodyType: "json",
@@ -156,32 +177,40 @@ function buildDiscovery(config) {
       }
     },
     output: {
-      example: buildListingRoast(requestExample),
-      schema: {
-        type: "object",
-        required: ["service", "endpoint", "price", "verdict", "score", "buyerAgentSkipReasons", "topFixes", "rewrittenListing"],
-        properties: {
-          service: { type: "string" },
-          endpoint: { type: "string" },
-          price: { type: "string" },
-          verdict: { type: "string" },
-          score: { type: "string" },
-          buyerAgentSkipReasons: { type: "array", items: { type: "string" } },
-          topFixes: { type: "array", items: { type: "string" } },
-          rewrittenListing: { type: "string" },
-          stopOrUpgrade: { type: "string" },
-          nextMeasurement: { type: "string" }
-        }
-      }
+      example: outputExample,
+      schema: outputSchema
     },
     service: {
       name: config.serviceName,
       url: config.serviceUrl,
-      route: absoluteUrl(config, "/api/listing-roast"),
-      price: config.price,
+      route: absoluteUrl(config, routePath),
+      price,
       network: config.network
     }
   };
+}
+
+function buildScoreDiscovery(config) {
+  return buildDiscovery(config, {
+    routePath: "/api/listing-score",
+    price: config.scorePrice,
+    outputExample: buildListingScore(requestExample),
+    outputSchema: {
+      type: "object",
+      required: ["service", "endpoint", "price", "verdict", "score", "checkedSignals", "firstFix", "nextStep", "upgradeEndpoint"],
+      properties: {
+        service: { type: "string" },
+        endpoint: { type: "string" },
+        price: { type: "string" },
+        verdict: { type: "string" },
+        score: { type: "string" },
+        checkedSignals: { type: "object" },
+        firstFix: { type: "string" },
+        nextStep: { type: "string" },
+        upgradeEndpoint: { type: "string" }
+      }
+    }
+  });
 }
 
 function createX402Middleware(config) {
@@ -207,6 +236,18 @@ function createX402Middleware(config) {
 
   return paymentMiddleware(
     {
+      "POST /api/listing-score": {
+        accepts: {
+          scheme: "exact",
+          price: config.scorePrice,
+          network: config.network,
+          payTo: config.payTo,
+          maxTimeoutSeconds: 300
+        },
+        description: "Listing Score x402: $0.05 paid API listing score for x402/MCP builders, first missing signal, and upgrade guidance.",
+        mimeType: "application/json",
+        extensions: declareDiscoveryExtension(buildScoreDiscovery(config))
+      },
       "POST /api/listing-roast": {
         accepts: {
           scheme: "exact",
@@ -281,6 +322,10 @@ function isAllowedSignal(value) {
   ].includes(value);
 }
 
+function validUnpaidSignalForPath(pathname) {
+  return pathname === "/api/listing-score" ? "scoreValidUnpaidChallenges" : "roastValidUnpaidChallenges";
+}
+
 function createCdpAuthFactory(config) {
   const facilitatorUrl = new URL(config.facilitatorUrl);
   const requestHost = facilitatorUrl.host;
@@ -331,10 +376,12 @@ export function createApp(overrides = {}) {
     await recordSignal("homepageViews");
     const cashRegisterUrl = absoluteUrl(config, "/api/cash-register");
     const paidRoute = absoluteUrl(config, "/api/listing-roast");
+    const scoreRoute = absoluteUrl(config, "/api/listing-score");
     const schemaUrl = absoluteUrl(config, "/api/schema");
     const examplesUrl = absoluteUrl(config, "/api/examples");
     const mcpUrl = absoluteUrl(config, "/.well-known/mcp.json");
     const payCommand = buildPayCommand(config);
+    const scoreCommand = buildPayCommand(config, "/api/listing-score", "50000");
     const sampleOutput = buildListingRoast(requestExample);
 
     response.type("html").send(`<!doctype html>
@@ -342,7 +389,7 @@ export function createApp(overrides = {}) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="A $1 x402 paid API that critiques paid agent and API listing copy before launch." />
+  <meta name="description" content="A $0.05 score and $1 x402 paid API that critiques paid agent and API listing copy before launch." />
   <meta property="og:title" content="${escapeHtml(config.serviceName)}" />
   <meta property="og:description" content="Find out why buyer agents skip your paid API listing before you promote it." />
   <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
@@ -419,15 +466,16 @@ export function createApp(overrides = {}) {
       <div class="wrap heroGrid">
         <div>
           <h1>Find out why buyer agents skip your paid API listing.</h1>
-          <p class="lead">Pay ${config.price} with x402 on Base mainnet. Send your listing copy and get skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade call before you promote.</p>
+          <p class="lead">Start with a ${config.scorePrice} listing score or pay ${config.price} for the full roast. Send your listing copy and get buyer-agent skip reasons before you promote.</p>
           <div class="actions">
-            <button class="button" type="button" data-copy-target="pay-command">Copy payment command</button>
+            <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.05 score command">Copy $0.05 score command</button>
+            <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $1 roast command">Copy $1 roast command</button>
             <a class="button secondary" href="${examplesUrl}">Open examples JSON</a>
             <a class="button secondary" href="${schemaUrl}">View JSON schema</a>
           </div>
           <div class="proof" aria-label="Proof points">
             <div><strong class="metric">Live</strong><span class="muted">Production x402 route</span></div>
-            <div><strong>${config.price}</strong><span class="muted">Per paid roast</span></div>
+            <div><strong>${config.scorePrice} / ${config.price}</strong><span class="muted">Score or full roast</span></div>
             <div><strong class="metric">Discoverable</strong><span class="muted">Declared for Bazaar</span></div>
           </div>
         </div>
@@ -437,7 +485,8 @@ export function createApp(overrides = {}) {
 <span class="warn">402 Payment Required</span>
 payTo: ${escapeHtml(config.payTo)}
 network: ${escapeHtml(config.network)}
-amount: 1000000 USDC units
+score amount: 50000 USDC units
+roast amount: 1000000 USDC units
 <span class="ok">200 OK after payment</span>
 verdict: ready_to_test
 score: 4/5</div>
@@ -465,8 +514,8 @@ score: 4/5</div>
     <section class="band" id="pay">
       <div class="wrap grid2">
         <div>
-          <h2>Pay ${config.price} and get a roast.</h2>
-          <p>The endpoint is protected by x402. The first unpaid request returns a payment challenge; the paid retry returns JSON.</p>
+          <h2>Pay ${config.scorePrice} first, then upgrade when useful.</h2>
+          <p>Both endpoints are protected by x402. The first unpaid request returns a payment challenge; the paid retry returns JSON.</p>
           <p>
             <span class="tag">Base mainnet</span>
             <span class="tag">USDC</span>
@@ -475,12 +524,22 @@ score: 4/5</div>
           </p>
         </div>
         <div class="card">
-          <h3>Paid route</h3>
+          <h3>Score route</h3>
+          <p><code>POST ${escapeHtml(scoreRoute)}</code></p>
+          <p class="muted">Maximum payment: <strong>50000</strong> USDC units.</p>
+        </div>
+        <div class="card">
+          <h3>Full roast route</h3>
           <p><code>POST ${escapeHtml(paidRoute)}</code></p>
           <p class="muted">Maximum payment: <strong>1000000</strong> USDC units.</p>
         </div>
       </div>
       <div class="wrap" style="margin-top: 18px;">
+        <h3>Score command</h3>
+        <pre id="score-command">${escapeHtml(scoreCommand)}</pre>
+      </div>
+      <div class="wrap" style="margin-top: 18px;">
+        <h3>Full roast command</h3>
         <pre id="pay-command">${escapeHtml(payCommand)}</pre>
       </div>
     </section>
@@ -489,8 +548,8 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div>
           <h2>Output built for action.</h2>
-          <p>The response is not a generic compliment. It tells a builder whether the offer is clear enough to test, what buyer agents may skip, and what to change first.</p>
-          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. The schema is available at <a href="${schemaUrl}">/api/schema</a>.</p>
+          <p>The score response gives the first missing signal and upgrade guidance. The full roast adds skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
+          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
         </div>
         <pre>${escapeHtml(prettyJson(sampleOutput))}</pre>
       </div>
@@ -538,8 +597,9 @@ score: 4/5</div>
           body: JSON.stringify({ event: "commandCopyClicks" }),
           keepalive: true
         }).catch(() => {});
+        const defaultText = button.dataset.defaultText || "Copy payment command";
         button.textContent = copied ? "Copied" : "Selected";
-        setTimeout(() => { button.textContent = "Copy payment command"; }, 1600);
+        setTimeout(() => { button.textContent = defaultText; }, 1600);
       });
     });
   </script>
@@ -558,7 +618,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/api/schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -573,10 +633,14 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
     response.json({
       service: config.serviceName,
       paidRoute: absoluteUrl(config, "/api/listing-roast"),
+      scoreRoute: absoluteUrl(config, "/api/listing-score"),
       price: config.price,
+      scorePrice: config.scorePrice,
       network: config.network,
       request: requestExample,
       command: buildPayCommand(config),
+      scoreCommand: buildPayCommand(config, "/api/listing-score", "50000"),
+      scoreOutput: buildListingScore(requestExample),
       output: buildListingRoast(requestExample)
     });
   });
@@ -586,11 +650,25 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
     response.json(buildDiscovery(config));
   });
 
+  app.get("/api/score-schema", async (_request, response) => {
+    await recordSignal("schemaViews");
+    response.json(buildScoreDiscovery(config));
+  });
+
   app.get("/.well-known/mcp.json", async (_request, response) => {
     await recordSignal("mcpViews");
     response.json({
       name: config.serviceName,
       tools: [
+        {
+          name: "score_paid_listing",
+          method: "POST",
+          path: "/api/listing-score",
+          url: absoluteUrl(config, "/api/listing-score"),
+          price: config.scorePrice,
+          network: config.network,
+          input: requestExample
+        },
         {
           name: "roast_paid_listing",
           method: "POST",
@@ -622,14 +700,32 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
   });
 
   app.post("/api/listing-roast", validateListingRoastRequest);
-  app.post("/api/listing-roast", async (request, _response, next) => {
+  app.post("/api/listing-score", validateListingRoastRequest);
+  app.post(["/api/listing-score", "/api/listing-roast"], async (request, _response, next) => {
     if (!hasPaymentHeader(request)) {
       await recordSignal("unpaidChallenges");
-      await recordSignal(isEmptyBody(request.body) ? "emptyDiscoveryProbes" : "validUnpaidChallenges");
+      if (isEmptyBody(request.body)) {
+        await recordSignal("emptyDiscoveryProbes");
+      } else {
+        await recordSignal("validUnpaidChallenges");
+        await recordSignal(validUnpaidSignalForPath(request.path));
+      }
     }
     next();
   });
   app.use(createX402Middleware(config));
+
+  app.post("/api/listing-score", async (request, response) => {
+    const parsed = listingRoastRequestSchema.safeParse(request.listingRoastInput ?? request.body);
+    if (!parsed.success) {
+      response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
+      return;
+    }
+
+    const result = buildListingScore(parsed.data);
+    const cashRegister = await recordPaidCompletion("listingScore", 0.05);
+    response.json({ ...result, cashRegister });
+  });
 
   app.post("/api/listing-roast", async (request, response) => {
     const parsed = listingRoastRequestSchema.safeParse(request.listingRoastInput ?? request.body);
@@ -639,7 +735,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
     }
 
     const result = buildListingRoast(parsed.data);
-    const cashRegister = await recordPaidCompletion();
+    const cashRegister = await recordPaidCompletion("listingRoast", 1);
     response.json({ ...result, cashRegister });
   });
 

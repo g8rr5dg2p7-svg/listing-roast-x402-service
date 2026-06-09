@@ -1,7 +1,9 @@
 const baseUrl = process.env.SMOKE_BASE_URL || "http://localhost:8787";
 const expectedNetwork = process.env.EXPECTED_X402_NETWORK || "eip155:84532";
+const smokePath = process.env.SMOKE_PATH || "/api/listing-roast";
+const expectedAmount = process.env.EXPECTED_X402_AMOUNT || (smokePath === "/api/listing-score" ? "50000" : "1000000");
 
-const response = await fetch(`${baseUrl}/api/listing-roast`, {
+const response = await fetch(`${baseUrl}${smokePath}`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
@@ -24,8 +26,8 @@ if (paymentRequired) {
 const firstAccept = challenge?.accepts?.[0];
 const passed =
   response.status === 402 &&
-  challenge?.resource?.url?.includes("/api/listing-roast") &&
-  firstAccept?.amount === "1000000" &&
+  challenge?.resource?.url?.includes(smokePath) &&
+  firstAccept?.amount === expectedAmount &&
   firstAccept?.network === expectedNetwork;
 
 console.log(JSON.stringify({ status: response.status, passed, challenge }, null, 2));

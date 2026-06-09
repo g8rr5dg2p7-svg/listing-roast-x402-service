@@ -9,6 +9,8 @@ const SIGNAL_KEYS = new Set([
   "commandCopyClicks",
   "unpaidChallenges",
   "validUnpaidChallenges",
+  "roastValidUnpaidChallenges",
+  "scoreValidUnpaidChallenges",
   "emptyDiscoveryProbes",
   "invalidRequests"
 ]);
@@ -24,6 +26,8 @@ function initialCash() {
     estimatedGrossRevenueUsd: "0.00",
     listingRoastCompletions: 0,
     listingRoastEstimatedRevenueUsd: "$0.00",
+    listingScoreCompletions: 0,
+    listingScoreEstimatedRevenueUsd: "$0.00",
     lastPaidAt: null,
     firstSignalAt: null,
     lastSignalAt: null,
@@ -35,6 +39,8 @@ function initialCash() {
       commandCopyClicks: 0,
       unpaidChallenges: 0,
       validUnpaidChallenges: 0,
+      roastValidUnpaidChallenges: 0,
+      scoreValidUnpaidChallenges: 0,
       emptyDiscoveryProbes: 0,
       invalidRequests: 0
     }
@@ -87,17 +93,24 @@ export async function recordSignal(signalKey) {
   return next;
 }
 
-export async function recordPaidCompletion() {
+export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) {
   const cash = await readCash();
-  const listingRoastCompletions = Number(cash.listingRoastCompletions || 0) + 1;
+  const isScore = kind === "listingScore";
+  const listingRoastCompletions = Number(cash.listingRoastCompletions || 0) + (isScore ? 0 : 1);
+  const listingScoreCompletions = Number(cash.listingScoreCompletions || 0) + (isScore ? 1 : 0);
   const paidCompletions = Number(cash.paidCompletions || 0) + 1;
+  const estimatedGrossRevenueUsd = Number(cash.estimatedGrossRevenueUsd || 0) + priceUsd;
+  const roastRevenue = Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore ? 0 : priceUsd);
+  const scoreRevenue = Number(String(cash.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore ? priceUsd : 0);
   const now = new Date().toISOString();
   const next = {
     ...cash,
     paidCompletions,
-    estimatedGrossRevenueUsd: paidCompletions.toFixed(2),
+    estimatedGrossRevenueUsd: estimatedGrossRevenueUsd.toFixed(2),
     listingRoastCompletions,
-    listingRoastEstimatedRevenueUsd: `$${listingRoastCompletions.toFixed(2)}`,
+    listingRoastEstimatedRevenueUsd: `$${roastRevenue.toFixed(2)}`,
+    listingScoreCompletions,
+    listingScoreEstimatedRevenueUsd: `$${scoreRevenue.toFixed(2)}`,
     firstSignalAt: cash.firstSignalAt || now,
     lastSignalAt: now,
     lastPaidAt: now

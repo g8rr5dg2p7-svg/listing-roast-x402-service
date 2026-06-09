@@ -129,6 +129,31 @@ export function buildListingRoast(input) {
   };
 }
 
+export function buildListingScore(input) {
+  const checks = classify(input);
+  const issues = issueList(input, checks);
+
+  return {
+    service: "Listing Roast x402",
+    endpoint: "listing-score",
+    price: "$0.05",
+    verdict: checks.verdict,
+    score: `${checks.score}/5`,
+    checkedSignals: {
+      buyer: checks.hasBuyer,
+      price: checks.hasPrice,
+      output: checks.hasOutput,
+      checkout: checks.hasCheckout,
+      example: checks.hasExample
+    },
+    firstFix: issues[0] || "The basics are present. Use the full roast only if you want a rewrite and launch recommendation.",
+    nextStep: checks.score >= 4
+      ? "Ready to test. Pay for the full roast only if you want the rewritten listing and stop-or-upgrade guidance."
+      : "Fix the first missing signal before buying traffic or promoting broadly.",
+    upgradeEndpoint: "/api/listing-roast"
+  };
+}
+
 export const requestExample = {
   agentName: "Example x402 API",
   listingText: "A paid x402 API that helps builders check whether buyer agents understand the offer before paying. It returns JSON with skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade recommendation. Example payloads are included for quick testing.",
