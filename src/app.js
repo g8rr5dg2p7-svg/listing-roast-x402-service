@@ -254,7 +254,7 @@ function isEmptyBody(body) {
   return body == null || (typeof body === "object" && !Array.isArray(body) && Object.keys(body).length === 0);
 }
 
-function validateListingRoastRequest(request, response, next) {
+async function validateListingRoastRequest(request, response, next) {
   if (isEmptyBody(request.body)) {
     next();
     return;
@@ -262,6 +262,7 @@ function validateListingRoastRequest(request, response, next) {
 
   const parsed = listingRoastRequestSchema.safeParse(request.body);
   if (!parsed.success) {
+    await recordSignal("invalidRequests");
     response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
     return;
   }
@@ -331,6 +332,7 @@ export function createApp(overrides = {}) {
     const cashRegisterUrl = absoluteUrl(config, "/api/cash-register");
     const paidRoute = absoluteUrl(config, "/api/listing-roast");
     const schemaUrl = absoluteUrl(config, "/api/schema");
+    const examplesUrl = absoluteUrl(config, "/api/examples");
     const mcpUrl = absoluteUrl(config, "/.well-known/mcp.json");
     const payCommand = buildPayCommand(config);
     const sampleOutput = buildListingRoast(requestExample);
@@ -405,6 +407,7 @@ export function createApp(overrides = {}) {
       <div class="brand">Listing Roast x402</div>
       <nav class="navlinks" aria-label="Primary">
         <a href="#pay">Pay</a>
+        <a href="${examplesUrl}">Examples</a>
         <a href="#output">Output</a>
         <a href="${schemaUrl}">Schema</a>
         <a href="${cashRegisterUrl}">Cash register</a>
@@ -419,6 +422,7 @@ export function createApp(overrides = {}) {
           <p class="lead">Pay ${config.price} with x402 on Base mainnet. Send your listing copy and get skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade call before you promote.</p>
           <div class="actions">
             <button class="button" type="button" data-copy-target="pay-command">Copy payment command</button>
+            <a class="button secondary" href="${examplesUrl}">Open examples JSON</a>
             <a class="button secondary" href="${schemaUrl}">View JSON schema</a>
           </div>
           <div class="proof" aria-label="Proof points">
@@ -486,7 +490,7 @@ score: 4/5</div>
         <div>
           <h2>Output built for action.</h2>
           <p>The response is not a generic compliment. It tells a builder whether the offer is clear enough to test, what buyer agents may skip, and what to change first.</p>
-          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. The schema is available at <a href="${schemaUrl}">/api/schema</a>.</p>
+          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. The schema is available at <a href="${schemaUrl}">/api/schema</a>.</p>
         </div>
         <pre>${escapeHtml(prettyJson(sampleOutput))}</pre>
       </div>
@@ -621,6 +625,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
   app.post("/api/listing-roast", async (request, _response, next) => {
     if (!hasPaymentHeader(request)) {
       await recordSignal("unpaidChallenges");
+      await recordSignal(isEmptyBody(request.body) ? "emptyDiscoveryProbes" : "validUnpaidChallenges");
     }
     next();
   });

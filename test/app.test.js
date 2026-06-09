@@ -93,6 +93,7 @@ describe("Listing Roast x402 service", () => {
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
       expect(home.text).toContain("Copy payment command");
+      expect(home.text).toContain("Open examples JSON");
 
       const schema = await fetchJson(server, "/api/schema");
       expect(schema.status).toBe(200);
@@ -131,6 +132,9 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.examplesViews).toBe(1);
       expect(cashRegister.json.signals.mcpViews).toBe(1);
       expect(cashRegister.json.signals.commandCopyClicks).toBe(1);
+      expect(cashRegister.json.signals.validUnpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
+      expect(cashRegister.json.signals.invalidRequests).toBe(0);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
@@ -156,6 +160,8 @@ describe("Listing Roast x402 service", () => {
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.validUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
@@ -174,6 +180,10 @@ describe("Listing Roast x402 service", () => {
       expect(response.status).toBe(400);
       expect(response.headers.get("payment-required")).toBeNull();
       expect(response.json.error).toBe("invalid_request");
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.json.signals.invalidRequests).toBe(1);
+      expect(cashRegister.json.signals.unpaidChallenges).toBe(0);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
@@ -193,6 +203,8 @@ describe("Listing Roast x402 service", () => {
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.validUnpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(1);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }

@@ -7,7 +7,10 @@ const SIGNAL_KEYS = new Set([
   "examplesViews",
   "mcpViews",
   "commandCopyClicks",
-  "unpaidChallenges"
+  "unpaidChallenges",
+  "validUnpaidChallenges",
+  "emptyDiscoveryProbes",
+  "invalidRequests"
 ]);
 
 function getCashPath() {
@@ -30,7 +33,10 @@ function initialCash() {
       examplesViews: 0,
       mcpViews: 0,
       commandCopyClicks: 0,
-      unpaidChallenges: 0
+      unpaidChallenges: 0,
+      validUnpaidChallenges: 0,
+      emptyDiscoveryProbes: 0,
+      invalidRequests: 0
     }
   };
 }
