@@ -94,7 +94,19 @@ describe("Listing Roast x402 service", () => {
       expect(home.status).toBe(200);
       expect(home.text).toContain("Copy $0.05 score command");
       expect(home.text).toContain("Copy $1 roast command");
+      expect(home.text).toContain("View sample score");
       expect(home.text).toContain("Open examples JSON");
+
+      const sample = await fetchJson(server, "/sample");
+      expect(sample.status).toBe(200);
+      expect(sample.text).toContain("Sample the $0.05 listing score before paying.");
+      expect(sample.text).toContain("/api/listing-score");
+
+      const sampleScore = await fetchJson(server, "/api/sample-score");
+      expect(sampleScore.status).toBe(200);
+      expect(sampleScore.json.price).toBe("$0.05");
+      expect(sampleScore.json.command).toContain("--max-amount 50000");
+      expect(sampleScore.json.output.endpoint).toBe("listing-score");
 
       const schema = await fetchJson(server, "/api/schema");
       expect(schema.status).toBe(200);
@@ -121,6 +133,8 @@ describe("Listing Roast x402 service", () => {
 
       const sitemap = await fetchJson(server, "/sitemap.xml");
       expect(sitemap.status).toBe(200);
+      expect(sitemap.text).toContain("/sample");
+      expect(sitemap.text).toContain("/api/sample-score");
       expect(sitemap.text).toContain("/api/examples");
       expect(sitemap.text).toContain("/api/score-schema");
 
@@ -136,6 +150,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.receiverWallet.network).toBe("eip155:84532");
       expect(cashRegister.json.receiverWallet.source).toBe("disabled_for_non_mainnet");
       expect(cashRegister.json.signals.homepageViews).toBe(1);
+      expect(cashRegister.json.signals.sampleViews).toBe(2);
       expect(cashRegister.json.signals.schemaViews).toBe(2);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
       expect(cashRegister.json.signals.mcpViews).toBe(1);
@@ -178,6 +193,23 @@ describe("Listing Roast x402 service", () => {
       await new Promise((resolve) => server.close(resolve));
     }
   }, 15000);
+
+  it("preserves concurrent signal writes", async () => {
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      await Promise.all(Array.from({ length: 12 }, () => fetchJson(server, "/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event: "commandCopyClicks" })
+      })));
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.json.signals.commandCopyClicks).toBe(12);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
 
   it("protects the score route with a five cent x402 challenge", async () => {
     mockFacilitatorSupportedKinds();

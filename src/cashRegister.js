@@ -4,6 +4,7 @@ import path from "node:path";
 const SIGNAL_KEYS = new Set([
   "homepageViews",
   "schemaViews",
+  "sampleViews",
   "examplesViews",
   "mcpViews",
   "commandCopyClicks",
@@ -34,6 +35,7 @@ function initialCash() {
     signals: {
       homepageViews: 0,
       schemaViews: 0,
+      sampleViews: 0,
       examplesViews: 0,
       mcpViews: 0,
       commandCopyClicks: 0,
@@ -59,6 +61,8 @@ function normalizeCash(cash = {}) {
   };
 }
 
+let cashUpdateQueue = Promise.resolve();
+
 async function readCash() {
   try {
     return normalizeCash(JSON.parse(await readFile(getCashPath(), "utf8")));
@@ -73,50 +77,60 @@ async function writeCash(cash) {
   await writeFile(cashPath, `${JSON.stringify(cash, null, 2)}\n`);
 }
 
+async function updateCash(mutator) {
+  const update = cashUpdateQueue.then(async () => {
+    const cash = await readCash();
+    const next = mutator(cash);
+    await writeCash(next);
+    return next;
+  });
+
+  cashUpdateQueue = update.catch(() => {});
+  return update;
+}
+
 export async function recordSignal(signalKey) {
   if (!SIGNAL_KEYS.has(signalKey)) {
     return readCash();
   }
 
-  const cash = await readCash();
-  const now = new Date().toISOString();
-  const next = {
-    ...cash,
-    firstSignalAt: cash.firstSignalAt || now,
-    lastSignalAt: now,
-    signals: {
-      ...cash.signals,
-      [signalKey]: Number(cash.signals[signalKey] || 0) + 1
-    }
-  };
-  await writeCash(next);
-  return next;
+  return updateCash((cash) => {
+    const now = new Date().toISOString();
+    return {
+      ...cash,
+      firstSignalAt: cash.firstSignalAt || now,
+      lastSignalAt: now,
+      signals: {
+        ...cash.signals,
+        [signalKey]: Number(cash.signals[signalKey] || 0) + 1
+      }
+    };
+  });
 }
 
 export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) {
-  const cash = await readCash();
-  const isScore = kind === "listingScore";
-  const listingRoastCompletions = Number(cash.listingRoastCompletions || 0) + (isScore ? 0 : 1);
-  const listingScoreCompletions = Number(cash.listingScoreCompletions || 0) + (isScore ? 1 : 0);
-  const paidCompletions = Number(cash.paidCompletions || 0) + 1;
-  const estimatedGrossRevenueUsd = Number(cash.estimatedGrossRevenueUsd || 0) + priceUsd;
-  const roastRevenue = Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore ? 0 : priceUsd);
-  const scoreRevenue = Number(String(cash.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore ? priceUsd : 0);
-  const now = new Date().toISOString();
-  const next = {
-    ...cash,
-    paidCompletions,
-    estimatedGrossRevenueUsd: estimatedGrossRevenueUsd.toFixed(2),
-    listingRoastCompletions,
-    listingRoastEstimatedRevenueUsd: `$${roastRevenue.toFixed(2)}`,
-    listingScoreCompletions,
-    listingScoreEstimatedRevenueUsd: `$${scoreRevenue.toFixed(2)}`,
-    firstSignalAt: cash.firstSignalAt || now,
-    lastSignalAt: now,
-    lastPaidAt: now
-  };
-  await writeCash(next);
-  return next;
+  return updateCash((cash) => {
+    const isScore = kind === "listingScore";
+    const listingRoastCompletions = Number(cash.listingRoastCompletions || 0) + (isScore ? 0 : 1);
+    const listingScoreCompletions = Number(cash.listingScoreCompletions || 0) + (isScore ? 1 : 0);
+    const paidCompletions = Number(cash.paidCompletions || 0) + 1;
+    const estimatedGrossRevenueUsd = Number(cash.estimatedGrossRevenueUsd || 0) + priceUsd;
+    const roastRevenue = Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore ? 0 : priceUsd);
+    const scoreRevenue = Number(String(cash.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore ? priceUsd : 0);
+    const now = new Date().toISOString();
+    return {
+      ...cash,
+      paidCompletions,
+      estimatedGrossRevenueUsd: estimatedGrossRevenueUsd.toFixed(2),
+      listingRoastCompletions,
+      listingRoastEstimatedRevenueUsd: `$${roastRevenue.toFixed(2)}`,
+      listingScoreCompletions,
+      listingScoreEstimatedRevenueUsd: `$${scoreRevenue.toFixed(2)}`,
+      firstSignalAt: cash.firstSignalAt || now,
+      lastSignalAt: now,
+      lastPaidAt: now
+    };
+  });
 }
 
 export async function getCashRegister() {

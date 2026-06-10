@@ -62,6 +62,39 @@ function buildPayCommand(config, pathname = "/api/listing-roast", maxAmount = "1
   --max-amount ${maxAmount}`;
 }
 
+function copyScript(defaultText = "Copy payment command") {
+  return `
+    document.querySelectorAll("[data-copy-target]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const target = document.getElementById(button.dataset.copyTarget);
+        if (!target) return;
+        let copied = false;
+        try {
+          if (navigator.clipboard) {
+            await navigator.clipboard.writeText(target.textContent.trim());
+            copied = true;
+          }
+        } catch {}
+        if (!copied) {
+          const range = document.createRange();
+          range.selectNodeContents(target);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+        fetch("/api/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event: "commandCopyClicks" }),
+          keepalive: true
+        }).catch(() => {});
+        const defaultText = button.dataset.defaultText || ${JSON.stringify(defaultText)};
+        button.textContent = copied ? "Copied" : "Selected";
+        setTimeout(() => { button.textContent = defaultText; }, 1600);
+      });
+    });`;
+}
+
 function encodeBalanceOf(address) {
   const normalized = address.toLowerCase().replace(/^0x/, "");
   return `0x70a08231${normalized.padStart(64, "0")}`;
@@ -377,11 +410,13 @@ export function createApp(overrides = {}) {
     const cashRegisterUrl = absoluteUrl(config, "/api/cash-register");
     const paidRoute = absoluteUrl(config, "/api/listing-roast");
     const scoreRoute = absoluteUrl(config, "/api/listing-score");
+    const sampleUrl = absoluteUrl(config, "/sample");
     const schemaUrl = absoluteUrl(config, "/api/schema");
     const examplesUrl = absoluteUrl(config, "/api/examples");
     const mcpUrl = absoluteUrl(config, "/.well-known/mcp.json");
     const payCommand = buildPayCommand(config);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "50000");
+    const scoreOutput = buildListingScore(requestExample);
     const sampleOutput = buildListingRoast(requestExample);
 
     response.type("html").send(`<!doctype html>
@@ -454,6 +489,7 @@ export function createApp(overrides = {}) {
       <div class="brand">Listing Roast x402</div>
       <nav class="navlinks" aria-label="Primary">
         <a href="#pay">Pay</a>
+        <a href="${sampleUrl}">Sample</a>
         <a href="${examplesUrl}">Examples</a>
         <a href="#output">Output</a>
         <a href="${schemaUrl}">Schema</a>
@@ -470,6 +506,7 @@ export function createApp(overrides = {}) {
           <div class="actions">
             <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.05 score command">Copy $0.05 score command</button>
             <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $1 roast command">Copy $1 roast command</button>
+            <a class="button secondary" href="${sampleUrl}">View sample score</a>
             <a class="button secondary" href="${examplesUrl}">Open examples JSON</a>
             <a class="button secondary" href="${schemaUrl}">View JSON schema</a>
           </div>
@@ -549,7 +586,14 @@ score: 4/5</div>
         <div>
           <h2>Output built for action.</h2>
           <p>The score response gives the first missing signal and upgrade guidance. The full roast adds skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
-          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
+          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
+        </div>
+        <pre>${escapeHtml(prettyJson(scoreOutput))}</pre>
+      </div>
+      <div class="wrap grid2" style="margin-top: 18px;">
+        <div>
+          <h3>Full roast sample</h3>
+          <p class="muted">The $1 route adds the rewrite and launch decision after payment.</p>
         </div>
         <pre>${escapeHtml(prettyJson(sampleOutput))}</pre>
       </div>
@@ -573,35 +617,7 @@ score: 4/5</div>
     <div class="wrap">Listing Roast x402 runs as a standalone paid API. No subscriptions, no accounts, no ApexScout dependency.</div>
   </footer>
   <script>
-    document.querySelectorAll("[data-copy-target]").forEach((button) => {
-      button.addEventListener("click", async () => {
-        const target = document.getElementById(button.dataset.copyTarget);
-        if (!target) return;
-        let copied = false;
-        try {
-          if (navigator.clipboard) {
-            await navigator.clipboard.writeText(target.textContent.trim());
-            copied = true;
-          }
-        } catch {}
-        if (!copied) {
-          const range = document.createRange();
-          range.selectNodeContents(target);
-          const selection = window.getSelection();
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-        fetch("/api/track", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ event: "commandCopyClicks" }),
-          keepalive: true
-        }).catch(() => {});
-        const defaultText = button.dataset.defaultText || "Copy payment command";
-        button.textContent = copied ? "Copied" : "Selected";
-        setTimeout(() => { button.textContent = defaultText; }, 1600);
-      });
-    });
+${copyScript()}
   </script>
 </body>
 </html>`);
@@ -618,7 +634,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/sample", "/api/sample-score", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -643,6 +659,110 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       scoreOutput: buildListingScore(requestExample),
       output: buildListingRoast(requestExample)
     });
+  });
+
+  app.get("/api/sample-score", async (_request, response) => {
+    await recordSignal("sampleViews");
+    response.json({
+      service: config.serviceName,
+      samplePage: absoluteUrl(config, "/sample"),
+      paidRoute: absoluteUrl(config, "/api/listing-score"),
+      price: config.scorePrice,
+      network: config.network,
+      request: requestExample,
+      command: buildPayCommand(config, "/api/listing-score", "50000"),
+      output: buildListingScore(requestExample)
+    });
+  });
+
+  app.get("/sample", async (_request, response) => {
+    await recordSignal("sampleViews");
+    const scoreCommand = buildPayCommand(config, "/api/listing-score", "50000");
+    const roastCommand = buildPayCommand(config);
+    const scoreOutput = buildListingScore(requestExample);
+    const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
+    const paidRoute = absoluteUrl(config, "/api/listing-score");
+    const roastRoute = absoluteUrl(config, "/api/listing-roast");
+
+    response.type("html").send(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Sample Listing Roast x402 score output before paying $0.05." />
+  <link rel="canonical" href="${escapeHtml(absoluteUrl(config, "/sample"))}" />
+  <title>Sample score | ${escapeHtml(config.serviceName)}</title>
+  <style>
+    :root { color-scheme: light; --ink: #171717; --muted: #5b6470; --line: #d8dee7; --paper: #fbfaf7; --panel: #ffffff; --blue: #1458d4; --green: #0d7a4f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--paper); color: var(--ink); }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; min-width: 0; }
+    header { border-bottom: 1px solid var(--line); background: #fff; }
+    .nav { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .brand { font-weight: 800; }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    main { padding: 42px 0; }
+    h1 { margin: 0 0 16px; font-size: clamp(2.15rem, 5vw, 4rem); line-height: 1; letter-spacing: 0; max-width: 780px; }
+    h2 { margin: 0 0 12px; font-size: 1.35rem; letter-spacing: 0; }
+    p { margin: 0 0 16px; max-width: 760px; }
+    .lead { font-size: 1.14rem; color: #333c47; }
+    .grid { display: grid; grid-template-columns: minmax(0, 0.82fr) minmax(320px, 1.18fr); gap: 20px; align-items: start; margin-top: 24px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; min-width: 0; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 20px 0; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 15px; border-radius: 8px; border: 1px solid #101010; background: #111; color: #fff; text-decoration: none; font-weight: 700; }
+    .button.secondary { background: #fff; color: #111; border-color: var(--line); }
+    button.button { cursor: pointer; font: inherit; }
+    .muted { color: var(--muted); }
+    .metric { color: var(--green); font-weight: 800; }
+    code, pre { background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+    code { padding: 2px 6px; overflow-wrap: anywhere; word-break: break-word; }
+    pre { padding: 16px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; margin: 0; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } .nav { align-items: flex-start; flex-direction: column; padding: 14px 0; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <div class="brand">Listing Roast x402</div>
+      <nav><a href="${escapeHtml(config.serviceUrl)}">Home</a> · <a href="${sampleScoreApi}">Sample JSON</a></nav>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <h1>Sample the $0.05 listing score before paying.</h1>
+      <p class="lead">This is the exact response shape from the paid score route. If it matches what your agent or API listing needs, use the x402 command below.</p>
+      <div class="actions">
+        <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.05 score command">Copy $0.05 score command</button>
+        <a class="button secondary" href="${sampleScoreApi}">Open sample JSON</a>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <h2>Paid score route</h2>
+          <p><code>POST ${escapeHtml(paidRoute)}</code></p>
+          <p class="muted">Price: <span class="metric">${config.scorePrice}</span> on ${escapeHtml(config.network)}.</p>
+          <h2>Upgrade route</h2>
+          <p><code>POST ${escapeHtml(roastRoute)}</code></p>
+          <p class="muted">The full roast adds skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade call.</p>
+        </div>
+        <pre>${escapeHtml(prettyJson(scoreOutput))}</pre>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <h2>Score command</h2>
+          <pre id="score-command">${escapeHtml(scoreCommand)}</pre>
+        </div>
+        <div class="card">
+          <h2>Full roast command</h2>
+          <pre>${escapeHtml(roastCommand)}</pre>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+${copyScript("Copy $0.05 score command")}
+  </script>
+</body>
+</html>`);
   });
 
   app.get("/api/schema", async (_request, response) => {
