@@ -129,13 +129,28 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.builder).toContain("/builder");
       expect(mcp.json.openApi).toContain("/openapi.json");
       expect(mcp.json.llms).toContain("/llms.txt");
+      expect(mcp.json.x402Manifest).toContain("/x402.json");
       expect(mcp.json.tools.map((tool) => tool.path)).toEqual(["/api/listing-score", "/api/listing-roast"]);
+
+      const x402Manifest = await fetchJson(server, "/x402.json");
+      expect(x402Manifest.status).toBe(200);
+      expect(x402Manifest.json.resources.map((resource) => resource.id)).toEqual(["listing_score", "listing_roast"]);
+      expect(x402Manifest.json.resources.map((resource) => resource.path)).toEqual(["/api/listing-score", "/api/listing-roast"]);
+      expect(x402Manifest.json.resources[0].price).toBe("$0.005");
+      expect(x402Manifest.json.resources[0].maxAmountRequired).toBe("5000");
+      expect(x402Manifest.json.resources[1].price).toBe("$0.01");
+      expect(x402Manifest.json.resources[1].maxAmountRequired).toBe("10000");
+
+      const wellKnownX402Manifest = await fetchJson(server, "/.well-known/x402.json");
+      expect(wellKnownX402Manifest.status).toBe(200);
+      expect(wellKnownX402Manifest.json.resources[1].command).toContain("--max-amount 10000");
 
       const examples = await fetchJson(server, "/api/examples");
       expect(examples.status).toBe(200);
       expect(examples.json.builder).toContain("/builder");
       expect(examples.json.openApi).toContain("/openapi.json");
       expect(examples.json.llms).toContain("/llms.txt");
+      expect(examples.json.x402Manifest).toContain("/x402.json");
       expect(examples.json.command).toContain("x402 pay");
       expect(examples.json.scoreCommand).toContain("/api/listing-score");
       expect(examples.json.scoreOutput.price).toBe("$0.005");
@@ -145,11 +160,13 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.status).toBe(200);
       expect(openApi.json.openapi).toBe("3.1.0");
       expect(openApi.json.paths["/api/listing-score"].post.summary).toContain("$0.005");
+      expect(openApi.json["x-listing-roast"].x402Manifest).toContain("/x402.json");
 
       const llms = await fetchJson(server, "/llms.txt");
       expect(llms.status).toBe(200);
       expect(llms.text).toContain("Command builder");
       expect(llms.text).toContain("/api/listing-score");
+      expect(llms.text).toContain("/x402.json");
 
       const robots = await fetchJson(server, "/robots.txt");
       expect(robots.status).toBe(200);
@@ -162,6 +179,8 @@ describe("Listing Roast x402 service", () => {
       expect(sitemap.text).toContain("/api/sample-score");
       expect(sitemap.text).toContain("/openapi.json");
       expect(sitemap.text).toContain("/llms.txt");
+      expect(sitemap.text).toContain("/x402.json");
+      expect(sitemap.text).toContain("/.well-known/x402.json");
       expect(sitemap.text).toContain("/api/examples");
       expect(sitemap.text).toContain("/api/score-schema");
 
@@ -192,6 +211,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.schemaViews).toBe(2);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
       expect(cashRegister.json.signals.mcpViews).toBe(1);
+      expect(cashRegister.json.signals.x402ManifestViews).toBe(2);
       expect(cashRegister.json.signals.commandCopyClicks).toBe(1);
       expect(cashRegister.json.signals.validUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.roastValidUnpaidChallenges).toBe(0);

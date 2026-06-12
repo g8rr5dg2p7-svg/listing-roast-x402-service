@@ -16,6 +16,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /api/sample-score` - free sample request, command, and score output.
 - `GET /openapi.json` - machine-readable API description.
 - `GET /llms.txt` - agent-readable service summary and route guide.
+- `GET /x402.json` and `GET /.well-known/x402.json` - current owned x402 route manifest.
 - `GET /api/schema` - full-roast request/response shape.
 - `GET /api/score-schema` - score request/response shape.
 - `GET /api/examples` - copy-ready request, command, and sample output.
@@ -72,7 +73,7 @@ CDP_API_KEY_SECRET=...
 
 ## Launch Checklist
 
-1. Open `/builder`, `/sample`, `/api/sample-score`, `/openapi.json`, `/llms.txt`, `/api/schema`, `/api/score-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
+1. Open `/builder`, `/sample`, `/api/sample-score`, `/openapi.json`, `/llms.txt`, `/x402.json`, `/.well-known/x402.json`, `/api/schema`, `/api/score-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
 2. Send one unpaid request and confirm the live route returns HTTP `402`.
 3. Confirm the live score challenge uses `X402_NETWORK=eip155:8453` and amount `5000`; confirm the full-roast challenge uses amount `10000`.
 4. Monitor `/api/cash-register`; use `signals.builderViews`, `signals.builderCommandBuilds`, `signals.sampleViews`, `signals.validUnpaidChallenges`, and `signals.commandCopyClicks` for buyer interest, `signals.emptyDiscoveryProbes` for bot/discovery noise, and `receiverWallet.usdcBalance` as the durable revenue check across deploys.

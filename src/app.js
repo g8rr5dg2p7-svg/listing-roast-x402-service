@@ -325,12 +325,57 @@ function buildOpenApiDocument(config) {
       homepage: config.serviceUrl,
       builder: absoluteUrl(config, "/builder"),
       sample: absoluteUrl(config, "/sample"),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
       scoreRoute: absoluteUrl(config, "/api/listing-score"),
       roastRoute: absoluteUrl(config, "/api/listing-roast"),
       scorePrice: config.scorePrice,
       roastPrice: config.price,
       network: config.network
     }
+  };
+}
+
+function buildX402Manifest(config) {
+  return {
+    service: config.serviceName,
+    description: "Paid x402 API that scores and roasts paid agent/API listing copy before promotion.",
+    homepage: absoluteUrl(config, "/"),
+    builder: absoluteUrl(config, "/builder"),
+    sample: absoluteUrl(config, "/sample"),
+    openApi: absoluteUrl(config, "/openapi.json"),
+    llms: absoluteUrl(config, "/llms.txt"),
+    network: config.network,
+    payTo: config.payTo,
+    resources: [
+      {
+        id: "listing_score",
+        name: "listing_score",
+        method: "POST",
+        path: "/api/listing-score",
+        url: absoluteUrl(config, "/api/listing-score"),
+        price: config.scorePrice,
+        maxAmountRequired: "5000",
+        description: "Half-cent paid score for agent/API listing copy, checked signals, first fix, and upgrade guidance.",
+        command: buildPayCommand(config, "/api/listing-score", "5000"),
+        input: requestExample,
+        outputExample: buildListingScore(requestExample),
+        schema: absoluteUrl(config, "/api/score-schema")
+      },
+      {
+        id: "listing_roast",
+        name: "listing_roast",
+        method: "POST",
+        path: "/api/listing-roast",
+        url: absoluteUrl(config, "/api/listing-roast"),
+        price: config.price,
+        maxAmountRequired: "10000",
+        description: "One-cent paid critique for agent/API listing copy, buyer-agent skip reasons, top fixes, rewrite, and launch guidance.",
+        command: buildPayCommand(config),
+        input: requestExample,
+        outputExample: buildListingRoast(requestExample),
+        schema: absoluteUrl(config, "/api/schema")
+      }
+    ]
   };
 }
 
@@ -728,7 +773,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", "/api/sample-score", "/openapi.json", "/llms.txt", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", "/.well-known/x402.json", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -748,6 +793,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       sampleScore: absoluteUrl(config, "/api/sample-score"),
       openApi: absoluteUrl(config, "/openapi.json"),
       llms: absoluteUrl(config, "/llms.txt"),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
       paidRoute: absoluteUrl(config, "/api/listing-roast"),
       scoreRoute: absoluteUrl(config, "/api/listing-score"),
       price: config.price,
@@ -788,6 +834,7 @@ Command builder: ${absoluteUrl(config, "/builder")}
 Sample score page: ${absoluteUrl(config, "/sample")}
 Sample score JSON: ${absoluteUrl(config, "/api/sample-score")}
 OpenAPI: ${absoluteUrl(config, "/openapi.json")}
+x402 manifest: ${absoluteUrl(config, "/x402.json")}
 MCP metadata: ${absoluteUrl(config, "/.well-known/mcp.json")}
 
 Paid routes:
@@ -816,6 +863,14 @@ Use the $0.005 score first when deciding whether the listing is worth a full rew
     await recordSignal("openApiViews");
     response.json(buildOpenApiDocument(config));
   });
+
+  async function serveX402Manifest(_request, response) {
+    await recordSignal("x402ManifestViews");
+    response.json(buildX402Manifest(config));
+  }
+
+  app.get("/x402.json", serveX402Manifest);
+  app.get("/.well-known/x402.json", serveX402Manifest);
 
   app.get("/builder", async (_request, response) => {
     await recordSignal("builderViews");
@@ -1069,6 +1124,7 @@ ${copyScript("Copy $0.005 score command")}
       sample: absoluteUrl(config, "/sample"),
       openApi: absoluteUrl(config, "/openapi.json"),
       llms: absoluteUrl(config, "/llms.txt"),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
       tools: [
         {
           name: "score_paid_listing",

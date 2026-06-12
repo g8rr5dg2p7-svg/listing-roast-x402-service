@@ -24,6 +24,7 @@ Current verified state:
 - Sample score JSON: HTTP 200.
 - OpenAPI: HTTP 200.
 - llms.txt: HTTP 200.
+- x402 manifest: HTTP 200.
 - Score route: HTTP 402, amount 5000 USDC units.
 - Full roast route: HTTP 402, amount 10000 USDC units.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
