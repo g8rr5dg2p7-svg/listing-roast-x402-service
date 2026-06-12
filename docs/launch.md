@@ -3,8 +3,11 @@
 Live production service:
 
 - Homepage: https://listing-roast-x402-service-production.up.railway.app
+- Command builder: https://listing-roast-x402-service-production.up.railway.app/builder
 - Sample score page: https://listing-roast-x402-service-production.up.railway.app/sample
 - Sample score JSON: https://listing-roast-x402-service-production.up.railway.app/api/sample-score
+- OpenAPI: https://listing-roast-x402-service-production.up.railway.app/openapi.json
+- llms.txt: https://listing-roast-x402-service-production.up.railway.app/llms.txt
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Full roast route: https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Schema: https://listing-roast-x402-service-production.up.railway.app/api/schema
@@ -16,8 +19,11 @@ Current verified state:
 
 - Railway deploy: successful.
 - Homepage: HTTP 200.
+- Command builder: HTTP 200.
 - Sample page: HTTP 200.
 - Sample score JSON: HTTP 200.
+- OpenAPI: HTTP 200.
+- llms.txt: HTTP 200.
 - Score route: HTTP 402, amount 50000 USDC units.
 - Full roast route: HTTP 402, amount 1000000 USDC units.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
@@ -69,4 +75,4 @@ Expected production result:
 
 Promotion rule:
 
-Promote the Railway homepage or `/sample` page above. The service has a verified production x402 challenge and one settled proof payment.
+Promote the Railway homepage, `/builder`, or `/sample` page above. The service has a verified production x402 challenge and one settled proof payment.

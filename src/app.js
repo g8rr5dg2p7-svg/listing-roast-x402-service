@@ -246,6 +246,94 @@ function buildScoreDiscovery(config) {
   });
 }
 
+function buildOpenApiDocument(config) {
+  return {
+    openapi: "3.1.0",
+    info: {
+      title: config.serviceName,
+      version: "0.2.0",
+      description: "Paid x402 API that scores and roasts paid agent/API listing copy before promotion."
+    },
+    servers: [{ url: config.serviceUrl }],
+    paths: {
+      "/api/listing-score": {
+        post: {
+          summary: "Paid $0.05 listing score",
+          description: "Returns a quick listing score, checked signals, first fix, and upgrade guidance after x402 payment.",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: buildScoreDiscovery(config).inputSchema,
+                example: requestExample
+              }
+            }
+          },
+          responses: {
+            200: {
+              description: "Paid listing score response",
+              content: {
+                "application/json": {
+                  schema: buildScoreDiscovery(config).output.schema,
+                  example: buildListingScore(requestExample)
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        }
+      },
+      "/api/listing-roast": {
+        post: {
+          summary: "Paid $1 full listing roast",
+          description: "Returns buyer-agent skip reasons, top fixes, rewritten listing copy, and stop-or-upgrade guidance after x402 payment.",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: buildDiscovery(config).inputSchema,
+                example: requestExample
+              }
+            }
+          },
+          responses: {
+            200: {
+              description: "Paid full roast response",
+              content: {
+                "application/json": {
+                  schema: buildDiscovery(config).output.schema,
+                  example: buildListingRoast(requestExample)
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        }
+      },
+      "/api/sample-score": {
+        get: {
+          summary: "Free sample score output",
+          responses: {
+            200: {
+              description: "Sample request, command, and score output"
+            }
+          }
+        }
+      }
+    },
+    "x-listing-roast": {
+      homepage: config.serviceUrl,
+      builder: absoluteUrl(config, "/builder"),
+      sample: absoluteUrl(config, "/sample"),
+      scoreRoute: absoluteUrl(config, "/api/listing-score"),
+      roastRoute: absoluteUrl(config, "/api/listing-roast"),
+      scorePrice: config.scorePrice,
+      roastPrice: config.price,
+      network: config.network
+    }
+  };
+}
+
 function createX402Middleware(config) {
   const facilitator = new HTTPFacilitatorClient({
     url: config.facilitatorUrl,
@@ -351,6 +439,7 @@ function hasPaymentHeader(request) {
 
 function isAllowedSignal(value) {
   return typeof value === "string" && [
+    "builderCommandBuilds",
     "commandCopyClicks"
   ].includes(value);
 }
@@ -410,9 +499,12 @@ export function createApp(overrides = {}) {
     const cashRegisterUrl = absoluteUrl(config, "/api/cash-register");
     const paidRoute = absoluteUrl(config, "/api/listing-roast");
     const scoreRoute = absoluteUrl(config, "/api/listing-score");
+    const builderUrl = absoluteUrl(config, "/builder");
     const sampleUrl = absoluteUrl(config, "/sample");
     const schemaUrl = absoluteUrl(config, "/api/schema");
     const examplesUrl = absoluteUrl(config, "/api/examples");
+    const openApiUrl = absoluteUrl(config, "/openapi.json");
+    const llmsUrl = absoluteUrl(config, "/llms.txt");
     const mcpUrl = absoluteUrl(config, "/.well-known/mcp.json");
     const payCommand = buildPayCommand(config);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "50000");
@@ -489,6 +581,7 @@ export function createApp(overrides = {}) {
       <div class="brand">Listing Roast x402</div>
       <nav class="navlinks" aria-label="Primary">
         <a href="#pay">Pay</a>
+        <a href="${builderUrl}">Builder</a>
         <a href="${sampleUrl}">Sample</a>
         <a href="${examplesUrl}">Examples</a>
         <a href="#output">Output</a>
@@ -506,6 +599,7 @@ export function createApp(overrides = {}) {
           <div class="actions">
             <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.05 score command">Copy $0.05 score command</button>
             <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $1 roast command">Copy $1 roast command</button>
+            <a class="button secondary" href="${builderUrl}">Build your command</a>
             <a class="button secondary" href="${sampleUrl}">View sample score</a>
             <a class="button secondary" href="${examplesUrl}">Open examples JSON</a>
             <a class="button secondary" href="${schemaUrl}">View JSON schema</a>
@@ -586,7 +680,7 @@ score: 4/5</div>
         <div>
           <h2>Output built for action.</h2>
           <p>The score response gives the first missing signal and upgrade guidance. The full roast adds skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
-          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
+          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. The command builder is available at <a href="${builderUrl}">/builder</a>. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
         </div>
         <pre>${escapeHtml(prettyJson(scoreOutput))}</pre>
       </div>
@@ -603,8 +697,8 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div class="card">
           <h3>Discovery</h3>
-          <p class="muted">The route is declared for x402 Bazaar discovery with JSON body metadata and an example payload.</p>
-          <p><a href="${mcpUrl}">MCP metadata</a></p>
+          <p class="muted">The route is declared for x402 Bazaar discovery with JSON body metadata, OpenAPI, llms.txt, and an example payload.</p>
+          <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a></p>
         </div>
         <div class="card">
           <h3>When not to buy</h3>
@@ -634,7 +728,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/sample", "/api/sample-score", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", "/api/sample-score", "/openapi.json", "/llms.txt", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -648,6 +742,12 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
     await recordSignal("examplesViews");
     response.json({
       service: config.serviceName,
+      homepage: absoluteUrl(config, "/"),
+      builder: absoluteUrl(config, "/builder"),
+      samplePage: absoluteUrl(config, "/sample"),
+      sampleScore: absoluteUrl(config, "/api/sample-score"),
+      openApi: absoluteUrl(config, "/openapi.json"),
+      llms: absoluteUrl(config, "/llms.txt"),
       paidRoute: absoluteUrl(config, "/api/listing-roast"),
       scoreRoute: absoluteUrl(config, "/api/listing-score"),
       price: config.price,
@@ -675,11 +775,195 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
     });
   });
 
+  app.get("/llms.txt", async (_request, response) => {
+    await recordSignal("llmsViews");
+    response
+      .type("text/plain")
+      .send(`# Listing Roast x402
+
+Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who need clearer paid API listing copy before promotion.
+
+Homepage: ${absoluteUrl(config, "/")}
+Command builder: ${absoluteUrl(config, "/builder")}
+Sample score page: ${absoluteUrl(config, "/sample")}
+Sample score JSON: ${absoluteUrl(config, "/api/sample-score")}
+OpenAPI: ${absoluteUrl(config, "/openapi.json")}
+MCP metadata: ${absoluteUrl(config, "/.well-known/mcp.json")}
+
+Paid routes:
+
+- POST ${absoluteUrl(config, "/api/listing-score")}
+  - Price: ${config.scorePrice}
+  - Network: ${config.network}
+  - Max amount: 50000 USDC units
+  - Output: score, checked signals, first fix, next step, upgrade endpoint
+
+- POST ${absoluteUrl(config, "/api/listing-roast")}
+  - Price: ${config.price}
+  - Network: ${config.network}
+  - Max amount: 1000000 USDC units
+  - Output: buyer-agent skip reasons, top fixes, rewritten listing, stop-or-upgrade guidance
+
+Request body JSON:
+
+${prettyJson(requestExample)}
+
+Use the $0.05 score first when deciding whether the listing is worth a full rewrite.
+`);
+  });
+
+  app.get("/openapi.json", async (_request, response) => {
+    await recordSignal("openApiViews");
+    response.json(buildOpenApiDocument(config));
+  });
+
+  app.get("/builder", async (_request, response) => {
+    await recordSignal("builderViews");
+    const scoreRoute = absoluteUrl(config, "/api/listing-score");
+    const roastRoute = absoluteUrl(config, "/api/listing-roast");
+    const sampleUrl = absoluteUrl(config, "/sample");
+    const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
+    const scoreCommand = buildPayCommand(config, "/api/listing-score", "50000");
+    const roastCommand = buildPayCommand(config);
+
+    response.type("html").send(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Build a copy-ready x402 command for the Listing Roast $0.05 score route." />
+  <link rel="canonical" href="${escapeHtml(absoluteUrl(config, "/builder"))}" />
+  <title>Command builder | ${escapeHtml(config.serviceName)}</title>
+  <style>
+    :root { color-scheme: light; --ink: #171717; --muted: #5b6470; --line: #d8dee7; --paper: #fbfaf7; --panel: #ffffff; --blue: #1458d4; --green: #0d7a4f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--paper); color: var(--ink); }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; min-width: 0; }
+    header { border-bottom: 1px solid var(--line); background: #fff; }
+    .nav { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .brand { font-weight: 800; }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    main { padding: 42px 0; }
+    h1 { margin: 0 0 16px; font-size: clamp(2.15rem, 5vw, 4rem); line-height: 1; letter-spacing: 0; max-width: 860px; }
+    h2 { margin: 0 0 12px; font-size: 1.35rem; letter-spacing: 0; }
+    p { margin: 0 0 16px; max-width: 780px; }
+    .lead { font-size: 1.14rem; color: #333c47; }
+    .grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(340px, 1.1fr); gap: 20px; align-items: start; margin-top: 24px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; min-width: 0; }
+    label { display: block; font-weight: 700; margin: 0 0 6px; }
+    input, textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font: inherit; padding: 10px 12px; margin: 0 0 14px; }
+    textarea { min-height: 150px; resize: vertical; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 20px 0; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 15px; border-radius: 8px; border: 1px solid #101010; background: #111; color: #fff; text-decoration: none; font-weight: 700; }
+    .button.secondary { background: #fff; color: #111; border-color: var(--line); }
+    button.button { cursor: pointer; font: inherit; }
+    .muted { color: var(--muted); }
+    .metric { color: var(--green); font-weight: 800; }
+    code, pre { background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+    code { padding: 2px 6px; overflow-wrap: anywhere; word-break: break-word; }
+    pre { padding: 16px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; margin: 0 0 16px; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } .nav { align-items: flex-start; flex-direction: column; padding: 14px 0; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <div class="brand">Listing Roast x402</div>
+      <nav><a href="${escapeHtml(config.serviceUrl)}">Home</a> · <a href="${sampleUrl}">Sample</a> · <a href="${sampleScoreApi}">Sample JSON</a></nav>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <h1>Build a paid score command from your listing.</h1>
+      <p class="lead">Paste the offer you are trying to sell. This page builds the exact x402 command for the ${config.scorePrice} score route and the optional ${config.price} full roast route.</p>
+      <div class="grid">
+        <form class="card" id="builder-form">
+          <label for="agentName">Service name</label>
+          <input id="agentName" name="agentName" value="${escapeHtml(requestExample.agentName)}" maxlength="120" />
+          <label for="listingText">Listing copy</label>
+          <textarea id="listingText" name="listingText" maxlength="4000">${escapeHtml(requestExample.listingText)}</textarea>
+          <label for="targetBuyer">Target buyer</label>
+          <input id="targetBuyer" name="targetBuyer" value="${escapeHtml(requestExample.targetBuyer)}" maxlength="160" />
+          <label for="currentPrice">Current price</label>
+          <input id="currentPrice" name="currentPrice" value="${escapeHtml(requestExample.currentPrice)}" maxlength="40" />
+          <label for="currentCheckoutPath">Checkout path</label>
+          <input id="currentCheckoutPath" name="currentCheckoutPath" value="${escapeHtml(requestExample.currentCheckoutPath)}" maxlength="240" />
+          <label for="goal">Goal</label>
+          <input id="goal" name="goal" value="${escapeHtml(requestExample.goal)}" maxlength="240" />
+          <div class="actions">
+            <button class="button" id="build-command" type="button">Build commands</button>
+            <a class="button secondary" href="${sampleUrl}">See sample output</a>
+          </div>
+          <p class="muted">This builder runs in your browser. It does not submit your listing until you run a paid x402 command.</p>
+        </form>
+        <div>
+          <div class="card">
+            <h2>Score command <span class="metric">${config.scorePrice}</span></h2>
+            <p class="muted"><code>POST ${escapeHtml(scoreRoute)}</code></p>
+            <pre id="score-command">${escapeHtml(scoreCommand)}</pre>
+            <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy score command">Copy score command</button>
+          </div>
+          <div class="card" style="margin-top: 18px;">
+            <h2>Full roast command <span class="metric">${config.price}</span></h2>
+            <p class="muted"><code>POST ${escapeHtml(roastRoute)}</code></p>
+            <pre id="pay-command">${escapeHtml(roastCommand)}</pre>
+            <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy full roast command">Copy full roast command</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    const scoreUrl = ${JSON.stringify(scoreRoute)};
+    const roastUrl = ${JSON.stringify(roastRoute)};
+    function fieldValue(id) {
+      return document.getElementById(id).value.trim();
+    }
+    function shellQuote(value) {
+      return "'" + String(value).replace(/'/g, "'\\\\''") + "'";
+    }
+    function payload() {
+      return {
+        agentName: fieldValue("agentName"),
+        listingText: fieldValue("listingText"),
+        targetBuyer: fieldValue("targetBuyer"),
+        currentPrice: fieldValue("currentPrice"),
+        currentCheckoutPath: fieldValue("currentCheckoutPath"),
+        goal: fieldValue("goal")
+      };
+    }
+    function command(url, maxAmount) {
+      return "npx awal@2.8.0 x402 pay " + url + " -X POST -d " + shellQuote(JSON.stringify(payload())) + " --max-amount " + maxAmount;
+    }
+    function updateCommands(track) {
+      document.getElementById("score-command").textContent = command(scoreUrl, "50000");
+      document.getElementById("pay-command").textContent = command(roastUrl, "1000000");
+      if (track) {
+        fetch("/api/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event: "builderCommandBuilds" }),
+          keepalive: true
+        }).catch(() => {});
+      }
+    }
+    document.getElementById("build-command").addEventListener("click", () => updateCommands(true));
+    document.querySelectorAll("#builder-form input, #builder-form textarea").forEach((field) => {
+      field.addEventListener("input", () => updateCommands(false));
+    });
+    updateCommands(false);
+${copyScript("Copy command")}
+  </script>
+</body>
+</html>`);
+  });
+
   app.get("/sample", async (_request, response) => {
     await recordSignal("sampleViews");
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "50000");
     const roastCommand = buildPayCommand(config);
     const scoreOutput = buildListingScore(requestExample);
+    const builderUrl = absoluteUrl(config, "/builder");
     const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
     const paidRoute = absoluteUrl(config, "/api/listing-score");
     const roastRoute = absoluteUrl(config, "/api/listing-roast");
@@ -724,7 +1008,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
   <header>
     <div class="wrap nav">
       <div class="brand">Listing Roast x402</div>
-      <nav><a href="${escapeHtml(config.serviceUrl)}">Home</a> · <a href="${sampleScoreApi}">Sample JSON</a></nav>
+      <nav><a href="${escapeHtml(config.serviceUrl)}">Home</a> · <a href="${builderUrl}">Builder</a> · <a href="${sampleScoreApi}">Sample JSON</a></nav>
     </div>
   </header>
   <main>
@@ -733,6 +1017,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       <p class="lead">This is the exact response shape from the paid score route. If it matches what your agent or API listing needs, use the x402 command below.</p>
       <div class="actions">
         <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.05 score command">Copy $0.05 score command</button>
+        <a class="button secondary" href="${builderUrl}">Build your command</a>
         <a class="button secondary" href="${sampleScoreApi}">Open sample JSON</a>
       </div>
       <div class="grid">
@@ -779,6 +1064,11 @@ ${copyScript("Copy $0.05 score command")}
     await recordSignal("mcpViews");
     response.json({
       name: config.serviceName,
+      homepage: absoluteUrl(config, "/"),
+      builder: absoluteUrl(config, "/builder"),
+      sample: absoluteUrl(config, "/sample"),
+      openApi: absoluteUrl(config, "/openapi.json"),
+      llms: absoluteUrl(config, "/llms.txt"),
       tools: [
         {
           name: "score_paid_listing",

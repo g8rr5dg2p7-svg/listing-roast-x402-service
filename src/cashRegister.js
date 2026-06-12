@@ -3,6 +3,10 @@ import path from "node:path";
 
 const SIGNAL_KEYS = new Set([
   "homepageViews",
+  "builderViews",
+  "builderCommandBuilds",
+  "llmsViews",
+  "openApiViews",
   "schemaViews",
   "sampleViews",
   "examplesViews",
@@ -34,6 +38,10 @@ function initialCash() {
     lastSignalAt: null,
     signals: {
       homepageViews: 0,
+      builderViews: 0,
+      builderCommandBuilds: 0,
+      llmsViews: 0,
+      openApiViews: 0,
       schemaViews: 0,
       sampleViews: 0,
       examplesViews: 0,

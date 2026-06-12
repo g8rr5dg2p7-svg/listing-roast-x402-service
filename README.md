@@ -2,7 +2,7 @@
 
 Standalone x402 paid API for critiquing paid agent/API listing copy. It has a $0.05 score endpoint and a $1 full-roast endpoint.
 
-This is intentionally separate from ApexScout and any other active project. It has a public homepage, a shareable sample page, two protected JSON API routes, MCP-visible metadata, and a local aggregate cash register.
+This is intentionally separate from ApexScout and any other active project. It has a public homepage, a command-builder page, a shareable sample page, two protected JSON API routes, MCP-visible metadata, OpenAPI, llms.txt, and a local aggregate cash register.
 
 By default, local development can use Base Sepolia through the public x402 facilitator. The live Railway service uses Base mainnet, a separate receiver wallet, and CDP facilitator credentials.
 
@@ -11,8 +11,11 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 ## Routes
 
 - `GET /` - public landing page.
+- `GET /builder` - browser-side command builder for custom listing payloads.
 - `GET /sample` - buyer-facing sample score page.
 - `GET /api/sample-score` - free sample request, command, and score output.
+- `GET /openapi.json` - machine-readable API description.
+- `GET /llms.txt` - agent-readable service summary and route guide.
 - `GET /api/schema` - full-roast request/response shape.
 - `GET /api/score-schema` - score request/response shape.
 - `GET /api/examples` - copy-ready request, command, and sample output.
@@ -69,8 +72,8 @@ CDP_API_KEY_SECRET=...
 
 ## Launch Checklist
 
-1. Open `/sample`, `/api/sample-score`, `/api/schema`, `/api/score-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
+1. Open `/builder`, `/sample`, `/api/sample-score`, `/openapi.json`, `/llms.txt`, `/api/schema`, `/api/score-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
 2. Send one unpaid request and confirm the live route returns HTTP `402`.
 3. Confirm the live score challenge uses `X402_NETWORK=eip155:8453` and amount `50000`; confirm the full-roast challenge uses amount `1000000`.
-4. Monitor `/api/cash-register`; use `signals.sampleViews`, `signals.validUnpaidChallenges`, and `signals.commandCopyClicks` for buyer interest, `signals.emptyDiscoveryProbes` for bot/discovery noise, and `receiverWallet.usdcBalance` as the durable revenue check across deploys.
+4. Monitor `/api/cash-register`; use `signals.builderViews`, `signals.builderCommandBuilds`, `signals.sampleViews`, `signals.validUnpaidChallenges`, and `signals.commandCopyClicks` for buyer interest, `signals.emptyDiscoveryProbes` for bot/discovery noise, and `receiverWallet.usdcBalance` as the durable revenue check across deploys.
 5. Promote the live route only after the production challenge and settlement proof are verified.

@@ -5,8 +5,11 @@ Use this when sharing Listing Roast x402 with builders. Keep the claim tight: th
 ## Primary Links
 
 - Homepage: https://listing-roast-x402-service-production.up.railway.app
+- Command builder: https://listing-roast-x402-service-production.up.railway.app/builder
 - Sample score page: https://listing-roast-x402-service-production.up.railway.app/sample
 - Sample score JSON: https://listing-roast-x402-service-production.up.railway.app/api/sample-score
+- OpenAPI: https://listing-roast-x402-service-production.up.railway.app/openapi.json
+- llms.txt: https://listing-roast-x402-service-production.up.railway.app/llms.txt
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Full roast route: https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Examples: https://listing-roast-x402-service-production.up.railway.app/api/examples
@@ -21,7 +24,7 @@ Listing Roast x402 is a paid API for x402, MCP, and agent-service builders. Star
 
 I launched Listing Roast x402: a paid API that critiques paid agent/API listing copy before you promote it.
 
-See the sample output first. Start with a $0.05 score. Upgrade to the $1 full roast for buyer-agent skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade recommendation.
+Use the command builder or see the sample output first. Start with a $0.05 score. Upgrade to the $1 full roast for buyer-agent skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade recommendation.
 
 No account. x402 payment. Base USDC.
 
@@ -29,6 +32,9 @@ https://listing-roast-x402-service-production.up.railway.app
 
 Sample:
 https://listing-roast-x402-service-production.up.railway.app/sample
+
+Build a command for your own listing:
+https://listing-roast-x402-service-production.up.railway.app/builder
 
 ## Builder Community Post
 
@@ -48,6 +54,10 @@ https://listing-roast-x402-service-production.up.railway.app
 The sample page shows the score output before payment:
 
 https://listing-roast-x402-service-production.up.railway.app/sample
+
+The command builder creates a copy-ready x402 command from your listing:
+
+https://listing-roast-x402-service-production.up.railway.app/builder
 
 The examples endpoint has a copy-ready request:
 
@@ -100,6 +110,8 @@ Avoid cold spam. Prefer posts where builders are already discussing x402 discove
 
 - `/api/cash-register` -> `receiverWallet.usdcBalance`
 - `/api/cash-register` -> `signals.homepageViews`
+- `/api/cash-register` -> `signals.builderViews`
+- `/api/cash-register` -> `signals.builderCommandBuilds`
 - `/api/cash-register` -> `signals.sampleViews`
 - `/api/cash-register` -> `signals.commandCopyClicks`
 - `/api/cash-register` -> `signals.examplesViews`

@@ -94,13 +94,21 @@ describe("Listing Roast x402 service", () => {
       expect(home.status).toBe(200);
       expect(home.text).toContain("Copy $0.05 score command");
       expect(home.text).toContain("Copy $1 roast command");
+      expect(home.text).toContain("Build your command");
       expect(home.text).toContain("View sample score");
       expect(home.text).toContain("Open examples JSON");
+
+      const builder = await fetchJson(server, "/builder");
+      expect(builder.status).toBe(200);
+      expect(builder.text).toContain("Build a paid score command from your listing.");
+      expect(builder.text).toContain("/api/listing-score");
+      expect(builder.text).toContain("builderCommandBuilds");
 
       const sample = await fetchJson(server, "/sample");
       expect(sample.status).toBe(200);
       expect(sample.text).toContain("Sample the $0.05 listing score before paying.");
       expect(sample.text).toContain("/api/listing-score");
+      expect(sample.text).toContain("Build your command");
 
       const sampleScore = await fetchJson(server, "/api/sample-score");
       expect(sampleScore.status).toBe(200);
@@ -118,14 +126,30 @@ describe("Listing Roast x402 service", () => {
 
       const mcp = await fetchJson(server, "/.well-known/mcp.json");
       expect(mcp.status).toBe(200);
+      expect(mcp.json.builder).toContain("/builder");
+      expect(mcp.json.openApi).toContain("/openapi.json");
+      expect(mcp.json.llms).toContain("/llms.txt");
       expect(mcp.json.tools.map((tool) => tool.path)).toEqual(["/api/listing-score", "/api/listing-roast"]);
 
       const examples = await fetchJson(server, "/api/examples");
       expect(examples.status).toBe(200);
+      expect(examples.json.builder).toContain("/builder");
+      expect(examples.json.openApi).toContain("/openapi.json");
+      expect(examples.json.llms).toContain("/llms.txt");
       expect(examples.json.command).toContain("x402 pay");
       expect(examples.json.scoreCommand).toContain("/api/listing-score");
       expect(examples.json.scoreOutput.price).toBe("$0.05");
       expect(examples.json.output.price).toBe("$1.00");
+
+      const openApi = await fetchJson(server, "/openapi.json");
+      expect(openApi.status).toBe(200);
+      expect(openApi.json.openapi).toBe("3.1.0");
+      expect(openApi.json.paths["/api/listing-score"].post.summary).toContain("$0.05");
+
+      const llms = await fetchJson(server, "/llms.txt");
+      expect(llms.status).toBe(200);
+      expect(llms.text).toContain("Command builder");
+      expect(llms.text).toContain("/api/listing-score");
 
       const robots = await fetchJson(server, "/robots.txt");
       expect(robots.status).toBe(200);
@@ -133,8 +157,11 @@ describe("Listing Roast x402 service", () => {
 
       const sitemap = await fetchJson(server, "/sitemap.xml");
       expect(sitemap.status).toBe(200);
+      expect(sitemap.text).toContain("/builder");
       expect(sitemap.text).toContain("/sample");
       expect(sitemap.text).toContain("/api/sample-score");
+      expect(sitemap.text).toContain("/openapi.json");
+      expect(sitemap.text).toContain("/llms.txt");
       expect(sitemap.text).toContain("/api/examples");
       expect(sitemap.text).toContain("/api/score-schema");
 
@@ -145,11 +172,22 @@ describe("Listing Roast x402 service", () => {
       });
       expect(track.status).toBe(204);
 
+      const builderTrack = await fetchJson(server, "/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event: "builderCommandBuilds" })
+      });
+      expect(builderTrack.status).toBe(204);
+
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.status).toBe(200);
       expect(cashRegister.json.receiverWallet.network).toBe("eip155:84532");
       expect(cashRegister.json.receiverWallet.source).toBe("disabled_for_non_mainnet");
       expect(cashRegister.json.signals.homepageViews).toBe(1);
+      expect(cashRegister.json.signals.builderViews).toBe(1);
+      expect(cashRegister.json.signals.builderCommandBuilds).toBe(1);
+      expect(cashRegister.json.signals.llmsViews).toBe(1);
+      expect(cashRegister.json.signals.openApiViews).toBe(1);
       expect(cashRegister.json.signals.sampleViews).toBe(2);
       expect(cashRegister.json.signals.schemaViews).toBe(2);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
