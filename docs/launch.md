@@ -24,7 +24,7 @@ Current verified state:
 - Sample score JSON: HTTP 200.
 - OpenAPI: HTTP 200.
 - llms.txt: HTTP 200.
-- Score route: HTTP 402, amount 50000 USDC units.
+- Score route: HTTP 402, amount 5000 USDC units.
 - Full roast route: HTTP 402, amount 1000000 USDC units.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
@@ -51,7 +51,7 @@ Live verification:
 SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
 SMOKE_PATH=/api/listing-score \
 EXPECTED_X402_NETWORK=eip155:8453 \
-EXPECTED_X402_AMOUNT=50000 \
+EXPECTED_X402_AMOUNT=5000 \
 npm run smoke
 
 SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
@@ -69,7 +69,7 @@ Expected production result:
   "resource": "https://listing-roast-x402-service-production.up.railway.app/api/listing-score",
   "payTo": "0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C",
   "network": "eip155:8453",
-  "amount": "50000"
+  "amount": "5000"
 }
 ```
 

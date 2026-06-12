@@ -30,7 +30,7 @@ export function getConfig(overrides = {}) {
     cdpApiKeySecret: overrides.cdpApiKeySecret || process.env.CDP_API_KEY_SECRET || "",
     baseRpcUrl: overrides.baseRpcUrl || process.env.BASE_RPC_URL || "https://mainnet.base.org",
     price: "$1.00",
-    scorePrice: "$0.05"
+    scorePrice: "$0.005"
   };
 }
 
@@ -258,7 +258,7 @@ function buildOpenApiDocument(config) {
     paths: {
       "/api/listing-score": {
         post: {
-          summary: "Paid $0.05 listing score",
+          summary: "Paid $0.005 listing score",
           description: "Returns a quick listing score, checked signals, first fix, and upgrade guidance after x402 payment.",
           requestBody: {
             required: true,
@@ -365,7 +365,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Score x402: $0.05 paid API listing score for x402/MCP builders, first missing signal, and upgrade guidance.",
+        description: "Listing Score x402: $0.005 paid API listing score for x402/MCP builders, first missing signal, and upgrade guidance.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildScoreDiscovery(config))
       },
@@ -507,7 +507,7 @@ export function createApp(overrides = {}) {
     const llmsUrl = absoluteUrl(config, "/llms.txt");
     const mcpUrl = absoluteUrl(config, "/.well-known/mcp.json");
     const payCommand = buildPayCommand(config);
-    const scoreCommand = buildPayCommand(config, "/api/listing-score", "50000");
+    const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const scoreOutput = buildListingScore(requestExample);
     const sampleOutput = buildListingRoast(requestExample);
 
@@ -516,7 +516,7 @@ export function createApp(overrides = {}) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="A $0.05 score and $1 x402 paid API that critiques paid agent and API listing copy before launch." />
+  <meta name="description" content="A $0.005 score and $1 x402 paid API that critiques paid agent and API listing copy before launch." />
   <meta property="og:title" content="${escapeHtml(config.serviceName)}" />
   <meta property="og:description" content="Find out why buyer agents skip your paid API listing before you promote it." />
   <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
@@ -597,7 +597,7 @@ export function createApp(overrides = {}) {
           <h1>Find out why buyer agents skip your paid API listing.</h1>
           <p class="lead">Start with a ${config.scorePrice} listing score or pay ${config.price} for the full roast. Send your listing copy and get buyer-agent skip reasons before you promote.</p>
           <div class="actions">
-            <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.05 score command">Copy $0.05 score command</button>
+            <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
             <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $1 roast command">Copy $1 roast command</button>
             <a class="button secondary" href="${builderUrl}">Build your command</a>
             <a class="button secondary" href="${sampleUrl}">View sample score</a>
@@ -616,7 +616,7 @@ export function createApp(overrides = {}) {
 <span class="warn">402 Payment Required</span>
 payTo: ${escapeHtml(config.payTo)}
 network: ${escapeHtml(config.network)}
-score amount: 50000 USDC units
+score amount: 5000 USDC units
 roast amount: 1000000 USDC units
 <span class="ok">200 OK after payment</span>
 verdict: ready_to_test
@@ -657,7 +657,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Score route</h3>
           <p><code>POST ${escapeHtml(scoreRoute)}</code></p>
-          <p class="muted">Maximum payment: <strong>50000</strong> USDC units.</p>
+          <p class="muted">Maximum payment: <strong>5000</strong> USDC units.</p>
         </div>
         <div class="card">
           <h3>Full roast route</h3>
@@ -755,7 +755,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       network: config.network,
       request: requestExample,
       command: buildPayCommand(config),
-      scoreCommand: buildPayCommand(config, "/api/listing-score", "50000"),
+      scoreCommand: buildPayCommand(config, "/api/listing-score", "5000"),
       scoreOutput: buildListingScore(requestExample),
       output: buildListingRoast(requestExample)
     });
@@ -770,7 +770,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       price: config.scorePrice,
       network: config.network,
       request: requestExample,
-      command: buildPayCommand(config, "/api/listing-score", "50000"),
+      command: buildPayCommand(config, "/api/listing-score", "5000"),
       output: buildListingScore(requestExample)
     });
   });
@@ -795,7 +795,7 @@ Paid routes:
 - POST ${absoluteUrl(config, "/api/listing-score")}
   - Price: ${config.scorePrice}
   - Network: ${config.network}
-  - Max amount: 50000 USDC units
+  - Max amount: 5000 USDC units
   - Output: score, checked signals, first fix, next step, upgrade endpoint
 
 - POST ${absoluteUrl(config, "/api/listing-roast")}
@@ -808,7 +808,7 @@ Request body JSON:
 
 ${prettyJson(requestExample)}
 
-Use the $0.05 score first when deciding whether the listing is worth a full rewrite.
+Use the $0.005 score first when deciding whether the listing is worth a full rewrite.
 `);
   });
 
@@ -823,7 +823,7 @@ Use the $0.05 score first when deciding whether the listing is worth a full rewr
     const roastRoute = absoluteUrl(config, "/api/listing-roast");
     const sampleUrl = absoluteUrl(config, "/sample");
     const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
-    const scoreCommand = buildPayCommand(config, "/api/listing-score", "50000");
+    const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const roastCommand = buildPayCommand(config);
 
     response.type("html").send(`<!doctype html>
@@ -831,7 +831,7 @@ Use the $0.05 score first when deciding whether the listing is worth a full rewr
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Build a copy-ready x402 command for the Listing Roast $0.05 score route." />
+  <meta name="description" content="Build a copy-ready x402 command for the Listing Roast $0.005 score route." />
   <link rel="canonical" href="${escapeHtml(absoluteUrl(config, "/builder"))}" />
   <title>Command builder | ${escapeHtml(config.serviceName)}</title>
   <style>
@@ -936,7 +936,7 @@ Use the $0.05 score first when deciding whether the listing is worth a full rewr
       return "npx awal@2.8.0 x402 pay " + url + " -X POST -d " + shellQuote(JSON.stringify(payload())) + " --max-amount " + maxAmount;
     }
     function updateCommands(track) {
-      document.getElementById("score-command").textContent = command(scoreUrl, "50000");
+      document.getElementById("score-command").textContent = command(scoreUrl, "5000");
       document.getElementById("pay-command").textContent = command(roastUrl, "1000000");
       if (track) {
         fetch("/api/track", {
@@ -960,7 +960,7 @@ ${copyScript("Copy command")}
 
   app.get("/sample", async (_request, response) => {
     await recordSignal("sampleViews");
-    const scoreCommand = buildPayCommand(config, "/api/listing-score", "50000");
+    const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const roastCommand = buildPayCommand(config);
     const scoreOutput = buildListingScore(requestExample);
     const builderUrl = absoluteUrl(config, "/builder");
@@ -973,7 +973,7 @@ ${copyScript("Copy command")}
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Sample Listing Roast x402 score output before paying $0.05." />
+  <meta name="description" content="Sample Listing Roast x402 score output before paying $0.005." />
   <link rel="canonical" href="${escapeHtml(absoluteUrl(config, "/sample"))}" />
   <title>Sample score | ${escapeHtml(config.serviceName)}</title>
   <style>
@@ -1013,10 +1013,10 @@ ${copyScript("Copy command")}
   </header>
   <main>
     <div class="wrap">
-      <h1>Sample the $0.05 listing score before paying.</h1>
+      <h1>Sample the $0.005 listing score before paying.</h1>
       <p class="lead">This is the exact response shape from the paid score route. If it matches what your agent or API listing needs, use the x402 command below.</p>
       <div class="actions">
-        <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.05 score command">Copy $0.05 score command</button>
+        <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
         <a class="button secondary" href="${builderUrl}">Build your command</a>
         <a class="button secondary" href="${sampleScoreApi}">Open sample JSON</a>
       </div>
@@ -1044,7 +1044,7 @@ ${copyScript("Copy command")}
     </div>
   </main>
   <script>
-${copyScript("Copy $0.05 score command")}
+${copyScript("Copy $0.005 score command")}
   </script>
 </body>
 </html>`);
@@ -1133,7 +1133,7 @@ ${copyScript("Copy $0.05 score command")}
     }
 
     const result = buildListingScore(parsed.data);
-    const cashRegister = await recordPaidCompletion("listingScore", 0.05);
+    const cashRegister = await recordPaidCompletion("listingScore", 0.005);
     response.json({ ...result, cashRegister });
   });
 

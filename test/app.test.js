@@ -92,7 +92,7 @@ describe("Listing Roast x402 service", () => {
 
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
-      expect(home.text).toContain("Copy $0.05 score command");
+      expect(home.text).toContain("Copy $0.005 score command");
       expect(home.text).toContain("Copy $1 roast command");
       expect(home.text).toContain("Build your command");
       expect(home.text).toContain("View sample score");
@@ -106,14 +106,14 @@ describe("Listing Roast x402 service", () => {
 
       const sample = await fetchJson(server, "/sample");
       expect(sample.status).toBe(200);
-      expect(sample.text).toContain("Sample the $0.05 listing score before paying.");
+      expect(sample.text).toContain("Sample the $0.005 listing score before paying.");
       expect(sample.text).toContain("/api/listing-score");
       expect(sample.text).toContain("Build your command");
 
       const sampleScore = await fetchJson(server, "/api/sample-score");
       expect(sampleScore.status).toBe(200);
-      expect(sampleScore.json.price).toBe("$0.05");
-      expect(sampleScore.json.command).toContain("--max-amount 50000");
+      expect(sampleScore.json.price).toBe("$0.005");
+      expect(sampleScore.json.command).toContain("--max-amount 5000");
       expect(sampleScore.json.output.endpoint).toBe("listing-score");
 
       const schema = await fetchJson(server, "/api/schema");
@@ -122,7 +122,7 @@ describe("Listing Roast x402 service", () => {
 
       const scoreSchema = await fetchJson(server, "/api/score-schema");
       expect(scoreSchema.status).toBe(200);
-      expect(scoreSchema.json.service.price).toBe("$0.05");
+      expect(scoreSchema.json.service.price).toBe("$0.005");
 
       const mcp = await fetchJson(server, "/.well-known/mcp.json");
       expect(mcp.status).toBe(200);
@@ -138,13 +138,13 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.llms).toContain("/llms.txt");
       expect(examples.json.command).toContain("x402 pay");
       expect(examples.json.scoreCommand).toContain("/api/listing-score");
-      expect(examples.json.scoreOutput.price).toBe("$0.05");
+      expect(examples.json.scoreOutput.price).toBe("$0.005");
       expect(examples.json.output.price).toBe("$1.00");
 
       const openApi = await fetchJson(server, "/openapi.json");
       expect(openApi.status).toBe(200);
       expect(openApi.json.openapi).toBe("3.1.0");
-      expect(openApi.json.paths["/api/listing-score"].post.summary).toContain("$0.05");
+      expect(openApi.json.paths["/api/listing-score"].post.summary).toContain("$0.005");
 
       const llms = await fetchJson(server, "/llms.txt");
       expect(llms.status).toBe(200);
@@ -249,7 +249,7 @@ describe("Listing Roast x402 service", () => {
     }
   });
 
-  it("protects the score route with a five cent x402 challenge", async () => {
+  it("protects the score route with a half-cent x402 challenge", async () => {
     mockFacilitatorSupportedKinds();
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
     const server = await listen(app);
@@ -265,7 +265,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-score");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
-      expect(challenge.accepts[0].amount).toBe("50000");
+      expect(challenge.accepts[0].amount).toBe("5000");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);

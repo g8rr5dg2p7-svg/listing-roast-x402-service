@@ -2,7 +2,7 @@
 
 ## Short Listing
 
-Listing Roast x402 is a paid API for builders launching x402, MCP, or agent-facing services. Start with a $0.05 score, then upgrade to the $1 full roast for buyer-agent skip reasons, the top fixes, a cleaner rewrite, and a stop-or-upgrade recommendation.
+Listing Roast x402 is a paid API for builders launching x402, MCP, or agent-facing services. Start with a $0.005 score, then upgrade to the $1 full roast for buyer-agent skip reasons, the top fixes, a cleaner rewrite, and a stop-or-upgrade recommendation.
 
 Command builder: https://listing-roast-x402-service-production.up.railway.app/builder
 
@@ -16,7 +16,7 @@ Live URL: https://listing-roast-x402-service-production.up.railway.app
 
 ## Buyer-Facing Description
 
-Listing Roast x402 helps builders avoid promoting paid API/service listings that buyer agents will skip. The command builder creates a copy-ready x402 command from the buyer's own listing, and the sample page shows the score output before payment. For $0.05, the score endpoint checks the buyer, output promise, price visibility, checkout clarity, and example payload. For $1, the full roast returns a structured JSON critique with skip reasons, top fixes, rewritten listing copy, and a recommendation on whether to stop editing and test traffic or fix the offer first.
+Listing Roast x402 helps builders avoid promoting paid API/service listings that buyer agents will skip. The command builder creates a copy-ready x402 command from the buyer's own listing, and the sample page shows the score output before payment. For $0.005, the score endpoint checks the buyer, output promise, price visibility, checkout clarity, and example payload. For $1, the full roast returns a structured JSON critique with skip reasons, top fixes, rewritten listing copy, and a recommendation on whether to stop editing and test traffic or fix the offer first.
 
 ## Example Request
 
@@ -37,7 +37,7 @@ Listing Roast x402 helps builders avoid promoting paid API/service listings that
 {
   "service": "Listing Roast x402",
   "endpoint": "listing-score",
-  "price": "$0.05",
+  "price": "$0.005",
   "verdict": "ready_to_test",
   "score": "5/5",
   "checkedSignals": {},

@@ -136,7 +136,7 @@ export function buildListingScore(input) {
   return {
     service: "Listing Roast x402",
     endpoint: "listing-score",
-    price: "$0.05",
+    price: "$0.005",
     verdict: checks.verdict,
     score: `${checks.score}/5`,
     checkedSignals: {

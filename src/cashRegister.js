@@ -97,6 +97,14 @@ async function updateCash(mutator) {
   return update;
 }
 
+function formatEstimatedUsd(value) {
+  if (value > 0 && value < 0.01) {
+    return value.toFixed(3);
+  }
+
+  return value.toFixed(2);
+}
+
 export async function recordSignal(signalKey) {
   if (!SIGNAL_KEYS.has(signalKey)) {
     return readCash();
@@ -129,11 +137,11 @@ export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) 
     return {
       ...cash,
       paidCompletions,
-      estimatedGrossRevenueUsd: estimatedGrossRevenueUsd.toFixed(2),
+      estimatedGrossRevenueUsd: formatEstimatedUsd(estimatedGrossRevenueUsd),
       listingRoastCompletions,
-      listingRoastEstimatedRevenueUsd: `$${roastRevenue.toFixed(2)}`,
+      listingRoastEstimatedRevenueUsd: `$${formatEstimatedUsd(roastRevenue)}`,
       listingScoreCompletions,
-      listingScoreEstimatedRevenueUsd: `$${scoreRevenue.toFixed(2)}`,
+      listingScoreEstimatedRevenueUsd: `$${formatEstimatedUsd(scoreRevenue)}`,
       firstSignalAt: cash.firstSignalAt || now,
       lastSignalAt: now,
       lastPaidAt: now
