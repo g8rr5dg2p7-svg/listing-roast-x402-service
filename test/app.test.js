@@ -93,7 +93,7 @@ describe("Listing Roast x402 service", () => {
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
       expect(home.text).toContain("Copy $0.005 score command");
-      expect(home.text).toContain("Copy $1 roast command");
+      expect(home.text).toContain("Copy $0.01 roast command");
       expect(home.text).toContain("Build your command");
       expect(home.text).toContain("View sample score");
       expect(home.text).toContain("Open examples JSON");
@@ -118,7 +118,7 @@ describe("Listing Roast x402 service", () => {
 
       const schema = await fetchJson(server, "/api/schema");
       expect(schema.status).toBe(200);
-      expect(schema.json.service.price).toBe("$1.00");
+      expect(schema.json.service.price).toBe("$0.01");
 
       const scoreSchema = await fetchJson(server, "/api/score-schema");
       expect(scoreSchema.status).toBe(200);
@@ -139,7 +139,7 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.command).toContain("x402 pay");
       expect(examples.json.scoreCommand).toContain("/api/listing-score");
       expect(examples.json.scoreOutput.price).toBe("$0.005");
-      expect(examples.json.output.price).toBe("$1.00");
+      expect(examples.json.output.price).toBe("$0.01");
 
       const openApi = await fetchJson(server, "/openapi.json");
       expect(openApi.status).toBe(200);
@@ -203,7 +203,7 @@ describe("Listing Roast x402 service", () => {
     }
   });
 
-  it("protects the paid route with a $1 x402 challenge", async () => {
+  it("protects the paid route with a one-cent x402 challenge", async () => {
     mockFacilitatorSupportedKinds();
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
     const server = await listen(app);
@@ -219,7 +219,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
-      expect(challenge.accepts[0].amount).toBe("1000000");
+      expect(challenge.accepts[0].amount).toBe("10000");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);

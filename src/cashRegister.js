@@ -98,11 +98,12 @@ async function updateCash(mutator) {
 }
 
 function formatEstimatedUsd(value) {
-  if (value > 0 && value < 0.01) {
-    return value.toFixed(3);
+  const milliUsd = Math.round(value * 1000);
+  if (milliUsd > 0 && milliUsd % 10 !== 0) {
+    return (milliUsd / 1000).toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
   }
 
-  return value.toFixed(2);
+  return (Math.round(value * 100) / 100).toFixed(2);
 }
 
 export async function recordSignal(signalKey) {

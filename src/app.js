@@ -29,7 +29,7 @@ export function getConfig(overrides = {}) {
     cdpApiKeyId: overrides.cdpApiKeyId || process.env.CDP_API_KEY_ID || "",
     cdpApiKeySecret: overrides.cdpApiKeySecret || process.env.CDP_API_KEY_SECRET || "",
     baseRpcUrl: overrides.baseRpcUrl || process.env.BASE_RPC_URL || "https://mainnet.base.org",
-    price: "$1.00",
+    price: "$0.01",
     scorePrice: "$0.005"
   };
 }
@@ -55,7 +55,7 @@ function shellQuote(value) {
   return `'${String(value).replaceAll("'", "'\\''")}'`;
 }
 
-function buildPayCommand(config, pathname = "/api/listing-roast", maxAmount = "1000000") {
+function buildPayCommand(config, pathname = "/api/listing-roast", maxAmount = "10000") {
   return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, pathname)} \\
   -X POST \\
   -d ${shellQuote(JSON.stringify(requestExample))} \\
@@ -285,7 +285,7 @@ function buildOpenApiDocument(config) {
       },
       "/api/listing-roast": {
         post: {
-          summary: "Paid $1 full listing roast",
+          summary: "Paid $0.01 full listing roast",
           description: "Returns buyer-agent skip reasons, top fixes, rewritten listing copy, and stop-or-upgrade guidance after x402 payment.",
           requestBody: {
             required: true,
@@ -377,7 +377,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast x402: $1 paid API listing critique for x402/MCP builders, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance.",
+        description: "Listing Roast x402: $0.01 paid API listing critique for x402/MCP builders, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildDiscovery(config))
       }
@@ -516,7 +516,7 @@ export function createApp(overrides = {}) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="A $0.005 score and $1 x402 paid API that critiques paid agent and API listing copy before launch." />
+  <meta name="description" content="A $0.005 score and $0.01 x402 paid API that critiques paid agent and API listing copy before launch." />
   <meta property="og:title" content="${escapeHtml(config.serviceName)}" />
   <meta property="og:description" content="Find out why buyer agents skip your paid API listing before you promote it." />
   <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
@@ -598,7 +598,7 @@ export function createApp(overrides = {}) {
           <p class="lead">Start with a ${config.scorePrice} listing score or pay ${config.price} for the full roast. Send your listing copy and get buyer-agent skip reasons before you promote.</p>
           <div class="actions">
             <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
-            <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $1 roast command">Copy $1 roast command</button>
+            <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $0.01 roast command">Copy $0.01 roast command</button>
             <a class="button secondary" href="${builderUrl}">Build your command</a>
             <a class="button secondary" href="${sampleUrl}">View sample score</a>
             <a class="button secondary" href="${examplesUrl}">Open examples JSON</a>
@@ -617,7 +617,7 @@ export function createApp(overrides = {}) {
 payTo: ${escapeHtml(config.payTo)}
 network: ${escapeHtml(config.network)}
 score amount: 5000 USDC units
-roast amount: 1000000 USDC units
+roast amount: 10000 USDC units
 <span class="ok">200 OK after payment</span>
 verdict: ready_to_test
 score: 4/5</div>
@@ -662,7 +662,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Full roast route</h3>
           <p><code>POST ${escapeHtml(paidRoute)}</code></p>
-          <p class="muted">Maximum payment: <strong>1000000</strong> USDC units.</p>
+          <p class="muted">Maximum payment: <strong>10000</strong> USDC units.</p>
         </div>
       </div>
       <div class="wrap" style="margin-top: 18px;">
@@ -687,7 +687,7 @@ score: 4/5</div>
       <div class="wrap grid2" style="margin-top: 18px;">
         <div>
           <h3>Full roast sample</h3>
-          <p class="muted">The $1 route adds the rewrite and launch decision after payment.</p>
+          <p class="muted">The $0.01 route adds the rewrite and launch decision after payment.</p>
         </div>
         <pre>${escapeHtml(prettyJson(sampleOutput))}</pre>
       </div>
@@ -801,7 +801,7 @@ Paid routes:
 - POST ${absoluteUrl(config, "/api/listing-roast")}
   - Price: ${config.price}
   - Network: ${config.network}
-  - Max amount: 1000000 USDC units
+  - Max amount: 10000 USDC units
   - Output: buyer-agent skip reasons, top fixes, rewritten listing, stop-or-upgrade guidance
 
 Request body JSON:
@@ -937,7 +937,7 @@ Use the $0.005 score first when deciding whether the listing is worth a full rew
     }
     function updateCommands(track) {
       document.getElementById("score-command").textContent = command(scoreUrl, "5000");
-      document.getElementById("pay-command").textContent = command(roastUrl, "1000000");
+      document.getElementById("pay-command").textContent = command(roastUrl, "10000");
       if (track) {
         fetch("/api/track", {
           method: "POST",
@@ -1145,7 +1145,7 @@ ${copyScript("Copy $0.005 score command")}
     }
 
     const result = buildListingRoast(parsed.data);
-    const cashRegister = await recordPaidCompletion("listingRoast", 1);
+    const cashRegister = await recordPaidCompletion("listingRoast", 0.01);
     response.json({ ...result, cashRegister });
   });
 

@@ -1,7 +1,7 @@
 const baseUrl = process.env.SMOKE_BASE_URL || "http://localhost:8787";
 const expectedNetwork = process.env.EXPECTED_X402_NETWORK || "eip155:84532";
 const smokePath = process.env.SMOKE_PATH || "/api/listing-roast";
-const expectedAmount = process.env.EXPECTED_X402_AMOUNT || (smokePath === "/api/listing-score" ? "5000" : "1000000");
+const expectedAmount = process.env.EXPECTED_X402_AMOUNT || (smokePath === "/api/listing-score" ? "5000" : "10000");
 
 const response = await fetch(`${baseUrl}${smokePath}`, {
   method: "POST",

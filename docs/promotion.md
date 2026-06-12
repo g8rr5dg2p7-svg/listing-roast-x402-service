@@ -18,13 +18,13 @@ Use this when sharing Listing Roast x402 with builders. Keep the claim tight: th
 
 ## Short Pitch
 
-Listing Roast x402 is a paid API for x402, MCP, and agent-service builders. Start with a $0.005 listing score, then upgrade to the $1 full roast for buyer-agent skip reasons, top fixes, a rewrite, and a stop-or-upgrade recommendation.
+Listing Roast x402 is a paid API for x402, MCP, and agent-service builders. Start with a $0.005 listing score, then upgrade to the $0.01 full roast for buyer-agent skip reasons, top fixes, a rewrite, and a stop-or-upgrade recommendation.
 
 ## X-Style Post
 
 I launched Listing Roast x402: a paid API that critiques paid agent/API listing copy before you promote it.
 
-Use the command builder or see the sample output first. Start with a $0.005 score. Upgrade to the $1 full roast for buyer-agent skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade recommendation.
+Use the command builder or see the sample output first. Start with a $0.005 score. Upgrade to the $0.01 full roast for buyer-agent skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade recommendation.
 
 No account. x402 payment. Base USDC.
 
@@ -47,7 +47,7 @@ Listing Roast x402 takes your listing copy and returns a structured critique:
 - a rewritten listing
 - whether to stop editing and test paid traffic
 
-It is live on Base mainnet with a $0.005 score endpoint and a $1 full-roast endpoint:
+It is live on Base mainnet with a $0.005 score endpoint and a $0.01 full-roast endpoint:
 
 https://listing-roast-x402-service-production.up.railway.app
 
@@ -93,7 +93,7 @@ Full roast:
 npx awal@2.8.0 x402 pay https://listing-roast-x402-service-production.up.railway.app/api/listing-roast \
   -X POST \
   -d '{"agentName":"Example x402 API","listingText":"A paid x402 API that helps builders check whether buyer agents understand the offer before paying. It returns JSON with skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade recommendation. Example payloads are included for quick testing.","targetBuyer":"x402 and MCP builders","currentPrice":"$1.00","currentCheckoutPath":"/api/listing-roast","goal":"Increase first paid conversion"}' \
-  --max-amount 1000000
+  --max-amount 10000
 ```
 
 ## Where To Share First

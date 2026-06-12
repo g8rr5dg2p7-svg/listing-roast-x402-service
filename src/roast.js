@@ -109,7 +109,7 @@ export function buildListingRoast(input) {
   return {
     service: "Listing Roast x402",
     endpoint: "listing-roast",
-    price: "$1.00",
+    price: "$0.01",
     verdict: checks.verdict,
     score: `${checks.score}/5`,
     input: {

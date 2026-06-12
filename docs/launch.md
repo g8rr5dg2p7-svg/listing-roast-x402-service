@@ -25,7 +25,7 @@ Current verified state:
 - OpenAPI: HTTP 200.
 - llms.txt: HTTP 200.
 - Score route: HTTP 402, amount 5000 USDC units.
-- Full roast route: HTTP 402, amount 1000000 USDC units.
+- Full roast route: HTTP 402, amount 10000 USDC units.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
 - Receiver wallet balance is the durable revenue check across deploys.
@@ -57,7 +57,7 @@ npm run smoke
 SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
 SMOKE_PATH=/api/listing-roast \
 EXPECTED_X402_NETWORK=eip155:8453 \
-EXPECTED_X402_AMOUNT=1000000 \
+EXPECTED_X402_AMOUNT=10000 \
 npm run smoke
 ```
 
