@@ -12,6 +12,15 @@ const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
 const BASE_MAINNET_NETWORK = "eip155:8453";
 const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const USDC_DECIMALS = 1_000_000n;
+const DISCOVERY_KEYWORDS = [
+  "marketplace listing score",
+  "marketplace listing quality",
+  "marketplace listing conversion",
+  "paid API listing",
+  "x402 listing",
+  "x402 service discoverability"
+];
+const DISCOVERY_DESCRIPTION = "Paid x402 API for marketplace listing score, paid API listing quality, marketplace listing conversion, and x402 service discoverability before promotion.";
 
 export function getConfig(overrides = {}) {
   const payTo = overrides.payTo || process.env.PAY_TO || (process.env.NODE_ENV === "production" ? "" : DEFAULT_DEV_PAY_TO);
@@ -252,14 +261,16 @@ function buildOpenApiDocument(config) {
     info: {
       title: config.serviceName,
       version: "0.2.0",
-      description: "Paid x402 API that scores and roasts paid agent/API listing copy before promotion."
+      description: DISCOVERY_DESCRIPTION,
+      "x-keywords": DISCOVERY_KEYWORDS
     },
     servers: [{ url: config.serviceUrl }],
     paths: {
       "/api/listing-score": {
         post: {
-          summary: "Paid $0.005 listing score",
-          description: "Returns a quick listing score, checked signals, first fix, and upgrade guidance after x402 payment.",
+          tags: ["x402 listing", "paid API listing"],
+          summary: "Paid $0.005 marketplace listing score",
+          description: "Scores paid API marketplace listing quality, conversion clarity, x402 service discoverability, checked signals, first fix, and upgrade guidance after x402 payment.",
           requestBody: {
             required: true,
             content: {
@@ -285,8 +296,9 @@ function buildOpenApiDocument(config) {
       },
       "/api/listing-roast": {
         post: {
-          summary: "Paid $0.01 full listing roast",
-          description: "Returns buyer-agent skip reasons, top fixes, rewritten listing copy, and stop-or-upgrade guidance after x402 payment.",
+          tags: ["x402 listing", "paid API listing"],
+          summary: "Paid $0.01 marketplace listing conversion roast",
+          description: "Returns paid API listing conversion feedback, marketplace listing quality fixes, buyer-agent skip reasons, rewritten listing copy, and stop-or-upgrade guidance after x402 payment.",
           requestBody: {
             required: true,
             content: {
@@ -330,7 +342,8 @@ function buildOpenApiDocument(config) {
       roastRoute: absoluteUrl(config, "/api/listing-roast"),
       scorePrice: config.scorePrice,
       roastPrice: config.price,
-      network: config.network
+      network: config.network,
+      keywords: DISCOVERY_KEYWORDS
     }
   };
 }
@@ -338,7 +351,8 @@ function buildOpenApiDocument(config) {
 function buildX402Manifest(config) {
   return {
     service: config.serviceName,
-    description: "Paid x402 API that scores and roasts paid agent/API listing copy before promotion.",
+    description: DISCOVERY_DESCRIPTION,
+    keywords: DISCOVERY_KEYWORDS,
     homepage: absoluteUrl(config, "/"),
     builder: absoluteUrl(config, "/builder"),
     sample: absoluteUrl(config, "/sample"),
@@ -355,7 +369,8 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, "/api/listing-score"),
         price: config.scorePrice,
         maxAmountRequired: "5000",
-        description: "Half-cent paid score for agent/API listing copy, checked signals, first fix, and upgrade guidance.",
+        description: "Half-cent marketplace listing score for paid API listing quality, conversion clarity, x402 discoverability, checked signals, first fix, and upgrade guidance.",
+        keywords: ["marketplace listing score", "listing quality score", "paid API listing", "x402 listing"],
         command: buildPayCommand(config, "/api/listing-score", "5000"),
         input: requestExample,
         outputExample: buildListingScore(requestExample),
@@ -369,7 +384,8 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, "/api/listing-roast"),
         price: config.price,
         maxAmountRequired: "10000",
-        description: "One-cent paid critique for agent/API listing copy, buyer-agent skip reasons, top fixes, rewrite, and launch guidance.",
+        description: "One-cent marketplace listing conversion roast for paid API listing quality, buyer-agent skip reasons, top fixes, rewrite, and launch guidance.",
+        keywords: ["marketplace listing conversion", "listing quality", "paid API listing", "x402 listing"],
         command: buildPayCommand(config),
         input: requestExample,
         outputExample: buildListingRoast(requestExample),
@@ -410,7 +426,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Score x402: $0.005 paid API listing score for x402/MCP builders, first missing signal, and upgrade guidance.",
+        description: "Listing Score x402: $0.005 marketplace listing score for paid API listing quality, x402 service discoverability, first missing signal, and upgrade guidance.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildScoreDiscovery(config))
       },
@@ -422,7 +438,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast x402: $0.01 paid API listing critique for x402/MCP builders, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance.",
+        description: "Listing Roast x402: $0.01 marketplace listing conversion roast for paid API listing quality, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildDiscovery(config))
       }
@@ -799,6 +815,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       price: config.price,
       scorePrice: config.scorePrice,
       network: config.network,
+      keywords: DISCOVERY_KEYWORDS,
       request: requestExample,
       command: buildPayCommand(config),
       scoreCommand: buildPayCommand(config, "/api/listing-score", "5000"),
@@ -827,7 +844,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       .type("text/plain")
       .send(`# Listing Roast x402
 
-Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who need clearer paid API listing copy before promotion.
+Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who need a marketplace listing score, paid API listing quality check, marketplace listing conversion feedback, or x402 service discoverability guidance before promotion.
 
 Homepage: ${absoluteUrl(config, "/")}
 Command builder: ${absoluteUrl(config, "/builder")}
@@ -836,6 +853,7 @@ Sample score JSON: ${absoluteUrl(config, "/api/sample-score")}
 OpenAPI: ${absoluteUrl(config, "/openapi.json")}
 x402 manifest: ${absoluteUrl(config, "/x402.json")}
 MCP metadata: ${absoluteUrl(config, "/.well-known/mcp.json")}
+Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
 
 Paid routes:
 
@@ -1125,6 +1143,7 @@ ${copyScript("Copy $0.005 score command")}
       openApi: absoluteUrl(config, "/openapi.json"),
       llms: absoluteUrl(config, "/llms.txt"),
       x402Manifest: absoluteUrl(config, "/x402.json"),
+      keywords: DISCOVERY_KEYWORDS,
       tools: [
         {
           name: "score_paid_listing",
@@ -1133,6 +1152,8 @@ ${copyScript("Copy $0.005 score command")}
           url: absoluteUrl(config, "/api/listing-score"),
           price: config.scorePrice,
           network: config.network,
+          description: "marketplace listing score for paid API listing quality and x402 service discoverability.",
+          keywords: ["marketplace listing score", "paid API listing", "x402 listing"],
           input: requestExample
         },
         {
@@ -1142,6 +1163,8 @@ ${copyScript("Copy $0.005 score command")}
           url: absoluteUrl(config, "/api/listing-roast"),
           price: config.price,
           network: config.network,
+          description: "marketplace listing conversion roast for paid API listing quality and buyer-agent skip reasons.",
+          keywords: ["marketplace listing conversion", "listing quality", "paid API listing"],
           input: requestExample
         }
       ]
