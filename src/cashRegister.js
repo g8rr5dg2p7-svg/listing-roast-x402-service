@@ -28,17 +28,50 @@ function getCashPath() {
   return path.join(dataDir, "cash-register.json");
 }
 
+function baselineNumber(name) {
+  const value = Number(process.env[name] || 0);
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function baselineUsd(name) {
+  const value = String(process.env[name] || "0").replace(/^\$/, "");
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function baselineMoney(name) {
+  const value = baselineUsd(name);
+  if (!value) {
+    return "$0.00";
+  }
+
+  return `$${String(process.env[name]).replace(/^\$/, "")}`;
+}
+
 function initialCash() {
+  const baselinePaidCompletions = baselineNumber("BASELINE_PAID_COMPLETIONS");
+  const baselineGrossRevenue = baselineUsd("BASELINE_ESTIMATED_GROSS_REVENUE_USD");
+  const baselineListingRoastCompletions = baselineNumber("BASELINE_LISTING_ROAST_COMPLETIONS");
+  const baselineListingScoreCompletions = baselineNumber("BASELINE_LISTING_SCORE_COMPLETIONS");
+  const baselinePingCompletions = baselineNumber("BASELINE_X402_PING_COMPLETIONS");
+  const baselineLastPaidAt = process.env.BASELINE_LAST_PAID_AT || null;
+
   return {
-    paidCompletions: 0,
-    estimatedGrossRevenueUsd: "0.00",
-    listingRoastCompletions: 0,
-    listingRoastEstimatedRevenueUsd: "$0.00",
-    listingScoreCompletions: 0,
-    listingScoreEstimatedRevenueUsd: "$0.00",
-    x402PingCompletions: 0,
-    x402PingEstimatedRevenueUsd: "$0.00",
-    lastPaidAt: null,
+    paidCompletions: baselinePaidCompletions,
+    estimatedGrossRevenueUsd: baselineGrossRevenue ? String(process.env.BASELINE_ESTIMATED_GROSS_REVENUE_USD).replace(/^\$/, "") : "0.00",
+    listingRoastCompletions: baselineListingRoastCompletions,
+    listingRoastEstimatedRevenueUsd: baselineMoney("BASELINE_LISTING_ROAST_REVENUE_USD"),
+    listingScoreCompletions: baselineListingScoreCompletions,
+    listingScoreEstimatedRevenueUsd: baselineMoney("BASELINE_LISTING_SCORE_REVENUE_USD"),
+    x402PingCompletions: baselinePingCompletions,
+    x402PingEstimatedRevenueUsd: baselineMoney("BASELINE_X402_PING_REVENUE_USD"),
+    lastPaidAt: baselineLastPaidAt,
+    importedBaseline: baselinePaidCompletions > 0 ? {
+      paidCompletions: baselinePaidCompletions,
+      estimatedGrossRevenueUsd: baselineGrossRevenue ? String(process.env.BASELINE_ESTIMATED_GROSS_REVENUE_USD).replace(/^\$/, "") : "0.00",
+      source: "env",
+      lastPaidAt: baselineLastPaidAt
+    } : null,
     firstSignalAt: null,
     lastSignalAt: null,
     signals: {
@@ -67,13 +100,31 @@ function initialCash() {
 
 function normalizeCash(cash = {}) {
   const base = initialCash();
-  return {
+  const merged = {
     ...base,
     ...cash,
     signals: {
       ...base.signals,
       ...(cash.signals || {})
     }
+  };
+
+  const estimatedGrossRevenueUsd = Math.max(Number(base.estimatedGrossRevenueUsd || 0), Number(cash.estimatedGrossRevenueUsd || 0));
+  const listingRoastRevenue = Math.max(Number(String(base.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
+  const listingScoreRevenue = Math.max(Number(String(base.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
+  const pingRevenue = Math.max(Number(String(base.x402PingEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.x402PingEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
+
+  return {
+    ...merged,
+    paidCompletions: Math.max(Number(base.paidCompletions || 0), Number(cash.paidCompletions || 0)),
+    estimatedGrossRevenueUsd: estimatedGrossRevenueUsd ? formatEstimatedUsd(estimatedGrossRevenueUsd) : "0.00",
+    listingRoastCompletions: Math.max(Number(base.listingRoastCompletions || 0), Number(cash.listingRoastCompletions || 0)),
+    listingRoastEstimatedRevenueUsd: `$${formatEstimatedUsd(listingRoastRevenue)}`,
+    listingScoreCompletions: Math.max(Number(base.listingScoreCompletions || 0), Number(cash.listingScoreCompletions || 0)),
+    listingScoreEstimatedRevenueUsd: `$${formatEstimatedUsd(listingScoreRevenue)}`,
+    x402PingCompletions: Math.max(Number(base.x402PingCompletions || 0), Number(cash.x402PingCompletions || 0)),
+    x402PingEstimatedRevenueUsd: `$${formatEstimatedUsd(pingRevenue)}`,
+    lastPaidAt: cash.lastPaidAt || base.lastPaidAt
   };
 }
 
