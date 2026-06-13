@@ -2,11 +2,15 @@
 
 ## Short Listing
 
-Listing Roast x402 is a paid API for builders launching x402, MCP, or agent-facing services. Start with a $0.005 score, then upgrade to the $0.01 full roast for buyer-agent skip reasons, the top fixes, a cleaner rewrite, and a stop-or-upgrade recommendation.
+Listing Roast x402 is a paid API for builders launching x402, MCP, or agent-facing services. Start with a $0.001 instant GET score, use the $0.005 score when you have a JSON payload, then upgrade to the $0.01 full roast for buyer-agent skip reasons, the top fixes, a cleaner rewrite, and a stop-or-upgrade recommendation.
 
 Command builder: https://listing-roast-x402-service-production.up.railway.app/builder
 
 Sample score page: https://listing-roast-x402-service-production.up.railway.app/sample
+
+Instant score endpoint: `GET /api/instant-listing-score`
+
+Indexed quick-score endpoint: `GET /api/listing-roast`
 
 Score endpoint: `POST /api/listing-score`
 
@@ -16,7 +20,7 @@ Live URL: https://listing-roast-x402-service-production.up.railway.app
 
 ## Buyer-Facing Description
 
-Listing Roast x402 helps builders avoid promoting paid API/service listings that buyer agents will skip. The command builder creates a copy-ready x402 command from the buyer's own listing, and the sample page shows the score output before payment. For $0.005, the score endpoint checks the buyer, output promise, price visibility, checkout clarity, and example payload. For $0.01, the full roast returns a structured JSON critique with skip reasons, top fixes, rewritten listing copy, and a recommendation on whether to stop editing and test traffic or fix the offer first.
+Listing Roast x402 helps builders avoid promoting paid API/service listings that buyer agents will skip. The command builder creates a copy-ready x402 command from the buyer's own listing, and the sample page shows the score output before payment. For $0.001, the instant GET route and indexed listing-roast GET route return a quick score with no JSON body required. For $0.005, the score endpoint checks the buyer, output promise, price visibility, checkout clarity, and example payload. For $0.01, the full roast returns a structured JSON critique with skip reasons, top fixes, rewritten listing copy, and a recommendation on whether to stop editing and test traffic or fix the offer first.
 
 ## Example Request
 
