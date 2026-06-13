@@ -8,6 +8,7 @@ Live production service:
 - Sample score JSON: https://listing-roast-x402-service-production.up.railway.app/api/sample-score
 - OpenAPI: https://listing-roast-x402-service-production.up.railway.app/openapi.json
 - llms.txt: https://listing-roast-x402-service-production.up.railway.app/llms.txt
+- Instant score route: https://listing-roast-x402-service-production.up.railway.app/api/instant-listing-score
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Full roast route: https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Schema: https://listing-roast-x402-service-production.up.railway.app/api/schema
@@ -25,6 +26,7 @@ Current verified state:
 - OpenAPI: HTTP 200.
 - llms.txt: HTTP 200.
 - x402 manifest: HTTP 200.
+- Instant score route: HTTP 402, amount 1000 USDC units.
 - Score route: HTTP 402, amount 5000 USDC units.
 - Full roast route: HTTP 402, amount 10000 USDC units.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
@@ -50,6 +52,12 @@ Live verification:
 
 ```bash
 SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
+SMOKE_PATH=/api/instant-listing-score \
+EXPECTED_X402_NETWORK=eip155:8453 \
+EXPECTED_X402_AMOUNT=1000 \
+npm run smoke
+
+SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
 SMOKE_PATH=/api/listing-score \
 EXPECTED_X402_NETWORK=eip155:8453 \
 EXPECTED_X402_AMOUNT=5000 \
@@ -67,10 +75,10 @@ Expected production result:
 ```json
 {
   "status": 402,
-  "resource": "https://listing-roast-x402-service-production.up.railway.app/api/listing-score",
+  "resource": "https://listing-roast-x402-service-production.up.railway.app/api/instant-listing-score",
   "payTo": "0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C",
   "network": "eip155:8453",
-  "amount": "5000"
+  "amount": "1000"
 }
 ```
 

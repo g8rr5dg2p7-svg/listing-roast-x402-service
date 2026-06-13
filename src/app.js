@@ -12,6 +12,8 @@ const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
 const BASE_MAINNET_NETWORK = "eip155:8453";
 const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const USDC_DECIMALS = 1_000_000n;
+const INSTANT_SCORE_PATH = "/api/instant-listing-score";
+const INSTANT_SCORE_AMOUNT = "1000";
 const DISCOVERY_KEYWORDS = [
   "marketplace listing score",
   "marketplace listing quality",
@@ -39,7 +41,8 @@ export function getConfig(overrides = {}) {
     cdpApiKeySecret: overrides.cdpApiKeySecret || process.env.CDP_API_KEY_SECRET || "",
     baseRpcUrl: overrides.baseRpcUrl || process.env.BASE_RPC_URL || "https://mainnet.base.org",
     price: "$0.01",
-    scorePrice: "$0.005"
+    scorePrice: "$0.005",
+    instantScorePrice: "$0.001"
   };
 }
 
@@ -68,6 +71,12 @@ function buildPayCommand(config, pathname = "/api/listing-roast", maxAmount = "1
   return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, pathname)} \\
   -X POST \\
   -d ${shellQuote(JSON.stringify(requestExample))} \\
+  --max-amount ${maxAmount}`;
+}
+
+function buildGetPayCommand(config, pathname = INSTANT_SCORE_PATH, maxAmount = INSTANT_SCORE_AMOUNT) {
+  return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, pathname)} \\
+  -X GET \\
   --max-amount ${maxAmount}`;
 }
 
@@ -255,6 +264,70 @@ function buildScoreDiscovery(config) {
   });
 }
 
+function queryValue(value, fallback) {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return typeof raw === "string" && raw.trim() ? raw.trim() : fallback;
+}
+
+function buildInstantScoreInput(query = {}) {
+  return listingRoastRequestSchema.parse({
+    agentName: queryValue(query.agentName, requestExample.agentName),
+    listingText: queryValue(query.listingText || query.text, requestExample.listingText),
+    targetBuyer: queryValue(query.targetBuyer, requestExample.targetBuyer),
+    currentPrice: queryValue(query.currentPrice, requestExample.currentPrice),
+    currentCheckoutPath: queryValue(query.currentCheckoutPath, requestExample.currentCheckoutPath),
+    goal: queryValue(query.goal, requestExample.goal),
+    source: "instant-get-score"
+  });
+}
+
+function buildInstantListingScore(input) {
+  return {
+    ...buildListingScore(input),
+    endpoint: "instant-listing-score",
+    price: "$0.001",
+    nextStep: "This GET route is the lowest-friction paid check. Use /api/listing-score for a scored POST payload or /api/listing-roast for the full rewrite.",
+    upgradeEndpoint: "/api/listing-score"
+  };
+}
+
+function buildInstantScoreDiscovery(config) {
+  const queryExample = {
+    agentName: requestExample.agentName,
+    listingText: requestExample.listingText,
+    targetBuyer: requestExample.targetBuyer,
+    currentPrice: requestExample.currentPrice,
+    currentCheckoutPath: requestExample.currentCheckoutPath,
+    goal: requestExample.goal
+  };
+
+  return {
+    input: queryExample,
+    inputSchema: {
+      type: "object",
+      properties: {
+        agentName: { type: "string" },
+        listingText: { type: "string" },
+        targetBuyer: { type: "string" },
+        currentPrice: { type: "string" },
+        currentCheckoutPath: { type: "string" },
+        goal: { type: "string" }
+      }
+    },
+    output: {
+      example: buildInstantListingScore(buildInstantScoreInput()),
+      schema: buildScoreDiscovery(config).output.schema
+    },
+    service: {
+      name: config.serviceName,
+      url: config.serviceUrl,
+      route: absoluteUrl(config, INSTANT_SCORE_PATH),
+      price: config.instantScorePrice,
+      network: config.network
+    }
+  };
+}
+
 function buildOpenApiDocument(config) {
   return {
     openapi: "3.1.0",
@@ -266,6 +339,33 @@ function buildOpenApiDocument(config) {
     },
     servers: [{ url: config.serviceUrl }],
     paths: {
+      [INSTANT_SCORE_PATH]: {
+        get: {
+          tags: ["x402 listing", "paid API listing"],
+          summary: "Paid $0.001 instant marketplace listing score",
+          description: "Lowest-friction GET route for buyer agents that want an immediate paid API listing quality score without building a JSON body first. Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.",
+          parameters: [
+            { name: "agentName", in: "query", required: false, schema: { type: "string" } },
+            { name: "listingText", in: "query", required: false, schema: { type: "string" } },
+            { name: "targetBuyer", in: "query", required: false, schema: { type: "string" } },
+            { name: "currentPrice", in: "query", required: false, schema: { type: "string" } },
+            { name: "currentCheckoutPath", in: "query", required: false, schema: { type: "string" } },
+            { name: "goal", in: "query", required: false, schema: { type: "string" } }
+          ],
+          responses: {
+            200: {
+              description: "Paid instant listing score response",
+              content: {
+                "application/json": {
+                  schema: buildScoreDiscovery(config).output.schema,
+                  example: buildInstantListingScore(buildInstantScoreInput())
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        }
+      },
       "/api/listing-score": {
         post: {
           tags: ["x402 listing", "paid API listing"],
@@ -338,8 +438,10 @@ function buildOpenApiDocument(config) {
       builder: absoluteUrl(config, "/builder"),
       sample: absoluteUrl(config, "/sample"),
       x402Manifest: absoluteUrl(config, "/x402.json"),
+      instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       scoreRoute: absoluteUrl(config, "/api/listing-score"),
       roastRoute: absoluteUrl(config, "/api/listing-roast"),
+      instantScorePrice: config.instantScorePrice,
       scorePrice: config.scorePrice,
       roastPrice: config.price,
       network: config.network,
@@ -361,6 +463,21 @@ function buildX402Manifest(config) {
     network: config.network,
     payTo: config.payTo,
     resources: [
+      {
+        id: "instant_listing_score",
+        name: "instant_listing_score",
+        method: "GET",
+        path: INSTANT_SCORE_PATH,
+        url: absoluteUrl(config, INSTANT_SCORE_PATH),
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        description: "One-tenth-cent GET marketplace listing score for paid API listing quality and x402 discoverability. Works with optional query params or a default sample.",
+        keywords: ["marketplace listing score", "listing quality score", "paid API listing", "x402 listing", "GET paid API"],
+        command: buildGetPayCommand(config),
+        input: buildInstantScoreDiscovery(config).input,
+        outputExample: buildInstantListingScore(buildInstantScoreInput()),
+        schema: absoluteUrl(config, "/api/score-schema")
+      },
       {
         id: "listing_score",
         name: "listing_score",
@@ -429,6 +546,18 @@ function createX402Middleware(config) {
         description: "Listing Score x402: $0.005 marketplace listing score for paid API listing quality, x402 service discoverability, first missing signal, and upgrade guidance.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildScoreDiscovery(config))
+      },
+      [`GET ${INSTANT_SCORE_PATH}`]: {
+        accepts: {
+          scheme: "exact",
+          price: config.instantScorePrice,
+          network: config.network,
+          payTo: config.payTo,
+          maxTimeoutSeconds: 300
+        },
+        description: "Instant Listing Score x402: $0.001 GET marketplace listing score for paid API listing quality and x402 service discoverability.",
+        mimeType: "application/json",
+        extensions: declareDiscoveryExtension(buildInstantScoreDiscovery(config))
       },
       "POST /api/listing-roast": {
         accepts: {
@@ -506,6 +635,10 @@ function isAllowedSignal(value) {
 }
 
 function validUnpaidSignalForPath(pathname) {
+  if (pathname === INSTANT_SCORE_PATH) {
+    return "instantScoreValidUnpaidChallenges";
+  }
+
   return pathname === "/api/listing-score" ? "scoreValidUnpaidChallenges" : "roastValidUnpaidChallenges";
 }
 
@@ -558,6 +691,7 @@ export function createApp(overrides = {}) {
   app.get("/", async (_request, response) => {
     await recordSignal("homepageViews");
     const cashRegisterUrl = absoluteUrl(config, "/api/cash-register");
+    const instantRoute = absoluteUrl(config, INSTANT_SCORE_PATH);
     const paidRoute = absoluteUrl(config, "/api/listing-roast");
     const scoreRoute = absoluteUrl(config, "/api/listing-score");
     const builderUrl = absoluteUrl(config, "/builder");
@@ -567,6 +701,7 @@ export function createApp(overrides = {}) {
     const openApiUrl = absoluteUrl(config, "/openapi.json");
     const llmsUrl = absoluteUrl(config, "/llms.txt");
     const mcpUrl = absoluteUrl(config, "/.well-known/mcp.json");
+    const instantCommand = buildGetPayCommand(config);
     const payCommand = buildPayCommand(config);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const scoreOutput = buildListingScore(requestExample);
@@ -656,8 +791,9 @@ export function createApp(overrides = {}) {
       <div class="wrap heroGrid">
         <div>
           <h1>Find out why buyer agents skip your paid API listing.</h1>
-          <p class="lead">Start with a ${config.scorePrice} listing score or pay ${config.price} for the full roast. Send your listing copy and get buyer-agent skip reasons before you promote.</p>
+          <p class="lead">Start with a ${config.instantScorePrice} instant GET score, a ${config.scorePrice} listing score, or pay ${config.price} for the full roast. Get buyer-agent skip reasons before you promote.</p>
           <div class="actions">
+            <button class="button" type="button" data-copy-target="instant-command" data-default-text="Copy $0.001 instant command">Copy $0.001 instant command</button>
             <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
             <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $0.01 roast command">Copy $0.01 roast command</button>
             <a class="button secondary" href="${builderUrl}">Build your command</a>
@@ -667,16 +803,17 @@ export function createApp(overrides = {}) {
           </div>
           <div class="proof" aria-label="Proof points">
             <div><strong class="metric">Live</strong><span class="muted">Production x402 route</span></div>
-            <div><strong>${config.scorePrice} / ${config.price}</strong><span class="muted">Score or full roast</span></div>
+            <div><strong>${config.instantScorePrice} / ${config.scorePrice} / ${config.price}</strong><span class="muted">Instant, score, or roast</span></div>
             <div><strong class="metric">Discoverable</strong><span class="muted">Declared for Bazaar</span></div>
           </div>
         </div>
         <div class="device" aria-label="Terminal preview">
           <div class="deviceTop"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-          <div class="terminal">$ x402 pay /api/listing-roast
+          <div class="terminal">$ x402 pay ${INSTANT_SCORE_PATH}
 <span class="warn">402 Payment Required</span>
 payTo: ${escapeHtml(config.payTo)}
 network: ${escapeHtml(config.network)}
+instant amount: ${INSTANT_SCORE_AMOUNT} USDC units
 score amount: 5000 USDC units
 roast amount: 10000 USDC units
 <span class="ok">200 OK after payment</span>
@@ -706,14 +843,19 @@ score: 4/5</div>
     <section class="band" id="pay">
       <div class="wrap grid2">
         <div>
-          <h2>Pay ${config.scorePrice} first, then upgrade when useful.</h2>
-          <p>Both endpoints are protected by x402. The first unpaid request returns a payment challenge; the paid retry returns JSON.</p>
+          <h2>Pay ${config.instantScorePrice} first, then upgrade when useful.</h2>
+          <p>All paid endpoints are protected by x402. The instant GET route is the fastest first paid action; the paid retry returns JSON.</p>
           <p>
             <span class="tag">Base mainnet</span>
             <span class="tag">USDC</span>
             <span class="tag">No account</span>
             <span class="tag">Agent-readable JSON</span>
           </p>
+        </div>
+        <div class="card">
+          <h3>Instant score route</h3>
+          <p><code>GET ${escapeHtml(instantRoute)}</code></p>
+          <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units.</p>
         </div>
         <div class="card">
           <h3>Score route</h3>
@@ -725,6 +867,10 @@ score: 4/5</div>
           <p><code>POST ${escapeHtml(paidRoute)}</code></p>
           <p class="muted">Maximum payment: <strong>10000</strong> USDC units.</p>
         </div>
+      </div>
+      <div class="wrap" style="margin-top: 18px;">
+        <h3>Instant GET command</h3>
+        <pre id="instant-command">${escapeHtml(instantCommand)}</pre>
       </div>
       <div class="wrap" style="margin-top: 18px;">
         <h3>Score command</h3>
@@ -789,7 +935,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", "/.well-known/x402.json", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", INSTANT_SCORE_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", "/.well-known/x402.json", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -810,15 +956,19 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       openApi: absoluteUrl(config, "/openapi.json"),
       llms: absoluteUrl(config, "/llms.txt"),
       x402Manifest: absoluteUrl(config, "/x402.json"),
+      instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       paidRoute: absoluteUrl(config, "/api/listing-roast"),
       scoreRoute: absoluteUrl(config, "/api/listing-score"),
       price: config.price,
       scorePrice: config.scorePrice,
+      instantScorePrice: config.instantScorePrice,
       network: config.network,
       keywords: DISCOVERY_KEYWORDS,
       request: requestExample,
+      instantScoreCommand: buildGetPayCommand(config),
       command: buildPayCommand(config),
       scoreCommand: buildPayCommand(config, "/api/listing-score", "5000"),
+      instantScoreOutput: buildInstantListingScore(buildInstantScoreInput()),
       scoreOutput: buildListingScore(requestExample),
       output: buildListingRoast(requestExample)
     });
@@ -857,6 +1007,13 @@ Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
 
 Paid routes:
 
+- GET ${absoluteUrl(config, INSTANT_SCORE_PATH)}
+  - Price: ${config.instantScorePrice}
+  - Network: ${config.network}
+  - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+  - Output: instant score, checked signals, first fix, next step
+  - Use when an agent wants to pay without first assembling a JSON body
+
 - POST ${absoluteUrl(config, "/api/listing-score")}
   - Price: ${config.scorePrice}
   - Network: ${config.network}
@@ -873,7 +1030,7 @@ Request body JSON:
 
 ${prettyJson(requestExample)}
 
-Use the $0.005 score first when deciding whether the listing is worth a full rewrite.
+Use the $0.001 instant GET score first when a buyer agent wants the fastest paid test without a JSON body.
 `);
   });
 
@@ -1146,6 +1303,17 @@ ${copyScript("Copy $0.005 score command")}
       keywords: DISCOVERY_KEYWORDS,
       tools: [
         {
+          name: "instant_paid_listing_score",
+          method: "GET",
+          path: INSTANT_SCORE_PATH,
+          url: absoluteUrl(config, INSTANT_SCORE_PATH),
+          price: config.instantScorePrice,
+          network: config.network,
+          description: "one-tenth-cent GET marketplace listing score for paid API listing quality and x402 service discoverability.",
+          keywords: ["marketplace listing score", "paid API listing", "x402 listing", "GET paid API"],
+          input: buildInstantScoreDiscovery(config).input
+        },
+        {
           name: "score_paid_listing",
           method: "POST",
           path: "/api/listing-score",
@@ -1188,6 +1356,14 @@ ${copyScript("Copy $0.005 score command")}
     response.status(204).end();
   });
 
+  app.get(INSTANT_SCORE_PATH, async (request, _response, next) => {
+    if (!hasPaymentHeader(request)) {
+      await recordSignal("unpaidChallenges");
+      await recordSignal("validUnpaidChallenges");
+      await recordSignal("instantScoreValidUnpaidChallenges");
+    }
+    next();
+  });
   app.post("/api/listing-roast", validateListingRoastRequest);
   app.post("/api/listing-score", validateListingRoastRequest);
   app.post(["/api/listing-score", "/api/listing-roast"], async (request, _response, next) => {
@@ -1203,6 +1379,12 @@ ${copyScript("Copy $0.005 score command")}
     next();
   });
   app.use(createX402Middleware(config));
+
+  app.get(INSTANT_SCORE_PATH, async (request, response) => {
+    const result = buildInstantListingScore(buildInstantScoreInput(request.query));
+    const cashRegister = await recordPaidCompletion("listingScore", 0.001);
+    response.json({ ...result, cashRegister });
+  });
 
   app.post("/api/listing-score", async (request, response) => {
     const parsed = listingRoastRequestSchema.safeParse(request.listingRoastInput ?? request.body);
