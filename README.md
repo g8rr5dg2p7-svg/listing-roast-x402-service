@@ -25,6 +25,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /.well-known/mcp.json` - simple tool metadata.
 - `GET /api/instant-listing-score` - protected $0.001 x402 instant score route with optional query params.
 - `GET /api/listing-roast` - protected $0.001 x402 quick score on the already-indexed listing-roast URL.
+- `GET /api/x402-ping` - protected $0.001 paid ping for verifying the x402 payment rail.
 - `POST /api/listing-score` - protected $0.005 x402 score route.
 - `POST /api/listing-roast` - protected $0.01 x402 full-roast route.
 - `GET /api/cash-register` - deployment-local funnel counters, paid completion count, and receiver wallet USDC balance on Base mainnet.
@@ -55,7 +56,7 @@ npm test
 npm run smoke
 ```
 
-The default smoke test should return HTTP `402` with a `payment-required` header containing a `10000` USDC-unit challenge. Set `SMOKE_PATH=/api/listing-score EXPECTED_X402_AMOUNT=5000` to verify the score route. Set `SMOKE_PATH=/api/instant-listing-score EXPECTED_X402_AMOUNT=1000` to verify the instant GET route. Set `SMOKE_PATH=/api/listing-roast SMOKE_METHOD=GET EXPECTED_X402_AMOUNT=1000` to verify the indexed quick-score route.
+The default smoke test should return HTTP `402` with a `payment-required` header containing a `10000` USDC-unit challenge. Set `SMOKE_PATH=/api/listing-score EXPECTED_X402_AMOUNT=5000` to verify the score route. Set `SMOKE_PATH=/api/instant-listing-score EXPECTED_X402_AMOUNT=1000` to verify the instant GET route. Set `SMOKE_PATH=/api/listing-roast SMOKE_METHOD=GET EXPECTED_X402_AMOUNT=1000` to verify the indexed quick-score route. Set `SMOKE_PATH=/api/x402-ping EXPECTED_X402_AMOUNT=1000` to verify the paid ping route.
 
 ## Docker
 
@@ -75,8 +76,8 @@ CDP_API_KEY_SECRET=...
 
 ## Launch Checklist
 
-1. Open `/builder`, `/sample`, `/api/sample-score`, `/api/instant-listing-score`, `GET /api/listing-roast`, `/openapi.json`, `/llms.txt`, `/x402.json`, `/.well-known/x402.json`, `/api/schema`, `/api/score-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
+1. Open `/builder`, `/sample`, `/api/sample-score`, `/api/instant-listing-score`, `GET /api/listing-roast`, `/api/x402-ping`, `/openapi.json`, `/llms.txt`, `/x402.json`, `/.well-known/x402.json`, `/api/schema`, `/api/score-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
 2. Send one unpaid request and confirm the live route returns HTTP `402`.
-3. Confirm the live instant score and indexed GET challenges use `X402_NETWORK=eip155:8453` and amount `1000`; confirm the live score challenge uses amount `5000`; confirm the full-roast challenge uses amount `10000`.
+3. Confirm the live instant score, indexed GET, and paid ping challenges use `X402_NETWORK=eip155:8453` and amount `1000`; confirm the live score challenge uses amount `5000`; confirm the full-roast challenge uses amount `10000`.
 4. Monitor `/api/cash-register`; use `signals.builderViews`, `signals.builderCommandBuilds`, `signals.sampleViews`, `signals.validUnpaidChallenges`, and `signals.commandCopyClicks` for buyer interest, `signals.emptyDiscoveryProbes` for bot/discovery noise, and `receiverWallet.usdcBalance` as the durable revenue check across deploys.
 5. Promote the live route only after the production challenge and settlement proof are verified.

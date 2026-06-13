@@ -16,6 +16,7 @@ const SIGNAL_KEYS = new Set([
   "unpaidChallenges",
   "validUnpaidChallenges",
   "instantScoreValidUnpaidChallenges",
+  "pingValidUnpaidChallenges",
   "roastValidUnpaidChallenges",
   "scoreValidUnpaidChallenges",
   "emptyDiscoveryProbes",
@@ -35,6 +36,8 @@ function initialCash() {
     listingRoastEstimatedRevenueUsd: "$0.00",
     listingScoreCompletions: 0,
     listingScoreEstimatedRevenueUsd: "$0.00",
+    x402PingCompletions: 0,
+    x402PingEstimatedRevenueUsd: "$0.00",
     lastPaidAt: null,
     firstSignalAt: null,
     lastSignalAt: null,
@@ -53,6 +56,7 @@ function initialCash() {
       unpaidChallenges: 0,
       validUnpaidChallenges: 0,
       instantScoreValidUnpaidChallenges: 0,
+      pingValidUnpaidChallenges: 0,
       roastValidUnpaidChallenges: 0,
       scoreValidUnpaidChallenges: 0,
       emptyDiscoveryProbes: 0,
@@ -132,12 +136,16 @@ export async function recordSignal(signalKey) {
 export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) {
   return updateCash((cash) => {
     const isScore = kind === "listingScore";
-    const listingRoastCompletions = Number(cash.listingRoastCompletions || 0) + (isScore ? 0 : 1);
+    const isPing = kind === "x402Ping";
+    const isRoast = !isScore && !isPing;
+    const listingRoastCompletions = Number(cash.listingRoastCompletions || 0) + (isRoast ? 1 : 0);
     const listingScoreCompletions = Number(cash.listingScoreCompletions || 0) + (isScore ? 1 : 0);
+    const x402PingCompletions = Number(cash.x402PingCompletions || 0) + (isPing ? 1 : 0);
     const paidCompletions = Number(cash.paidCompletions || 0) + 1;
     const estimatedGrossRevenueUsd = Number(cash.estimatedGrossRevenueUsd || 0) + priceUsd;
-    const roastRevenue = Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore ? 0 : priceUsd);
+    const roastRevenue = Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore || isPing ? 0 : priceUsd);
     const scoreRevenue = Number(String(cash.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore ? priceUsd : 0);
+    const pingRevenue = Number(String(cash.x402PingEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isPing ? priceUsd : 0);
     const now = new Date().toISOString();
     return {
       ...cash,
@@ -147,6 +155,8 @@ export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) 
       listingRoastEstimatedRevenueUsd: `$${formatEstimatedUsd(roastRevenue)}`,
       listingScoreCompletions,
       listingScoreEstimatedRevenueUsd: `$${formatEstimatedUsd(scoreRevenue)}`,
+      x402PingCompletions,
+      x402PingEstimatedRevenueUsd: `$${formatEstimatedUsd(pingRevenue)}`,
       firstSignalAt: cash.firstSignalAt || now,
       lastSignalAt: now,
       lastPaidAt: now

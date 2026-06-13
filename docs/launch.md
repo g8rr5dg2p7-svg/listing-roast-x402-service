@@ -10,6 +10,7 @@ Live production service:
 - llms.txt: https://listing-roast-x402-service-production.up.railway.app/llms.txt
 - Instant score route: https://listing-roast-x402-service-production.up.railway.app/api/instant-listing-score
 - Indexed quick-score route: GET https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
+- Paid x402 ping route: https://listing-roast-x402-service-production.up.railway.app/api/x402-ping
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Schema: https://listing-roast-x402-service-production.up.railway.app/api/schema
@@ -61,6 +62,12 @@ npm run smoke
 SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
 SMOKE_PATH=/api/listing-roast \
 SMOKE_METHOD=GET \
+EXPECTED_X402_NETWORK=eip155:8453 \
+EXPECTED_X402_AMOUNT=1000 \
+npm run smoke
+
+SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
+SMOKE_PATH=/api/x402-ping \
 EXPECTED_X402_NETWORK=eip155:8453 \
 EXPECTED_X402_AMOUNT=1000 \
 npm run smoke

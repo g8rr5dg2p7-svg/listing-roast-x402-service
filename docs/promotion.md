@@ -12,6 +12,7 @@ Use this when sharing Listing Roast x402 with builders. Keep the claim tight: th
 - llms.txt: https://listing-roast-x402-service-production.up.railway.app/llms.txt
 - Instant score route: https://listing-roast-x402-service-production.up.railway.app/api/instant-listing-score
 - Indexed quick-score route: GET https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
+- Paid x402 ping route: https://listing-roast-x402-service-production.up.railway.app/api/x402-ping
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Examples: https://listing-roast-x402-service-production.up.railway.app/api/examples
@@ -20,13 +21,13 @@ Use this when sharing Listing Roast x402 with builders. Keep the claim tight: th
 
 ## Short Pitch
 
-Listing Roast x402 is a paid API for x402, MCP, and agent-service builders. Start with a $0.001 instant GET score, use the $0.005 listing score when you have a JSON payload, then upgrade to the $0.01 full roast for buyer-agent skip reasons, top fixes, a rewrite, and a stop-or-upgrade recommendation.
+Listing Roast x402 is a paid API for x402, MCP, and agent-service builders. Start with a $0.001 paid ping or instant GET score, use the $0.005 listing score when you have a JSON payload, then upgrade to the $0.01 full roast for buyer-agent skip reasons, top fixes, a rewrite, and a stop-or-upgrade recommendation.
 
 ## X-Style Post
 
 I launched Listing Roast x402: a paid API that critiques paid agent/API listing copy before you promote it.
 
-Use the command builder or see the sample output first. Start with a $0.001 instant GET score. Upgrade to the $0.005 score or $0.01 full roast when you want buyer-agent skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade recommendation.
+Use the command builder or see the sample output first. Start with a $0.001 paid ping or instant GET score. Upgrade to the $0.005 score or $0.01 full roast when you want buyer-agent skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade recommendation.
 
 No account. x402 payment. Base USDC.
 
@@ -49,7 +50,7 @@ Listing Roast x402 takes your listing copy and returns a structured critique:
 - a rewritten listing
 - whether to stop editing and test paid traffic
 
-It is live on Base mainnet with a $0.001 instant GET score, a $0.005 score endpoint, and a $0.01 full-roast endpoint:
+It is live on Base mainnet with a $0.001 paid ping, a $0.001 instant GET score, a $0.005 score endpoint, and a $0.01 full-roast endpoint:
 
 https://listing-roast-x402-service-production.up.railway.app
 
@@ -84,6 +85,14 @@ Instant GET:
 
 ```bash
 npx awal@2.8.0 x402 pay https://listing-roast-x402-service-production.up.railway.app/api/instant-listing-score \
+  -X GET \
+  --max-amount 1000
+```
+
+Paid x402 ping:
+
+```bash
+npx awal@2.8.0 x402 pay https://listing-roast-x402-service-production.up.railway.app/api/x402-ping \
   -X GET \
   --max-amount 1000
 ```

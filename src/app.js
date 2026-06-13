@@ -14,7 +14,9 @@ const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const USDC_DECIMALS = 1_000_000n;
 const INSTANT_SCORE_PATH = "/api/instant-listing-score";
 const ROAST_PATH = "/api/listing-roast";
+const PING_PATH = "/api/x402-ping";
 const INSTANT_SCORE_AMOUNT = "1000";
+const PING_AMOUNT = "1000";
 const DISCOVERY_KEYWORDS = [
   "marketplace listing score",
   "marketplace listing quality",
@@ -354,6 +356,65 @@ function buildIndexedRoastGetDiscovery(config) {
   };
 }
 
+function buildPingOutput(config, query = {}) {
+  const rawMessage = Array.isArray(query.msg) ? query.msg[0] : query.msg;
+  const message = typeof rawMessage === "string" && rawMessage.trim() ? rawMessage.trim().slice(0, 180) : "x402 rail verified";
+
+  return {
+    service: config.serviceName,
+    endpoint: "x402-ping",
+    price: config.instantScorePrice,
+    ok: true,
+    message,
+    timestamp: new Date().toISOString(),
+    paidRoutes: {
+      instantScore: INSTANT_SCORE_PATH,
+      indexedQuickScore: ROAST_PATH,
+      score: "/api/listing-score",
+      fullRoast: ROAST_PATH
+    },
+    nextStep: "Use this paid ping to verify the x402 rail, then call /api/listing-roast with GET for a quick score or POST for the full roast."
+  };
+}
+
+function buildPingDiscovery(config) {
+  return {
+    input: {
+      msg: "hello from x402"
+    },
+    inputSchema: {
+      type: "object",
+      properties: {
+        msg: { type: "string" }
+      }
+    },
+    output: {
+      example: buildPingOutput(config, { msg: "hello from x402" }),
+      schema: {
+        type: "object",
+        required: ["service", "endpoint", "price", "ok", "message", "timestamp", "paidRoutes", "nextStep"],
+        properties: {
+          service: { type: "string" },
+          endpoint: { type: "string" },
+          price: { type: "string" },
+          ok: { type: "boolean" },
+          message: { type: "string" },
+          timestamp: { type: "string" },
+          paidRoutes: { type: "object" },
+          nextStep: { type: "string" }
+        }
+      }
+    },
+    service: {
+      name: config.serviceName,
+      url: config.serviceUrl,
+      route: absoluteUrl(config, PING_PATH),
+      price: config.instantScorePrice,
+      network: config.network
+    }
+  };
+}
+
 function buildOpenApiDocument(config) {
   return {
     openapi: "3.1.0",
@@ -385,6 +446,28 @@ function buildOpenApiDocument(config) {
                 "application/json": {
                   schema: buildScoreDiscovery(config).output.schema,
                   example: buildInstantListingScore(buildInstantScoreInput())
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        }
+      },
+      [PING_PATH]: {
+        get: {
+          tags: ["x402 ping", "paid API listing"],
+          summary: "Paid $0.001 x402 rail ping",
+          description: "Tiny paid GET endpoint for agents that want to verify the Base x402 payment rail before buying a richer listing score or roast.",
+          parameters: [
+            { name: "msg", in: "query", required: false, schema: { type: "string" } }
+          ],
+          responses: {
+            200: {
+              description: "Paid x402 ping response",
+              content: {
+                "application/json": {
+                  schema: buildPingDiscovery(config).output.schema,
+                  example: buildPingOutput(config, { msg: "hello from x402" })
                 }
               }
             },
@@ -490,6 +573,7 @@ function buildOpenApiDocument(config) {
       sample: absoluteUrl(config, "/sample"),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
+      pingRoute: absoluteUrl(config, PING_PATH),
       scoreRoute: absoluteUrl(config, "/api/listing-score"),
       roastRoute: absoluteUrl(config, ROAST_PATH),
       instantScorePrice: config.instantScorePrice,
@@ -543,6 +627,21 @@ function buildX402Manifest(config) {
         input: buildInstantScoreDiscovery(config).input,
         outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput()),
         schema: absoluteUrl(config, "/api/score-schema")
+      },
+      {
+        id: "x402_ping",
+        name: "x402_ping",
+        method: "GET",
+        path: PING_PATH,
+        url: absoluteUrl(config, PING_PATH),
+        price: config.instantScorePrice,
+        maxAmountRequired: PING_AMOUNT,
+        description: "One-tenth-cent x402 rail ping for agents that want to verify payment before buying a listing score or roast.",
+        keywords: ["x402 ping", "paid ping", "x402 rail", "x402 test", "Base USDC"],
+        command: buildGetPayCommand(config, PING_PATH, PING_AMOUNT),
+        input: buildPingDiscovery(config).input,
+        outputExample: buildPingOutput(config, { msg: "hello from x402" }),
+        schema: absoluteUrl(config, "/openapi.json")
       },
       {
         id: "listing_score",
@@ -637,6 +736,18 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildIndexedRoastGetDiscovery(config))
       },
+      [`GET ${PING_PATH}`]: {
+        accepts: {
+          scheme: "exact",
+          price: config.instantScorePrice,
+          network: config.network,
+          payTo: config.payTo,
+          maxTimeoutSeconds: 300
+        },
+        description: "Listing Roast x402 Ping: $0.001 paid GET ping to verify the Base x402 rail before buying a score or roast.",
+        mimeType: "application/json",
+        extensions: declareDiscoveryExtension(buildPingDiscovery(config))
+      },
       [`POST ${ROAST_PATH}`]: {
         accepts: {
           scheme: "exact",
@@ -717,6 +828,10 @@ function validUnpaidSignalForPath(pathname) {
     return "instantScoreValidUnpaidChallenges";
   }
 
+  if (pathname === PING_PATH) {
+    return "pingValidUnpaidChallenges";
+  }
+
   return pathname === "/api/listing-score" ? "scoreValidUnpaidChallenges" : "roastValidUnpaidChallenges";
 }
 
@@ -725,6 +840,15 @@ async function recordInstantScoreProbe(request, _response, next) {
     await recordSignal("unpaidChallenges");
     await recordSignal("validUnpaidChallenges");
     await recordSignal("instantScoreValidUnpaidChallenges");
+  }
+  next();
+}
+
+async function recordPingProbe(request, _response, next) {
+  if (!hasPaymentHeader(request)) {
+    await recordSignal("unpaidChallenges");
+    await recordSignal("validUnpaidChallenges");
+    await recordSignal("pingValidUnpaidChallenges");
   }
   next();
 }
@@ -781,6 +905,7 @@ export function createApp(overrides = {}) {
     const instantRoute = absoluteUrl(config, INSTANT_SCORE_PATH);
     const paidRoute = absoluteUrl(config, ROAST_PATH);
     const scoreRoute = absoluteUrl(config, "/api/listing-score");
+    const pingRoute = absoluteUrl(config, PING_PATH);
     const builderUrl = absoluteUrl(config, "/builder");
     const sampleUrl = absoluteUrl(config, "/sample");
     const schemaUrl = absoluteUrl(config, "/api/schema");
@@ -790,6 +915,7 @@ export function createApp(overrides = {}) {
     const mcpUrl = absoluteUrl(config, "/.well-known/mcp.json");
     const instantCommand = buildGetPayCommand(config);
     const indexedRoastGetCommand = buildGetPayCommand(config, ROAST_PATH);
+    const pingCommand = buildGetPayCommand(config, PING_PATH, PING_AMOUNT);
     const payCommand = buildPayCommand(config);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const scoreOutput = buildListingScore(requestExample);
@@ -883,6 +1009,7 @@ export function createApp(overrides = {}) {
           <div class="actions">
             <button class="button" type="button" data-copy-target="instant-command" data-default-text="Copy $0.001 instant command">Copy $0.001 instant command</button>
             <button class="button secondary" type="button" data-copy-target="indexed-command" data-default-text="Copy indexed GET command">Copy indexed GET command</button>
+            <button class="button secondary" type="button" data-copy-target="ping-command" data-default-text="Copy x402 ping command">Copy x402 ping command</button>
             <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
             <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $0.01 roast command">Copy $0.01 roast command</button>
             <a class="button secondary" href="${builderUrl}">Build your command</a>
@@ -953,6 +1080,11 @@ score: 4/5</div>
           <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. This keeps the already-indexed listing-roast URL payable at the lowest price.</p>
         </div>
         <div class="card">
+          <h3>x402 ping route</h3>
+          <p><code>GET ${escapeHtml(pingRoute)}</code></p>
+          <p class="muted">Maximum payment: <strong>${PING_AMOUNT}</strong> USDC units. Use this to verify the payment rail before buying a score or roast.</p>
+        </div>
+        <div class="card">
           <h3>Score route</h3>
           <p><code>POST ${escapeHtml(scoreRoute)}</code></p>
           <p class="muted">Maximum payment: <strong>5000</strong> USDC units.</p>
@@ -970,6 +1102,10 @@ score: 4/5</div>
       <div class="wrap" style="margin-top: 18px;">
         <h3>Indexed listing-roast GET command</h3>
         <pre id="indexed-command">${escapeHtml(indexedRoastGetCommand)}</pre>
+      </div>
+      <div class="wrap" style="margin-top: 18px;">
+        <h3>x402 ping command</h3>
+        <pre id="ping-command">${escapeHtml(pingCommand)}</pre>
       </div>
       <div class="wrap" style="margin-top: 18px;">
         <h3>Score command</h3>
@@ -1034,7 +1170,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", INSTANT_SCORE_PATH, ROAST_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", "/.well-known/x402.json", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", INSTANT_SCORE_PATH, ROAST_PATH, PING_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", "/.well-known/x402.json", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -1057,6 +1193,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       x402Manifest: absoluteUrl(config, "/x402.json"),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       indexedRoastGetRoute: absoluteUrl(config, ROAST_PATH),
+      pingRoute: absoluteUrl(config, PING_PATH),
       paidRoute: absoluteUrl(config, ROAST_PATH),
       scoreRoute: absoluteUrl(config, "/api/listing-score"),
       price: config.price,
@@ -1067,10 +1204,12 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       request: requestExample,
       instantScoreCommand: buildGetPayCommand(config),
       indexedRoastGetCommand: buildGetPayCommand(config, ROAST_PATH),
+      pingCommand: buildGetPayCommand(config, PING_PATH, PING_AMOUNT),
       command: buildPayCommand(config),
       scoreCommand: buildPayCommand(config, "/api/listing-score", "5000"),
       instantScoreOutput: buildInstantListingScore(buildInstantScoreInput()),
       indexedRoastGetOutput: buildIndexedRoastQuickScore(buildInstantScoreInput()),
+      pingOutput: buildPingOutput(config, { msg: "hello from x402" }),
       scoreOutput: buildListingScore(requestExample),
       output: buildListingRoast(requestExample)
     });
@@ -1123,6 +1262,13 @@ Paid routes:
   - Output: quick score from the already-indexed listing-roast URL
   - Use when a marketplace result points to /api/listing-roast without method metadata
 
+- GET ${absoluteUrl(config, PING_PATH)}
+  - Price: ${config.instantScorePrice}
+  - Network: ${config.network}
+  - Max amount: ${PING_AMOUNT} USDC units
+  - Output: paid ping, timestamp, echo message, and next paid routes
+  - Use when an agent wants to verify the x402 rail before buying a score or roast
+
 - POST ${absoluteUrl(config, "/api/listing-score")}
   - Price: ${config.scorePrice}
   - Network: ${config.network}
@@ -1160,12 +1306,14 @@ Use the $0.001 instant GET score first when a buyer agent wants the fastest paid
     await recordSignal("builderViews");
     const instantRoute = absoluteUrl(config, INSTANT_SCORE_PATH);
     const indexedRoute = absoluteUrl(config, ROAST_PATH);
+    const pingRoute = absoluteUrl(config, PING_PATH);
     const scoreRoute = absoluteUrl(config, "/api/listing-score");
     const roastRoute = absoluteUrl(config, ROAST_PATH);
     const sampleUrl = absoluteUrl(config, "/sample");
     const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
     const instantCommand = buildGetPayCommand(config);
     const indexedCommand = buildGetPayCommand(config, ROAST_PATH);
+    const pingCommand = buildGetPayCommand(config, PING_PATH, PING_AMOUNT);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const roastCommand = buildPayCommand(config);
 
@@ -1248,6 +1396,9 @@ Use the $0.001 instant GET score first when a buyer agent wants the fastest paid
             <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(indexedRoute)}</code></p>
             <pre id="indexed-command">${escapeHtml(indexedCommand)}</pre>
             <button class="button secondary" type="button" data-copy-target="indexed-command" data-default-text="Copy indexed GET command">Copy indexed GET command</button>
+            <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(pingRoute)}</code></p>
+            <pre id="ping-command">${escapeHtml(pingCommand)}</pre>
+            <button class="button secondary" type="button" data-copy-target="ping-command" data-default-text="Copy x402 ping command">Copy x402 ping command</button>
           </div>
           <div class="card" style="margin-top: 18px;">
             <h2>Score command <span class="metric">${config.scorePrice}</span></h2>
@@ -1447,6 +1598,17 @@ ${copyScript("Copy $0.005 score command")}
           input: buildInstantScoreDiscovery(config).input
         },
         {
+          name: "paid_x402_ping",
+          method: "GET",
+          path: PING_PATH,
+          url: absoluteUrl(config, PING_PATH),
+          price: config.instantScorePrice,
+          network: config.network,
+          description: "one-tenth-cent paid ping to verify the Base x402 rail before buying a listing score or roast.",
+          keywords: ["x402 ping", "paid ping", "x402 rail", "Base USDC"],
+          input: buildPingDiscovery(config).input
+        },
+        {
           name: "score_paid_listing",
           method: "POST",
           path: "/api/listing-score",
@@ -1490,6 +1652,7 @@ ${copyScript("Copy $0.005 score command")}
   });
 
   app.get([INSTANT_SCORE_PATH, ROAST_PATH], recordInstantScoreProbe);
+  app.get(PING_PATH, recordPingProbe);
   app.post(ROAST_PATH, validateListingRoastRequest);
   app.post("/api/listing-score", validateListingRoastRequest);
   app.post(["/api/listing-score", ROAST_PATH], async (request, _response, next) => {
@@ -1515,6 +1678,12 @@ ${copyScript("Copy $0.005 score command")}
   app.get(ROAST_PATH, async (request, response) => {
     const result = buildIndexedRoastQuickScore(buildInstantScoreInput(request.query));
     const cashRegister = await recordPaidCompletion("listingScore", 0.001);
+    response.json({ ...result, cashRegister });
+  });
+
+  app.get(PING_PATH, async (request, response) => {
+    const result = buildPingOutput(config, request.query);
+    const cashRegister = await recordPaidCompletion("x402Ping", 0.001);
     response.json({ ...result, cashRegister });
   });
 
