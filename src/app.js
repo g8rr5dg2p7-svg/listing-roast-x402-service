@@ -66,8 +66,84 @@ function prettyJson(value) {
   return JSON.stringify(value, null, 2);
 }
 
+function jsonScript(value) {
+  return JSON.stringify(value).replaceAll("<", "\\u003c");
+}
+
 function shellQuote(value) {
   return `'${String(value).replaceAll("'", "'\\''")}'`;
+}
+
+function buildDiscoveryLinks(config) {
+  return [
+    `<${absoluteUrl(config, "/x402.json")}>; rel="payment"; type="application/json"`,
+    `<${absoluteUrl(config, "/.well-known/x402.json")}>; rel="service-desc"; type="application/json"`,
+    `<${absoluteUrl(config, "/openapi.json")}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
+    `<${absoluteUrl(config, "/llms.txt")}>; rel="describedby"; type="text/plain"`,
+    `<${absoluteUrl(config, "/.well-known/mcp.json")}>; rel="service-desc"; type="application/json"`
+  ].join(", ");
+}
+
+function buildStructuredData(config) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: config.serviceName,
+    url: absoluteUrl(config, "/"),
+    description: DISCOVERY_DESCRIPTION,
+    provider: {
+      "@type": "Organization",
+      name: config.serviceName,
+      url: absoluteUrl(config, "/")
+    },
+    areaServed: "Global",
+    audience: {
+      "@type": "Audience",
+      audienceType: "x402, MCP, and agent-service builders"
+    },
+    keywords: DISCOVERY_KEYWORDS.join(", "),
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Listing Roast x402 paid routes",
+      itemListElement: [
+        {
+          "@type": "Offer",
+          name: "x402 paid ping",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, PING_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "Instant listing score",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, INSTANT_SCORE_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "Indexed listing-roast quick score",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, ROAST_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "Listing score",
+          price: "0.005",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, "/api/listing-score")
+        },
+        {
+          "@type": "Offer",
+          name: "Listing conversion roast",
+          price: "0.01",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, ROAST_PATH)
+        }
+      ]
+    }
+  };
 }
 
 function buildPayCommand(config, pathname = ROAST_PATH, maxAmount = "10000") {
@@ -835,6 +911,17 @@ function validUnpaidSignalForPath(pathname) {
   return pathname === "/api/listing-score" ? "scoreValidUnpaidChallenges" : "roastValidUnpaidChallenges";
 }
 
+function rejectHeadPaidRoute(request, response, next) {
+  if (request.method !== "HEAD") {
+    next();
+    return;
+  }
+
+  const pathname = new URL(request.originalUrl, "http://local").pathname;
+  const allow = pathname === ROAST_PATH ? "GET, POST" : pathname === "/api/listing-score" ? "POST" : "GET";
+  response.set("Allow", allow).status(405).end();
+}
+
 async function recordInstantScoreProbe(request, _response, next) {
   if (!hasPaymentHeader(request)) {
     await recordSignal("unpaidChallenges");
@@ -894,6 +981,10 @@ export function createApp(overrides = {}) {
   const app = express();
   app.set("trust proxy", 1);
   app.use(express.json({ limit: "32kb" }));
+  app.use((_request, response, next) => {
+    response.set("Link", buildDiscoveryLinks(config));
+    next();
+  });
 
   app.get("/health", (_request, response) => {
     response.json({ ok: true, service: config.serviceName, paidRoute: "/api/listing-roast" });
@@ -931,6 +1022,10 @@ export function createApp(overrides = {}) {
   <meta property="og:description" content="Find out why buyer agents skip your paid API listing before you promote it." />
   <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
   <link rel="canonical" href="${escapeHtml(config.serviceUrl)}/" />
+  <link rel="alternate" type="application/json" title="Listing Roast x402 manifest" href="${escapeHtml(absoluteUrl(config, "/x402.json"))}" />
+  <link rel="alternate" type="application/vnd.oai.openapi+json" title="Listing Roast OpenAPI" href="${escapeHtml(absoluteUrl(config, "/openapi.json"))}" />
+  <link rel="alternate" type="text/plain" title="Listing Roast llms.txt" href="${escapeHtml(absoluteUrl(config, "/llms.txt"))}" />
+  <script type="application/ld+json">${jsonScript(buildStructuredData(config))}</script>
   <title>${escapeHtml(config.serviceName)}</title>
   <style>
     :root { color-scheme: light; --ink: #171717; --muted: #5b6470; --line: #d8dee7; --paper: #fbfaf7; --panel: #ffffff; --blue: #1458d4; --green: #0d7a4f; --gold: #9c6a00; }
@@ -1651,6 +1746,7 @@ ${copyScript("Copy $0.005 score command")}
     response.status(204).end();
   });
 
+  app.use([INSTANT_SCORE_PATH, ROAST_PATH, PING_PATH, "/api/listing-score"], rejectHeadPaidRoute);
   app.get([INSTANT_SCORE_PATH, ROAST_PATH], recordInstantScoreProbe);
   app.get(PING_PATH, recordPingProbe);
   app.post(ROAST_PATH, validateListingRoastRequest);

@@ -2,7 +2,7 @@
 
 Standalone x402 paid API for critiquing paid agent/API listing copy. It has a $0.001 instant GET score endpoint, a $0.005 score endpoint, and a $0.01 full-roast endpoint.
 
-This is intentionally separate from ApexScout and any other active project. It has a public homepage, a command-builder page, a shareable sample page, three protected JSON API routes, MCP-visible metadata, OpenAPI, llms.txt, and a local aggregate cash register.
+This is intentionally separate from ApexScout and any other active project. It has a public homepage, a command-builder page, a shareable sample page, five protected JSON API routes, MCP-visible metadata, OpenAPI, llms.txt, x402 discovery link headers, and a local aggregate cash register.
 
 By default, local development can use Base Sepolia through the public x402 facilitator. The live Railway service uses Base mainnet, a separate receiver wallet, and CDP facilitator credentials.
 

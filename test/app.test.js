@@ -89,9 +89,12 @@ describe("Listing Roast x402 service", () => {
       const health = await fetchJson(server, "/health");
       expect(health.status).toBe(200);
       expect(health.json.paidRoute).toBe("/api/listing-roast");
+      expect(health.headers.get("link")).toContain("/x402.json");
+      expect(health.headers.get("link")).toContain("/openapi.json");
 
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
+      expect(home.headers.get("link")).toContain("/.well-known/x402.json");
       expect(home.text).toContain("Copy $0.001 instant command");
       expect(home.text).toContain("Copy x402 ping command");
       expect(home.text).toContain("Copy $0.005 score command");
@@ -99,6 +102,8 @@ describe("Listing Roast x402 service", () => {
       expect(home.text).toContain("Build your command");
       expect(home.text).toContain("View sample score");
       expect(home.text).toContain("Open examples JSON");
+      expect(home.text).toContain("application/ld+json");
+      expect(home.text).toContain("Listing Roast x402 paid routes");
 
       const builder = await fetchJson(server, "/builder");
       expect(builder.status).toBe(200);
@@ -293,6 +298,30 @@ describe("Listing Roast x402 service", () => {
       await new Promise((resolve) => server.close(resolve));
     }
   }, 15000);
+
+  it("rejects HEAD probes on paid routes without recording revenue", async () => {
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      const headPing = await fetchJson(server, "/api/x402-ping", { method: "HEAD" });
+      expect(headPing.status).toBe(405);
+      expect(headPing.headers.get("allow")).toBe("GET");
+      expect(headPing.headers.get("payment-required")).toBeNull();
+      expect(headPing.headers.get("link")).toContain("/x402.json");
+
+      const headRoast = await fetchJson(server, "/api/listing-roast", { method: "HEAD" });
+      expect(headRoast.status).toBe(405);
+      expect(headRoast.headers.get("allow")).toBe("GET, POST");
+      expect(headRoast.headers.get("payment-required")).toBeNull();
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.json.paidCompletions).toBe(0);
+      expect(cashRegister.json.signals.unpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.pingValidUnpaidChallenges).toBe(0);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
 
   it("preserves concurrent signal writes", async () => {
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
