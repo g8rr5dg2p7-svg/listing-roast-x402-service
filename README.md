@@ -1,8 +1,8 @@
 # Listing Roast x402 Service
 
-Standalone x402 paid API for critiquing paid agent/API listing copy. It has a $0.001 instant GET score endpoint, a $0.005 score endpoint, and a $0.01 full-roast endpoint.
+Standalone x402 paid API for critiquing paid agent/API listing copy and auditing stale x402/Bazaar discovery state. It has a $0.001 instant GET score endpoint, a $0.005 score endpoint, a $0.01 full-roast endpoint, and a $0.01 discovery audit endpoint.
 
-This is intentionally separate from ApexScout and any other active project. It has a public homepage, a command-builder page, a shareable sample page, five protected JSON API routes, MCP-visible metadata, OpenAPI, llms.txt, x402 discovery link headers, and a local aggregate cash register.
+This is intentionally separate from ApexScout and any other active project. It has a public homepage, a command-builder page, a shareable sample page, six protected JSON API routes, MCP-visible metadata, OpenAPI, llms.txt, x402 discovery link headers, and a local aggregate cash register.
 
 By default, local development can use Base Sepolia through the public x402 facilitator. The live Railway service uses Base mainnet, a separate receiver wallet, and CDP facilitator credentials.
 
@@ -19,6 +19,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /x402.json` and `GET /.well-known/x402.json` - current owned x402 route manifest.
 - `GET /api/schema` - full-roast request/response shape.
 - `GET /api/score-schema` - score request/response shape.
+- `GET /api/discovery-audit-schema` - x402 discovery-audit request/response shape.
 - `GET /api/examples` - copy-ready request, command, and sample output.
 - `GET /robots.txt` - public crawl hints.
 - `GET /sitemap.xml` - public discovery URLs.
@@ -26,13 +27,14 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /api/instant-listing-score` - protected $0.001 x402 instant score route with optional query params.
 - `GET /api/listing-roast` - protected $0.001 x402 quick score on the already-indexed listing-roast URL.
 - `GET /api/x402-ping` - protected $0.001 paid ping for verifying the x402 payment rail.
+- `POST /api/x402-discovery-audit` - protected $0.01 x402/Bazaar discovery audit for stale pricing, missing search visibility, and direct 402 metadata checks. It makes no paid calls.
 - `POST /api/listing-score` - protected $0.005 x402 score route.
 - `POST /api/listing-roast` - protected $0.01 x402 full-roast route.
 - `GET /api/cash-register` - deployment-local funnel counters, paid completion count, and receiver wallet USDC balance on Base mainnet.
 
 ## Promotion
 
-Share the homepage first with x402, MCP, and agent-service builders. The reusable posts, direct-message copy, and monitoring checklist live in [docs/promotion.md](docs/promotion.md).
+Share the homepage first with x402, MCP, and agent-service builders. The reusable posts, direct-message copy, and monitoring checklist live in [docs/promotion.md](docs/promotion.md). The focused discovery-audit outreach packet lives in [docs/outreach.md](docs/outreach.md).
 
 ## Run Locally
 
@@ -56,7 +58,7 @@ npm test
 npm run smoke
 ```
 
-The default smoke test should return HTTP `402` with a `payment-required` header containing a `10000` USDC-unit challenge. Set `SMOKE_PATH=/api/listing-score EXPECTED_X402_AMOUNT=5000` to verify the score route. Set `SMOKE_PATH=/api/instant-listing-score EXPECTED_X402_AMOUNT=1000` to verify the instant GET route. Set `SMOKE_PATH=/api/listing-roast SMOKE_METHOD=GET EXPECTED_X402_AMOUNT=1000` to verify the indexed quick-score route. Set `SMOKE_PATH=/api/x402-ping EXPECTED_X402_AMOUNT=1000` to verify the paid ping route.
+The default smoke test should return HTTP `402` with a `payment-required` header containing a `10000` USDC-unit challenge. Set `SMOKE_PATH=/api/listing-score EXPECTED_X402_AMOUNT=5000` to verify the score route. Set `SMOKE_PATH=/api/instant-listing-score EXPECTED_X402_AMOUNT=1000` to verify the instant GET route. Set `SMOKE_PATH=/api/listing-roast SMOKE_METHOD=GET EXPECTED_X402_AMOUNT=1000` to verify the indexed quick-score route. Set `SMOKE_PATH=/api/x402-ping EXPECTED_X402_AMOUNT=1000` to verify the paid ping route. Set `SMOKE_PATH=/api/x402-discovery-audit EXPECTED_X402_AMOUNT=10000` to verify the discovery audit route.
 
 ## Docker
 
@@ -76,7 +78,7 @@ CDP_API_KEY_SECRET=...
 
 ## Launch Checklist
 
-1. Open `/builder`, `/sample`, `/api/sample-score`, `/api/instant-listing-score`, `GET /api/listing-roast`, `/api/x402-ping`, `/openapi.json`, `/llms.txt`, `/x402.json`, `/.well-known/x402.json`, `/api/schema`, `/api/score-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
+1. Open `/builder`, `/sample`, `/api/sample-score`, `/api/instant-listing-score`, `GET /api/listing-roast`, `/api/x402-ping`, `/api/x402-discovery-audit`, `/openapi.json`, `/llms.txt`, `/x402.json`, `/.well-known/x402.json`, `/api/schema`, `/api/score-schema`, `/api/discovery-audit-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
 2. Send one unpaid request and confirm the live route returns HTTP `402`.
 3. Confirm the live instant score, indexed GET, and paid ping challenges use `X402_NETWORK=eip155:8453` and amount `1000`; confirm the live score challenge uses amount `5000`; confirm the full-roast challenge uses amount `10000`.
 4. Monitor `/api/cash-register`; use `signals.builderViews`, `signals.builderCommandBuilds`, `signals.sampleViews`, `signals.validUnpaidChallenges`, and `signals.commandCopyClicks` for buyer interest, `signals.emptyDiscoveryProbes` for bot/discovery noise, and `receiverWallet.usdcBalance` as the durable revenue check across deploys.

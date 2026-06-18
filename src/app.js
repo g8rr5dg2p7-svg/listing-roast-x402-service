@@ -6,6 +6,13 @@ import { paymentMiddleware } from "@x402/express";
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from "@x402/extensions/bazaar";
 
 import { getCashRegister, recordPaidCompletion, recordSignal } from "./cashRegister.js";
+import {
+  buildDiscoveryAuditExampleOutput,
+  buildX402DiscoveryAudit,
+  discoveryAuditOutputSchema,
+  discoveryAuditRequestExample,
+  discoveryAuditRequestSchema
+} from "./discoveryAudit.js";
 import { buildListingRoast, buildListingScore, listingRoastRequestSchema, requestExample } from "./roast.js";
 
 const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
@@ -15,12 +22,16 @@ const USDC_DECIMALS = 1_000_000n;
 const INSTANT_SCORE_PATH = "/api/instant-listing-score";
 const ROAST_PATH = "/api/listing-roast";
 const PING_PATH = "/api/x402-ping";
+const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
 const INSTANT_SCORE_AMOUNT = "1000";
 const PING_AMOUNT = "1000";
+const DISCOVERY_AUDIT_AMOUNT = "10000";
 const DISCOVERY_KEYWORDS = [
   "marketplace listing score",
   "marketplace listing quality",
   "marketplace listing conversion",
+  "x402 bazaar discovery audit",
+  "x402 listing stale price",
   "paid API listing",
   "x402 listing",
   "x402 service discoverability"
@@ -45,7 +56,8 @@ export function getConfig(overrides = {}) {
     baseRpcUrl: overrides.baseRpcUrl || process.env.BASE_RPC_URL || "https://mainnet.base.org",
     price: "$0.01",
     scorePrice: "$0.005",
-    instantScorePrice: "$0.001"
+    instantScorePrice: "$0.001",
+    discoveryAuditPrice: "$0.01"
   };
 }
 
@@ -115,6 +127,13 @@ function buildStructuredData(config) {
         },
         {
           "@type": "Offer",
+          name: "x402 discovery audit",
+          price: "0.01",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, DISCOVERY_AUDIT_PATH)
+        },
+        {
+          "@type": "Offer",
           name: "Instant listing score",
           price: "0.001",
           priceCurrency: "USD",
@@ -146,10 +165,10 @@ function buildStructuredData(config) {
   };
 }
 
-function buildPayCommand(config, pathname = ROAST_PATH, maxAmount = "10000") {
+function buildPayCommand(config, pathname = ROAST_PATH, maxAmount = "10000", body = requestExample) {
   return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, pathname)} \\
   -X POST \\
-  -d ${shellQuote(JSON.stringify(requestExample))} \\
+  -d ${shellQuote(JSON.stringify(body))} \\
   --max-amount ${maxAmount}`;
 }
 
@@ -491,6 +510,55 @@ function buildPingDiscovery(config) {
   };
 }
 
+function buildDiscoveryAuditDiscovery(config) {
+  return {
+    input: discoveryAuditRequestExample,
+    bodyType: "json",
+    inputSchema: {
+      type: "object",
+      required: ["endpointUrl"],
+      properties: {
+        endpointUrl: {
+          type: "string",
+          description: "Public HTTPS x402 endpoint to inspect without making a paid call."
+        },
+        method: {
+          type: "string",
+          enum: ["GET", "POST"],
+          description: "HTTP method to use for the unpaid 402 metadata probe."
+        },
+        expectedAmount: {
+          type: "string",
+          description: "Expected x402 amount in atomic USDC units, for example 1000 for $0.001."
+        },
+        expectedNetwork: {
+          type: "string",
+          description: "Expected CAIP-2 network, for example eip155:8453 for Base mainnet."
+        },
+        searchQuery: {
+          type: "string",
+          description: "Buyer query to test against CDP Bazaar semantic search."
+        },
+        requestBody: {
+          type: "object",
+          description: "Optional JSON body used only when method is POST."
+        }
+      }
+    },
+    output: {
+      example: buildDiscoveryAuditExampleOutput(),
+      schema: discoveryAuditOutputSchema
+    },
+    service: {
+      name: config.serviceName,
+      url: config.serviceUrl,
+      route: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
+      price: config.discoveryAuditPrice,
+      network: config.network
+    }
+  };
+}
+
 function buildOpenApiDocument(config) {
   return {
     openapi: "3.1.0",
@@ -544,6 +612,34 @@ function buildOpenApiDocument(config) {
                 "application/json": {
                   schema: buildPingDiscovery(config).output.schema,
                   example: buildPingOutput(config, { msg: "hello from x402" })
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        }
+      },
+      [DISCOVERY_AUDIT_PATH]: {
+        post: {
+          tags: ["x402 discovery", "paid API listing"],
+          summary: "Paid $0.01 x402 Bazaar discovery audit",
+          description: "Audits a public x402 endpoint without making paid calls. Checks the direct unpaid 402 challenge, Bazaar extension metadata, CDP merchant discovery, stale indexed pricing, and search visibility.",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: buildDiscoveryAuditDiscovery(config).inputSchema,
+                example: discoveryAuditRequestExample
+              }
+            }
+          },
+          responses: {
+            200: {
+              description: "Paid x402 discovery audit response",
+              content: {
+                "application/json": {
+                  schema: discoveryAuditOutputSchema,
+                  example: buildDiscoveryAuditExampleOutput()
                 }
               }
             },
@@ -650,10 +746,12 @@ function buildOpenApiDocument(config) {
       x402Manifest: absoluteUrl(config, "/x402.json"),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       pingRoute: absoluteUrl(config, PING_PATH),
+      discoveryAuditRoute: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
       scoreRoute: absoluteUrl(config, "/api/listing-score"),
       roastRoute: absoluteUrl(config, ROAST_PATH),
       instantScorePrice: config.instantScorePrice,
       scorePrice: config.scorePrice,
+      discoveryAuditPrice: config.discoveryAuditPrice,
       roastPrice: config.price,
       network: config.network,
       keywords: DISCOVERY_KEYWORDS
@@ -718,6 +816,21 @@ function buildX402Manifest(config) {
         input: buildPingDiscovery(config).input,
         outputExample: buildPingOutput(config, { msg: "hello from x402" }),
         schema: absoluteUrl(config, "/openapi.json")
+      },
+      {
+        id: "x402_discovery_audit",
+        name: "x402_discovery_audit",
+        method: "POST",
+        path: DISCOVERY_AUDIT_PATH,
+        url: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
+        price: config.discoveryAuditPrice,
+        maxAmountRequired: DISCOVERY_AUDIT_AMOUNT,
+        description: "One-cent x402 Bazaar discovery audit for stale indexed pricing, missing marketplace visibility, direct 402 metadata, and next actions. Makes no paid calls.",
+        keywords: ["x402 bazaar discovery audit", "x402 listing stale price", "bazaar search visibility", "paid API listing", "x402 listing"],
+        command: buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample),
+        input: discoveryAuditRequestExample,
+        outputExample: buildDiscoveryAuditExampleOutput(),
+        schema: absoluteUrl(config, "/api/discovery-audit-schema")
       },
       {
         id: "listing_score",
@@ -824,6 +937,18 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildPingDiscovery(config))
       },
+      [`POST ${DISCOVERY_AUDIT_PATH}`]: {
+        accepts: {
+          scheme: "exact",
+          price: config.discoveryAuditPrice,
+          network: config.network,
+          payTo: config.payTo,
+          maxTimeoutSeconds: 300
+        },
+        description: "Listing Roast x402 Discovery Audit: $0.01 Bazaar visibility audit for stale indexed pricing, direct 402 metadata, search position, and no-spend fix steps.",
+        mimeType: "application/json",
+        extensions: declareDiscoveryExtension(buildDiscoveryAuditDiscovery(config))
+      },
       [`POST ${ROAST_PATH}`]: {
         accepts: {
           scheme: "exact",
@@ -888,6 +1013,23 @@ async function validateListingRoastRequest(request, response, next) {
   next();
 }
 
+async function validateDiscoveryAuditRequest(request, response, next) {
+  if (isEmptyBody(request.body)) {
+    next();
+    return;
+  }
+
+  const parsed = discoveryAuditRequestSchema.safeParse(request.body);
+  if (!parsed.success) {
+    await recordSignal("invalidRequests");
+    response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
+    return;
+  }
+
+  request.discoveryAuditInput = parsed.data;
+  next();
+}
+
 function hasPaymentHeader(request) {
   return Boolean(request.get("x-payment"));
 }
@@ -908,6 +1050,10 @@ function validUnpaidSignalForPath(pathname) {
     return "pingValidUnpaidChallenges";
   }
 
+  if (pathname === DISCOVERY_AUDIT_PATH) {
+    return "discoveryAuditValidUnpaidChallenges";
+  }
+
   return pathname === "/api/listing-score" ? "scoreValidUnpaidChallenges" : "roastValidUnpaidChallenges";
 }
 
@@ -918,7 +1064,7 @@ function rejectHeadPaidRoute(request, response, next) {
   }
 
   const pathname = new URL(request.originalUrl, "http://local").pathname;
-  const allow = pathname === ROAST_PATH ? "GET, POST" : pathname === "/api/listing-score" ? "POST" : "GET";
+  const allow = pathname === ROAST_PATH ? "GET, POST" : ["/api/listing-score", DISCOVERY_AUDIT_PATH].includes(pathname) ? "POST" : "GET";
   response.set("Allow", allow).status(405).end();
 }
 
@@ -997,6 +1143,7 @@ export function createApp(overrides = {}) {
     const paidRoute = absoluteUrl(config, ROAST_PATH);
     const scoreRoute = absoluteUrl(config, "/api/listing-score");
     const pingRoute = absoluteUrl(config, PING_PATH);
+    const discoveryAuditRoute = absoluteUrl(config, DISCOVERY_AUDIT_PATH);
     const builderUrl = absoluteUrl(config, "/builder");
     const sampleUrl = absoluteUrl(config, "/sample");
     const schemaUrl = absoluteUrl(config, "/api/schema");
@@ -1007,6 +1154,7 @@ export function createApp(overrides = {}) {
     const instantCommand = buildGetPayCommand(config);
     const indexedRoastGetCommand = buildGetPayCommand(config, ROAST_PATH);
     const pingCommand = buildGetPayCommand(config, PING_PATH, PING_AMOUNT);
+    const discoveryAuditCommand = buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample);
     const payCommand = buildPayCommand(config);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const scoreOutput = buildListingScore(requestExample);
@@ -1017,7 +1165,7 @@ export function createApp(overrides = {}) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="A $0.001 instant GET score, $0.005 score, and $0.01 x402 paid API that critiques paid agent and API listing copy before launch." />
+  <meta name="description" content="A paid x402 API for listing scores, full listing roasts, and Bazaar discovery audits when x402 pricing or search visibility looks stale." />
   <meta property="og:title" content="${escapeHtml(config.serviceName)}" />
   <meta property="og:description" content="Find out why buyer agents skip your paid API listing before you promote it." />
   <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
@@ -1100,11 +1248,12 @@ export function createApp(overrides = {}) {
       <div class="wrap heroGrid">
         <div>
           <h1>Find out why buyer agents skip your paid API listing.</h1>
-          <p class="lead">Start with a ${config.instantScorePrice} instant GET score, a ${config.scorePrice} listing score, or pay ${config.price} for the full roast. Get buyer-agent skip reasons before you promote.</p>
+          <p class="lead">Start with a ${config.instantScorePrice} instant GET score, run a ${config.discoveryAuditPrice} Bazaar discovery audit when pricing or search visibility looks stale, or pay ${config.price} for the full roast. Get buyer-agent skip reasons before you promote.</p>
           <div class="actions">
             <button class="button" type="button" data-copy-target="instant-command" data-default-text="Copy $0.001 instant command">Copy $0.001 instant command</button>
             <button class="button secondary" type="button" data-copy-target="indexed-command" data-default-text="Copy indexed GET command">Copy indexed GET command</button>
             <button class="button secondary" type="button" data-copy-target="ping-command" data-default-text="Copy x402 ping command">Copy x402 ping command</button>
+            <button class="button secondary" type="button" data-copy-target="audit-command" data-default-text="Copy discovery audit command">Copy discovery audit command</button>
             <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
             <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $0.01 roast command">Copy $0.01 roast command</button>
             <a class="button secondary" href="${builderUrl}">Build your command</a>
@@ -1114,8 +1263,8 @@ export function createApp(overrides = {}) {
           </div>
           <div class="proof" aria-label="Proof points">
             <div><strong class="metric">Live</strong><span class="muted">Production x402 route</span></div>
-            <div><strong>${config.instantScorePrice} / ${config.scorePrice} / ${config.price}</strong><span class="muted">Instant, indexed GET, score, or roast</span></div>
-            <div><strong class="metric">Discoverable</strong><span class="muted">Declared for Bazaar</span></div>
+            <div><strong>${config.instantScorePrice} / ${config.scorePrice} / ${config.price}</strong><span class="muted">Instant, indexed GET, score, audit, or roast</span></div>
+            <div><strong class="metric">Discovery audit</strong><span class="muted">Checks stale Bazaar listings</span></div>
           </div>
         </div>
         <div class="device" aria-label="Terminal preview">
@@ -1128,6 +1277,7 @@ instant amount: ${INSTANT_SCORE_AMOUNT} USDC units
 indexed GET amount: ${INSTANT_SCORE_AMOUNT} USDC units
 score amount: 5000 USDC units
 roast amount: 10000 USDC units
+audit amount: ${DISCOVERY_AUDIT_AMOUNT} USDC units
 <span class="ok">200 OK after payment</span>
 verdict: ready_to_test
 score: 4/5</div>
@@ -1147,7 +1297,7 @@ score: 4/5</div>
         </div>
         <div class="card">
           <h3>What you get</h3>
-          <p class="muted">A structured JSON critique that tells you what to fix before paying for traffic or posting widely.</p>
+          <p class="muted">A structured JSON critique, or a no-spend discovery audit showing whether Bazaar metadata, price, and search visibility are stale.</p>
         </div>
       </div>
     </section>
@@ -1155,8 +1305,8 @@ score: 4/5</div>
     <section class="band" id="pay">
       <div class="wrap grid2">
         <div>
-          <h2>Pay ${config.instantScorePrice} first, then upgrade when useful.</h2>
-          <p>All paid endpoints are protected by x402. The instant GET route is the fastest first paid action; the paid retry returns JSON.</p>
+          <h2>Pay ${config.instantScorePrice} first, audit discovery when needed.</h2>
+          <p>All paid endpoints are protected by x402. The instant GET route is the fastest first paid action; the discovery audit checks stale Bazaar state without making paid calls to the target service.</p>
           <p>
             <span class="tag">Base mainnet</span>
             <span class="tag">USDC</span>
@@ -1178,6 +1328,11 @@ score: 4/5</div>
           <h3>x402 ping route</h3>
           <p><code>GET ${escapeHtml(pingRoute)}</code></p>
           <p class="muted">Maximum payment: <strong>${PING_AMOUNT}</strong> USDC units. Use this to verify the payment rail before buying a score or roast.</p>
+        </div>
+        <div class="card">
+          <h3>Discovery audit route</h3>
+          <p><code>POST ${escapeHtml(discoveryAuditRoute)}</code></p>
+          <p class="muted">Maximum payment: <strong>${DISCOVERY_AUDIT_AMOUNT}</strong> USDC units. Use this when Bazaar shows stale pricing or search misses your route.</p>
         </div>
         <div class="card">
           <h3>Score route</h3>
@@ -1203,6 +1358,10 @@ score: 4/5</div>
         <pre id="ping-command">${escapeHtml(pingCommand)}</pre>
       </div>
       <div class="wrap" style="margin-top: 18px;">
+        <h3>x402 discovery audit command</h3>
+        <pre id="audit-command">${escapeHtml(discoveryAuditCommand)}</pre>
+      </div>
+      <div class="wrap" style="margin-top: 18px;">
         <h3>Score command</h3>
         <pre id="score-command">${escapeHtml(scoreCommand)}</pre>
       </div>
@@ -1216,7 +1375,7 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div>
           <h2>Output built for action.</h2>
-          <p>The score response gives the first missing signal and upgrade guidance. The full roast adds skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
+          <p>The score response gives the first missing signal and upgrade guidance. The discovery audit checks direct x402 metadata against Bazaar state. The full roast adds skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
           <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. The command builder is available at <a href="${builderUrl}">/builder</a>. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
         </div>
         <pre>${escapeHtml(prettyJson(scoreOutput))}</pre>
@@ -1227,6 +1386,13 @@ score: 4/5</div>
           <p class="muted">The $0.01 route adds the rewrite and launch decision after payment.</p>
         </div>
         <pre>${escapeHtml(prettyJson(sampleOutput))}</pre>
+      </div>
+      <div class="wrap grid2" style="margin-top: 18px;">
+        <div>
+          <h3>Discovery audit sample</h3>
+          <p class="muted">The $0.01 audit route reports stale Bazaar pricing, direct 402 metadata, search visibility, and next actions.</p>
+        </div>
+        <pre>${escapeHtml(prettyJson(buildDiscoveryAuditExampleOutput()))}</pre>
       </div>
     </section>
 
@@ -1265,7 +1431,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", INSTANT_SCORE_PATH, ROAST_PATH, PING_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", "/.well-known/x402.json", "/api/schema", "/api/score-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", INSTANT_SCORE_PATH, ROAST_PATH, PING_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", "/.well-known/x402.json", "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -1289,6 +1455,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       indexedRoastGetRoute: absoluteUrl(config, ROAST_PATH),
       pingRoute: absoluteUrl(config, PING_PATH),
+      discoveryAuditRoute: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
       paidRoute: absoluteUrl(config, ROAST_PATH),
       scoreRoute: absoluteUrl(config, "/api/listing-score"),
       price: config.price,
@@ -1300,11 +1467,14 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       instantScoreCommand: buildGetPayCommand(config),
       indexedRoastGetCommand: buildGetPayCommand(config, ROAST_PATH),
       pingCommand: buildGetPayCommand(config, PING_PATH, PING_AMOUNT),
+      discoveryAuditCommand: buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample),
       command: buildPayCommand(config),
       scoreCommand: buildPayCommand(config, "/api/listing-score", "5000"),
       instantScoreOutput: buildInstantListingScore(buildInstantScoreInput()),
       indexedRoastGetOutput: buildIndexedRoastQuickScore(buildInstantScoreInput()),
       pingOutput: buildPingOutput(config, { msg: "hello from x402" }),
+      discoveryAuditRequest: discoveryAuditRequestExample,
+      discoveryAuditOutput: buildDiscoveryAuditExampleOutput(),
       scoreOutput: buildListingScore(requestExample),
       output: buildListingRoast(requestExample)
     });
@@ -1363,6 +1533,13 @@ Paid routes:
   - Max amount: ${PING_AMOUNT} USDC units
   - Output: paid ping, timestamp, echo message, and next paid routes
   - Use when an agent wants to verify the x402 rail before buying a score or roast
+
+- POST ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)}
+  - Price: ${config.discoveryAuditPrice}
+  - Network: ${config.network}
+  - Max amount: ${DISCOVERY_AUDIT_AMOUNT} USDC units
+  - Output: direct 402 metadata check, Bazaar merchant discovery check, search visibility, stale pricing mismatch, and no-spend fix steps
+  - Use when a builder sees stale Bazaar pricing, missing Agentic.Market visibility, or a live endpoint that search does not surface
 
 - POST ${absoluteUrl(config, "/api/listing-score")}
   - Price: ${config.scorePrice}
@@ -1658,6 +1835,11 @@ ${copyScript("Copy $0.005 score command")}
     response.json(buildScoreDiscovery(config));
   });
 
+  app.get("/api/discovery-audit-schema", async (_request, response) => {
+    await recordSignal("schemaViews");
+    response.json(buildDiscoveryAuditDiscovery(config));
+  });
+
   app.get("/.well-known/mcp.json", async (_request, response) => {
     await recordSignal("mcpViews");
     response.json({
@@ -1704,6 +1886,17 @@ ${copyScript("Copy $0.005 score command")}
           input: buildPingDiscovery(config).input
         },
         {
+          name: "x402_discovery_audit",
+          method: "POST",
+          path: DISCOVERY_AUDIT_PATH,
+          url: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
+          price: config.discoveryAuditPrice,
+          network: config.network,
+          description: "Bazaar discovery audit for stale indexed pricing, missing search visibility, direct 402 metadata, and no-spend fix steps.",
+          keywords: ["x402 bazaar discovery audit", "x402 listing stale price", "bazaar search visibility", "paid API listing"],
+          input: discoveryAuditRequestExample
+        },
+        {
           name: "score_paid_listing",
           method: "POST",
           path: "/api/listing-score",
@@ -1746,12 +1939,13 @@ ${copyScript("Copy $0.005 score command")}
     response.status(204).end();
   });
 
-  app.use([INSTANT_SCORE_PATH, ROAST_PATH, PING_PATH, "/api/listing-score"], rejectHeadPaidRoute);
+  app.use([INSTANT_SCORE_PATH, ROAST_PATH, PING_PATH, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
   app.get([INSTANT_SCORE_PATH, ROAST_PATH], recordInstantScoreProbe);
   app.get(PING_PATH, recordPingProbe);
   app.post(ROAST_PATH, validateListingRoastRequest);
   app.post("/api/listing-score", validateListingRoastRequest);
-  app.post(["/api/listing-score", ROAST_PATH], async (request, _response, next) => {
+  app.post(DISCOVERY_AUDIT_PATH, validateDiscoveryAuditRequest);
+  app.post(["/api/listing-score", ROAST_PATH, DISCOVERY_AUDIT_PATH], async (request, _response, next) => {
     if (!hasPaymentHeader(request)) {
       await recordSignal("unpaidChallenges");
       if (isEmptyBody(request.body)) {
@@ -1780,6 +1974,18 @@ ${copyScript("Copy $0.005 score command")}
   app.get(PING_PATH, async (request, response) => {
     const result = buildPingOutput(config, request.query);
     const cashRegister = await recordPaidCompletion("x402Ping", 0.001);
+    response.json({ ...result, cashRegister });
+  });
+
+  app.post(DISCOVERY_AUDIT_PATH, async (request, response) => {
+    const parsed = discoveryAuditRequestSchema.safeParse(request.discoveryAuditInput ?? request.body);
+    if (!parsed.success) {
+      response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
+      return;
+    }
+
+    const result = await buildX402DiscoveryAudit(parsed.data);
+    const cashRegister = await recordPaidCompletion("x402DiscoveryAudit", 0.01);
     response.json({ ...result, cashRegister });
   });
 

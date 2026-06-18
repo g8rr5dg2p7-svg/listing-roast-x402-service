@@ -13,6 +13,7 @@ Use this when sharing Listing Roast x402 with builders. Keep the claim tight: th
 - Instant score route: https://listing-roast-x402-service-production.up.railway.app/api/instant-listing-score
 - Indexed quick-score route: GET https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Paid x402 ping route: https://listing-roast-x402-service-production.up.railway.app/api/x402-ping
+- x402 discovery audit route: https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Examples: https://listing-roast-x402-service-production.up.railway.app/api/examples
@@ -21,13 +22,13 @@ Use this when sharing Listing Roast x402 with builders. Keep the claim tight: th
 
 ## Short Pitch
 
-Listing Roast x402 is a paid API for x402, MCP, and agent-service builders. Start with a $0.001 paid ping or instant GET score, use the $0.005 listing score when you have a JSON payload, then upgrade to the $0.01 full roast for buyer-agent skip reasons, top fixes, a rewrite, and a stop-or-upgrade recommendation.
+Listing Roast x402 is a paid API for x402, MCP, and agent-service builders. Start with a $0.001 paid ping or instant GET score, use the $0.005 listing score when you have a JSON payload, upgrade to the $0.01 full roast for buyer-agent skip reasons, or use the $0.01 discovery audit when Bazaar pricing/search visibility looks stale.
 
 ## X-Style Post
 
 I launched Listing Roast x402: a paid API that critiques paid agent/API listing copy before you promote it.
 
-Use the command builder or see the sample output first. Start with a $0.001 paid ping or instant GET score. Upgrade to the $0.005 score or $0.01 full roast when you want buyer-agent skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade recommendation.
+Use the command builder or see the sample output first. Start with a $0.001 paid ping or instant GET score. Upgrade to the $0.005 score or $0.01 full roast when you want buyer-agent skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade recommendation. If Bazaar shows a stale price or search misses your route, use the $0.01 x402 discovery audit.
 
 No account. x402 payment. Base USDC.
 
@@ -50,7 +51,8 @@ Listing Roast x402 takes your listing copy and returns a structured critique:
 - a rewritten listing
 - whether to stop editing and test paid traffic
 
-It is live on Base mainnet with a $0.001 paid ping, a $0.001 instant GET score, a $0.005 score endpoint, and a $0.01 full-roast endpoint:
+It is live on Base mainnet with a $0.001 paid ping, a $0.001 instant GET score, a $0.005 score endpoint, a $0.01 discovery audit endpoint, and a $0.01 full-roast endpoint.
+The discovery audit checks a live x402 route against direct 402 metadata and public Bazaar discovery without making paid calls.
 
 https://listing-roast-x402-service-production.up.railway.app
 
@@ -95,6 +97,15 @@ Paid x402 ping:
 npx awal@2.8.0 x402 pay https://listing-roast-x402-service-production.up.railway.app/api/x402-ping \
   -X GET \
   --max-amount 1000
+```
+
+x402 discovery audit:
+
+```bash
+npx awal@2.8.0 x402 pay https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit \
+  -X POST \
+  -d '{"endpointUrl":"https://listing-roast-x402-service-production.up.railway.app/api/listing-roast","method":"GET","expectedAmount":"1000","expectedNetwork":"eip155:8453","searchQuery":"listing roast"}' \
+  --max-amount 10000
 ```
 
 Indexed listing-roast quick score:
@@ -144,6 +155,7 @@ Avoid cold spam. Prefer posts where builders are already discussing x402 discove
 - `/api/cash-register` -> `signals.examplesViews`
 - `/api/cash-register` -> `signals.unpaidChallenges`
 - `/api/cash-register` -> `signals.validUnpaidChallenges`
+- `/api/cash-register` -> `signals.discoveryAuditValidUnpaidChallenges`
 - `/api/cash-register` -> `signals.emptyDiscoveryProbes`
 - unpaid 402 challenge checks, split between buyer-shaped requests and empty discovery probes
 - paid completions

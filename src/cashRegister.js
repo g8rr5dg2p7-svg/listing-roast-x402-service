@@ -19,6 +19,7 @@ const SIGNAL_KEYS = new Set([
   "pingValidUnpaidChallenges",
   "roastValidUnpaidChallenges",
   "scoreValidUnpaidChallenges",
+  "discoveryAuditValidUnpaidChallenges",
   "emptyDiscoveryProbes",
   "invalidRequests"
 ]);
@@ -54,6 +55,7 @@ function initialCash() {
   const baselineListingRoastCompletions = baselineNumber("BASELINE_LISTING_ROAST_COMPLETIONS");
   const baselineListingScoreCompletions = baselineNumber("BASELINE_LISTING_SCORE_COMPLETIONS");
   const baselinePingCompletions = baselineNumber("BASELINE_X402_PING_COMPLETIONS");
+  const baselineDiscoveryAuditCompletions = baselineNumber("BASELINE_X402_DISCOVERY_AUDIT_COMPLETIONS");
   const baselineLastPaidAt = process.env.BASELINE_LAST_PAID_AT || null;
 
   return {
@@ -65,6 +67,8 @@ function initialCash() {
     listingScoreEstimatedRevenueUsd: baselineMoney("BASELINE_LISTING_SCORE_REVENUE_USD"),
     x402PingCompletions: baselinePingCompletions,
     x402PingEstimatedRevenueUsd: baselineMoney("BASELINE_X402_PING_REVENUE_USD"),
+    x402DiscoveryAuditCompletions: baselineDiscoveryAuditCompletions,
+    x402DiscoveryAuditEstimatedRevenueUsd: baselineMoney("BASELINE_X402_DISCOVERY_AUDIT_REVENUE_USD"),
     lastPaidAt: baselineLastPaidAt,
     importedBaseline: baselinePaidCompletions > 0 ? {
       paidCompletions: baselinePaidCompletions,
@@ -92,6 +96,7 @@ function initialCash() {
       pingValidUnpaidChallenges: 0,
       roastValidUnpaidChallenges: 0,
       scoreValidUnpaidChallenges: 0,
+      discoveryAuditValidUnpaidChallenges: 0,
       emptyDiscoveryProbes: 0,
       invalidRequests: 0
     }
@@ -113,6 +118,7 @@ function normalizeCash(cash = {}) {
   const listingRoastRevenue = Math.max(Number(String(base.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
   const listingScoreRevenue = Math.max(Number(String(base.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
   const pingRevenue = Math.max(Number(String(base.x402PingEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.x402PingEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
+  const discoveryAuditRevenue = Math.max(Number(String(base.x402DiscoveryAuditEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.x402DiscoveryAuditEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
 
   return {
     ...merged,
@@ -124,6 +130,8 @@ function normalizeCash(cash = {}) {
     listingScoreEstimatedRevenueUsd: `$${formatEstimatedUsd(listingScoreRevenue)}`,
     x402PingCompletions: Math.max(Number(base.x402PingCompletions || 0), Number(cash.x402PingCompletions || 0)),
     x402PingEstimatedRevenueUsd: `$${formatEstimatedUsd(pingRevenue)}`,
+    x402DiscoveryAuditCompletions: Math.max(Number(base.x402DiscoveryAuditCompletions || 0), Number(cash.x402DiscoveryAuditCompletions || 0)),
+    x402DiscoveryAuditEstimatedRevenueUsd: `$${formatEstimatedUsd(discoveryAuditRevenue)}`,
     lastPaidAt: cash.lastPaidAt || base.lastPaidAt
   };
 }
@@ -188,15 +196,18 @@ export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) 
   return updateCash((cash) => {
     const isScore = kind === "listingScore";
     const isPing = kind === "x402Ping";
-    const isRoast = !isScore && !isPing;
+    const isDiscoveryAudit = kind === "x402DiscoveryAudit";
+    const isRoast = !isScore && !isPing && !isDiscoveryAudit;
     const listingRoastCompletions = Number(cash.listingRoastCompletions || 0) + (isRoast ? 1 : 0);
     const listingScoreCompletions = Number(cash.listingScoreCompletions || 0) + (isScore ? 1 : 0);
     const x402PingCompletions = Number(cash.x402PingCompletions || 0) + (isPing ? 1 : 0);
+    const x402DiscoveryAuditCompletions = Number(cash.x402DiscoveryAuditCompletions || 0) + (isDiscoveryAudit ? 1 : 0);
     const paidCompletions = Number(cash.paidCompletions || 0) + 1;
     const estimatedGrossRevenueUsd = Number(cash.estimatedGrossRevenueUsd || 0) + priceUsd;
-    const roastRevenue = Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore || isPing ? 0 : priceUsd);
+    const roastRevenue = Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore || isPing || isDiscoveryAudit ? 0 : priceUsd);
     const scoreRevenue = Number(String(cash.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore ? priceUsd : 0);
     const pingRevenue = Number(String(cash.x402PingEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isPing ? priceUsd : 0);
+    const discoveryAuditRevenue = Number(String(cash.x402DiscoveryAuditEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isDiscoveryAudit ? priceUsd : 0);
     const now = new Date().toISOString();
     return {
       ...cash,
@@ -208,6 +219,8 @@ export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) 
       listingScoreEstimatedRevenueUsd: `$${formatEstimatedUsd(scoreRevenue)}`,
       x402PingCompletions,
       x402PingEstimatedRevenueUsd: `$${formatEstimatedUsd(pingRevenue)}`,
+      x402DiscoveryAuditCompletions,
+      x402DiscoveryAuditEstimatedRevenueUsd: `$${formatEstimatedUsd(discoveryAuditRevenue)}`,
       firstSignalAt: cash.firstSignalAt || now,
       lastSignalAt: now,
       lastPaidAt: now

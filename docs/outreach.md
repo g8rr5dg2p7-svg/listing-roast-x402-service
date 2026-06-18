@@ -1,0 +1,66 @@
+# Discovery Audit Outreach Packet
+
+Use this packet for controlled outreach to x402 builders. Keep the claim narrow: the service is live, the paid routes return valid x402 challenges, and the discovery audit checks stale Bazaar state without making paid calls to the target endpoint.
+
+## Primary Offer
+
+Listing Roast x402 now includes a $0.01 x402 discovery audit for builders whose Bazaar or Agentic.Market listing is stale, missing from search, or showing the wrong price.
+
+Live route:
+https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
+
+Homepage:
+https://listing-roast-x402-service-production.up.railway.app
+
+## Proof To Mention
+
+- Base mainnet x402 route.
+- Price: $0.01 / 10000 USDC units.
+- Checks direct unpaid 402 metadata, Bazaar extension metadata, merchant discovery, stale indexed pricing, and search visibility.
+- Makes no paid calls to the endpoint being audited.
+- Useful when a direct x402 route is correct but Bazaar or Agentic.Market still shows stale metadata.
+
+## Public Post
+
+I added a small x402 discovery-audit endpoint for builders whose Bazaar listing looks stale.
+
+It checks a live x402 route against:
+- direct 402 metadata
+- Bazaar extension metadata
+- CDP merchant discovery
+- stale indexed pricing
+- search visibility
+
+It does not make paid calls to the endpoint being audited.
+
+Price: $0.01 on Base USDC via x402.
+
+https://listing-roast-x402-service-production.up.railway.app
+
+## Builder Reply
+
+If your x402 route returns the right direct price but Bazaar or Agentic.Market still shows an old price or misses the route in search, I built a $0.01 discovery audit for that exact gap.
+
+It checks the public route, direct unpaid 402 metadata, Bazaar metadata, merchant discovery, and search visibility. It does not pay the target endpoint.
+
+https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
+
+## Directory PR Blurb
+
+Listing Roast x402 - Paid API for x402 and agent-service builders. Offers $0.001 listing scores, a $0.01 listing roast, and a $0.01 Bazaar discovery audit for stale pricing, direct 402 metadata, search visibility, and no-spend next actions. Base USDC via x402.
+
+https://listing-roast-x402-service-production.up.railway.app
+
+## Target Surfaces
+
+- GitHub: `xpaysh/awesome-x402`, under production implementations or tools/utilities.
+- GitHub: `Merit-Systems/awesome-agentic-commerce`, near x402 ecosystem tooling.
+- x402 builder threads where sellers mention stale Bazaar visibility or missing search results.
+- Agentic.Market and x402scan ecosystem discussions after a real external settled payment refreshes marketplace data.
+
+## Guardrails
+
+- Do not claim new outside revenue until `/api/cash-register` or the wallet confirms it.
+- Do not claim Bazaar has refreshed until public search shows the refreshed route or price.
+- Do not pay our own route for indexing unless explicitly approved as a separate spend action.
+- Do not describe unpaid probes as buyer demand.

@@ -11,10 +11,12 @@ Live production service:
 - Instant score route: https://listing-roast-x402-service-production.up.railway.app/api/instant-listing-score
 - Indexed quick-score route: GET https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Paid x402 ping route: https://listing-roast-x402-service-production.up.railway.app/api/x402-ping
+- x402 discovery audit route: https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Schema: https://listing-roast-x402-service-production.up.railway.app/api/schema
 - Score schema: https://listing-roast-x402-service-production.up.railway.app/api/score-schema
+- Discovery audit schema: https://listing-roast-x402-service-production.up.railway.app/api/discovery-audit-schema
 - Cash register and receiver wallet balance: https://listing-roast-x402-service-production.up.railway.app/api/cash-register
 - GitHub: https://github.com/g8rr5dg2p7-svg/listing-roast-x402-service
 
