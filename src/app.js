@@ -4023,6 +4023,8 @@ function buildAgentToolsManifest(config) {
 
   return {
     name: config.serviceName,
+    type: "x402-paid-api-service",
+    version: "0.3",
     description: DISCOVERY_DESCRIPTION,
     serviceName: config.serviceName,
     provider_url: config.serviceUrl,
@@ -4032,6 +4034,31 @@ function buildAgentToolsManifest(config) {
     tags: SERVICE_TAGS,
     base_url: x402Manifest.baseUrl,
     payment,
+    paid_relay: true,
+    resource_count: 1,
+    resource_samples: [
+      {
+        url: primaryEndpoint.url,
+        kind: "http",
+        method: primaryEndpoint.method,
+        path: primaryEndpoint.path,
+        price_usd: priceToUsd(primaryEndpoint.price),
+        max_amount_required: primaryEndpoint.maxAmountRequired
+      }
+    ],
+    call_info: {
+      resource_count: 1,
+      resource_samples: [
+        {
+          url: primaryEndpoint.url,
+          kind: "http",
+          method: primaryEndpoint.method,
+          path: primaryEndpoint.path,
+          price_usd: priceToUsd(primaryEndpoint.price),
+          max_amount_required: primaryEndpoint.maxAmountRequired
+        }
+      ]
+    },
     catalog: "/x402.json",
     x402_catalog: "/x402.json",
     bazaar_metadata: WELL_KNOWN_X402_PATH,
@@ -4050,6 +4077,24 @@ function buildAgentToolsManifest(config) {
     settlement_proof: "/api/cash-register",
     primary_endpoint: primaryEndpoint,
     primary_paid_endpoint: primaryEndpoint,
+    endpoints: {
+      primary_paid_call: {
+        method: primaryEndpoint.method,
+        url: primaryEndpoint.url,
+        path: primaryEndpoint.path,
+        price_usd: priceToUsd(primaryEndpoint.price),
+        max_amount_required: primaryEndpoint.maxAmountRequired,
+        command: primaryEndpoint.command,
+        returns: "paid listing quality quick score with next paid action guidance"
+      },
+      pay_now: absoluteUrl(config, PAY_NOW_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      route: absoluteUrl(config, ROUTE_PATH),
+      x402_manifest: absoluteUrl(config, WELL_KNOWN_X402_PATH),
+      openapi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+      api_catalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
+      cash_register: absoluteUrl(config, "/api/cash-register")
+    },
     call: {
       primary_endpoint: primaryEndpoint,
       primary_url: primaryEndpoint.url,
@@ -4058,6 +4103,7 @@ function buildAgentToolsManifest(config) {
       command: primaryEndpoint.command,
       note: primaryEndpoint.note
     },
+    agent_hint: "For the first paid call, use GET /api/listing-roast with max 1000 USDC units. POST / is only a fallback directory handoff, not the preferred buyer path.",
     intent_landing_pages: buildIntentLandingHandoffs(config),
     preferred_first_paid_action: {
       name: "indexed_roast_quick_score",
