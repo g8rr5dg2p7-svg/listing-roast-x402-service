@@ -99,6 +99,11 @@ describe("Listing Roast x402 service", () => {
       expect(health.headers.get("link")).toContain("/.well-known/ai-plugin.json");
       expect(health.headers.get("link")).toContain("/.well-known/api-catalog");
       expect(health.headers.get("link")).toContain("/.well-known/agent-skills/index.json");
+      expect(health.headers.get("link")).toContain("/llms-full.txt");
+      expect(health.headers.get("link")).toContain("/index.md");
+      expect(health.headers.get("link")).toContain("/.well-known/mcp");
+      expect(health.headers.get("link")).toContain("/.well-known/mcp-server");
+      expect(health.headers.get("link")).toContain("/.well-known/mcp/server-card.json");
 
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
@@ -119,6 +124,17 @@ describe("Listing Roast x402 service", () => {
       expect(home.text).toContain("Open examples JSON");
       expect(home.text).toContain("application/ld+json");
       expect(home.text).toContain("Listing Roast x402 paid routes");
+      expect(home.text).toContain("/llms-full.txt");
+      expect(home.text).toContain("/.well-known/mcp/server-card.json");
+
+      const homeMarkdown = await fetchJson(server, "/", {
+        headers: { Accept: "text/markdown" }
+      });
+      expect(homeMarkdown.status).toBe(200);
+      expect(homeMarkdown.headers.get("content-type")).toContain("text/markdown");
+      expect(homeMarkdown.text).toContain("# Listing Roast x402");
+      expect(homeMarkdown.text).toContain("Do not call paid routes unless the buyer explicitly intends to pay");
+      expect(homeMarkdown.text).toContain("/api/listing-roast");
 
       const builder = await fetchJson(server, "/builder");
       expect(builder.status).toBe(200);
@@ -169,6 +185,10 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(mcp.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
       expect(mcp.json.agentSkill).toContain("/.well-known/agent-skills/listing-roast-x402/SKILL.md");
+      expect(mcp.json.llmsFull).toContain("/llms-full.txt");
+      expect(mcp.json.markdown).toContain("/index.md");
+      expect(mcp.json.mcpAliases[0]).toContain("/.well-known/mcp");
+      expect(mcp.json.mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(mcp.json.payNow).toContain("/api/pay-now");
       expect(mcp.json.keywords).toContain("marketplace listing score");
       expect(mcp.json.tools[0].description).toContain("marketplace listing score");
@@ -183,6 +203,21 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.tools[1].payment.maxAmountRequired).toBe("1000");
       expect(mcp.json.tools[1].payment.preferredFirstPaidAction).toBe(false);
       expect(mcp.json.tools.map((tool) => tool.path)).toEqual(["/api/listing-roast", "/api/instant-listing-score", "/api/x402-marketplace-conversion", "/api/agent-listing-conversion", "/api/x402-ping", "/api/x402-site-audit", "/api/x402-discovery-audit", "/api/listing-score", "/api/listing-roast"]);
+
+      const mcpAlias = await fetchJson(server, "/.well-known/mcp");
+      expect(mcpAlias.status).toBe(200);
+      expect(mcpAlias.json.tools[0].path).toBe("/api/listing-roast");
+
+      const mcpServerAlias = await fetchJson(server, "/.well-known/mcp-server");
+      expect(mcpServerAlias.status).toBe(200);
+      expect(mcpServerAlias.json.payNow).toContain("/api/pay-now");
+
+      const mcpServerCard = await fetchJson(server, "/.well-known/mcp/server-card.json");
+      expect(mcpServerCard.status).toBe(200);
+      expect(mcpServerCard.json.serverInfo.name).toBe("Listing Roast x402");
+      expect(mcpServerCard.json.transport).toBe("http");
+      expect(mcpServerCard.json.payment.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
+      expect(mcpServerCard.json.links.llmsFull).toContain("/llms-full.txt");
 
       const x402Manifest = await fetchJson(server, "/x402.json");
       expect(x402Manifest.status).toBe(200);
@@ -265,7 +300,7 @@ describe("Listing Roast x402 service", () => {
       expect(agentCard.json.name).toBe("Listing Roast x402");
       expect(agentCard.json.url).toContain("/api/listing-roast");
       expect(agentCard.json.preferredTransport).toBe("HTTP+JSON");
-      expect(agentCard.json.additionalInterfaces.map((item) => item.transport)).toEqual(["HTTP+JSON", "OPENAPI", "X402", "MCP"]);
+      expect(agentCard.json.additionalInterfaces.map((item) => item.transport)).toEqual(["HTTP+JSON", "OPENAPI", "X402", "MCP", "MCP-SERVER-CARD"]);
       expect(agentCard.json.securitySchemes.x402.name).toBe("X-PAYMENT");
       expect(agentCard.json.security[0]).toEqual({ x402: [] });
       expect(agentCard.json.skills.map((skill) => skill.id)).toContain("agent-listing-conversion-score");
@@ -312,6 +347,8 @@ describe("Listing Roast x402 service", () => {
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/x402.json");
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/.well-known/ai-plugin.json");
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/.well-known/agent-skills/index.json");
+      expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/.well-known/mcp/server-card.json");
+      expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/llms-full.txt");
       expect(apiCatalog.json.linkset[0].status[0].href).toContain("/health");
 
       const agentSkillsHead = await fetch(`http://127.0.0.1:${server.address().port}/.well-known/agent-skills/index.json`, { method: "HEAD" });
@@ -345,6 +382,8 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.openApi).toContain("/openapi.json");
       expect(examples.json.openApiAliases[0]).toContain("/.well-known/openapi.json");
       expect(examples.json.llms).toContain("/llms.txt");
+      expect(examples.json.llmsFull).toContain("/llms-full.txt");
+      expect(examples.json.markdown).toContain("/index.md");
       expect(examples.json.x402Manifest).toContain("/x402.json");
       expect(examples.json.x402ManifestAliases.some((url) => url.endsWith("/.well-known/x402"))).toBe(true);
       expect(examples.json.agentCard).toContain("/.well-known/agent-card.json");
@@ -353,6 +392,9 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(examples.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
       expect(examples.json.agentSkill).toContain("/.well-known/agent-skills/listing-roast-x402/SKILL.md");
+      expect(examples.json.mcp).toContain("/.well-known/mcp.json");
+      expect(examples.json.mcpAliases[1]).toContain("/.well-known/mcp-server");
+      expect(examples.json.mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(examples.json.payNowUrl).toContain("/api/pay-now");
       expect(examples.json.payNow.route).toContain("/api/listing-roast");
       expect(examples.json.payNow.command).toContain("--max-amount 1000");
@@ -469,6 +511,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json["x-listing-roast"].aiPlugin).toContain("/.well-known/ai-plugin.json");
       expect(openApi.json["x-listing-roast"].apiCatalog).toContain("/.well-known/api-catalog");
       expect(openApi.json["x-listing-roast"].agentSkills).toContain("/.well-known/agent-skills/index.json");
+      expect(openApi.json["x-listing-roast"].llmsFull).toContain("/llms-full.txt");
+      expect(openApi.json["x-listing-roast"].mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(openApi.json["x-listing-roast"].recommendedFirstPaidAction.route).toContain("/api/listing-roast");
       expect(openApi.json["x-listing-roast"].x402Manifest).toContain("/x402.json");
       expect(openApi.json["x-listing-roast"].keywords).toContain("paid API listing");
@@ -492,6 +536,10 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/.well-known/api-catalog");
       expect(llms.text).toContain("/.well-known/agent-skills/index.json");
       expect(llms.text).toContain("/.well-known/agent-skills/listing-roast-x402/SKILL.md");
+      expect(llms.text).toContain("/llms-full.txt");
+      expect(llms.text).toContain("/index.md");
+      expect(llms.text).toContain("/.well-known/mcp-server");
+      expect(llms.text).toContain("/.well-known/mcp/server-card.json");
       expect(llms.text).toContain("npx awal@2.8.0 x402 pay");
       expect(llms.text).toContain("x402 pay http://localhost:8787/api/listing-roast");
       expect(llms.text).toContain("/api/agent-listing-conversion");
@@ -500,6 +548,17 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("already-indexed listing-roast URL");
       expect(llms.text).toContain("/x402.json");
       expect(llms.text).toContain("marketplace listing score");
+
+      const llmsFull = await fetchJson(server, "/llms-full.txt");
+      expect(llmsFull.status).toBe(200);
+      expect(llmsFull.headers.get("content-type")).toContain("text/markdown");
+      expect(llmsFull.text).toContain("# Listing Roast x402");
+      expect(llmsFull.text).toContain("/.well-known/mcp/server-card.json");
+
+      const indexMarkdown = await fetchJson(server, "/index.md");
+      expect(indexMarkdown.status).toBe(200);
+      expect(indexMarkdown.headers.get("content-type")).toContain("text/markdown");
+      expect(indexMarkdown.text).toContain("Preferred First Paid Route");
 
       const robots = await fetchJson(server, "/robots.txt");
       expect(robots.status).toBe(200);
@@ -520,6 +579,8 @@ describe("Listing Roast x402 service", () => {
       expect(sitemap.text).toContain("/openapi.json");
       expect(sitemap.text).toContain("/.well-known/openapi.json");
       expect(sitemap.text).toContain("/llms.txt");
+      expect(sitemap.text).toContain("/llms-full.txt");
+      expect(sitemap.text).toContain("/index.md");
       expect(sitemap.text).toContain("/x402.json");
       expect(sitemap.text).toContain("/.well-known/x402.json");
       expect(sitemap.text).toContain("/.well-known/x402</loc>");
@@ -529,6 +590,7 @@ describe("Listing Roast x402 service", () => {
       expect(sitemap.text).toContain("/.well-known/api-catalog");
       expect(sitemap.text).toContain("/.well-known/agent-skills/index.json");
       expect(sitemap.text).toContain("/.well-known/agent-skills/listing-roast-x402/SKILL.md");
+      expect(sitemap.text).toContain("/.well-known/mcp/server-card.json");
       expect(sitemap.text).toContain("/api/examples");
       expect(sitemap.text).toContain("/api/score-schema");
       expect(sitemap.text).toContain("/api/discovery-audit-schema");
@@ -562,16 +624,16 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.status).toBe(200);
       expect(cashRegister.json.receiverWallet.network).toBe("eip155:84532");
       expect(cashRegister.json.receiverWallet.source).toBe("disabled_for_non_mainnet");
-      expect(cashRegister.json.signals.homepageViews).toBe(1);
+      expect(cashRegister.json.signals.homepageViews).toBe(2);
       expect(cashRegister.json.signals.builderViews).toBe(1);
       expect(cashRegister.json.signals.builderCommandBuilds).toBe(1);
-      expect(cashRegister.json.signals.llmsViews).toBe(1);
+      expect(cashRegister.json.signals.llmsViews).toBe(3);
       expect(cashRegister.json.signals.openApiViews).toBe(2);
       expect(cashRegister.json.signals.sampleViews).toBe(2);
       expect(cashRegister.json.signals.schemaViews).toBe(2);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
       expect(cashRegister.json.signals.payNowViews).toBe(1);
-      expect(cashRegister.json.signals.mcpViews).toBe(1);
+      expect(cashRegister.json.signals.mcpViews).toBe(4);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(3);
       expect(cashRegister.json.signals.agentCardViews).toBe(2);
       expect(cashRegister.json.signals.aiPluginViews).toBe(1);
