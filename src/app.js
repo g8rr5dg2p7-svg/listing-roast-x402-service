@@ -31,6 +31,8 @@ const PING_PATH = "/api/x402-ping";
 const SITE_AUDIT_PATH = "/api/x402-site-audit";
 const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
 const PAY_NOW_PATH = "/api/pay-now";
+const PRICING_PATH = "/api/pricing";
+const FIND_PATH = "/api/find";
 const WELL_KNOWN_X402_PATH = "/.well-known/x402";
 const WELL_KNOWN_X402_JSON_PATH = "/.well-known/x402.json";
 const WELL_KNOWN_OPENAPI_JSON_PATH = "/.well-known/openapi.json";
@@ -155,6 +157,8 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_X402_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
+    `<${absoluteUrl(config, PRICING_PATH)}>; rel="service-meta"; type="application/json"`,
+    `<${absoluteUrl(config, FIND_PATH)}>; rel="search"; type="application/json"`,
     `<${absoluteUrl(config, "/openapi.json")}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
     `<${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
     `<${absoluteUrl(config, API_V1_OPENAPI_JSON_PATH)}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
@@ -2035,6 +2039,45 @@ function buildOpenApiDocument(config) {
             }
           }
         }
+      },
+      [PRICING_PATH]: {
+        get: {
+          operationId: "getPricingCatalog",
+          summary: "Free x402 paid route pricing catalog",
+          description: "No-spend JSON catalog of Listing Roast paid routes, prices, max x402 amounts, schemas, and copy-ready commands.",
+          responses: {
+            200: {
+              description: "Paid route pricing catalog",
+              content: {
+                "application/json": {
+                  example: buildPricingCatalog(config)
+                }
+              }
+            }
+          }
+        }
+      },
+      [FIND_PATH]: {
+        get: {
+          operationId: "findPaidRouteForTask",
+          summary: "Free task-to-paid-route finder",
+          description: "No-spend route selector that maps a buyer task or query to the best existing Listing Roast x402 paid route.",
+          parameters: [
+            { name: "q", in: "query", required: false, schema: { type: "string" }, description: "Buyer task, such as x402 discovery audit, buyer-agent skip reasons, or listing roast full rewrite." },
+            { name: "query", in: "query", required: false, schema: { type: "string" }, description: "Alias for q." },
+            { name: "task", in: "query", required: false, schema: { type: "string" }, description: "Alias for q." }
+          ],
+          responses: {
+            200: {
+              description: "Best paid route for the requested task",
+              content: {
+                "application/json": {
+                  example: buildFindResult(config, "x402 discovery audit")
+                }
+              }
+            }
+          }
+        }
       }
     },
     "x-listing-roast": {
@@ -2055,6 +2098,8 @@ function buildOpenApiDocument(config) {
       mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      find: absoluteUrl(config, FIND_PATH),
       apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
       apiV1EntryRoute: absoluteUrl(config, API_V1_ENTRY_PATH),
       v1EntryRoute: absoluteUrl(config, V1_ENTRY_PATH),
@@ -2111,6 +2156,8 @@ function buildX402Manifest(config) {
     mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
     mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
+    pricing: absoluteUrl(config, PRICING_PATH),
+    find: absoluteUrl(config, FIND_PATH),
     aliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
     network: config.network,
     payTo: config.payTo,
@@ -2322,6 +2369,138 @@ function buildX402Manifest(config) {
   };
 }
 
+function buildPaidRouteCatalog(config) {
+  return buildX402Manifest(config).resources.map((resource) => ({
+    id: resource.id,
+    name: resource.name,
+    method: resource.method,
+    path: resource.path,
+    url: resource.url,
+    price: resource.price,
+    maxAmountRequired: resource.maxAmountRequired,
+    description: resource.description,
+    keywords: resource.keywords,
+    command: resource.command,
+    schema: resource.schema,
+    preferredFirstPaidAction: resource.id === "indexed_roast_quick_score"
+  }));
+}
+
+function buildPricingCatalog(config) {
+  const routes = buildPaidRouteCatalog(config);
+
+  return {
+    service: config.serviceName,
+    noSpend: true,
+    homepage: absoluteUrl(config, "/"),
+    pricing: absoluteUrl(config, PRICING_PATH),
+    find: absoluteUrl(config, FIND_PATH),
+    openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+    x402Manifest: absoluteUrl(config, "/x402.json"),
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    count: routes.length,
+    preferredFirstPaidAction: routes[0],
+    routes,
+    queryExamples: [
+      `${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit`,
+      `${absoluteUrl(config, FIND_PATH)}?q=buyer-agent%20skip%20reasons`,
+      `${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite`
+    ],
+    note: "This pricing catalog is free to fetch. It only describes paid x402 routes; payment happens when a buyer calls a paid route with a valid x402 payment header."
+  };
+}
+
+function includesAny(text, values) {
+  return values.some((value) => text.includes(value));
+}
+
+function scoreCatalogResource(resource, query) {
+  const normalizedQuery = query.toLowerCase();
+  const searchable = [
+    resource.id,
+    resource.name,
+    resource.method,
+    resource.path,
+    resource.description,
+    ...(resource.keywords || [])
+  ].join(" ").toLowerCase();
+  const tokens = normalizedQuery.split(/[^a-z0-9]+/).filter((token) => token.length > 2);
+  let score = resource.preferredFirstPaidAction ? 5 : 0;
+
+  if (normalizedQuery && searchable.includes(normalizedQuery)) {
+    score += 25;
+  }
+
+  for (const token of tokens) {
+    if (searchable.includes(token)) {
+      score += 3;
+    }
+  }
+
+  if (includesAny(normalizedQuery, ["discovery audit", "bazaar", "stale price", "stale pricing", "preflight", "route health", "site audit", "search visibility"])) {
+    if (resource.path === SITE_AUDIT_PATH) score += 120;
+    if (resource.path === DISCOVERY_AUDIT_PATH) score += 90;
+    if (resource.id === "indexed_roast_quick_score") score += 25;
+  }
+
+  if (includesAny(normalizedQuery, ["skip reason", "skip reasons", "agent listing", "listing clarity", "agent service clarity", "agent-service", "buyer intent"])) {
+    if (resource.path === AGENT_LISTING_PATH) score += 120;
+    if (resource.id === "indexed_roast_quick_score") score += 45;
+    if (resource.id === "listing_roast") score += 30;
+  }
+
+  if (includesAny(normalizedQuery, ["full roast", "rewrite", "top fixes", "launch guidance", "custom body", "body-specific"])) {
+    if (resource.id === "listing_roast") score += 125;
+    if (resource.id === "listing_score") score += 55;
+    if (resource.id === "indexed_roast_quick_score") score += 20;
+  }
+
+  if (includesAny(normalizedQuery, ["score", "listing quality", "marketplace conversion", "paid api listing", "discoverability", "conversion"])) {
+    if (resource.id === "indexed_roast_quick_score") score += 105;
+    if (resource.path === CONVERSION_SCORE_PATH) score += 85;
+    if (resource.path === INSTANT_SCORE_PATH) score += 70;
+    if (resource.id === "listing_score") score += 45;
+    if (resource.path === AGENT_LISTING_PATH) score += 30;
+  }
+
+  if (includesAny(normalizedQuery, ["ping", "rail", "test payment", "verify payment"])) {
+    if (resource.path === PING_PATH) score += 120;
+  }
+
+  if (includesAny(normalizedQuery, ["api entry", "entrypoint", "route map", "probe /api", "/api first", "api/v1", "/v1"])) {
+    if ([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH].includes(resource.path)) score += 90;
+  }
+
+  return score;
+}
+
+function buildFindResult(config, rawQuery = "") {
+  const query = String(rawQuery || "").trim().slice(0, 240);
+  const routes = buildPaidRouteCatalog(config);
+  const ranked = routes
+    .map((route) => ({ ...route, matchScore: query ? scoreCatalogResource(route, query) : (route.preferredFirstPaidAction ? 1 : 0) }))
+    .sort((left, right) => {
+      if (right.matchScore !== left.matchScore) return right.matchScore - left.matchScore;
+      return Number(left.maxAmountRequired || 0) - Number(right.maxAmountRequired || 0);
+    });
+  const recommended = ranked[0] || routes[0];
+
+  return {
+    service: config.serviceName,
+    query,
+    noSpend: true,
+    recommended,
+    alternatives: ranked.filter((route) => route.id !== recommended.id).slice(0, 4),
+    pricing: absoluteUrl(config, PRICING_PATH),
+    find: absoluteUrl(config, FIND_PATH),
+    openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+    x402Manifest: absoluteUrl(config, "/x402.json"),
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    paymentRule: "Do not call the recommended paid route unless the buyer explicitly intends to pay USDC through x402.",
+    note: "This endpoint is free. It maps a buyer task to the best existing paid route, price, max amount, schema, and copy-ready command."
+  };
+}
+
 function buildAgentSkill(config, options) {
   const example = options.method === "GET"
     ? buildGetPayCommand(config, options.path, options.maxAmountRequired)
@@ -2504,6 +2683,8 @@ function buildAgentCard(config) {
     metadata: {
       paymentProtocol: "x402",
       payNow: absoluteUrl(config, PAY_NOW_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      find: absoluteUrl(config, FIND_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
       llms: absoluteUrl(config, "/llms.txt"),
@@ -2534,7 +2715,8 @@ function buildAiPluginManifest(config) {
       `Use GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent service listing clarity, agent listing conversion score, and buyer-agent skip reasons.`,
       `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight.`,
       `Use POST ${absoluteUrl(config, ROAST_PATH)} only when the buyer wants the full ${config.price} roast, rewrite, and stop-or-upgrade guidance.`,
-      "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, Agent Skills index, MCP metadata, llms.txt, examples, sample score, and pay-now JSON."
+      `Use free GET ${absoluteUrl(config, PRICING_PATH)} for the paid route price catalog and free GET ${absoluteUrl(config, FIND_PATH)}?q=<task> to choose the right paid route before spending.`,
+      "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, Agent Skills index, MCP metadata, llms.txt, examples, sample score, pricing, route finder, and pay-now JSON."
     ].join(" "),
     auth: {
       type: "none"
@@ -2550,6 +2732,8 @@ function buildAiPluginManifest(config) {
       network: config.network,
       asset: "USDC",
       payNow: absoluteUrl(config, PAY_NOW_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      find: absoluteUrl(config, FIND_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
@@ -2578,6 +2762,8 @@ function buildApiCatalog(config) {
     { href: absoluteUrl(config, "/api/listing-score"), type: "application/json", title: "POST $0.005 paid API listing quality score" },
     { href: absoluteUrl(config, DISCOVERY_AUDIT_PATH), type: "application/json", title: "POST $0.01 x402 discovery audit" },
     { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "GET free pay-now handoff for the preferred first paid route" },
+    { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "GET free paid route pricing catalog" },
+    { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "GET free task-to-paid-route finder" },
     { href: absoluteUrl(config, "/api/examples"), type: "application/json", title: "GET free examples, commands, payment hints, and sample outputs" },
     { href: absoluteUrl(config, "/api/sample-score"), type: "application/json", title: "GET free sample score output" }
   ];
@@ -2615,6 +2801,8 @@ function buildApiCatalog(config) {
           { href: absoluteUrl(config, LLMS_FULL_PATH), type: "text/markdown", title: "Full agent-readable route guide" },
           { href: absoluteUrl(config, INDEX_MARKDOWN_PATH), type: "text/markdown", title: "Homepage Markdown guide" },
           { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "Pay-now handoff" },
+          { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "Paid route pricing catalog" },
+          { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "Task-to-paid-route finder" },
           { href: absoluteUrl(config, "/api/examples"), type: "application/json", title: "Examples and copy-ready commands" }
         ],
         status: [
@@ -2647,6 +2835,8 @@ Listing Roast x402 is a paid HTTP JSON API for builders who need a quick read on
 - MCP server-card metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 - Examples and commands: ${absoluteUrl(config, "/api/examples")}
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}
+- Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
+- Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 - Cash register: ${absoluteUrl(config, "/api/cash-register")}
 
 ## Payment Rule
@@ -2726,6 +2916,8 @@ Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_A
 - llms.txt: ${absoluteUrl(config, "/llms.txt")}
 - Full guide: ${absoluteUrl(config, LLMS_FULL_PATH)}
 - Examples: ${absoluteUrl(config, "/api/examples")}
+- Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
+- Route finder: ${absoluteUrl(config, FIND_PATH)}?q=buyer-agent%20skip%20reasons
 - API catalog: ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
 - Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
 - Agent Skills: ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
@@ -2780,6 +2972,8 @@ Allow: /
 # - ${absoluteUrl(config, "/llms.txt")}
 # - ${absoluteUrl(config, LLMS_FULL_PATH)}
 # - ${absoluteUrl(config, "/x402.json")}
+# - ${absoluteUrl(config, PRICING_PATH)}
+# - ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 # - ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
 # - ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
 # - ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
@@ -2840,6 +3034,8 @@ function buildMcpServerCard(config) {
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      find: absoluteUrl(config, FIND_PATH),
       llms: absoluteUrl(config, "/llms.txt"),
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH)
@@ -3571,7 +3767,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -3621,6 +3817,14 @@ ${webMcpScript(config)}
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
       payNow: buildPayNow(config),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      pricingCatalog: buildPricingCatalog(config),
+      find: absoluteUrl(config, FIND_PATH),
+      findExamples: {
+        discoveryAudit: buildFindResult(config, "x402 discovery audit"),
+        skipReasons: buildFindResult(config, "buyer-agent skip reasons"),
+        fullRewrite: buildFindResult(config, "listing roast full rewrite")
+      },
       apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
       apiV1EntryRoute: absoluteUrl(config, API_V1_ENTRY_PATH),
       v1EntryRoute: absoluteUrl(config, V1_ENTRY_PATH),
@@ -3795,6 +3999,8 @@ MCP metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH)}
 MCP aliases: ${absoluteUrl(config, WELL_KNOWN_MCP_PATH)}, ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)}
 MCP server card: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 Pay-now JSON: ${absoluteUrl(config, PAY_NOW_PATH)}
+Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
+Route finder examples: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit, ${absoluteUrl(config, FIND_PATH)}?q=buyer-agent%20skip%20reasons, ${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite
 Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
 
 Preferred first paid route:
@@ -4312,6 +4518,8 @@ ${copyScript("Copy command")}
       mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      find: absoluteUrl(config, FIND_PATH),
       keywords: DISCOVERY_KEYWORDS,
       tools: [
         {
@@ -4556,6 +4764,16 @@ ${copyScript("Copy command")}
   app.get(PAY_NOW_PATH, async (_request, response) => {
     await recordSignal("payNowViews");
     response.json(buildPayNow(config));
+  });
+
+  app.get(PRICING_PATH, async (_request, response) => {
+    await recordSignal("pricingViews");
+    response.json(buildPricingCatalog(config));
+  });
+
+  app.get(FIND_PATH, async (request, response) => {
+    await recordSignal("findViews");
+    response.json(buildFindResult(config, request.query.q || request.query.query || request.query.task || ""));
   });
 
   app.post("/api/track", async (request, response) => {
