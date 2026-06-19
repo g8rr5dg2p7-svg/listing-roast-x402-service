@@ -1519,6 +1519,7 @@ describe("Listing Roast x402 service", () => {
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/agent-listing-conversion");
+      expect(challenge.resource.description).toMatch(/^buyer-agent skip reasons/);
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("Agent Listing Conversion");
       expect(challenge.resource.description).toContain("Agent Service Listing Clarity");
