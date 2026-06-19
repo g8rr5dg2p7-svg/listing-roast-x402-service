@@ -704,6 +704,8 @@ function buildOpenApiDocument(config) {
           tags: ["x402 listing", "paid API listing", "paid API listing quality"],
           summary: "Paid $0.001 instant marketplace listing score",
           description: "Lowest-friction GET route for buyer agents that want an immediate paid API listing quality score, agent-service listing score, or x402 marketplace conversion check without building a JSON body first. Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.",
+          "x-price": config.instantScorePrice,
+          "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
             path: INSTANT_SCORE_PATH,
             method: "GET",
@@ -739,6 +741,8 @@ function buildOpenApiDocument(config) {
           tags: ["x402 ping", "paid API listing"],
           summary: "Paid $0.001 x402 rail ping",
           description: "Tiny paid GET endpoint for agents that want to verify the Base x402 payment rail before buying a richer listing score or roast.",
+          "x-price": config.instantScorePrice,
+          "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
             path: PING_PATH,
             method: "GET",
@@ -769,6 +773,8 @@ function buildOpenApiDocument(config) {
           tags: ["x402 discovery", "x402 site audit", "paid API listing"],
           summary: "Paid $0.001 x402 site audit",
           description: "Lowest-friction GET route for agents that want a quick no-spend audit of public x402 discovery, pricing, direct 402 metadata, and Bazaar search visibility before buying the full audit.",
+          "x-price": config.siteAuditPrice,
+          "x-x402-price": config.siteAuditPrice,
           "x-payment": buildPaymentHint(config, {
             path: SITE_AUDIT_PATH,
             method: "GET",
@@ -805,6 +811,8 @@ function buildOpenApiDocument(config) {
           tags: ["x402 discovery", "paid API listing"],
           summary: "Paid $0.01 x402 Bazaar discovery audit",
           description: "Audits a public x402 endpoint without making paid calls. Checks the direct unpaid 402 challenge, Bazaar extension metadata, CDP merchant discovery, stale indexed pricing, and search visibility.",
+          "x-price": config.discoveryAuditPrice,
+          "x-x402-price": config.discoveryAuditPrice,
           "x-payment": buildPaymentHint(config, {
             path: DISCOVERY_AUDIT_PATH,
             method: "POST",
@@ -841,6 +849,8 @@ function buildOpenApiDocument(config) {
           tags: ["x402 listing", "paid API listing", "paid API listing quality"],
           summary: "Paid $0.005 marketplace listing score",
           description: "Scores paid API listing quality, agent-service listing clarity, marketplace conversion, x402 service discoverability, checked signals, first fix, and upgrade guidance after x402 payment.",
+          "x-price": config.scorePrice,
+          "x-x402-price": config.scorePrice,
           "x-payment": buildPaymentHint(config, {
             path: "/api/listing-score",
             method: "POST",
@@ -877,6 +887,8 @@ function buildOpenApiDocument(config) {
           tags: ["x402 listing", "paid API listing", "paid API listing quality"],
           summary: "Paid $0.001 indexed listing-roast quick score",
           description: "Lowest-price GET challenge on the already-indexed /api/listing-roast URL. Returns a $0.001 score API for marketplace listing quality, paid API discoverability, x402 service clarity, and buyer-agent conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
+          "x-price": config.instantScorePrice,
+          "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
             path: ROAST_PATH,
             method: "GET",
@@ -911,6 +923,8 @@ function buildOpenApiDocument(config) {
           tags: ["x402 listing", "paid API listing"],
           summary: "Paid $0.01 marketplace listing conversion roast",
           description: "Returns paid API listing conversion feedback, marketplace listing quality fixes, buyer-agent skip reasons, rewritten listing copy, and stop-or-upgrade guidance after x402 payment.",
+          "x-price": config.price,
+          "x-x402-price": config.price,
           "x-payment": buildPaymentHint(config, {
             path: ROAST_PATH,
             method: "POST",
@@ -999,6 +1013,7 @@ function buildOpenApiDocument(config) {
 
 function buildX402Manifest(config) {
   return {
+    name: config.serviceName,
     service: config.serviceName,
     description: DISCOVERY_DESCRIPTION,
     keywords: DISCOVERY_KEYWORDS,
@@ -1011,6 +1026,17 @@ function buildX402Manifest(config) {
     aliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
     network: config.network,
     payTo: config.payTo,
+    payment: {
+      x402: {
+        primaryNetwork: "base",
+        network: config.network,
+        asset: "USDC",
+        payTo: config.payTo
+      }
+    },
+    capabilities: {
+      tools: 7
+    },
     recommendedFirstPaidAction: {
       route: absoluteUrl(config, ROAST_PATH),
       method: "GET",
