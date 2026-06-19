@@ -284,6 +284,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.payment.x402.network).toBe("eip155:84532");
       expect(x402Manifest.json.payment.x402.asset).toBe("USDC");
       expect(x402Manifest.json.capabilities.tools).toBe(12);
+      expect(x402Manifest.json.baseUrl).toBe("http://localhost:8787");
       expect(x402Manifest.json.keywords).toContain("paid API listing");
       expect(x402Manifest.json.keywords).toContain("x402 bazaar discovery audit");
       expect(x402Manifest.json.openApiAliases[0]).toContain("/.well-known/openapi.json");
@@ -306,6 +307,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.localDiscovery.merchant).toContain("/v2/x402/discovery/merchant");
       expect(x402Manifest.json.localDiscovery.aliases.resources).toContain("http://localhost:8787/.well-known/x402/discovery/resources");
       expect(x402Manifest.json.aliases.some((url) => url.endsWith("/.well-known/x402"))).toBe(true);
+      expect(x402Manifest.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(x402Manifest.json.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
       expect(x402Manifest.json.recommendedFirstPaidAction.route).toContain("/api/listing-roast");
       expect(x402Manifest.json.recommendedFirstPaidAction.maxAmountRequired).toBe("1000");
       expect(x402Manifest.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");

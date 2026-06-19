@@ -2523,12 +2523,14 @@ function buildOpenApiDocument(config) {
 
 function buildX402Manifest(config) {
   const intentRoutes = buildPayNowActions(config);
+  const baseUrl = absoluteUrl(config, "/").replace(/\/$/, "");
 
   return {
     name: config.serviceName,
     serviceName: config.serviceName,
     displayName: config.serviceName,
     service: config.serviceName,
+    baseUrl,
     description: DISCOVERY_DESCRIPTION,
     keywords: DISCOVERY_KEYWORDS,
     homepage: absoluteUrl(config, "/"),
@@ -2583,6 +2585,7 @@ function buildX402Manifest(config) {
     capabilities: {
       tools: 12
     },
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     resources: [
