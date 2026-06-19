@@ -13,7 +13,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /` - public landing page.
 - `GET /builder` - browser-side command builder for custom listing payloads.
 - `GET /sample` - buyer-facing sample score page.
-- `GET /api/sample-score` - free sample request, command, and score output.
+- `GET /api/sample-score` - free sample request, proven $0.001 first paid command, and score output.
 - `GET /openapi.json`, `GET /.well-known/openapi.json`, `GET /api/v1/openapi.json`, and `GET /swagger.json` - machine-readable API description.
 - `GET /openapi.yaml` - redirect to the JSON OpenAPI document.
 - `GET /AGENTS.md`, `GET /docs`, and `GET /api-docs` - agent-readable safety, route, and discovery docs.

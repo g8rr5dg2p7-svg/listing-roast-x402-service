@@ -262,8 +262,17 @@ describe("Listing Roast x402 service", () => {
 
       const sampleScore = await fetchJson(server, "/api/sample-score");
       expect(sampleScore.status).toBe(200);
-      expect(sampleScore.json.price).toBe("$0.005");
-      expect(sampleScore.json.command).toContain("--max-amount 5000");
+      expect(sampleScore.json.price).toBe("$0.001");
+      expect(sampleScore.json.paidRoute).toContain("/api/listing-roast");
+      expect(sampleScore.json.command).toContain("/api/listing-roast");
+      expect(sampleScore.json.command).toContain("--max-amount 1000");
+      expect(sampleScore.json.provenFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(sampleScore.json.provenFirstPaidAction.maxAmountRequired).toBe("1000");
+      expect(sampleScore.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(sampleScore.json.customScoreAction.path).toBe("/api/listing-score");
+      expect(sampleScore.json.customScoreAction.maxAmountRequired).toBe("5000");
+      expect(sampleScore.json.customScoreOutput.endpoint).toBe("listing-score");
+      expect(sampleScore.json.paidUsageProof.preferredConvertedRoute.path).toBe("/api/listing-roast");
       expect(sampleScore.json.output.endpoint).toBe("listing-score");
       expect(sampleScore.json.output.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(sampleScore.json.output.nextPaidAction.path).toBe("/api/listing-roast");

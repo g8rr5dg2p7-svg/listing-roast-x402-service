@@ -6666,15 +6666,27 @@ ${webMcpScript(config)}
 
   app.get("/api/sample-score", async (_request, response) => {
     await recordSignal("sampleViews");
+    const intentRoutes = buildPayNowActions(config);
+    const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+    const cashRegister = await getCashRegister();
+    const sampleScoreOutput = buildListingScoreWithUpgrade(requestExample, config);
+
     response.json({
       service: config.serviceName,
       samplePage: absoluteUrl(config, "/sample"),
-      paidRoute: absoluteUrl(config, "/api/listing-score"),
-      price: config.scorePrice,
+      paidRoute: intentRoutes.indexedQuickScore.route,
+      price: intentRoutes.indexedQuickScore.price,
       network: config.network,
       request: requestExample,
-      command: buildPayCommand(config, "/api/listing-score", "5000"),
-      output: buildListingScoreWithUpgrade(requestExample, config)
+      command: intentRoutes.indexedQuickScore.command,
+      buyerInstruction: "This free sample shows the score shape. Start paid usage with the proven $0.001 indexed GET route, then use the custom score or full roast only when the quick score fits.",
+      paidUsageProof: buildPaidUsageProof(config, cashRegister),
+      preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+      provenFirstPaidAction: intentRoutes.indexedQuickScore,
+      recommendedPaidSequence,
+      customScoreAction: intentRoutes.listingScore,
+      customScoreOutput: sampleScoreOutput,
+      output: sampleScoreOutput
     });
   });
 
