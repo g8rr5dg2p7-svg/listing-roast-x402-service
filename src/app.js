@@ -133,11 +133,15 @@ const AGENTS_MARKDOWN_PATH = "/AGENTS.md";
 const DOCS_PATH = "/docs";
 const API_DOCS_PATH = "/api-docs";
 const PAID_API_LISTING_QUALITY_PATH = "/paid-api-listing-quality";
+const BUYER_AGENT_SKIP_REASONS_PAGE_PATH = "/buyer-agent-skip-reasons";
+const AGENT_SERVICE_CLARITY_PAGE_PATH = "/agent-service-clarity";
 const AGENT_LISTING_CONVERSION_PAGE_PATH = "/agent-listing-conversion";
 const X402_DISCOVERY_AUDIT_PAGE_PATH = "/x402-discovery-audit";
 const X402_SITE_AUDIT_PAGE_PATH = "/x402-site-audit";
 const INTENT_LANDING_PATHS = [
   PAID_API_LISTING_QUALITY_PATH,
+  BUYER_AGENT_SKIP_REASONS_PAGE_PATH,
+  AGENT_SERVICE_CLARITY_PAGE_PATH,
   AGENT_LISTING_CONVERSION_PAGE_PATH,
   X402_DISCOVERY_AUDIT_PAGE_PATH,
   X402_SITE_AUDIT_PAGE_PATH
@@ -209,8 +213,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality and discoverability for paid API listing quality, marketplace listing score, buyer-agent skip reasons, agent service listing clarity, paid API preflight, x402 site audit starter, x402 discovery audit triage, Bazaar search visibility, and stale pricing triage: lowest-price $0.001 GET on indexed /api/listing-roast. This paid-use-confirmed route has wallet proof at /api/paid-usage-proof; try it before higher-priced listing scorers or the $0.01 roast. Use /api/x402-site-audit for pre-pay metadata, /api/x402-discovery-audit for stale Bazaar, or POST /api/listing-roast for the full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-proven-first-route-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T20:05:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-intent-landing-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T20:29:59.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -5389,6 +5393,8 @@ Allow: /
 # Content-Signal policy: search=yes, ai-input=yes, ai-train=no
 # Free agent discovery:
 # - ${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}
+# - ${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}
+# - ${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}
 # - ${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}
 # - ${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}
 # - ${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}
@@ -5421,6 +5427,28 @@ function buildIntentLandingPages(config) {
       supportingAction: intentRoutes.indexedQuickScore,
       supportingLabel: "Use the indexed /api/listing-roast route when a marketplace result points there.",
       keywords: ["paid API listing quality", "marketplace listing quality", "x402 listing quality", "paid API discoverability", "buyer-agent skip reasons"]
+    },
+    {
+      path: BUYER_AGENT_SKIP_REASONS_PAGE_PATH,
+      title: "Buyer-agent skip reasons | Listing Roast x402",
+      heading: "Buyer-agent skip reasons for paid API listings",
+      summary: "Use this when the buyer asks why agents skip a paid API listing, whether the offer is clear enough to pay for, or what the first conversion fix should be.",
+      primaryAction: intentRoutes.buyerAgentSkipReasons,
+      primaryLabel: "Use the $0.001 buyer-agent skip reasons route",
+      supportingAction: intentRoutes.indexedQuickScore,
+      supportingLabel: "Use the indexed /api/listing-roast route when Bazaar already points to Listing Roast.",
+      keywords: ["buyer-agent skip reasons", "buyer agent skip reasons", "agent skip reasons", "paid API listing quality", "agent listing conversion"]
+    },
+    {
+      path: AGENT_SERVICE_CLARITY_PAGE_PATH,
+      title: "Agent service clarity score | Listing Roast x402",
+      heading: "Agent service clarity score for x402 paid APIs",
+      summary: "Use this when the buyer wants to know whether an agent service listing names the buyer, output, price, and checkout path clearly enough to justify a paid call.",
+      primaryAction: intentRoutes.agentServiceClarity,
+      primaryLabel: "Use the $0.001 agent service clarity route",
+      supportingAction: intentRoutes.agentListingConversion,
+      supportingLabel: "Use the agent listing conversion route for the dedicated conversion deep dive.",
+      keywords: ["agent service clarity", "agent service listing clarity", "agent-service listing score", "agent listing clarity", "agent service promotion readiness"]
     },
     {
       path: AGENT_LISTING_CONVERSION_PAGE_PATH,
@@ -6501,7 +6529,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Discovery</h3>
           <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, paid API listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
-          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
+          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
         <div class="card">
