@@ -161,6 +161,12 @@ describe("Listing Roast x402 service", () => {
       const x402Manifest = await fetchJson(server, "/x402.json");
       expect(x402Manifest.status).toBe(200);
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
+      expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
+      expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
+      expect(x402Manifest.json.payment.primaryNetwork).toBe("base");
+      expect(x402Manifest.json.payment.network).toBe("eip155:84532");
+      expect(x402Manifest.json.payment.currency).toBe("USDC");
+      expect(x402Manifest.json.payment.asset).toBe("USDC");
       expect(x402Manifest.json.payment.x402.primaryNetwork).toBe("base");
       expect(x402Manifest.json.payment.x402.network).toBe("eip155:84532");
       expect(x402Manifest.json.payment.x402.asset).toBe("USDC");

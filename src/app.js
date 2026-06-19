@@ -1014,6 +1014,8 @@ function buildOpenApiDocument(config) {
 function buildX402Manifest(config) {
   return {
     name: config.serviceName,
+    serviceName: config.serviceName,
+    displayName: config.serviceName,
     service: config.serviceName,
     description: DISCOVERY_DESCRIPTION,
     keywords: DISCOVERY_KEYWORDS,
@@ -1027,6 +1029,11 @@ function buildX402Manifest(config) {
     network: config.network,
     payTo: config.payTo,
     payment: {
+      primaryNetwork: "base",
+      network: config.network,
+      currency: "USDC",
+      asset: "USDC",
+      payTo: config.payTo,
       x402: {
         primaryNetwork: "base",
         network: config.network,
