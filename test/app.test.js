@@ -1726,6 +1726,9 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.url).toBe("http://localhost:8787/");
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("directory handoff");
+      expect(challenge.resource.description).toContain("Public paid-use proof before payment");
+      expect(challenge.resource.description).toContain("/api/pay-now");
+      expect(challenge.resource.description).toContain("/api/cash-register");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
       expect(response.json.error).toBe("payment_required");

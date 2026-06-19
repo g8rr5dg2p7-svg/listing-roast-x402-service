@@ -4503,7 +4503,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: DIRECTORY_POST_DESCRIPTION,
+        description: withPaidUseProofDescription(config, DIRECTORY_POST_DESCRIPTION),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "directoryPost"),
         unpaidResponseBody: unpaidPaymentPreview(config, "directoryPost")
