@@ -1383,6 +1383,23 @@ function buildPayNowActions(config) {
   };
 }
 
+function buildRecommendedPaidSequence(intentRoutes) {
+  return [
+    {
+      step: 1,
+      use: "indexedQuickScore",
+      action: intentRoutes.indexedQuickScore,
+      reason: "Start with the already-indexed $0.001 quick score so Bazaar-visible buyers can confirm fit with the lowest-friction paid action."
+    },
+    {
+      step: 2,
+      use: "fullRoast",
+      action: intentRoutes.fullRoast,
+      reason: "Upgrade to the $0.01 full roast when the quick score is promising and the buyer wants rewritten copy, top fixes, and launch guidance."
+    }
+  ];
+}
+
 function buildPayNow(config) {
   const intentRoutes = buildPayNowActions(config);
 
@@ -1397,20 +1414,7 @@ function buildPayNow(config) {
     command: intentRoutes.indexedQuickScore.command,
     reason: "Already-indexed Bazaar route and lowest-friction paid score.",
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
-    recommendedPaidSequence: [
-      {
-        step: 1,
-        use: "indexedQuickScore",
-        action: intentRoutes.indexedQuickScore,
-        reason: "Start with the already-indexed $0.001 quick score so Bazaar-visible buyers can confirm fit with the lowest-friction paid action."
-      },
-      {
-        step: 2,
-        use: "fullRoast",
-        action: intentRoutes.fullRoast,
-        reason: "Upgrade to the $0.01 full roast when the quick score is promising and the buyer wants rewritten copy, top fixes, and launch guidance."
-      }
-    ],
+    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     routeSelector: [
       {
         when: "Marketplace or Bazaar discovered Listing Roast on /api/listing-roast",
@@ -2377,6 +2381,8 @@ function buildOpenApiDocument(config) {
 }
 
 function buildX402Manifest(config) {
+  const intentRoutes = buildPayNowActions(config);
+
   return {
     name: config.serviceName,
     serviceName: config.serviceName,
@@ -2433,13 +2439,8 @@ function buildX402Manifest(config) {
     capabilities: {
       tools: 12
     },
-    recommendedFirstPaidAction: {
-      route: absoluteUrl(config, ROAST_PATH),
-      method: "GET",
-      price: config.instantScorePrice,
-      maxAmountRequired: INSTANT_SCORE_AMOUNT,
-      reason: "This is the already-indexed Bazaar route and the lowest-friction paid score."
-    },
+    recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     resources: [
       {
         id: "indexed_roast_quick_score",
