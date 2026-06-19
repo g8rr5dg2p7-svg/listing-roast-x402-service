@@ -1389,6 +1389,20 @@ function buildPayNowActions(config) {
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
       reason: "Use this when an agent starts at /api and needs the paid route map."
     }),
+    apiV1Entry: buildRoutePaymentAction(config, {
+      path: API_V1_ENTRY_PATH,
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when an agent starts at /api/v1 and needs the paid route map."
+    }),
+    v1Entry: buildRoutePaymentAction(config, {
+      path: V1_ENTRY_PATH,
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when an agent starts at /v1 and needs the paid route map."
+    }),
     listingScore: buildRoutePaymentAction(config, {
       path: "/api/listing-score",
       method: "POST",
@@ -1848,8 +1862,43 @@ function buildOpenApiX402Security() {
   return [{ x402: [] }];
 }
 
+function buildOpenApiPaymentRequiredResponse(config, intentRouteKey = "indexedQuickScore") {
+  return {
+    description: "x402 payment required. Read the Payment-Required header, complete the exact USDC payment, then retry with the X-PAYMENT header.",
+    headers: {
+      "Payment-Required": {
+        description: "Base64url-encoded x402 payment requirements with resource URL, accepted network, amount, payTo address, and Bazaar metadata.",
+        schema: { type: "string" }
+      },
+      Link: {
+        description: "Discovery links for the x402 manifest, pay-now helper, pricing catalog, OpenAPI document, and agent metadata.",
+        schema: { type: "string" }
+      }
+    },
+    content: {
+      "application/json": {
+        example: buildUnpaidPaymentPreview(config, intentRouteKey)
+      }
+    }
+  };
+}
+
 function buildOpenApiDocument(config) {
   const intentRoutes = buildPayNowActions(config);
+  const paymentActionByRoute = {
+    [`GET ${API_ENTRY_PATH}`]: "apiEntry",
+    [`GET ${API_V1_ENTRY_PATH}`]: "apiV1Entry",
+    [`GET ${V1_ENTRY_PATH}`]: "v1Entry",
+    [`GET ${INSTANT_SCORE_PATH}`]: "instantScore",
+    [`GET ${CONVERSION_SCORE_PATH}`]: "conversionScore",
+    [`GET ${AGENT_LISTING_PATH}`]: "agentListingConversion",
+    [`GET ${PING_PATH}`]: "x402Ping",
+    [`GET ${SITE_AUDIT_PATH}`]: "x402SiteAudit",
+    [`POST ${DISCOVERY_AUDIT_PATH}`]: "discoveryAudit",
+    "POST /api/listing-score": "listingScore",
+    [`GET ${ROAST_PATH}`]: "indexedQuickScore",
+    [`POST ${ROAST_PATH}`]: "fullRoast"
+  };
 
   const document = {
     openapi: "3.1.0",
@@ -2534,11 +2583,12 @@ function buildOpenApiDocument(config) {
     }
   };
 
-  for (const pathItem of Object.values(document.paths)) {
+  for (const [pathname, pathItem] of Object.entries(document.paths)) {
     for (const method of ["get", "post", "put", "patch", "delete"]) {
       const operation = pathItem[method];
       if (operation && operation["x-payment"]) {
         operation.security = buildOpenApiX402Security();
+        operation.responses[402] = buildOpenApiPaymentRequiredResponse(config, paymentActionByRoute[`${method.toUpperCase()} ${pathname}`]);
       }
     }
   }

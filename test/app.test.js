@@ -669,6 +669,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/v1"].get["x-payment"].maxAmountRequired).toBe("1000");
       expect(openApi.json.paths["/api/v1"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/v1"].get.summary).toContain("$0.001");
+      expect(openApi.json.paths["/api/v1"].get.responses[402].headers["Payment-Required"].description).toContain("x402");
+      expect(openApi.json.paths["/api/v1"].get.responses[402].content["application/json"].example.selectedPaidAction.path).toBe("/api/v1");
       expect(openApi.json.paths["/v1"].get.operationId).toBe("getListingRoastV1Entry");
       expect(openApi.json.paths["/v1"].get["x-payment"].maxAmountRequired).toBe("1000");
       expect(openApi.json.paths["/v1"].get["x-price"]).toBe("$0.001");
@@ -723,6 +725,14 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent service listing clarity");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("x402 discovery audit triage");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Bazaar search visibility");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[402].description).toContain("X-PAYMENT");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[402].headers["Payment-Required"].description).toContain("resource URL");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[402].headers.Link.description).toContain("pay-now");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[402].content["application/json"].example.selectedPaidAction.path).toBe("/api/listing-roast");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[402].content["application/json"].example.selectedPaidAction.maxAmountRequired).toBe("1000");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[402].content["application/json"].example.note).toContain("Payment-Required");
+      expect(openApi.json.paths["/api/listing-roast"].post.responses[402].content["application/json"].example.selectedPaidAction.method).toBe("POST");
+      expect(openApi.json.paths["/api/listing-roast"].post.responses[402].content["application/json"].example.selectedPaidAction.maxAmountRequired).toBe("10000");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.command).toContain("/api/listing-roast");
       expect(openApi.json.paths["/api/pay-now"].get.operationId).toBe("getPayNow");
