@@ -19,11 +19,11 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /AGENTS.md`, `GET /docs`, and `GET /api-docs` - agent-readable safety, route, and discovery docs.
 - `GET /llms.txt`, `GET /.well-known/llms.txt`, `GET /llms-full.txt`, `GET /.well-known/llms-full.txt`, and `GET /index.md` - agent-readable service summaries and route guides.
 - `GET /icon.svg` and `GET /favicon.svg` - hosted service icon URLs for agent and marketplace profiles.
-- `GET /x402.json` and `GET /.well-known/x402.json` - current owned x402 route manifest.
+- `GET /x402.json`, `GET /.well-known/x402.json`, `GET /.well-known/x402`, and `GET /api/x402.json` - current owned x402 route manifest.
 - `GET /paid-api-listing-quality`, `GET /buyer-agent-skip-reasons`, `GET /agent-service-clarity`, `GET /agent-listing-conversion`, `GET /x402-discovery-audit`, and `GET /x402-site-audit` - free no-spend intent landing pages for buyer agents and crawlers.
 - `GET /api/pay-now`, `GET /api/paid-usage-proof`, `GET /api/pricing`, `GET /api/find`, and `GET/POST /api/route` - free no-spend buyer handoffs for intent-aware pay commands, wallet-backed paid-use proof, prices, task-to-route matching, and Agent402-style local route ranking before payment. Use `/api/pay-now?intent=buyer-agent%20skip%20reasons` to get the exact existing paid route for a buyer task and `/api/paid-usage-proof` to verify paid completions before paying. These handoffs also expose `provenFirstPaidAction`, which points to the indexed $0.001 `GET /api/listing-roast` route with wallet-backed paid-use proof.
 - `GET /v2/x402/discovery/resources`, `GET /v2/x402/discovery/search`, and `GET /v2/x402/discovery/merchant` - free local Bazaar-shaped discovery aliases for agents that probe seller-hosted x402 discovery paths.
-- `GET /.well-known/agent-card.json` and `GET /.well-known/agent.json` - agent-card discovery bridge for the paid x402 HTTP+JSON routes.
+- `GET /.well-known/agent-card.json`, `GET /.well-known/agent.json`, `GET /api/agent-card`, and `GET /api/agent.json` - agent-card discovery bridge for the paid x402 HTTP+JSON routes.
 - `GET /.well-known/ai-plugin.json` - fallback plugin-style manifest that points older agent probes to the OpenAPI and x402 payment metadata.
 - `GET /.well-known/api-catalog` - RFC 9727 linkset catalog for API discovery tools, with OpenAPI, x402, agent-card, MCP, and pay-now pointers.
 - `GET /.well-known/agent-tools.json` - agent-tools discovery manifest with paid route names, prices, commands, schemas, and the preferred first paid action.

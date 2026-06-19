@@ -110,6 +110,9 @@ const WELL_KNOWN_X402_JSON_PATH = "/.well-known/x402.json";
 const WELL_KNOWN_OPENAPI_JSON_PATH = "/.well-known/openapi.json";
 const WELL_KNOWN_AGENT_CARD_PATH = "/.well-known/agent-card.json";
 const WELL_KNOWN_AGENT_JSON_PATH = "/.well-known/agent.json";
+const API_X402_JSON_PATH = "/api/x402.json";
+const API_AGENT_CARD_PATH = "/api/agent-card";
+const API_AGENT_JSON_PATH = "/api/agent.json";
 const WELL_KNOWN_AI_PLUGIN_PATH = "/.well-known/ai-plugin.json";
 const WELL_KNOWN_API_CATALOG_PATH = "/.well-known/api-catalog";
 const WELL_KNOWN_AGENT_TOOLS_PATH = "/.well-known/agent-tools.json";
@@ -213,8 +216,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent clarity, agent service clarity, paid API preflight, x402 audit, x402 discovery audit, Bazaar visibility, stale price. $0.001 GET /api/listing-roast; /api/x402-site-audit, /api/x402-discovery-audit, POST /api/listing-roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-openapi-payment-preview-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T23:16:42.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-api-discovery-aliases-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T22:28:49.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -361,6 +364,22 @@ function formatPreflightAliasUrls(config) {
   return preflightAliasUrls(config).join(", ");
 }
 
+function x402ManifestAliasUrls(config) {
+  return [WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH].map((pathname) => absoluteUrl(config, pathname));
+}
+
+function formatX402ManifestAliasUrls(config) {
+  return x402ManifestAliasUrls(config).join(", ");
+}
+
+function agentCardAliasUrls(config) {
+  return [WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH].map((pathname) => absoluteUrl(config, pathname));
+}
+
+function formatAgentCardAliasUrls(config) {
+  return agentCardAliasUrls(config).join(", ");
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -461,6 +480,7 @@ function buildDiscoveryLinks(config) {
     ...exactPaidRouteLinks,
     `<${absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_X402_PATH)}>; rel="service-desc"; type="application/json"`,
+    `<${absoluteUrl(config, API_X402_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
     `<${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}>; rel="service-meta"; type="application/json"; title="wallet-backed paid-use proof"`,
     `<${absoluteUrl(config, PRICING_PATH)}>; rel="service-meta"; type="application/json"`,
@@ -487,6 +507,8 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}>; rel="mcp-server-card"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
+    `<${absoluteUrl(config, API_AGENT_CARD_PATH)}>; rel="service-desc"; type="application/json"`,
+    `<${absoluteUrl(config, API_AGENT_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}>; rel="api-catalog"; type="application/linkset+json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH)}>; rel="service-desc"; type="application/json"`,
@@ -3909,14 +3931,14 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       sample: absoluteUrl(config, "/sample"),
       iconUrl: absoluteUrl(config, ICON_SVG_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
-      x402ManifestAliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
+      x402ManifestAliases: x402ManifestAliasUrls(config),
       llms: absoluteUrl(config, LLMS_PATH),
       llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
       llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH),
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
-      agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
+      agentCardAliases: agentCardAliasUrls(config),
       aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
       apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
       agentTools: absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH),
@@ -4211,7 +4233,7 @@ function buildX402Manifest(config, cashRegister = {}) {
     llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
     markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH),
     agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
-    agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
+    agentCardAliases: agentCardAliasUrls(config),
     aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
     apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
     agentTools: absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH),
@@ -4240,7 +4262,7 @@ function buildX402Manifest(config, cashRegister = {}) {
         merchant: LOCAL_DISCOVERY_MERCHANT_PATHS.map((path) => absoluteUrl(config, path))
       }
     },
-    aliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
+    aliases: x402ManifestAliasUrls(config),
     network: config.network,
     payTo: config.payTo,
     payment: {
@@ -5506,8 +5528,11 @@ function buildApiCatalog(config) {
           { href: absoluteUrl(config, "/x402.json"), type: "application/json", title: "x402 paid route manifest" },
           { href: absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), type: "application/json", title: "Well-known x402 JSON alias" },
           { href: absoluteUrl(config, WELL_KNOWN_X402_PATH), type: "application/json", title: "Well-known x402 alias" },
+          { href: absoluteUrl(config, API_X402_JSON_PATH), type: "application/json", title: "API x402 JSON alias" },
           { href: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH), type: "application/json", title: "A2A-style agent card" },
           { href: absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH), type: "application/json", title: "Agent card alias" },
+          { href: absoluteUrl(config, API_AGENT_CARD_PATH), type: "application/json", title: "API agent card alias" },
+          { href: absoluteUrl(config, API_AGENT_JSON_PATH), type: "application/json", title: "API agent JSON alias" },
           { href: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH), type: "application/json", title: "Fallback AI plugin manifest" },
           { href: absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH), type: "application/json", title: "Agent tools discovery manifest" },
           { href: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH), type: "application/json", title: "Agent Skills discovery index" },
@@ -6900,7 +6925,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PAID_USAGE_PROOF_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PAID_USAGE_PROOF_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -6941,9 +6966,9 @@ ${webMcpScript(config)}
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
-      x402ManifestAliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
+      x402ManifestAliases: x402ManifestAliasUrls(config),
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
-      agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
+      agentCardAliases: agentCardAliasUrls(config),
       aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
       apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
       agentTools: absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH),
@@ -7187,9 +7212,9 @@ OpenAPI: ${absoluteUrl(config, "/openapi.json")}
 OpenAPI aliases: ${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}, ${absoluteUrl(config, API_V1_OPENAPI_JSON_PATH)}, ${absoluteUrl(config, SWAGGER_JSON_PATH)}
 Docs: ${absoluteUrl(config, DOCS_PATH)}, ${absoluteUrl(config, API_DOCS_PATH)}, ${absoluteUrl(config, AGENTS_MARKDOWN_PATH)}
 x402 manifest: ${absoluteUrl(config, "/x402.json")}
-x402 manifest aliases: ${absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH)}, ${absoluteUrl(config, WELL_KNOWN_X402_PATH)}
+x402 manifest aliases: ${formatX402ManifestAliasUrls(config)}
 Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
-Agent card aliases: ${absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)}
+Agent card aliases: ${formatAgentCardAliasUrls(config)}
 AI plugin manifest: ${absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH)}
 API catalog: ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
 Agent Skills index: ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
@@ -7379,6 +7404,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
   app.get("/x402.json", serveX402Manifest);
   app.get(WELL_KNOWN_X402_JSON_PATH, serveX402Manifest);
   app.get(WELL_KNOWN_X402_PATH, serveX402Manifest);
+  app.get(API_X402_JSON_PATH, serveX402Manifest);
 
   async function serveAgentCard(_request, response) {
     await recordSignal("agentCardViews");
@@ -7388,6 +7414,8 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get(WELL_KNOWN_AGENT_CARD_PATH, serveAgentCard);
   app.get(WELL_KNOWN_AGENT_JSON_PATH, serveAgentCard);
+  app.get(API_AGENT_CARD_PATH, serveAgentCard);
+  app.get(API_AGENT_JSON_PATH, serveAgentCard);
 
   app.get(WELL_KNOWN_AI_PLUGIN_PATH, async (_request, response) => {
     await recordSignal("aiPluginViews");
@@ -7786,9 +7814,9 @@ ${copyScript("Copy command")}
       llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
-      x402ManifestAliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
+      x402ManifestAliases: x402ManifestAliasUrls(config),
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
-      agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
+      agentCardAliases: agentCardAliasUrls(config),
       aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
       apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
       agentTools: absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH),

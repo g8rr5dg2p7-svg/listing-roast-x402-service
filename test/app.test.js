@@ -138,6 +138,9 @@ describe("Listing Roast x402 service", () => {
       expect(health.headers.get("link")).toContain("/openapi.json");
       expect(health.headers.get("link")).toContain("/.well-known/openapi.json");
       expect(health.headers.get("link")).toContain("/.well-known/agent-card.json");
+      expect(health.headers.get("link")).toContain("/api/x402.json");
+      expect(health.headers.get("link")).toContain("/api/agent-card");
+      expect(health.headers.get("link")).toContain("/api/agent.json");
       expect(health.headers.get("link")).toContain("/.well-known/ai-plugin.json");
       expect(health.headers.get("link")).toContain("/.well-known/api-catalog");
       expect(health.headers.get("link")).toContain("/.well-known/agent-tools.json");
@@ -460,12 +463,14 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.openApiAliases[0]).toContain("/.well-known/openapi.json");
       expect(x402Manifest.json.agentCard).toContain("/.well-known/agent-card.json");
       expect(x402Manifest.json.agentCardAliases[0]).toContain("/.well-known/agent.json");
+      expect(x402Manifest.json.agentCardAliases).toContain("http://localhost:8787/api/agent-card");
+      expect(x402Manifest.json.agentCardAliases).toContain("http://localhost:8787/api/agent.json");
       expect(x402Manifest.json.aiPlugin).toContain("/.well-known/ai-plugin.json");
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-19-openapi-payment-preview-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-19T23:16:42.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-19-api-discovery-aliases-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-19T22:28:49.000Z");
       expect(x402Manifest.json.payNow).toContain("/api/pay-now");
       expect(x402Manifest.json.payNowExamples.skipReasons.selectedActionKey).toBe("buyerAgentSkipReasons");
       expect(x402Manifest.json.payNowExamples.skipReasons.route).toContain("/api/listing-roast");
@@ -498,6 +503,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "paid API preflight").expectedFirstPath).toBe("/api/x402-site-audit");
       expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "paid API preflight").searchUrl).toContain("/v2/x402/discovery/search?query=paid%20API%20preflight");
       expect(x402Manifest.json.localDiscovery.aliases.resources).toContain("http://localhost:8787/.well-known/x402/discovery/resources");
+      expect(x402Manifest.json.aliases).toContain("http://localhost:8787/api/x402.json");
       expect(x402Manifest.json.aliases.some((url) => url.endsWith("/.well-known/x402"))).toBe(true);
       expect(x402Manifest.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
       expect(x402Manifest.json.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
@@ -687,6 +693,12 @@ describe("Listing Roast x402 service", () => {
       expect(wellKnownX402Alias.json.resources[0].path).toBe("/api/listing-roast");
       expect(wellKnownX402Alias.json.payNow).toContain("/api/pay-now");
 
+      const apiX402Alias = await fetchJson(server, "/api/x402.json");
+      expect(apiX402Alias.status).toBe(200);
+      expectFreshDiscoveryHeaders(apiX402Alias.headers);
+      expect(apiX402Alias.json.resources[0].path).toBe("/api/listing-roast");
+      expect(apiX402Alias.json.payNow).toContain("/api/pay-now");
+
       const agentTools = await fetchJson(server, "/.well-known/agent-tools.json");
       expect(agentTools.status).toBe(200);
       expectFreshDiscoveryHeaders(agentTools.headers);
@@ -699,8 +711,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-19-openapi-payment-preview-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-19T23:16:42.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-19-api-discovery-aliases-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-19T22:28:49.000Z");
       expect(agentTools.json.resource_samples[0].url).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].resource).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].method).toBe("GET");
@@ -758,6 +770,18 @@ describe("Listing Roast x402 service", () => {
       expect(agentCard.json.skills.map((skill) => skill.id)).toContain("v1-entry-route-map");
       expect(agentCard.json.skills.map((skill) => skill.id)).toContain("x402-site-audit");
       expect(agentCard.json.skills[0].examples[0]).toContain("npx awal@2.8.0 x402 pay");
+
+      const apiAgentCard = await fetchJson(server, "/api/agent-card");
+      expect(apiAgentCard.status).toBe(200);
+      expectFreshDiscoveryHeaders(apiAgentCard.headers);
+      expect(apiAgentCard.json.name).toBe("Listing Roast x402");
+      expect(apiAgentCard.json.url).toContain("/api/listing-roast");
+
+      const apiAgentJson = await fetchJson(server, "/api/agent.json");
+      expect(apiAgentJson.status).toBe(200);
+      expectFreshDiscoveryHeaders(apiAgentJson.headers);
+      expect(apiAgentJson.json.name).toBe("Listing Roast x402");
+      expect(apiAgentJson.json.url).toContain("/api/listing-roast");
       expect(agentCard.json.skills[0].examples[0]).toContain("/api/listing-roast");
       expect(agentCard.json.skills[0].metadata.maxAmountRequired).toBe("1000");
       expect(agentCard.json.skills.find((skill) => skill.id === "x402-discovery-audit-quick").examples[0]).toContain("/api/x402-discovery-audit");
@@ -2049,8 +2073,8 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.routeViews).toBe(13);
       expect(cashRegister.json.signals.localDiscoveryViews).toBe(11);
       expect(cashRegister.json.signals.mcpViews).toBe(4);
-      expect(cashRegister.json.signals.x402ManifestViews).toBe(3);
-      expect(cashRegister.json.signals.agentCardViews).toBe(2);
+      expect(cashRegister.json.signals.x402ManifestViews).toBe(4);
+      expect(cashRegister.json.signals.agentCardViews).toBe(4);
       expect(cashRegister.json.signals.aiPluginViews).toBe(1);
       expect(cashRegister.json.signals.apiCatalogViews).toBe(1);
       expect(cashRegister.json.signals.agentSkillsViews).toBe(1);
