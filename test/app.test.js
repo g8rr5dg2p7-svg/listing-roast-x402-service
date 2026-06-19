@@ -434,6 +434,12 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.primaryEndpoint.method).toBe("GET");
       expect(x402Manifest.json.primaryEndpoint.maxAmountRequired).toBe("1000");
       expect(x402Manifest.json.primaryEndpoint.note).toContain("POST / is only a fallback directory handoff");
+      expect(x402Manifest.json.resource_samples[0].url).toBe("http://localhost:8787/api/listing-roast");
+      expect(x402Manifest.json.resource_samples[0].method).toBe("GET");
+      expect(x402Manifest.json.resource_samples[0].price).toBe("$0.001");
+      expect(x402Manifest.json.resource_samples[0].price_usd).toBe("0.001");
+      expect(x402Manifest.json.resource_samples[0].max_amount_required).toBe("1000");
+      expect(x402Manifest.json.call_info.resource_samples[0].method).toBe("GET");
       expect(x402Manifest.json.call.primary_method).toBe("GET");
       expect(x402Manifest.json.call.x402_route).toBe("/api/listing-roast");
       expect(x402Manifest.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");

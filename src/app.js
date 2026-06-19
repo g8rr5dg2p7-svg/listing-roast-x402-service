@@ -3672,9 +3672,23 @@ function buildPrimaryEndpointHandoff(config, intentRoutes = buildPayNowActions(c
   };
 }
 
+function buildPrimaryResourceSample(primaryEndpoint) {
+  return {
+    url: primaryEndpoint.url,
+    kind: "http",
+    method: primaryEndpoint.method,
+    path: primaryEndpoint.path,
+    price: primaryEndpoint.price,
+    price_usd: priceToUsd(primaryEndpoint.price),
+    maxAmountRequired: primaryEndpoint.maxAmountRequired,
+    max_amount_required: primaryEndpoint.maxAmountRequired
+  };
+}
+
 function buildX402Manifest(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const primaryEndpoint = buildPrimaryEndpointHandoff(config, intentRoutes);
+  const primaryResourceSample = buildPrimaryResourceSample(primaryEndpoint);
   const baseUrl = absoluteUrl(config, "/").replace(/\/$/, "");
 
   return {
@@ -3750,6 +3764,12 @@ function buildX402Manifest(config, cashRegister = {}) {
     },
     primaryEndpoint,
     primaryPaidEndpoint: primaryEndpoint,
+    resource_count: 1,
+    resource_samples: [primaryResourceSample],
+    call_info: {
+      resource_count: 1,
+      resource_samples: [primaryResourceSample]
+    },
     call: {
       primaryEndpoint,
       primary_url: primaryEndpoint.url,
@@ -3988,6 +4008,7 @@ function buildAgentToolsManifest(config) {
   const x402Manifest = buildX402Manifest(config);
   const intentRoutes = buildPayNowActions(config);
   const primaryEndpoint = buildPrimaryEndpointHandoff(config, intentRoutes);
+  const primaryResourceSample = buildPrimaryResourceSample(primaryEndpoint);
   const payment = {
     asset: config.network === BASE_MAINNET_NETWORK ? BASE_USDC_CONTRACT : "USDC",
     assetName: config.network === BASE_MAINNET_NETWORK ? "Base mainnet USDC" : "USDC",
@@ -4036,28 +4057,10 @@ function buildAgentToolsManifest(config) {
     payment,
     paid_relay: true,
     resource_count: 1,
-    resource_samples: [
-      {
-        url: primaryEndpoint.url,
-        kind: "http",
-        method: primaryEndpoint.method,
-        path: primaryEndpoint.path,
-        price_usd: priceToUsd(primaryEndpoint.price),
-        max_amount_required: primaryEndpoint.maxAmountRequired
-      }
-    ],
+    resource_samples: [primaryResourceSample],
     call_info: {
       resource_count: 1,
-      resource_samples: [
-        {
-          url: primaryEndpoint.url,
-          kind: "http",
-          method: primaryEndpoint.method,
-          path: primaryEndpoint.path,
-          price_usd: priceToUsd(primaryEndpoint.price),
-          max_amount_required: primaryEndpoint.maxAmountRequired
-        }
-      ]
+      resource_samples: [primaryResourceSample]
     },
     catalog: "/x402.json",
     x402_catalog: "/x402.json",
