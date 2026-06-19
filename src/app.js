@@ -2393,6 +2393,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
     [`GET ${AGENT_LISTING_PATH}`]: "agentListingConversion",
     [`GET ${PING_PATH}`]: "x402Ping",
     [`GET ${SITE_AUDIT_PATH}`]: "x402SiteAudit",
+    [`GET ${DISCOVERY_AUDIT_PATH}`]: "discoveryAuditQuick",
     [`POST ${DISCOVERY_AUDIT_PATH}`]: "discoveryAudit",
     "POST /api/listing-score": "listingScore",
     [`GET ${ROAST_PATH}`]: "indexedQuickScore",

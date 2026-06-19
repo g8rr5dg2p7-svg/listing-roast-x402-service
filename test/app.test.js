@@ -948,9 +948,13 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/x402-discovery-audit"].get.tags).toContain("x402 route health check");
       expect(openApi.json.paths["/api/x402-discovery-audit"].get.tags).toContain("stale Bazaar price");
       expect(openApi.json.paths["/api/x402-discovery-audit"].get["x-payment"].maxAmountRequired).toBe("1000");
+      expect(openApi.json.paths["/api/x402-discovery-audit"].get.responses[402].content["application/json"].example.selectedPaidAction.path).toBe("/api/x402-discovery-audit");
+      expect(openApi.json.paths["/api/x402-discovery-audit"].get.responses[402].content["application/json"].example.selectedPaidAction.maxAmountRequired).toBe("1000");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post["x-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post["x-x402-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.summary).toContain("$0.01");
+      expect(openApi.json.paths["/api/x402-discovery-audit"].post.responses[402].content["application/json"].example.selectedPaidAction.path).toBe("/api/x402-discovery-audit");
+      expect(openApi.json.paths["/api/x402-discovery-audit"].post.responses[402].content["application/json"].example.selectedPaidAction.maxAmountRequired).toBe("10000");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.tags).toContain("fix x402 Bazaar listing");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.tags).toContain("x402 catalog metadata quality");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.tags).toContain("x402 listing SEO audit");
