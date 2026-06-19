@@ -210,11 +210,11 @@ const SERVICE_TAGS = Object.freeze([
   "route health"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality and discoverability for paid API listing quality, marketplace listing score, buyer-agent skip reasons, agent service listing clarity, paid API preflight, x402 site audit starter, x402 discovery audit triage, Bazaar search visibility, and stale pricing triage: lowest-price $0.001 GET on indexed /api/listing-roast. This paid-use-confirmed route has wallet proof at /api/paid-usage-proof; try it before higher-priced listing scorers or the $0.01 roast. Use /api/x402-site-audit for pre-pay metadata, /api/x402-discovery-audit for stale Bazaar, or POST /api/listing-roast for the full roast.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent clarity, preflight, x402 audit, Bazaar visibility, stale price. $0.001 GET /api/listing-roast; /api/x402-site-audit, /api/x402-discovery-audit, POST /api/listing-roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-buyer-url-examples-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T20:46:12.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-compact-output-schema-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T20:51:40.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -231,11 +231,11 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
 });
 const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
   agentName: "Listing Roast x402",
-  listingText: "Score API marketplace listing quality and discoverability for paid API listing quality, paid API preflight, stale Bazaar price/search, buyer-agent skip reasons, and agent-service clarity. Start with the paid-use-confirmed $0.001 GET /api/listing-roast route; use $0.001 site audit for route checks and $0.001 discovery audit for stale Bazaar metadata.",
+  listingText: "Score paid API listing quality, paid API preflight, stale Bazaar price/search, buyer-agent skip reasons, and agent-service clarity. Start with $0.001 GET /api/listing-roast; use $0.001 site audit for route checks and discovery audit for stale Bazaar metadata.",
   targetBuyer: "x402 and MCP builders",
   currentPrice: "$0.001 GET; $0.01 POST upgrade",
   currentCheckoutPath: "/api/listing-roast",
-  goal: "Convert buyer agents through the lowest-friction paid score, route pre-pay endpoint checks to the $0.001 site audit, and route stale Bazaar listing buyers to the $0.001 discovery audit"
+  goal: "Convert buyer agents through the lowest-friction paid score, then route pre-pay checks to site audit and stale Bazaar buyers to discovery audit"
 });
 const quickScoreRequestExample = Object.freeze({
   ...LISTING_QUERY_PARAMETER_EXAMPLES
@@ -2133,6 +2133,76 @@ function compactChallengeOutputExample(example) {
   return Object.keys(compact).length ? compact : example;
 }
 
+function inferCompactSchema(value) {
+  if (typeof value === "string") {
+    return { type: "string" };
+  }
+
+  if (typeof value === "number") {
+    return { type: "number" };
+  }
+
+  if (typeof value === "boolean") {
+    return { type: "boolean" };
+  }
+
+  if (Array.isArray(value)) {
+    return {
+      type: "array",
+      items: value.length ? inferCompactSchema(value[0]) : { type: "string" }
+    };
+  }
+
+  if (value && typeof value === "object") {
+    return { type: "object", additionalProperties: true };
+  }
+
+  return { type: "string" };
+}
+
+function compactActionSchema(includeIntent = false) {
+  return {
+    type: "object",
+    properties: {
+      ...(includeIntent ? { intent: { type: "string" } } : {}),
+      path: { type: "string" },
+      method: { type: "string" },
+      price: { type: "string" },
+      maxAmountRequired: { type: "string" }
+    },
+    additionalProperties: true
+  };
+}
+
+function compactChallengeOutputSchema(example) {
+  const required = ["service", "endpoint", "price"].filter((key) => example?.[key] !== undefined);
+  const properties = Object.fromEntries(
+    Object.entries(example || {}).map(([key, value]) => [key, inferCompactSchema(value)])
+  );
+
+  if (example?.nextPaidAction) {
+    properties.nextPaidAction = compactActionSchema();
+  }
+
+  if (Array.isArray(example?.nextPaidActions)) {
+    properties.nextPaidActions = {
+      type: "array",
+      items: compactActionSchema(true)
+    };
+  }
+
+  if (example?.preferredFirstPaidAction) {
+    properties.preferredFirstPaidAction = compactActionSchema();
+  }
+
+  return {
+    type: "object",
+    ...(required.length ? { required } : {}),
+    properties,
+    additionalProperties: true
+  };
+}
+
 function compactDiscoveryForChallenge(discovery) {
   if (!discovery?.output?.example) {
     return discovery;
@@ -2145,10 +2215,7 @@ function compactDiscoveryForChallenge(discovery) {
     output: {
       ...discovery.output,
       example,
-      schema: {
-        type: "object",
-        additionalProperties: true
-      }
+      schema: compactChallengeOutputSchema(example)
     }
   };
 }
