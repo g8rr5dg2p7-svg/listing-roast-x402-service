@@ -2,7 +2,7 @@
 
 Standalone x402 paid API for paid API listing quality scoring, critiquing agent-service listing copy, and auditing stale x402/Bazaar discovery state. It has $0.001 instant GET score and site-audit endpoints, a $0.005 score endpoint, a $0.01 full-roast endpoint, and a $0.01 discovery audit endpoint.
 
-This is intentionally separate from ApexScout and any other active project. It has a public homepage, a command-builder page, a shareable sample page, seven protected JSON API routes, MCP-visible metadata, OpenAPI, llms.txt, x402 discovery link headers, and a local aggregate cash register.
+This is intentionally separate from ApexScout and any other active project. It has a public homepage, a command-builder page, a shareable sample page, seven protected JSON API routes, MCP-visible metadata, OpenAPI with explicit x402 payment hints, llms.txt, x402 discovery link headers, and a local aggregate cash register.
 
 By default, local development can use Base Sepolia through the public x402 facilitator. The live Railway service uses Base mainnet, a separate receiver wallet, and CDP facilitator credentials.
 
@@ -25,7 +25,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /sitemap.xml` - public discovery URLs.
 - `GET /.well-known/mcp.json` - simple tool metadata.
 - `GET /api/instant-listing-score` - protected $0.001 x402 instant score route with optional query params.
-- `GET /api/listing-roast` - protected $0.001 x402 quick score on the already-indexed listing-roast URL.
+- `GET /api/listing-roast` - protected $0.001 x402 quick score on the already-indexed listing-roast URL. This is the preferred first paid action for buyer agents coming from Bazaar.
 - `GET /api/x402-ping` - protected $0.001 paid ping for verifying the x402 payment rail.
 - `GET /api/x402-site-audit` - protected $0.001 x402/Bazaar site audit for direct 402 metadata, stale pricing, and search visibility. It makes no paid calls.
 - `POST /api/x402-discovery-audit` - protected $0.01 x402/Bazaar discovery audit for stale pricing, missing search visibility, and direct 402 metadata checks. It makes no paid calls.

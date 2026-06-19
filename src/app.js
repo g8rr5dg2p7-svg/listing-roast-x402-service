@@ -632,6 +632,21 @@ function buildSiteAuditDiscovery(config) {
   };
 }
 
+function buildPaymentHint(config, options) {
+  return {
+    protocol: "x402",
+    network: config.network,
+    asset: "USDC",
+    price: options.price,
+    maxAmountRequired: options.maxAmountRequired,
+    payTo: config.payTo,
+    method: options.method,
+    route: absoluteUrl(config, options.path),
+    preferredFirstPaidAction: Boolean(options.preferredFirstPaidAction),
+    buyerAction: options.buyerAction
+  };
+}
+
 function buildOpenApiDocument(config) {
   return {
     openapi: "3.1.0",
@@ -645,9 +660,18 @@ function buildOpenApiDocument(config) {
     paths: {
       [INSTANT_SCORE_PATH]: {
         get: {
+          operationId: "getInstantListingScore",
           tags: ["x402 listing", "paid API listing", "paid API listing quality"],
           summary: "Paid $0.001 instant marketplace listing score",
           description: "Lowest-friction GET route for buyer agents that want an immediate paid API listing quality score, agent-service listing score, or x402 marketplace conversion check without building a JSON body first. Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.",
+          "x-payment": buildPaymentHint(config, {
+            path: INSTANT_SCORE_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            preferredFirstPaidAction: true,
+            buyerAction: "Pay $0.001 for an immediate listing quality score without building a JSON body."
+          }),
           parameters: [
             { name: "agentName", in: "query", required: false, schema: { type: "string" } },
             { name: "listingText", in: "query", required: false, schema: { type: "string" } },
@@ -672,9 +696,17 @@ function buildOpenApiDocument(config) {
       },
       [PING_PATH]: {
         get: {
+          operationId: "getX402Ping",
           tags: ["x402 ping", "paid API listing"],
           summary: "Paid $0.001 x402 rail ping",
           description: "Tiny paid GET endpoint for agents that want to verify the Base x402 payment rail before buying a richer listing score or roast.",
+          "x-payment": buildPaymentHint(config, {
+            path: PING_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: PING_AMOUNT,
+            buyerAction: "Pay $0.001 to verify the x402 rail before buying a richer score or roast."
+          }),
           parameters: [
             { name: "msg", in: "query", required: false, schema: { type: "string" } }
           ],
@@ -694,9 +726,17 @@ function buildOpenApiDocument(config) {
       },
       [SITE_AUDIT_PATH]: {
         get: {
+          operationId: "getX402SiteAudit",
           tags: ["x402 discovery", "x402 site audit", "paid API listing"],
           summary: "Paid $0.001 x402 site audit",
           description: "Lowest-friction GET route for agents that want a quick no-spend audit of public x402 discovery, pricing, direct 402 metadata, and Bazaar search visibility before buying the full audit.",
+          "x-payment": buildPaymentHint(config, {
+            path: SITE_AUDIT_PATH,
+            method: "GET",
+            price: config.siteAuditPrice,
+            maxAmountRequired: SITE_AUDIT_AMOUNT,
+            buyerAction: "Pay $0.001 for a no-spend x402 metadata, pricing, and search visibility check."
+          }),
           parameters: [
             { name: "endpointUrl", in: "query", required: false, schema: { type: "string" } },
             { name: "url", in: "query", required: false, schema: { type: "string" } },
@@ -722,9 +762,17 @@ function buildOpenApiDocument(config) {
       },
       [DISCOVERY_AUDIT_PATH]: {
         post: {
+          operationId: "postX402DiscoveryAudit",
           tags: ["x402 discovery", "paid API listing"],
           summary: "Paid $0.01 x402 Bazaar discovery audit",
           description: "Audits a public x402 endpoint without making paid calls. Checks the direct unpaid 402 challenge, Bazaar extension metadata, CDP merchant discovery, stale indexed pricing, and search visibility.",
+          "x-payment": buildPaymentHint(config, {
+            path: DISCOVERY_AUDIT_PATH,
+            method: "POST",
+            price: config.discoveryAuditPrice,
+            maxAmountRequired: DISCOVERY_AUDIT_AMOUNT,
+            buyerAction: "Pay $0.01 for a custom-body discovery audit without making paid calls to the audited endpoint."
+          }),
           requestBody: {
             required: true,
             content: {
@@ -750,9 +798,17 @@ function buildOpenApiDocument(config) {
       },
       "/api/listing-score": {
         post: {
+          operationId: "postListingScore",
           tags: ["x402 listing", "paid API listing", "paid API listing quality"],
           summary: "Paid $0.005 marketplace listing score",
           description: "Scores paid API listing quality, agent-service listing clarity, marketplace conversion, x402 service discoverability, checked signals, first fix, and upgrade guidance after x402 payment.",
+          "x-payment": buildPaymentHint(config, {
+            path: "/api/listing-score",
+            method: "POST",
+            price: config.scorePrice,
+            maxAmountRequired: "5000",
+            buyerAction: "Pay $0.005 for a JSON-body listing quality score and upgrade guidance."
+          }),
           requestBody: {
             required: true,
             content: {
@@ -778,9 +834,18 @@ function buildOpenApiDocument(config) {
       },
       [ROAST_PATH]: {
         get: {
+          operationId: "getIndexedListingRoastQuickScore",
           tags: ["x402 listing", "paid API listing", "paid API listing quality"],
           summary: "Paid $0.001 indexed listing-roast quick score",
           description: "Lowest-price GET challenge on the already-indexed /api/listing-roast URL. Returns a $0.001 score API for marketplace listing quality, paid API discoverability, x402 service clarity, and buyer-agent conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
+          "x-payment": buildPaymentHint(config, {
+            path: ROAST_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            preferredFirstPaidAction: true,
+            buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
+          }),
           parameters: [
             { name: "agentName", in: "query", required: false, schema: { type: "string" } },
             { name: "listingText", in: "query", required: false, schema: { type: "string" } },
@@ -803,9 +868,17 @@ function buildOpenApiDocument(config) {
           }
         },
         post: {
+          operationId: "postListingRoast",
           tags: ["x402 listing", "paid API listing"],
           summary: "Paid $0.01 marketplace listing conversion roast",
           description: "Returns paid API listing conversion feedback, marketplace listing quality fixes, buyer-agent skip reasons, rewritten listing copy, and stop-or-upgrade guidance after x402 payment.",
+          "x-payment": buildPaymentHint(config, {
+            path: ROAST_PATH,
+            method: "POST",
+            price: config.price,
+            maxAmountRequired: "10000",
+            buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
+          }),
           requestBody: {
             required: true,
             content: {
@@ -831,6 +904,7 @@ function buildOpenApiDocument(config) {
       },
       "/api/sample-score": {
         get: {
+          operationId: "getSampleScore",
           summary: "Free sample score output",
           responses: {
             200: {
@@ -1616,6 +1690,52 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       instantScorePrice: config.instantScorePrice,
       siteAuditPrice: config.siteAuditPrice,
       network: config.network,
+      recommendedFirstPaidAction: {
+        route: absoluteUrl(config, ROAST_PATH),
+        method: "GET",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        reason: "This is the already-indexed Bazaar route and the lowest-friction paid score."
+      },
+      paymentHints: {
+        instantScore: buildPaymentHint(config, {
+          path: INSTANT_SCORE_PATH,
+          method: "GET",
+          price: config.instantScorePrice,
+          maxAmountRequired: INSTANT_SCORE_AMOUNT,
+          preferredFirstPaidAction: true,
+          buyerAction: "Pay $0.001 for an immediate listing quality score without building a JSON body."
+        }),
+        indexedRoastGet: buildPaymentHint(config, {
+          path: ROAST_PATH,
+          method: "GET",
+          price: config.instantScorePrice,
+          maxAmountRequired: INSTANT_SCORE_AMOUNT,
+          preferredFirstPaidAction: true,
+          buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
+        }),
+        siteAudit: buildPaymentHint(config, {
+          path: SITE_AUDIT_PATH,
+          method: "GET",
+          price: config.siteAuditPrice,
+          maxAmountRequired: SITE_AUDIT_AMOUNT,
+          buyerAction: "Pay $0.001 for a no-spend x402 metadata, pricing, and search visibility check."
+        }),
+        listingScore: buildPaymentHint(config, {
+          path: "/api/listing-score",
+          method: "POST",
+          price: config.scorePrice,
+          maxAmountRequired: "5000",
+          buyerAction: "Pay $0.005 for a JSON-body listing quality score and upgrade guidance."
+        }),
+        listingRoast: buildPaymentHint(config, {
+          path: ROAST_PATH,
+          method: "POST",
+          price: config.price,
+          maxAmountRequired: "10000",
+          buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
+        })
+      },
       keywords: DISCOVERY_KEYWORDS,
       request: requestExample,
       instantScoreCommand: buildGetPayCommand(config),
@@ -2029,6 +2149,14 @@ ${copyScript("Copy $0.005 score command")}
           price: config.instantScorePrice,
           network: config.network,
           description: "one-tenth-cent GET marketplace listing score and paid API listing quality score for agent-service listing clarity, marketplace conversion, and x402 service discoverability.",
+          payment: buildPaymentHint(config, {
+            path: INSTANT_SCORE_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            preferredFirstPaidAction: true,
+            buyerAction: "Pay $0.001 for an immediate listing quality score without building a JSON body."
+          }),
           keywords: ["marketplace listing score", "paid API listing quality score", "agent-service listing score", "x402 marketplace conversion", "GET paid API"],
           input: buildInstantScoreDiscovery(config).input
         },
@@ -2040,6 +2168,14 @@ ${copyScript("Copy $0.005 score command")}
           price: config.instantScorePrice,
           network: config.network,
           description: "one-tenth-cent GET score API for marketplace listing quality, paid API discoverability, x402 service clarity, agent-service listing score, and buyer-agent conversion checks on the indexed listing-roast URL.",
+          payment: buildPaymentHint(config, {
+            path: ROAST_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            preferredFirstPaidAction: true,
+            buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
+          }),
           keywords: ["listing roast", "score API", "marketplace listing quality", "paid API discoverability", "agent-service listing score", "x402 marketplace conversion"],
           input: buildInstantScoreDiscovery(config).input
         },
@@ -2051,6 +2187,13 @@ ${copyScript("Copy $0.005 score command")}
           price: config.instantScorePrice,
           network: config.network,
           description: "one-tenth-cent paid ping to verify the Base x402 rail before buying a listing score or roast.",
+          payment: buildPaymentHint(config, {
+            path: PING_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: PING_AMOUNT,
+            buyerAction: "Pay $0.001 to verify the x402 rail before buying a richer score or roast."
+          }),
           keywords: ["x402 ping", "paid ping", "x402 rail", "Base USDC"],
           input: buildPingDiscovery(config).input
         },
@@ -2062,6 +2205,13 @@ ${copyScript("Copy $0.005 score command")}
           price: config.siteAuditPrice,
           network: config.network,
           description: "one-tenth-cent GET x402 site audit for direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps.",
+          payment: buildPaymentHint(config, {
+            path: SITE_AUDIT_PATH,
+            method: "GET",
+            price: config.siteAuditPrice,
+            maxAmountRequired: SITE_AUDIT_AMOUNT,
+            buyerAction: "Pay $0.001 for a no-spend x402 metadata, pricing, and search visibility check."
+          }),
           keywords: ["x402 site audit", "x402 discovery audit", "bazaar search visibility", "x402 listing stale price"],
           input: buildSiteAuditDiscovery(config).input
         },
@@ -2073,6 +2223,13 @@ ${copyScript("Copy $0.005 score command")}
           price: config.discoveryAuditPrice,
           network: config.network,
           description: "Bazaar discovery audit for stale indexed pricing, missing search visibility, direct 402 metadata, and no-spend fix steps.",
+          payment: buildPaymentHint(config, {
+            path: DISCOVERY_AUDIT_PATH,
+            method: "POST",
+            price: config.discoveryAuditPrice,
+            maxAmountRequired: DISCOVERY_AUDIT_AMOUNT,
+            buyerAction: "Pay $0.01 for a custom-body discovery audit without making paid calls to the audited endpoint."
+          }),
           keywords: ["x402 bazaar discovery audit", "x402 listing stale price", "bazaar search visibility", "paid API listing"],
           input: discoveryAuditRequestExample
         },
@@ -2084,6 +2241,13 @@ ${copyScript("Copy $0.005 score command")}
           price: config.scorePrice,
           network: config.network,
           description: "paid API listing quality score for agent-service listing clarity, marketplace conversion, and x402 service discoverability.",
+          payment: buildPaymentHint(config, {
+            path: "/api/listing-score",
+            method: "POST",
+            price: config.scorePrice,
+            maxAmountRequired: "5000",
+            buyerAction: "Pay $0.005 for a JSON-body listing quality score and upgrade guidance."
+          }),
           keywords: ["marketplace listing score", "paid API listing quality score", "agent-service listing score", "x402 marketplace conversion"],
           input: requestExample
         },
@@ -2095,6 +2259,13 @@ ${copyScript("Copy $0.005 score command")}
           price: config.price,
           network: config.network,
           description: "marketplace listing conversion roast for paid API listing quality, agent-service listing clarity, and buyer-agent skip reasons.",
+          payment: buildPaymentHint(config, {
+            path: ROAST_PATH,
+            method: "POST",
+            price: config.price,
+            maxAmountRequired: "10000",
+            buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
+          }),
           keywords: ["marketplace listing conversion", "paid API listing quality", "agent-service listing score"],
           input: requestExample
         }
