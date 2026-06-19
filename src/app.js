@@ -3407,6 +3407,17 @@ Do not call paid routes unless the buyer explicitly intends to pay USDC through 
 ${buildGetPayCommand(config, ROAST_PATH)}
 \`\`\`
 
+## Recommended Paid Sequence
+
+1. Start with GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units. This is the already-indexed quick score route and the lowest-friction paid test.
+2. Upgrade to POST ${absoluteUrl(config, ROAST_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
+
+Full roast command:
+
+\`\`\`bash
+${buildPayCommand(config)}
+\`\`\`
+
 ## Other Paid Routes
 
 - GET ${absoluteUrl(config, API_ENTRY_PATH)} for a generic paid x402 navigation route map with fallback quick score when an agent starts at /api first. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
@@ -4341,6 +4352,8 @@ ${webMcpScript(config)}
 
   app.get("/api/examples", async (_request, response) => {
     await recordSignal("examplesViews");
+    const payNow = buildPayNow(config);
+
     response.json({
       service: config.serviceName,
       homepage: absoluteUrl(config, "/"),
@@ -4368,7 +4381,7 @@ ${webMcpScript(config)}
       mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
-      payNow: buildPayNow(config),
+      payNow,
       pricing: absoluteUrl(config, PRICING_PATH),
       pricingCatalog: buildPricingCatalog(config),
       find: absoluteUrl(config, FIND_PATH),
@@ -4402,13 +4415,8 @@ ${webMcpScript(config)}
       instantScorePrice: config.instantScorePrice,
       siteAuditPrice: config.siteAuditPrice,
       network: config.network,
-      recommendedFirstPaidAction: {
-        route: absoluteUrl(config, ROAST_PATH),
-        method: "GET",
-        price: config.instantScorePrice,
-        maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        reason: "This is the already-indexed Bazaar route and the lowest-friction paid score."
-      },
+      recommendedFirstPaidAction: payNow.preferredFirstPaidAction,
+      recommendedPaidSequence: payNow.recommendedPaidSequence,
       paymentHints: {
         apiEntry: buildPaymentHint(config, {
           path: API_ENTRY_PATH,
@@ -4585,6 +4593,14 @@ Preferred first paid route:
 ${indentText(buildGetPayCommand(config, ROAST_PATH))}
   - Output: quick paid API listing quality score from the already-indexed listing-roast URL
   - Use first when a marketplace result points to /api/listing-roast or an agent wants the lowest-friction payable route
+
+Recommended paid sequence:
+
+1. Start with GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units.
+2. Upgrade to POST ${absoluteUrl(config, ROAST_PATH)} for ${config.price}, max 10000 USDC units only when the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
+
+Full roast command:
+${indentText(buildPayCommand(config))}
 
 Other paid routes:
 

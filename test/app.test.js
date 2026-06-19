@@ -520,6 +520,10 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.pricing).toContain("/api/pricing");
       expect(examples.json.find).toContain("/api/find");
       expect(examples.json.route).toContain("/api/route");
+      expect(examples.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(examples.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(examples.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(examples.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(examples.json.localDiscovery.resources).toContain("/v2/x402/discovery/resources");
       expect(examples.json.localDiscovery.searchExample.resources[0].metadata.path).toBe("/api/x402-site-audit");
       expect(examples.json.localDiscovery.merchantExample.resources).toHaveLength(12);
@@ -751,6 +755,8 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/api/agent-listing-conversion");
       expect(llms.text).toContain("--max-amount 1000");
       expect(llms.text).toContain("--max-amount 10000");
+      expect(llms.text).toContain("Recommended paid sequence");
+      expect(llms.text).toContain("Full roast command");
       expect(llms.text).toContain("already-indexed listing-roast URL");
       expect(llms.text).toContain("/x402.json");
       expect(llms.text).toContain("marketplace listing score");
@@ -760,6 +766,8 @@ describe("Listing Roast x402 service", () => {
       expect(llmsFull.headers.get("content-type")).toContain("text/markdown");
       expect(llmsFull.text).toContain("# Listing Roast x402");
       expect(llmsFull.text).toContain("/.well-known/mcp/server-card.json");
+      expect(llmsFull.text).toContain("Recommended Paid Sequence");
+      expect(llmsFull.text).toContain("Full roast command");
 
       const indexMarkdown = await fetchJson(server, "/index.md");
       expect(indexMarkdown.status).toBe(200);
