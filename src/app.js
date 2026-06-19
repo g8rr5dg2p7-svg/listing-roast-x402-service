@@ -1481,6 +1481,22 @@ function indexedQuickScoreNextPaidActions(config, input) {
   }));
 }
 
+function buildFullRoastUpgradeDecision(nextPaidActions = []) {
+  const fullRoastAction = nextPaidActions.find((action) => action.path === ROAST_PATH && action.method === "POST");
+
+  if (!fullRoastAction) {
+    return null;
+  }
+
+  return {
+    revenueStep: "$0.01 full roast upgrade",
+    buyWhen: "Buy this after the $0.001 quick score when the buyer wants rewritten listing copy, top fixes, buyer-agent skip reasons, and a stop-or-upgrade call.",
+    holdWhen: "Do not upgrade if the quick score only proves route health or the buyer only needed the low-cost score.",
+    expectedOutput: ["buyerAgentSkipReasons", "topFixes", "rewrittenListing", "stopOrUpgrade"],
+    action: fullRoastAction
+  };
+}
+
 function buildListingScoreWithUpgrade(input, config) {
   return addNextPaidAction(buildListingScore(input), buildNextPaidAction(config, input, {
     source: "listing-score-upgrade",
@@ -1532,6 +1548,7 @@ function buildIndexedRoastQuickScore(input, config) {
   const followup = indexedQuickScoreFollowup(config, input);
   const buyerIntentHandoffs = indexedQuickScoreIntentHandoffs(config, input);
   const nextPaidActions = indexedQuickScoreNextPaidActions(config, input);
+  const fullRoastUpgradeDecision = buildFullRoastUpgradeDecision(nextPaidActions);
 
   return addNextPaidAction({
     ...buildInstantListingScore(input, config),
@@ -1539,6 +1556,7 @@ function buildIndexedRoastQuickScore(input, config) {
     matchedBuyerIntent: followup.matchedBuyerIntent,
     buyerIntentHandoffs,
     nextPaidActions,
+    ...(fullRoastUpgradeDecision ? { fullRoastUpgradeDecision } : {}),
     nextStep: followup.nextStep,
     upgradeEndpoint: followup.upgradeEndpoint
   }, followup.action);
@@ -1559,6 +1577,7 @@ function buildIndexedRoastQuickScoreDiscoveryExample(input, config) {
     ...output,
     checkedSignals: undefined,
     buyerIntentHandoffs: undefined,
+    fullRoastUpgradeDecision: undefined,
     nextPaidAction: compactNextPaidAction,
     nextPaidActions: output.buyerIntentHandoffs
   };
