@@ -146,9 +146,12 @@ const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score,
 const SERVICE_CATEGORY = "paid-api-listing";
 const SERVICE_TAGS = Object.freeze([
   "x402",
+  "paid API listing quality score",
   "paid API listing quality",
   "marketplace listing score",
   "buyer-agent skip reasons",
+  "buyer agent skip reasons",
+  "agent-service listing score",
   "agent service clarity",
   "x402 discovery audit",
   "paid API preflight",
@@ -165,7 +168,7 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   instantScore: ["x402", "paid API listing quality", "marketplace listing score", "agent service clarity", "discoverability"],
   conversionScore: ["x402", "marketplace conversion", "paid API listing quality", "buyer-agent", "listing quality"],
   agentListingConversion: ["x402", "buyer-agent skip reasons", "agent service clarity", "agent service promotion readiness", "listing conversion", "paid API"],
-  indexedQuickScore: ["x402", "paid API listing quality", "marketplace listing score", "x402 site audit", "x402 discovery audit", "paid API preflight", "buyer-agent skip reasons", "agent service clarity", "route health"],
+  indexedQuickScore: ["x402", "paid API listing quality score", "paid API listing quality", "marketplace listing score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "x402 site audit", "x402 discovery audit", "paid API preflight", "agent service clarity", "route health"],
   x402Ping: ["x402", "payment rail", "paid API", "route health", "Base USDC"],
   x402SiteAudit: ["x402", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "route health", "Bazaar visibility", "stale Bazaar price"],
   discoveryAuditQuick: ["x402", "Bazaar visibility", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 listing SEO audit", "x402 listing rank doctor", "paid API preflight", "route health"],
@@ -2227,7 +2230,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       [ROAST_PATH]: {
         get: {
           operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
-          tags: ["paid API listing quality", "buyer-agent skip reasons", "agent service listing clarity", "x402 listing", "paid API listing"],
+          tags: ["paid API listing quality", "paid API listing quality score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "agent service listing clarity", "x402 listing", "paid API listing"],
           summary: "Paid $0.001 paid API listing quality, agent conversion, and buyer-agent skip reasons quick score",
           description: "Paid API listing quality score, agent listing conversion score, x402 discovery audit triage, buyer-agent skip reasons, and agent service listing clarity from the already-indexed /api/listing-roast URL. Returns a $0.001 score API for paid API discoverability, x402 listing quality, marketplace listing quality, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
           "x-price": config.instantScorePrice,

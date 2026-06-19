@@ -413,12 +413,15 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.resources[0].serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.resources[0].tags).toEqual([
         "x402",
+        "paid API listing quality score",
         "paid API listing quality",
         "marketplace listing score",
+        "buyer-agent skip reasons",
+        "buyer agent skip reasons",
+        "agent-service listing score",
         "x402 site audit",
         "x402 discovery audit",
         "paid API preflight",
-        "buyer-agent skip reasons",
         "agent service clarity",
         "route health"
       ]);
@@ -1394,12 +1397,15 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscovery.json.items[0].metadata.preferredFirstPaidAction).toBe(true);
       expect(localDiscovery.json.items[0].tags).toEqual([
         "x402",
+        "paid API listing quality score",
         "paid API listing quality",
         "marketplace listing score",
+        "buyer-agent skip reasons",
+        "buyer agent skip reasons",
+        "agent-service listing score",
         "x402 site audit",
         "x402 discovery audit",
         "paid API preflight",
-        "buyer-agent skip reasons",
         "agent service clarity",
         "route health"
       ]);
@@ -2058,12 +2064,15 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.serviceName).toBe("Listing Roast x402");
       expect(challenge.resource.tags).toEqual([
         "x402",
+        "paid API listing quality score",
         "paid API listing quality",
         "marketplace listing score",
+        "buyer-agent skip reasons",
+        "buyer agent skip reasons",
+        "agent-service listing score",
         "x402 site audit",
         "x402 discovery audit",
         "paid API preflight",
-        "buyer-agent skip reasons",
         "agent service clarity",
         "route health"
       ]);
