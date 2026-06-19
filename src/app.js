@@ -933,6 +933,18 @@ function paidActionOutputSchema() {
   };
 }
 
+function paidActionWithIntentOutputSchema() {
+  const actionSchema = paidActionOutputSchema();
+
+  return {
+    ...actionSchema,
+    properties: {
+      intent: { type: "string" },
+      ...actionSchema.properties
+    }
+  };
+}
+
 function buildScoreDiscovery(config) {
   return buildDiscovery(config, {
     routePath: "/api/listing-score",
@@ -962,11 +974,18 @@ function buildScoreDiscovery(config) {
               method: { type: "string" },
               price: { type: "string" },
               maxAmountRequired: { type: "string" },
+              route: { type: "string" },
+              command: { type: "string" },
+              body: { type: "object" },
               reason: { type: "string" }
             }
           }
         },
-        nextPaidAction: paidActionOutputSchema()
+        nextPaidAction: paidActionOutputSchema(),
+        nextPaidActions: {
+          type: "array",
+          items: paidActionWithIntentOutputSchema()
+        }
       }
     }
   });
@@ -1143,12 +1162,15 @@ function indexedQuickScoreFollowup(config, input) {
   };
 }
 
-function indexedQuickScoreIntentHandoffs(config, input) {
+function indexedQuickScoreIntentHandoffs(config, input, options = {}) {
   const compactAction = (action) => action ? {
+    route: action.route,
     path: action.path,
     method: action.method,
     price: action.price,
     maxAmountRequired: action.maxAmountRequired,
+    ...(options.includeCommands && action.command ? { command: action.command } : {}),
+    ...(options.includeCommands && action.body ? { body: action.body } : {}),
     reason: action.reason
   } : null;
 
@@ -1180,6 +1202,20 @@ function indexedQuickScoreIntentHandoffs(config, input) {
     intent: handoff.intent,
     ...compactAction(handoff.action)
   })).filter((handoff) => handoff.path);
+}
+
+function indexedQuickScoreNextPaidActions(config, input) {
+  return indexedQuickScoreIntentHandoffs(config, input, { includeCommands: true }).map((handoff) => ({
+    intent: handoff.intent,
+    route: handoff.route,
+    path: handoff.path,
+    method: handoff.method,
+    price: handoff.price,
+    maxAmountRequired: handoff.maxAmountRequired,
+    command: handoff.command,
+    ...(handoff.body ? { body: handoff.body } : {}),
+    reason: handoff.reason
+  }));
 }
 
 function buildListingScoreWithUpgrade(input, config) {
@@ -1231,15 +1267,27 @@ function buildAgentListingConversionScore(input, config) {
 
 function buildIndexedRoastQuickScore(input, config) {
   const followup = indexedQuickScoreFollowup(config, input);
+  const buyerIntentHandoffs = indexedQuickScoreIntentHandoffs(config, input);
+  const nextPaidActions = indexedQuickScoreNextPaidActions(config, input);
 
   return addNextPaidAction({
     ...buildInstantListingScore(input, config),
     endpoint: "listing-roast-quick-score",
     matchedBuyerIntent: followup.matchedBuyerIntent,
-    buyerIntentHandoffs: indexedQuickScoreIntentHandoffs(config, input),
+    buyerIntentHandoffs,
+    nextPaidActions,
     nextStep: followup.nextStep,
     upgradeEndpoint: followup.upgradeEndpoint
   }, followup.action);
+}
+
+function buildIndexedRoastQuickScoreDiscoveryExample(input, config) {
+  const output = buildIndexedRoastQuickScore(input, config);
+
+  return {
+    ...output,
+    nextPaidActions: output.buyerIntentHandoffs
+  };
 }
 
 function buildInstantScoreDiscovery(config) {
@@ -1311,7 +1359,7 @@ function buildIndexedRoastGetDiscovery(config) {
     ...discovery,
     output: {
       ...discovery.output,
-      example: buildIndexedRoastQuickScore(buildInstantScoreInput(), config)
+      example: buildIndexedRoastQuickScoreDiscoveryExample(buildInstantScoreInput(), config)
     },
     service: {
       ...discovery.service,
@@ -1320,9 +1368,11 @@ function buildIndexedRoastGetDiscovery(config) {
   };
 }
 
-function buildApiEntryOutput(config, query = {}) {
+function buildApiEntryOutput(config, query = {}, options = {}) {
   const quickScoreInput = buildInstantScoreInput(query);
-  const quickScore = buildIndexedRoastQuickScore(quickScoreInput, config);
+  const quickScore = options.discoveryExample
+    ? buildIndexedRoastQuickScoreDiscoveryExample(quickScoreInput, config)
+    : buildIndexedRoastQuickScore(quickScoreInput, config);
 
   return {
     service: config.serviceName,
@@ -1460,7 +1510,7 @@ function buildApiEntryDiscovery(config, routePath = API_ENTRY_PATH) {
       properties: {}
     },
     output: {
-      example: buildApiEntryOutput(config),
+      example: buildApiEntryOutput(config, {}, { discoveryExample: true }),
       schema: {
         type: "object",
         required: ["service", "endpoint", "price", "ok", "purpose", "preferredFirstPaidAction", "paidRoutes", "freeDiscovery", "nextStep"],
