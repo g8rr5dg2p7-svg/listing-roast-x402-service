@@ -2501,6 +2501,7 @@ function buildLatestWalletSettlementProof(config) {
 function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore") {
   const payNow = buildPayNow(config);
   const selected = payNow.intentRoutes[intentRouteKey] || payNow.preferredFirstPaidAction;
+  const paidUseProof = buildPaidUseProofLinks(config);
 
   return {
     error: "payment_required",
@@ -2512,7 +2513,18 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore")
     routeSelector: payNow.routeSelector,
     intentRoutes: payNow.intentRoutes,
     freeHandoff: absoluteUrl(config, PAY_NOW_PATH),
-    paidUseProof: buildPaidUseProofLinks(config),
+    paidUsageProof: paidUseProof.paidUsageProof,
+    cashRegister: paidUseProof.cashRegister,
+    paidUseProof,
+    x402Retry: {
+      paymentRequiredHeader: "Payment-Required",
+      paymentHeader: "X-PAYMENT",
+      route: selected.route,
+      method: selected.method,
+      maxAmountRequired: selected.maxAmountRequired,
+      command: selected.command,
+      instruction: "Parse the Payment-Required header, complete the exact x402 payment, then retry this same route with the X-PAYMENT header."
+    },
     x402Manifest: absoluteUrl(config, "/x402.json"),
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
     note: "The x402 payment challenge is in the Payment-Required response header. This body is a free buyer handoff so agents can choose the right paid route without guessing."
