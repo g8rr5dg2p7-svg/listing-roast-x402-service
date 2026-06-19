@@ -1,7 +1,7 @@
 const baseUrl = process.env.SMOKE_BASE_URL || "http://localhost:8787";
 const expectedNetwork = process.env.EXPECTED_X402_NETWORK || "eip155:84532";
 const smokePath = process.env.SMOKE_PATH || "/api/listing-roast";
-const defaultGetPaths = new Set(["/api/listing-roast", "/api/instant-listing-score", "/api/x402-ping", "/api/x402-site-audit"]);
+const defaultGetPaths = new Set(["/api/listing-roast", "/api/instant-listing-score", "/api/x402-marketplace-conversion", "/api/agent-listing-conversion", "/api/x402-ping", "/api/x402-site-audit"]);
 const smokeMethod = process.env.SMOKE_METHOD || (defaultGetPaths.has(smokePath) ? "GET" : "POST");
 const expectedAmount = process.env.EXPECTED_X402_AMOUNT || (defaultGetPaths.has(smokePath) ? "1000" : smokePath === "/api/listing-score" ? "5000" : "10000");
 const discoveryAuditBody = {

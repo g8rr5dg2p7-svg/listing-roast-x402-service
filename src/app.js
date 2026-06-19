@@ -21,6 +21,7 @@ const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const USDC_DECIMALS = 1_000_000n;
 const INSTANT_SCORE_PATH = "/api/instant-listing-score";
 const CONVERSION_SCORE_PATH = "/api/x402-marketplace-conversion";
+const AGENT_LISTING_PATH = "/api/agent-listing-conversion";
 const ROAST_PATH = "/api/listing-roast";
 const PING_PATH = "/api/x402-ping";
 const SITE_AUDIT_PATH = "/api/x402-site-audit";
@@ -50,6 +51,9 @@ const DISCOVERY_KEYWORDS = [
   "buyer agent skip reasons",
   "agent service listing clarity",
   "agent service listing audit",
+  "agent listing conversion score",
+  "agent listing conversion",
+  "agent listing clarity",
   "x402 listing quality",
   "paid API listing",
   "x402 listing",
@@ -175,6 +179,13 @@ function buildStructuredData(config) {
           price: "0.001",
           priceCurrency: "USD",
           url: absoluteUrl(config, CONVERSION_SCORE_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "Agent listing conversion score",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, AGENT_LISTING_PATH)
         },
         {
           "@type": "Offer",
@@ -529,6 +540,18 @@ function buildConversionScore(input, config) {
   }));
 }
 
+function buildAgentListingConversionScore(input, config) {
+  return addNextPaidAction({
+    ...buildInstantListingScore(input, config),
+    endpoint: "agent-listing-conversion-score",
+    nextStep: "This route is optimized for buyer agents searching agent service listing clarity or agent listing conversion score. Use POST /api/listing-roast for the full rewrite and launch recommendation.",
+    upgradeEndpoint: ROAST_PATH
+  }, buildNextPaidAction(config, input, {
+    source: "agent-listing-conversion-upgrade",
+    reason: "Buy the full roast when the agent listing conversion score shows enough buyer intent to justify a rewrite and launch recommendation."
+  }));
+}
+
 function buildIndexedRoastQuickScore(input, config) {
   return addNextPaidAction({
     ...buildInstantListingScore(input, config),
@@ -594,6 +617,22 @@ function buildConversionScoreDiscovery(config) {
   };
 }
 
+function buildAgentListingConversionDiscovery(config) {
+  const discovery = buildInstantScoreDiscovery(config);
+
+  return {
+    ...discovery,
+    output: {
+      ...discovery.output,
+      example: buildAgentListingConversionScore(buildInstantScoreInput(), config)
+    },
+    service: {
+      ...discovery.service,
+      route: absoluteUrl(config, AGENT_LISTING_PATH)
+    }
+  };
+}
+
 function buildIndexedRoastGetDiscovery(config) {
   const discovery = buildInstantScoreDiscovery(config);
 
@@ -624,6 +663,7 @@ function buildPingOutput(config, query = {}) {
     paidRoutes: {
       instantScore: INSTANT_SCORE_PATH,
       conversionScore: CONVERSION_SCORE_PATH,
+      agentListingConversion: AGENT_LISTING_PATH,
       indexedQuickScore: ROAST_PATH,
       siteAudit: SITE_AUDIT_PATH,
       discoveryAudit: DISCOVERY_AUDIT_PATH,
@@ -869,6 +909,43 @@ function buildOpenApiDocument(config) {
                 "application/json": {
                   schema: buildScoreDiscovery(config).output.schema,
                   example: buildConversionScore(buildInstantScoreInput(), config)
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        }
+      },
+      [AGENT_LISTING_PATH]: {
+        get: {
+          operationId: "getAgentListingConversionScore",
+          tags: ["agent listing conversion", "agent service listing clarity", "x402 listing", "paid API listing", "paid API listing quality"],
+          summary: "Paid $0.001 agent listing conversion score",
+          description: "Lowest-friction GET route for buyer agents searching agent service listing clarity, agent listing conversion score, buyer intent, paid API listing quality, or marketplace conversion. Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.",
+          "x-price": config.instantScorePrice,
+          "x-x402-price": config.instantScorePrice,
+          "x-payment": buildPaymentHint(config, {
+            path: AGENT_LISTING_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            buyerAction: "Pay $0.001 for an agent listing conversion score without building a JSON body."
+          }),
+          parameters: [
+            { name: "agentName", in: "query", required: false, schema: { type: "string" } },
+            { name: "listingText", in: "query", required: false, schema: { type: "string" } },
+            { name: "targetBuyer", in: "query", required: false, schema: { type: "string" } },
+            { name: "currentPrice", in: "query", required: false, schema: { type: "string" } },
+            { name: "currentCheckoutPath", in: "query", required: false, schema: { type: "string" } },
+            { name: "goal", in: "query", required: false, schema: { type: "string" } }
+          ],
+          responses: {
+            200: {
+              description: "Paid agent listing conversion score response",
+              content: {
+                "application/json": {
+                  schema: buildScoreDiscovery(config).output.schema,
+                  example: buildAgentListingConversionScore(buildInstantScoreInput(), config)
                 }
               }
             },
@@ -1137,6 +1214,7 @@ function buildOpenApiDocument(config) {
       },
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       conversionScoreRoute: absoluteUrl(config, CONVERSION_SCORE_PATH),
+      agentListingConversionRoute: absoluteUrl(config, AGENT_LISTING_PATH),
       pingRoute: absoluteUrl(config, PING_PATH),
       siteAuditRoute: absoluteUrl(config, SITE_AUDIT_PATH),
       discoveryAuditRoute: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
@@ -1184,7 +1262,7 @@ function buildX402Manifest(config) {
       }
     },
     capabilities: {
-      tools: 8
+      tools: 9
     },
     recommendedFirstPaidAction: {
       route: absoluteUrl(config, ROAST_PATH),
@@ -1237,6 +1315,21 @@ function buildX402Manifest(config) {
         command: buildGetPayCommand(config, CONVERSION_SCORE_PATH, INSTANT_SCORE_AMOUNT),
         input: buildInstantScoreDiscovery(config).input,
         outputExample: buildConversionScore(buildInstantScoreInput(), config),
+        schema: absoluteUrl(config, "/api/score-schema")
+      },
+      {
+        id: "agent_listing_conversion_score",
+        name: "agent_listing_conversion_score",
+        method: "GET",
+        path: AGENT_LISTING_PATH,
+        url: absoluteUrl(config, AGENT_LISTING_PATH),
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        description: "One-tenth-cent GET agent listing conversion score for agent service listing clarity, buyer intent, paid API listing quality, and marketplace conversion. Optimized for agents searching agent-service listing clarity.",
+        keywords: ["agent listing conversion score", "agent service listing clarity", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "marketplace listing conversion", "GET paid API"],
+        command: buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT),
+        input: buildInstantScoreDiscovery(config).input,
+        outputExample: buildAgentListingConversionScore(buildInstantScoreInput(), config),
         schema: absoluteUrl(config, "/api/score-schema")
       },
       {
@@ -1376,6 +1469,18 @@ function createX402Middleware(config) {
         description: "x402 Marketplace Conversion Score: $0.001 GET marketplace conversion score for paid API listing quality, agent-service listing clarity, and buyer-agent conversion checks.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildConversionScoreDiscovery(config))
+      },
+      [`GET ${AGENT_LISTING_PATH}`]: {
+        accepts: {
+          scheme: "exact",
+          price: config.instantScorePrice,
+          network: config.network,
+          payTo: config.payTo,
+          maxTimeoutSeconds: 300
+        },
+        description: "Agent Listing Conversion Score: $0.001 GET score for agent service listing clarity, agent listing conversion, paid API listing quality, buyer intent, and x402 marketplace conversion.",
+        mimeType: "application/json",
+        extensions: declareDiscoveryExtension(buildAgentListingConversionDiscovery(config))
       },
       [`GET ${ROAST_PATH}`]: {
         accepts: {
@@ -1518,7 +1623,7 @@ function isAllowedSignal(value) {
 }
 
 function validUnpaidSignalForPath(pathname) {
-  if (pathname === INSTANT_SCORE_PATH || pathname === CONVERSION_SCORE_PATH) {
+  if (pathname === INSTANT_SCORE_PATH || pathname === CONVERSION_SCORE_PATH || pathname === AGENT_LISTING_PATH) {
     return "instantScoreValidUnpaidChallenges";
   }
 
@@ -1931,7 +2036,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -1957,6 +2062,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       payNow: buildPayNow(config),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       conversionScoreRoute: absoluteUrl(config, CONVERSION_SCORE_PATH),
+      agentListingConversionRoute: absoluteUrl(config, AGENT_LISTING_PATH),
       indexedRoastGetRoute: absoluteUrl(config, ROAST_PATH),
       pingRoute: absoluteUrl(config, PING_PATH),
       siteAuditRoute: absoluteUrl(config, SITE_AUDIT_PATH),
@@ -1998,6 +2104,13 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
           maxAmountRequired: INSTANT_SCORE_AMOUNT,
           buyerAction: "Pay $0.001 for an x402 marketplace conversion score without building a JSON body."
         }),
+        agentListingConversion: buildPaymentHint(config, {
+          path: AGENT_LISTING_PATH,
+          method: "GET",
+          price: config.instantScorePrice,
+          maxAmountRequired: INSTANT_SCORE_AMOUNT,
+          buyerAction: "Pay $0.001 for an agent listing conversion score without building a JSON body."
+        }),
         siteAudit: buildPaymentHint(config, {
           path: SITE_AUDIT_PATH,
           method: "GET",
@@ -2024,6 +2137,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       request: requestExample,
       instantScoreCommand: buildGetPayCommand(config),
       conversionScoreCommand: buildGetPayCommand(config, CONVERSION_SCORE_PATH, INSTANT_SCORE_AMOUNT),
+      agentListingConversionCommand: buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT),
       indexedRoastGetCommand: buildGetPayCommand(config, ROAST_PATH),
       pingCommand: buildGetPayCommand(config, PING_PATH, PING_AMOUNT),
       siteAuditCommand: buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT),
@@ -2032,6 +2146,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       scoreCommand: buildPayCommand(config, "/api/listing-score", "5000"),
       instantScoreOutput: buildInstantListingScore(buildInstantScoreInput(), config),
       conversionScoreOutput: buildConversionScore(buildInstantScoreInput(), config),
+      agentListingConversionOutput: buildAgentListingConversionScore(buildInstantScoreInput(), config),
       indexedRoastGetOutput: buildIndexedRoastQuickScore(buildInstantScoreInput(), config),
       pingOutput: buildPingOutput(config, { msg: "hello from x402" }),
       siteAuditRequest: buildDiscoveryAuditInputFromQuery(),
@@ -2100,6 +2215,13 @@ Other paid routes:
   - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
   - Output: x402 marketplace conversion score, paid API listing quality score, checked signals, first fix, next step
   - Use when an agent searches for x402 marketplace conversion or wants the route path to match that buyer intent
+
+- GET ${absoluteUrl(config, AGENT_LISTING_PATH)}
+  - Price: ${config.instantScorePrice}
+  - Network: ${config.network}
+  - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+  - Output: agent listing conversion score, agent service listing clarity score, buyer intent checks, first fix, next step
+  - Use when an agent searches for agent service listing clarity, agent listing conversion score, or buyer intent clarity
 
 - GET ${absoluteUrl(config, PING_PATH)}
   - Price: ${config.instantScorePrice}
@@ -2510,6 +2632,24 @@ ${copyScript("Copy command")}
           input: buildInstantScoreDiscovery(config).input
         },
         {
+          name: "agent_listing_conversion_score",
+          method: "GET",
+          path: AGENT_LISTING_PATH,
+          url: absoluteUrl(config, AGENT_LISTING_PATH),
+          price: config.instantScorePrice,
+          network: config.network,
+          description: "one-tenth-cent GET agent listing conversion score for agent service listing clarity, buyer intent, paid API listing quality, and marketplace conversion.",
+          payment: buildPaymentHint(config, {
+            path: AGENT_LISTING_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            buyerAction: "Pay $0.001 for an agent listing conversion score without building a JSON body."
+          }),
+          keywords: ["agent listing conversion score", "agent service listing clarity", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "GET paid API"],
+          input: buildInstantScoreDiscovery(config).input
+        },
+        {
           name: "paid_x402_ping",
           method: "GET",
           path: PING_PATH,
@@ -2625,8 +2765,8 @@ ${copyScript("Copy command")}
     response.status(204).end();
   });
 
-  app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ROAST_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
-  app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ROAST_PATH], recordGetScoreProbe);
+  app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
+  app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH], recordGetScoreProbe);
   app.get(PING_PATH, recordPingProbe);
   app.get(SITE_AUDIT_PATH, recordSiteAuditProbe);
   app.post(ROAST_PATH, validateListingRoastRequest);
@@ -2654,6 +2794,12 @@ ${copyScript("Copy command")}
 
   app.get(CONVERSION_SCORE_PATH, async (request, response) => {
     const result = buildConversionScore(buildInstantScoreInput(request.query), config);
+    const cashRegister = await recordPaidCompletion("instantScore", 0.001);
+    response.json({ ...result, cashRegister });
+  });
+
+  app.get(AGENT_LISTING_PATH, async (request, response) => {
+    const result = buildAgentListingConversionScore(buildInstantScoreInput(request.query), config);
     const cashRegister = await recordPaidCompletion("instantScore", 0.001);
     response.json({ ...result, cashRegister });
   });

@@ -1,8 +1,8 @@
 # Listing Roast x402 Service
 
-Standalone x402 paid API for paid API listing quality scoring, critiquing agent-service listing copy, and auditing stale x402/Bazaar discovery state. It leads with the already-indexed $0.001 GET `/api/listing-roast` quick score, and also has a $0.001 instant GET score, a $0.001 site-audit endpoint, a $0.005 score endpoint, a $0.01 full-roast endpoint, and a $0.01 discovery audit endpoint.
+Standalone x402 paid API for paid API listing quality scoring, critiquing agent-service listing copy, and auditing stale x402/Bazaar discovery state. It leads with the already-indexed $0.001 GET `/api/listing-roast` quick score, and also has $0.001 instant, marketplace-conversion, agent-listing-conversion, ping, and site-audit GET endpoints, a $0.005 score endpoint, a $0.01 full-roast endpoint, and a $0.01 discovery audit endpoint.
 
-This is intentionally separate from ApexScout and any other active project. It has a public homepage, a command-builder page, a shareable sample page, seven protected JSON API routes, MCP-visible metadata, OpenAPI with explicit x402 payment hints, llms.txt, x402 discovery link headers, and a local aggregate cash register.
+This is intentionally separate from ApexScout and any other active project. It has a public homepage, a command-builder page, a shareable sample page, protected JSON API routes, MCP-visible metadata, OpenAPI with explicit x402 payment hints, llms.txt, x402 discovery link headers, and a local aggregate cash register.
 
 By default, local development can use Base Sepolia through the public x402 facilitator. The live Railway service uses Base mainnet, a separate receiver wallet, and CDP facilitator credentials.
 
@@ -25,6 +25,8 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /sitemap.xml` - public discovery URLs.
 - `GET /.well-known/mcp.json` - simple tool metadata.
 - `GET /api/instant-listing-score` - protected $0.001 x402 instant score route with optional query params.
+- `GET /api/x402-marketplace-conversion` - protected $0.001 x402 marketplace conversion score route with optional query params.
+- `GET /api/agent-listing-conversion` - protected $0.001 agent listing conversion score route for buyer agents searching agent-service listing clarity.
 - `GET /api/listing-roast` - protected $0.001 x402 quick score on the already-indexed listing-roast URL. This is the preferred first paid action for buyer agents coming from Bazaar.
 - `GET /api/x402-ping` - protected $0.001 paid ping for verifying the x402 payment rail.
 - `GET /api/x402-site-audit` - protected $0.001 x402/Bazaar site audit for direct 402 metadata, stale pricing, and search visibility. It makes no paid calls.
@@ -59,7 +61,7 @@ npm test
 npm run smoke
 ```
 
-The default smoke test should return HTTP `402` with a `payment-required` header containing a `10000` USDC-unit challenge. Set `SMOKE_PATH=/api/listing-score EXPECTED_X402_AMOUNT=5000` to verify the score route. Set `SMOKE_PATH=/api/instant-listing-score EXPECTED_X402_AMOUNT=1000` to verify the instant GET route. Set `SMOKE_PATH=/api/listing-roast SMOKE_METHOD=GET EXPECTED_X402_AMOUNT=1000` to verify the indexed quick-score route. Set `SMOKE_PATH=/api/x402-ping EXPECTED_X402_AMOUNT=1000` to verify the paid ping route. Set `SMOKE_PATH=/api/x402-site-audit EXPECTED_X402_AMOUNT=1000` to verify the site-audit route. Set `SMOKE_PATH=/api/x402-discovery-audit EXPECTED_X402_AMOUNT=10000` to verify the discovery audit route.
+The default smoke test should return HTTP `402` with a `payment-required` header containing a `10000` USDC-unit challenge. Set `SMOKE_PATH=/api/listing-score EXPECTED_X402_AMOUNT=5000` to verify the score route. Set `SMOKE_PATH=/api/instant-listing-score EXPECTED_X402_AMOUNT=1000` to verify the instant GET route. Set `SMOKE_PATH=/api/x402-marketplace-conversion EXPECTED_X402_AMOUNT=1000` to verify the marketplace-conversion route. Set `SMOKE_PATH=/api/agent-listing-conversion EXPECTED_X402_AMOUNT=1000` to verify the agent-listing-conversion route. Set `SMOKE_PATH=/api/listing-roast SMOKE_METHOD=GET EXPECTED_X402_AMOUNT=1000` to verify the indexed quick-score route. Set `SMOKE_PATH=/api/x402-ping EXPECTED_X402_AMOUNT=1000` to verify the paid ping route. Set `SMOKE_PATH=/api/x402-site-audit EXPECTED_X402_AMOUNT=1000` to verify the site-audit route. Set `SMOKE_PATH=/api/x402-discovery-audit EXPECTED_X402_AMOUNT=10000` to verify the discovery audit route.
 
 ## Docker
 
@@ -79,8 +81,8 @@ CDP_API_KEY_SECRET=...
 
 ## Launch Checklist
 
-1. Open `/builder`, `/sample`, `/api/sample-score`, `/api/instant-listing-score`, `GET /api/listing-roast`, `/api/x402-ping`, `/api/x402-site-audit`, `/api/x402-discovery-audit`, `/openapi.json`, `/llms.txt`, `/x402.json`, `/.well-known/x402.json`, `/api/schema`, `/api/score-schema`, `/api/discovery-audit-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
+1. Open `/builder`, `/sample`, `/api/sample-score`, `/api/instant-listing-score`, `/api/x402-marketplace-conversion`, `/api/agent-listing-conversion`, `GET /api/listing-roast`, `/api/x402-ping`, `/api/x402-site-audit`, `/api/x402-discovery-audit`, `/openapi.json`, `/llms.txt`, `/x402.json`, `/.well-known/x402.json`, `/api/schema`, `/api/score-schema`, `/api/discovery-audit-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
 2. Send one unpaid request and confirm the live route returns HTTP `402`.
-3. Confirm the live instant score, indexed GET, paid ping, and site-audit challenges use `X402_NETWORK=eip155:8453` and amount `1000`; confirm the live score challenge uses amount `5000`; confirm the full-roast and full discovery-audit challenges use amount `10000`.
+3. Confirm the live instant score, marketplace-conversion, agent-listing-conversion, indexed GET, paid ping, and site-audit challenges use `X402_NETWORK=eip155:8453` and amount `1000`; confirm the live score challenge uses amount `5000`; confirm the full-roast and full discovery-audit challenges use amount `10000`.
 4. Monitor `/api/cash-register`; use `signals.builderViews`, `signals.builderCommandBuilds`, `signals.sampleViews`, `signals.validUnpaidChallenges`, and `signals.commandCopyClicks` for buyer interest, route-level paid counters for conversion source, `signals.emptyDiscoveryProbes` for bot/discovery noise, and `receiverWallet.usdcBalance` as the durable revenue check across deploys.
 5. Promote the live route only after the production challenge and settlement proof are verified.
