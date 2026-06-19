@@ -91,6 +91,7 @@ describe("Listing Roast x402 service", () => {
       expect(health.status).toBe(200);
       expect(health.json.paidRoute).toBe("/api/listing-roast");
       expect(health.headers.get("link")).toContain("/x402.json");
+      expect(health.headers.get("link")).toContain("/api/pay-now");
       expect(health.headers.get("link")).toContain("/openapi.json");
 
       const home = await fetchJson(server, "/");
@@ -148,6 +149,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.openApi).toContain("/openapi.json");
       expect(mcp.json.llms).toContain("/llms.txt");
       expect(mcp.json.x402Manifest).toContain("/x402.json");
+      expect(mcp.json.payNow).toContain("/api/pay-now");
       expect(mcp.json.keywords).toContain("marketplace listing score");
       expect(mcp.json.tools[0].description).toContain("marketplace listing score");
       expect(mcp.json.tools[0].payment.maxAmountRequired).toBe("1000");
@@ -160,6 +162,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.status).toBe(200);
       expect(x402Manifest.json.keywords).toContain("paid API listing");
       expect(x402Manifest.json.keywords).toContain("x402 bazaar discovery audit");
+      expect(x402Manifest.json.payNow).toContain("/api/pay-now");
       expect(x402Manifest.json.recommendedFirstPaidAction.route).toContain("/api/listing-roast");
       expect(x402Manifest.json.recommendedFirstPaidAction.maxAmountRequired).toBe("1000");
       expect(x402Manifest.json.resources.map((resource) => resource.id)).toEqual(["indexed_roast_quick_score", "instant_listing_score", "x402_ping", "x402_site_audit", "x402_discovery_audit", "listing_score", "listing_roast"]);
@@ -200,6 +203,10 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.openApi).toContain("/openapi.json");
       expect(examples.json.llms).toContain("/llms.txt");
       expect(examples.json.x402Manifest).toContain("/x402.json");
+      expect(examples.json.payNowUrl).toContain("/api/pay-now");
+      expect(examples.json.payNow.route).toContain("/api/listing-roast");
+      expect(examples.json.payNow.command).toContain("--max-amount 1000");
+      expect(examples.json.payNow.noSpendNote).toContain("Fetching this endpoint is free");
       expect(examples.json.keywords).toContain("marketplace listing conversion");
       expect(examples.json.instantScoreRoute).toContain("/api/instant-listing-score");
       expect(examples.json.indexedRoastGetRoute).toContain("/api/listing-roast");
@@ -244,8 +251,10 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].preferredFirstPaidAction).toBe(true);
       expect(openApi.json.paths["/api/listing-roast"].post["x-payment"].maxAmountRequired).toBe("10000");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("$0.001");
+      expect(openApi.json.paths["/api/pay-now"].get.operationId).toBe("getPayNow");
       expect(openApi.json.paths["/api/listing-score"].post.summary).toContain("marketplace listing score");
       expect(openApi.json.paths["/api/listing-score"].post["x-payment"].maxAmountRequired).toBe("5000");
+      expect(openApi.json["x-listing-roast"].payNow).toContain("/api/pay-now");
       expect(openApi.json["x-listing-roast"].recommendedFirstPaidAction.route).toContain("/api/listing-roast");
       expect(openApi.json["x-listing-roast"].x402Manifest).toContain("/x402.json");
       expect(openApi.json["x-listing-roast"].keywords).toContain("paid API listing");
@@ -258,6 +267,7 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/api/x402-site-audit");
       expect(llms.text).toContain("/api/x402-discovery-audit");
       expect(llms.text).toContain("/api/listing-score");
+      expect(llms.text).toContain("/api/pay-now");
       expect(llms.text).toContain("already-indexed listing-roast URL");
       expect(llms.text).toContain("/x402.json");
       expect(llms.text).toContain("marketplace listing score");
@@ -270,6 +280,7 @@ describe("Listing Roast x402 service", () => {
       expect(sitemap.status).toBe(200);
       expect(sitemap.text).toContain("/builder");
       expect(sitemap.text).toContain("/sample");
+      expect(sitemap.text).toContain("/api/pay-now");
       expect(sitemap.text).toContain("/api/instant-listing-score");
       expect(sitemap.text).toContain("/api/x402-ping");
       expect(sitemap.text).toContain("/api/x402-site-audit");
@@ -297,6 +308,17 @@ describe("Listing Roast x402 service", () => {
       });
       expect(builderTrack.status).toBe(204);
 
+      const payNow = await fetchJson(server, "/api/pay-now");
+      expect(payNow.status).toBe(200);
+      expect(payNow.json.route).toContain("/api/listing-roast");
+      expect(payNow.json.method).toBe("GET");
+      expect(payNow.json.price).toBe("$0.001");
+      expect(payNow.json.maxAmountRequired).toBe("1000");
+      expect(payNow.json.command).toContain("/api/listing-roast");
+      expect(payNow.json.command).toContain("--max-amount 1000");
+      expect(payNow.json.expectedChallenge.status).toBe(402);
+      expect(payNow.json.noSpendNote).toContain("Fetching this endpoint is free");
+
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.status).toBe(200);
       expect(cashRegister.json.receiverWallet.network).toBe("eip155:84532");
@@ -309,6 +331,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.sampleViews).toBe(2);
       expect(cashRegister.json.signals.schemaViews).toBe(2);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
+      expect(cashRegister.json.signals.payNowViews).toBe(1);
       expect(cashRegister.json.signals.mcpViews).toBe(1);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(2);
       expect(cashRegister.json.signals.commandCopyClicks).toBe(1);

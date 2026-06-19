@@ -24,6 +24,7 @@ const ROAST_PATH = "/api/listing-roast";
 const PING_PATH = "/api/x402-ping";
 const SITE_AUDIT_PATH = "/api/x402-site-audit";
 const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
+const PAY_NOW_PATH = "/api/pay-now";
 const INSTANT_SCORE_AMOUNT = "1000";
 const PING_AMOUNT = "1000";
 const SITE_AUDIT_AMOUNT = "1000";
@@ -99,6 +100,7 @@ function buildDiscoveryLinks(config) {
   return [
     `<${absoluteUrl(config, "/x402.json")}>; rel="payment"; type="application/json"`,
     `<${absoluteUrl(config, "/.well-known/x402.json")}>; rel="service-desc"; type="application/json"`,
+    `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
     `<${absoluteUrl(config, "/openapi.json")}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
     `<${absoluteUrl(config, "/llms.txt")}>; rel="describedby"; type="text/plain"`,
     `<${absoluteUrl(config, "/.well-known/mcp.json")}>; rel="service-desc"; type="application/json"`
@@ -647,6 +649,41 @@ function buildPaymentHint(config, options) {
   };
 }
 
+function buildPayNow(config) {
+  return {
+    service: config.serviceName,
+    route: absoluteUrl(config, ROAST_PATH),
+    method: "GET",
+    price: config.instantScorePrice,
+    maxAmountRequired: INSTANT_SCORE_AMOUNT,
+    network: config.network,
+    payTo: config.payTo,
+    command: buildGetPayCommand(config, ROAST_PATH),
+    reason: "Already-indexed Bazaar route and lowest-friction paid score.",
+    expectedChallenge: {
+      status: 402,
+      amount: INSTANT_SCORE_AMOUNT,
+      network: config.network,
+      route: absoluteUrl(config, ROAST_PATH)
+    },
+    upgradeRoutes: {
+      score: {
+        route: absoluteUrl(config, "/api/listing-score"),
+        method: "POST",
+        price: config.scorePrice,
+        maxAmountRequired: "5000"
+      },
+      roast: {
+        route: absoluteUrl(config, ROAST_PATH),
+        method: "POST",
+        price: config.price,
+        maxAmountRequired: "10000"
+      }
+    },
+    noSpendNote: "Fetching this endpoint is free. Payment happens only when a buyer calls the x402 paid route."
+  };
+}
+
 function buildOpenApiDocument(config) {
   return {
     openapi: "3.1.0",
@@ -911,6 +948,18 @@ function buildOpenApiDocument(config) {
             }
           }
         }
+      },
+      [PAY_NOW_PATH]: {
+        get: {
+          operationId: "getPayNow",
+          summary: "Free direct pay-now handoff",
+          description: "Compact no-spend JSON that tells buyer agents which x402 route to pay first.",
+          responses: {
+            200: {
+              description: "Direct pay-now handoff for the preferred first paid route"
+            }
+          }
+        }
       }
     },
     "x-listing-roast": {
@@ -918,6 +967,7 @@ function buildOpenApiDocument(config) {
       builder: absoluteUrl(config, "/builder"),
       sample: absoluteUrl(config, "/sample"),
       x402Manifest: absoluteUrl(config, "/x402.json"),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
       preferredFirstPaidRoute: absoluteUrl(config, ROAST_PATH),
       recommendedFirstPaidAction: {
         route: absoluteUrl(config, ROAST_PATH),
@@ -953,6 +1003,7 @@ function buildX402Manifest(config) {
     sample: absoluteUrl(config, "/sample"),
     openApi: absoluteUrl(config, "/openapi.json"),
     llms: absoluteUrl(config, "/llms.txt"),
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
     network: config.network,
     payTo: config.payTo,
     recommendedFirstPaidAction: {
@@ -1380,6 +1431,7 @@ export function createApp(overrides = {}) {
     const openApiUrl = absoluteUrl(config, "/openapi.json");
     const llmsUrl = absoluteUrl(config, "/llms.txt");
     const mcpUrl = absoluteUrl(config, "/.well-known/mcp.json");
+    const payNowUrl = absoluteUrl(config, PAY_NOW_PATH);
     const instantCommand = buildGetPayCommand(config);
     const indexedRoastGetCommand = buildGetPayCommand(config, ROAST_PATH);
     const pingCommand = buildGetPayCommand(config, PING_PATH, PING_AMOUNT);
@@ -1617,7 +1669,7 @@ score: 4/5</div>
         <div>
           <h2>Output built for action.</h2>
           <p>The score response gives the first missing signal and upgrade guidance. The site audit checks direct x402 metadata against Bazaar state at the same low first-click price. The full roast adds skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
-          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. The command builder is available at <a href="${builderUrl}">/builder</a>. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
+          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. The command builder is available at <a href="${builderUrl}">/builder</a>. The direct pay-now handoff is available at <a href="${payNowUrl}">/api/pay-now</a>. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
         </div>
         <pre>${escapeHtml(prettyJson(scoreOutput))}</pre>
       </div>
@@ -1672,7 +1724,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", ROAST_PATH, INSTANT_SCORE_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", "/.well-known/x402.json", "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", "/.well-known/x402.json", "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -1693,6 +1745,8 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       openApi: absoluteUrl(config, "/openapi.json"),
       llms: absoluteUrl(config, "/llms.txt"),
       x402Manifest: absoluteUrl(config, "/x402.json"),
+      payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
+      payNow: buildPayNow(config),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       indexedRoastGetRoute: absoluteUrl(config, ROAST_PATH),
       pingRoute: absoluteUrl(config, PING_PATH),
@@ -1800,6 +1854,7 @@ Sample score JSON: ${absoluteUrl(config, "/api/sample-score")}
 OpenAPI: ${absoluteUrl(config, "/openapi.json")}
 x402 manifest: ${absoluteUrl(config, "/x402.json")}
 MCP metadata: ${absoluteUrl(config, "/.well-known/mcp.json")}
+Pay-now JSON: ${absoluteUrl(config, PAY_NOW_PATH)}
 Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
 
 Preferred first paid route:
@@ -2168,6 +2223,7 @@ ${copyScript("Copy command")}
       openApi: absoluteUrl(config, "/openapi.json"),
       llms: absoluteUrl(config, "/llms.txt"),
       x402Manifest: absoluteUrl(config, "/x402.json"),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
       keywords: DISCOVERY_KEYWORDS,
       tools: [
         {
@@ -2305,6 +2361,11 @@ ${copyScript("Copy command")}
     const cashRegister = await getCashRegister();
     const receiverWallet = await getReceiverBalanceSnapshot(config);
     response.json({ ...cashRegister, receiverWallet });
+  });
+
+  app.get(PAY_NOW_PATH, async (_request, response) => {
+    await recordSignal("payNowViews");
+    response.json(buildPayNow(config));
   });
 
   app.post("/api/track", async (request, response) => {
