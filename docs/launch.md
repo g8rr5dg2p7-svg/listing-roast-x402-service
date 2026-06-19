@@ -43,6 +43,7 @@ Current verified state:
 - Receiver wallet balance is the durable revenue check across deploys.
 - The deployment-local cash counter can reset when Railway replaces the container.
 - First settlement transaction: 0x59f6d99257170dd796419a7d8a50dab7d113acb2198f0fafa993f6f30490fbf0.
+- Second settlement transaction: 0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71 for 1000 USDC units on the indexed GET `/api/listing-roast` route.
 - CDP Bazaar merchant discovery: indexed for the receiver wallet.
 
 Current production environment:

@@ -2192,6 +2192,7 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
   return {
     service: config.serviceName,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
+    settlementProof: buildSettlementProof(config, cashRegister),
     intent: selection.intent || null,
     selectedActionKey: selection.selectedActionKey,
     selectedPaidAction,
@@ -2287,15 +2288,53 @@ function buildPayNowIntentExamples(config) {
 }
 
 function buildSettlementProof(config) {
+  const settlement = buildLatestWalletSettlementProof(config);
+
   return {
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     evidenceFields: [
       "paidCompletions",
       "estimatedGrossRevenueUsd",
+      "indexedRoastGetCompletions",
+      "indexedRoastGetEstimatedRevenueUsd",
       "receiverWallet.usdcBalance",
       "receiverWallet.usdcUnits"
     ],
+    ...(settlement ? { latestWalletSettlement: settlement } : {}),
     note: "Use this free endpoint to verify public paid-completion counters and receiver wallet snapshot before treating revenue as settled."
+  };
+}
+
+function buildLatestWalletSettlementProof(config) {
+  const txHash = process.env.BASELINE_LAST_SETTLEMENT_TX_HASH || "";
+  if (!/^0x[a-fA-F0-9]{64}$/.test(txHash)) {
+    return null;
+  }
+
+  const usdcUnits = process.env.BASELINE_LAST_SETTLEMENT_USDC_UNITS || "";
+  const confirmedAt = process.env.BASELINE_LAST_SETTLEMENT_CONFIRMED_AT || process.env.BASELINE_LAST_PAID_AT || null;
+  const path = process.env.BASELINE_LAST_SETTLEMENT_ROUTE_PATH || ROAST_PATH;
+  const method = (process.env.BASELINE_LAST_SETTLEMENT_METHOD || "GET").toUpperCase();
+  const maxAmountRequired = process.env.BASELINE_LAST_SETTLEMENT_MAX_AMOUNT_REQUIRED || INSTANT_SCORE_AMOUNT;
+  const usdc = /^\d+$/.test(usdcUnits) ? formatUsdc(BigInt(usdcUnits)) : null;
+
+  return {
+    txHash,
+    explorerUrl: `https://basescan.org/tx/${txHash}`,
+    network: config.network,
+    asset: "USDC",
+    ...(usdcUnits ? { usdcUnits } : {}),
+    ...(usdc ? { usdc } : {}),
+    ...(confirmedAt ? { confirmedAt } : {}),
+    route: {
+      method,
+      path,
+      url: absoluteUrl(config, path),
+      maxAmountRequired
+    },
+    source: "public_base_usdc_transfer",
+    payerDetails: "omitted",
+    note: "Public wallet-settlement proof only. Private payment details are not exposed."
   };
 }
 
@@ -3338,12 +3377,28 @@ function buildOpenApiDocument(config, cashRegister = {}) {
 function buildPaidUsageProof(config, cashRegister = {}) {
   const paidCompletions = Number(cashRegister.paidCompletions || 0);
   const estimatedGrossRevenueUsd = String(cashRegister.estimatedGrossRevenueUsd || "0.00").replace(/^\$/, "");
+  const indexedRoastGetCompletions = Number(cashRegister.indexedRoastGetCompletions || 0);
+  const indexedRoastGetEstimatedRevenueUsd = String(cashRegister.indexedRoastGetEstimatedRevenueUsd || "$0.00");
+  const latestWalletSettlement = buildLatestWalletSettlementProof(config);
 
   return {
     paidCompletions,
     estimatedGrossRevenueUsd,
     proofText: `${paidCompletions} paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered`,
     lastPaidAt: cashRegister.lastPaidAt || null,
+    preferredConvertedRoute: {
+      path: ROAST_PATH,
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      completions: indexedRoastGetCompletions,
+      estimatedRevenueUsd: indexedRoastGetEstimatedRevenueUsd,
+      hasConfirmedPaidUse: indexedRoastGetCompletions > 0,
+      note: indexedRoastGetCompletions > 0
+        ? "The preferred indexed GET /api/listing-roast route has confirmed paid use."
+        : "The preferred indexed GET /api/listing-roast route is the current first paid action."
+    },
+    ...(latestWalletSettlement ? { latestWalletSettlement } : {}),
     source: "public_cash_register",
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     walletEvidenceFields: ["receiverWallet.usdcBalance", "receiverWallet.usdcUnits", "receiverWallet.checkedAt"],
@@ -5500,6 +5555,17 @@ export function createApp(overrides = {}) {
     const paidCompletionLabel = `${paidCompletionCount} paid ${paidCompletionCount === 1 ? "completion" : "completions"}`;
     const grossRevenueUsd = String(cashRegister.estimatedGrossRevenueUsd || "0.00").replace(/^\$/, "");
     const grossRevenueLabel = `$${grossRevenueUsd} registered`;
+    const indexedPaidCount = Number(cashRegister.indexedRoastGetCompletions || 0);
+    const indexedPaidLabel = indexedPaidCount > 0
+      ? `${indexedPaidCount} indexed GET paid use${indexedPaidCount === 1 ? "" : "s"}`
+      : "Indexed GET route";
+    const latestWalletSettlement = buildLatestWalletSettlementProof(config);
+    const settlementLabel = latestWalletSettlement
+      ? `${latestWalletSettlement.usdc || `${latestWalletSettlement.usdcUnits || INSTANT_SCORE_AMOUNT} units`} wallet-settled`
+      : "Wallet snapshot";
+    const settlementText = latestWalletSettlement
+      ? "Latest settlement proof is exposed in discovery JSON"
+      : "Receiver balance is checked in the public cash register";
 
     response.type("html").send(`<!doctype html>
 <html lang="en">
@@ -5545,7 +5611,7 @@ export function createApp(overrides = {}) {
     .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 15px; border-radius: 8px; border: 1px solid #101010; background: #111; color: #fff; text-decoration: none; font-weight: 700; }
     button.button { cursor: pointer; font: inherit; }
     .button.secondary { background: #fff; color: #111; border-color: var(--line); }
-    .proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 24px; max-width: 780px; }
+    .proof { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 24px; max-width: 900px; }
     .proof div, .miniCard { border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,0.78); padding: 12px; }
     .proof strong { display: block; font-size: 1.1rem; }
     .device { border: 1px solid #cbd4df; border-radius: 8px; background: #111827; color: #e8eef6; box-shadow: 0 18px 40px rgba(17,24,39,0.16); overflow: hidden; }
@@ -5614,8 +5680,9 @@ export function createApp(overrides = {}) {
           </div>
           <div class="proof" aria-label="Proof points">
             <div><strong class="metric">${escapeHtml(paidCompletionLabel)}</strong><span class="muted">${escapeHtml(grossRevenueLabel)} in the public cash register</span></div>
+            <div><strong class="metric">${escapeHtml(indexedPaidLabel)}</strong><span class="muted">Preferred route that already converted</span></div>
+            <div><strong class="metric">${escapeHtml(settlementLabel)}</strong><span class="muted">${escapeHtml(settlementText)}</span></div>
             <div><strong>${config.instantScorePrice} -> ${config.price}</strong><span class="muted">GET quick score, then POST full roast</span></div>
-            <div><strong class="metric">Discovery audit</strong><span class="muted">Checks stale Bazaar listings</span></div>
           </div>
         </div>
         <div class="device" aria-label="Terminal preview">

@@ -19,6 +19,12 @@ beforeEach(async () => {
 afterEach(async () => {
   vi.unstubAllGlobals();
   delete process.env.DATA_DIR;
+  delete process.env.BASELINE_LAST_SETTLEMENT_TX_HASH;
+  delete process.env.BASELINE_LAST_SETTLEMENT_USDC_UNITS;
+  delete process.env.BASELINE_LAST_SETTLEMENT_CONFIRMED_AT;
+  delete process.env.BASELINE_LAST_SETTLEMENT_ROUTE_PATH;
+  delete process.env.BASELINE_LAST_SETTLEMENT_METHOD;
+  delete process.env.BASELINE_LAST_SETTLEMENT_MAX_AMOUNT_REQUIRED;
   await rm(testDataDir, { recursive: true, force: true });
 });
 
@@ -1632,12 +1638,16 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.002");
       expect(x402Manifest.json.paidUsageProof.proofText).toBe("2 paid completions; $0.002 registered");
       expect(x402Manifest.json.paidUsageProof.cashRegister).toContain("/api/cash-register");
+      expect(x402Manifest.json.paidUsageProof.preferredConvertedRoute.path).toBe("/api/listing-roast");
+      expect(x402Manifest.json.paidUsageProof.preferredConvertedRoute.completions).toBe(1);
+      expect(x402Manifest.json.paidUsageProof.preferredConvertedRoute.hasConfirmedPaidUse).toBe(true);
 
       const openApi = await fetchJson(server, "/openapi.json");
       expect(openApi.status).toBe(200);
       expect(openApi.json["x-listing-roast"].paidUsageProof.paidCompletions).toBe(2);
       expect(openApi.json["x-listing-roast"].paidUsageProof.estimatedGrossRevenueUsd).toBe("0.002");
       expect(openApi.json["x-listing-roast"].paidUsageProof.proofText).toBe("2 paid completions; $0.002 registered");
+      expect(openApi.json["x-listing-roast"].paidUsageProof.preferredConvertedRoute.hasConfirmedPaidUse).toBe(true);
 
       const mcp = await fetchJson(server, "/.well-known/mcp.json");
       expect(mcp.status).toBe(200);
@@ -1661,6 +1671,8 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.status).toBe(200);
       expect(payNow.json.paidUsageProof.paidCompletions).toBe(2);
       expect(payNow.json.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.002");
+      expect(payNow.json.paidUsageProof.preferredConvertedRoute.completions).toBe(1);
+      expect(payNow.json.settlementProof.evidenceFields).toContain("indexedRoastGetCompletions");
 
       const pricing = await fetchJson(server, "/api/pricing");
       expect(pricing.status).toBe(200);
@@ -1677,6 +1689,37 @@ describe("Listing Roast x402 service", () => {
       const localDiscovery = await fetchJson(server, "/v2/x402/discovery/resources?limit=1");
       expect(localDiscovery.status).toBe(200);
       expect(localDiscovery.json.paidUsageProof.paidCompletions).toBe(2);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  it("exposes public latest wallet settlement proof when configured", async () => {
+    process.env.BASELINE_LAST_SETTLEMENT_TX_HASH = "0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71";
+    process.env.BASELINE_LAST_SETTLEMENT_USDC_UNITS = "1000";
+    process.env.BASELINE_LAST_SETTLEMENT_CONFIRMED_AT = "2026-06-18T06:43:23.000Z";
+    process.env.BASELINE_LAST_SETTLEMENT_ROUTE_PATH = "/api/listing-roast";
+    process.env.BASELINE_LAST_SETTLEMENT_METHOD = "GET";
+    process.env.BASELINE_LAST_SETTLEMENT_MAX_AMOUNT_REQUIRED = "1000";
+
+    await recordPaidCompletion("indexedRoastGet", 0.001);
+
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      const x402Manifest = await fetchJson(server, "/x402.json");
+      expect(x402Manifest.status).toBe(200);
+      expect(x402Manifest.json.paidUsageProof.latestWalletSettlement.txHash).toBe(process.env.BASELINE_LAST_SETTLEMENT_TX_HASH);
+      expect(x402Manifest.json.paidUsageProof.latestWalletSettlement.usdcUnits).toBe("1000");
+      expect(x402Manifest.json.paidUsageProof.latestWalletSettlement.usdc).toBe("0.001");
+      expect(x402Manifest.json.paidUsageProof.latestWalletSettlement.route.path).toBe("/api/listing-roast");
+      expect(x402Manifest.json.paidUsageProof.latestWalletSettlement.payerDetails).toBe("omitted");
+      expect(x402Manifest.json.settlementProof.latestWalletSettlement.explorerUrl).toContain("basescan.org/tx/");
+
+      const payNow = await fetchJson(server, "/api/pay-now");
+      expect(payNow.status).toBe(200);
+      expect(payNow.json.paidUsageProof.latestWalletSettlement.route.maxAmountRequired).toBe("1000");
+      expect(payNow.json.settlementProof.latestWalletSettlement.usdc).toBe("0.001");
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
