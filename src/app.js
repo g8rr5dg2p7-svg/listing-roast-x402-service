@@ -67,14 +67,19 @@ const WELL_KNOWN_API_CATALOG_PATH = "/.well-known/api-catalog";
 const WELL_KNOWN_AGENT_TOOLS_PATH = "/.well-known/agent-tools.json";
 const WELL_KNOWN_AGENT_SKILLS_INDEX_PATH = "/.well-known/agent-skills/index.json";
 const WELL_KNOWN_AGENT_SKILL_PATH = "/.well-known/agent-skills/listing-roast-x402/SKILL.md";
+const WELL_KNOWN_LLMS_PATH = "/.well-known/llms.txt";
+const WELL_KNOWN_LLMS_FULL_PATH = "/.well-known/llms-full.txt";
 const WELL_KNOWN_MCP_JSON_PATH = "/.well-known/mcp.json";
 const WELL_KNOWN_MCP_PATH = "/.well-known/mcp";
 const WELL_KNOWN_MCP_SERVER_PATH = "/.well-known/mcp-server";
 const WELL_KNOWN_MCP_SERVER_CARD_PATH = "/.well-known/mcp/server-card.json";
+const LLMS_PATH = "/llms.txt";
 const LLMS_FULL_PATH = "/llms-full.txt";
 const INDEX_MARKDOWN_PATH = "/index.md";
 const AUTH_MARKDOWN_PATH = "/auth.md";
 const WELL_KNOWN_AUTH_MARKDOWN_PATH = "/.well-known/auth.md";
+const ICON_SVG_PATH = "/icon.svg";
+const FAVICON_SVG_PATH = "/favicon.svg";
 const AGENT_SKILLS_SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/schema.json";
 const AGENTS_MARKDOWN_PATH = "/AGENTS.md";
 const DOCS_PATH = "/docs";
@@ -302,6 +307,15 @@ function jsonScript(value) {
   return JSON.stringify(value).replaceAll("<", "\\u003c");
 }
 
+function buildIconSvg() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Listing Roast x402">
+  <rect width="96" height="96" rx="18" fill="#111827"/>
+  <path d="M22 25h31v10H34v36H22V25Z" fill="#ffffff"/>
+  <path d="M55 25h19c10 0 17 6 17 15 0 6-3 11-9 14l10 17H79L70 56h-4v15H55V25Zm11 10v12h8c4 0 6-2 6-6s-2-6-6-6h-8Z" fill="#38bdf8"/>
+  <path d="M24 78h48" stroke="#22c55e" stroke-width="6" stroke-linecap="round"/>
+</svg>`;
+}
+
 function shellQuote(value) {
   return `'${String(value).replaceAll("'", "'\\''")}'`;
 }
@@ -350,8 +364,10 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
     `<${absoluteUrl(config, API_V1_OPENAPI_JSON_PATH)}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
     `<${absoluteUrl(config, SWAGGER_JSON_PATH)}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
-    `<${absoluteUrl(config, "/llms.txt")}>; rel="describedby"; type="text/plain"`,
+    `<${absoluteUrl(config, LLMS_PATH)}>; rel="describedby"; type="text/plain"`,
+    `<${absoluteUrl(config, WELL_KNOWN_LLMS_PATH)}>; rel="describedby"; type="text/plain"`,
     `<${absoluteUrl(config, LLMS_FULL_PATH)}>; rel="describedby"; type="text/markdown"`,
+    `<${absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)}>; rel="describedby"; type="text/markdown"`,
     `<${absoluteUrl(config, INDEX_MARKDOWN_PATH)}>; rel="describedby"; type="text/markdown"`,
     `<${absoluteUrl(config, AGENTS_MARKDOWN_PATH)}>; rel="describedby"; type="text/markdown"`,
     `<${absoluteUrl(config, DOCS_PATH)}>; rel="describedby"; type="text/markdown"`,
@@ -366,7 +382,8 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}>; rel="api-catalog"; type="application/linkset+json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH)}>; rel="service-desc"; type="application/json"`,
-    `<${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}>; rel="agent-skills"; type="application/json"`
+    `<${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}>; rel="agent-skills"; type="application/json"`,
+    `<${absoluteUrl(config, ICON_SVG_PATH)}>; rel="icon"; type="image/svg+xml"`
   ].join(", ");
 }
 
@@ -2200,6 +2217,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       contact: { url: config.serviceUrl },
       "x-provider-url": config.serviceUrl,
       "x-service-name": config.serviceName,
+      "x-icon-url": absoluteUrl(config, ICON_SVG_PATH),
       "x-category": SERVICE_CATEGORY,
       "x-tags": SERVICE_TAGS,
       "x-keywords": DISCOVERY_KEYWORDS
@@ -2837,10 +2855,13 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       homepage: config.serviceUrl,
       builder: absoluteUrl(config, "/builder"),
       sample: absoluteUrl(config, "/sample"),
+      iconUrl: absoluteUrl(config, ICON_SVG_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       x402ManifestAliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
-      llms: absoluteUrl(config, "/llms.txt"),
+      llms: absoluteUrl(config, LLMS_PATH),
+      llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
+      llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH),
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
@@ -2931,6 +2952,8 @@ function buildX402Manifest(config, cashRegister = {}) {
     baseUrl,
     description: DISCOVERY_DESCRIPTION,
     providerUrl: config.serviceUrl,
+    iconUrl: absoluteUrl(config, ICON_SVG_PATH),
+    icon: absoluteUrl(config, ICON_SVG_PATH),
     category: SERVICE_CATEGORY,
     tags: SERVICE_TAGS,
     keywords: DISCOVERY_KEYWORDS,
@@ -2939,8 +2962,10 @@ function buildX402Manifest(config, cashRegister = {}) {
     sample: absoluteUrl(config, "/sample"),
     openApi: absoluteUrl(config, "/openapi.json"),
     openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)],
-    llms: absoluteUrl(config, "/llms.txt"),
+    llms: absoluteUrl(config, LLMS_PATH),
+    llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
     llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
+    llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
     markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH),
     agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
     agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
@@ -3252,6 +3277,8 @@ function buildAgentToolsManifest(config) {
     description: DISCOVERY_DESCRIPTION,
     serviceName: config.serviceName,
     provider_url: config.serviceUrl,
+    iconUrl: absoluteUrl(config, ICON_SVG_PATH),
+    icon_url: absoluteUrl(config, ICON_SVG_PATH),
     category: SERVICE_CATEGORY,
     tags: SERVICE_TAGS,
     base_url: x402Manifest.baseUrl,
@@ -3261,8 +3288,10 @@ function buildAgentToolsManifest(config) {
     bazaar_metadata: WELL_KNOWN_X402_PATH,
     openapi: "/openapi.json",
     openapi_alias: WELL_KNOWN_OPENAPI_JSON_PATH,
-    llms: "/llms.txt",
+    llms: LLMS_PATH,
+    llms_alias: WELL_KNOWN_LLMS_PATH,
     llms_full: LLMS_FULL_PATH,
+    llms_full_alias: WELL_KNOWN_LLMS_FULL_PATH,
     mcp: WELL_KNOWN_MCP_JSON_PATH,
     agent_card: WELL_KNOWN_AGENT_CARD_PATH,
     api_catalog: WELL_KNOWN_API_CATALOG_PATH,
@@ -3755,6 +3784,7 @@ function buildAgentCard(config, cashRegister = {}) {
     name: config.serviceName,
     description: "Paid HTTP+JSON x402 service for listing quality, buyer-agent skip reasons, and x402 discoverability audits.",
     url: absoluteUrl(config, ROAST_PATH),
+    iconUrl: absoluteUrl(config, ICON_SVG_PATH),
     preferredTransport: "HTTP+JSON",
     supportedInterfaces,
     additionalInterfaces: supportedInterfaces,
@@ -3763,7 +3793,7 @@ function buildAgentCard(config, cashRegister = {}) {
       url: absoluteUrl(config, "/")
     },
     version: "0.2.0",
-    documentationUrl: absoluteUrl(config, "/llms.txt"),
+    documentationUrl: absoluteUrl(config, LLMS_PATH),
     capabilities: {
       streaming: false,
       pushNotifications: false,
@@ -3910,8 +3940,11 @@ function buildAgentCard(config, cashRegister = {}) {
       route: absoluteUrl(config, ROUTE_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
-      llms: absoluteUrl(config, "/llms.txt"),
+      iconUrl: absoluteUrl(config, ICON_SVG_PATH),
+      llms: absoluteUrl(config, LLMS_PATH),
+      llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
+      llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
       mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
       mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
@@ -4430,6 +4463,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
     protocolVersion: "2025-06-18",
     name: config.serviceName,
     description: "Public discovery card for Listing Roast x402 paid HTTP+JSON routes. This card points agents to metadata, OpenAPI, x402 payment hints, and free route guides before any paid call.",
+    iconUrl: absoluteUrl(config, ICON_SVG_PATH),
     endpoint: metadataUrl,
     transport: "http",
     serverInfo: {
@@ -4478,8 +4512,10 @@ function buildMcpServerCard(config, cashRegister = {}) {
       find: absoluteUrl(config, FIND_PATH),
       route: absoluteUrl(config, ROUTE_PATH),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
-      llms: absoluteUrl(config, "/llms.txt"),
+      llms: absoluteUrl(config, LLMS_PATH),
+      llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
+      llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH)
     },
     categories: ["x402", "paid-api", "agent-commerce", "api-discovery"],
@@ -5020,11 +5056,15 @@ export function createApp(overrides = {}) {
   <meta property="og:title" content="${escapeHtml(config.serviceName)}" />
   <meta property="og:description" content="Score paid API listing quality and discoverability before buyer agents skip the listing." />
   <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
+  <meta property="og:image" content="${escapeHtml(absoluteUrl(config, ICON_SVG_PATH))}" />
   <link rel="canonical" href="${escapeHtml(config.serviceUrl)}/" />
+  <link rel="icon" type="image/svg+xml" href="${escapeHtml(absoluteUrl(config, ICON_SVG_PATH))}" />
   <link rel="alternate" type="application/json" title="Listing Roast x402 manifest" href="${escapeHtml(absoluteUrl(config, "/x402.json"))}" />
   <link rel="alternate" type="application/vnd.oai.openapi+json" title="Listing Roast OpenAPI" href="${escapeHtml(absoluteUrl(config, "/openapi.json"))}" />
-  <link rel="alternate" type="text/plain" title="Listing Roast llms.txt" href="${escapeHtml(absoluteUrl(config, "/llms.txt"))}" />
+  <link rel="alternate" type="text/plain" title="Listing Roast llms.txt" href="${escapeHtml(absoluteUrl(config, LLMS_PATH))}" />
+  <link rel="alternate" type="text/plain" title="Listing Roast well-known llms.txt" href="${escapeHtml(absoluteUrl(config, WELL_KNOWN_LLMS_PATH))}" />
   <link rel="alternate" type="text/markdown" title="Listing Roast full agent guide" href="${escapeHtml(llmsFullUrl)}" />
+  <link rel="alternate" type="text/markdown" title="Listing Roast well-known full agent guide" href="${escapeHtml(absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH))}" />
   <link rel="alternate" type="text/markdown" title="Listing Roast Markdown homepage" href="${escapeHtml(absoluteUrl(config, INDEX_MARKDOWN_PATH))}" />
   <link rel="alternate" type="text/markdown" title="Listing Roast auth guide" href="${escapeHtml(absoluteUrl(config, AUTH_MARKDOWN_PATH))}" />
   <script type="application/ld+json">${jsonScript(buildStructuredData(config))}</script>
@@ -5330,7 +5370,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", ROAST_PATH, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -5555,12 +5595,19 @@ ${webMcpScript(config)}
     });
   });
 
-  app.get([INDEX_MARKDOWN_PATH, LLMS_FULL_PATH], async (_request, response) => {
+  app.get([ICON_SVG_PATH, FAVICON_SVG_PATH], (_request, response) => {
+    response
+      .set("Cache-Control", "public, max-age=300")
+      .type("image/svg+xml")
+      .send(buildIconSvg());
+  });
+
+  app.get([INDEX_MARKDOWN_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH], async (_request, response) => {
     await recordSignal("llmsViews");
     response.type("text/markdown").send(buildAgentMarkdownGuide(config));
   });
 
-  app.get("/llms.txt", async (_request, response) => {
+  app.get([LLMS_PATH, WELL_KNOWN_LLMS_PATH], async (_request, response) => {
     await recordSignal("llmsViews");
     response
       .type("text/plain")
@@ -6133,13 +6180,16 @@ ${copyScript("Copy command")}
 
     setFreshDiscoveryHeaders(response).json({
       name: config.serviceName,
+      iconUrl: absoluteUrl(config, ICON_SVG_PATH),
       homepage: absoluteUrl(config, "/"),
       builder: absoluteUrl(config, "/builder"),
       sample: absoluteUrl(config, "/sample"),
       openApi: absoluteUrl(config, "/openapi.json"),
       openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)],
-      llms: absoluteUrl(config, "/llms.txt"),
+      llms: absoluteUrl(config, LLMS_PATH),
+      llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
+      llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       x402ManifestAliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
