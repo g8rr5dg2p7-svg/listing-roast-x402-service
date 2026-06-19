@@ -248,18 +248,26 @@ describe("Listing Roast x402 service", () => {
       expect(builder.text).toContain("Build a paid score command from your listing.");
       expect(builder.text).toContain("Preferred indexed GET command");
       expect(builder.text).toContain("Copy agent-listing command");
+      expect(builder.text).toContain("Copy buyer-skip command");
+      expect(builder.text).toContain("Copy discovery-audit command");
       expect(builder.text).toContain("/api/agent-listing-conversion");
+      expect(builder.text).toContain("/api/buyer-agent-skip-reasons");
       expect(builder.text).toContain("/api/listing-score");
       expect(builder.text).toContain("/api/x402-ping");
       expect(builder.text).toContain("/api/x402-site-audit");
+      expect(builder.text).toContain("/api/x402-discovery-audit");
       expect(builder.text).toContain("builderCommandBuilds");
 
       const sample = await fetchJson(server, "/sample");
       expect(sample.status).toBe(200);
       expect(sample.text).toContain("Sample the score, then start with the $0.001 indexed route.");
       expect(sample.text).toContain("Copy $0.001 indexed GET command");
+      expect(sample.text).toContain("Copy $0.001 buyer-skip command");
+      expect(sample.text).toContain("Copy $0.001 discovery-audit command");
       expect(sample.text).toContain("Indexed GET command");
       expect(sample.text).toContain("/api/listing-roast");
+      expect(sample.text).toContain("/api/buyer-agent-skip-reasons");
+      expect(sample.text).toContain("/api/x402-discovery-audit");
       expect(sample.text).toContain("/api/listing-score");
       expect(sample.text).toContain("Build your command");
 
@@ -276,6 +284,12 @@ describe("Listing Roast x402 service", () => {
       expect(sampleScore.json.customScoreAction.maxAmountRequired).toBe("5000");
       expect(sampleScore.json.customScoreOutput.endpoint).toBe("listing-score");
       expect(sampleScore.json.paidUsageProof.preferredConvertedRoute.path).toBe("/api/listing-roast");
+      expect(sampleScore.json.exactIntentActions.buyerAgentSkipReasons.path).toBe("/api/buyer-agent-skip-reasons");
+      expect(sampleScore.json.exactIntentActions.buyerAgentSkipReasons.maxAmountRequired).toBe("1000");
+      expect(sampleScore.json.exactIntentActions.discoveryAuditQuick.path).toBe("/api/x402-discovery-audit");
+      expect(sampleScore.json.exactIntentActions.discoveryAuditQuick.maxAmountRequired).toBe("1000");
+      expect(sampleScore.json.firstPaidOutput.endpoint).toBe("listing-roast-quick-score");
+      expect(sampleScore.json.firstPaidOutput.nextPaidActions.find((action) => action.path === "/api/x402-discovery-audit").maxAmountRequired).toBe("1000");
       expect(sampleScore.json.output.endpoint).toBe("listing-score");
       expect(sampleScore.json.output.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(sampleScore.json.output.nextPaidAction.path).toBe("/api/listing-roast");

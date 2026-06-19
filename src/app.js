@@ -6762,6 +6762,7 @@ ${webMcpScript(config)}
     const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
     const cashRegister = await getCashRegister();
     const sampleScoreOutput = buildListingScoreWithUpgrade(requestExample, config);
+    const indexedQuickScoreOutput = buildIndexedRoastQuickScore(buildInstantScoreInput(), config);
 
     response.json({
       service: config.serviceName,
@@ -6776,6 +6777,14 @@ ${webMcpScript(config)}
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       provenFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
+      exactIntentActions: {
+        marketplaceListingScore: intentRoutes.marketplaceListingScore,
+        paidApiListingQuality: intentRoutes.paidApiListingQuality,
+        buyerAgentSkipReasons: intentRoutes.buyerAgentSkipReasons,
+        discoveryAuditQuick: intentRoutes.discoveryAuditQuick,
+        x402SiteAudit: intentRoutes.x402SiteAudit
+      },
+      firstPaidOutput: indexedQuickScoreOutput,
       customScoreAction: intentRoutes.listingScore,
       customScoreOutput: sampleScoreOutput,
       output: sampleScoreOutput
@@ -7073,18 +7082,22 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
     await recordSignal("builderViews");
     const instantRoute = absoluteUrl(config, INSTANT_SCORE_PATH);
     const agentListingRoute = absoluteUrl(config, AGENT_LISTING_PATH);
+    const buyerSkipRoute = absoluteUrl(config, "/api/buyer-agent-skip-reasons");
     const indexedRoute = absoluteUrl(config, ROAST_PATH);
     const pingRoute = absoluteUrl(config, PING_PATH);
     const siteAuditRoute = absoluteUrl(config, SITE_AUDIT_PATH);
+    const discoveryAuditRoute = absoluteUrl(config, DISCOVERY_AUDIT_PATH);
     const scoreRoute = absoluteUrl(config, "/api/listing-score");
     const roastRoute = absoluteUrl(config, ROAST_PATH);
     const sampleUrl = absoluteUrl(config, "/sample");
     const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
     const instantCommand = buildGetPayCommand(config);
     const agentListingCommand = buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT);
+    const buyerSkipCommand = buildGetPayCommand(config, "/api/buyer-agent-skip-reasons", INSTANT_SCORE_AMOUNT);
     const indexedCommand = buildGetPayCommand(config, ROAST_PATH);
     const pingCommand = buildGetPayCommand(config, PING_PATH, PING_AMOUNT);
     const siteAuditCommand = buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT);
+    const discoveryAuditCommand = buildGetPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const roastCommand = buildPayCommand(config);
 
@@ -7093,7 +7106,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Build copy-ready x402 commands for the Listing Roast $0.001 indexed GET score, $0.001 agent-listing score, $0.001 site audit, $0.005 score, and $0.01 full roast routes." />
+  <meta name="description" content="Build copy-ready x402 commands for the Listing Roast $0.001 indexed GET score, buyer-agent skip reasons, discovery audit, site audit, $0.005 score, and $0.01 full roast routes." />
   <link rel="canonical" href="${escapeHtml(absoluteUrl(config, "/builder"))}" />
   <title>Command builder | ${escapeHtml(config.serviceName)}</title>
   <style>
@@ -7137,7 +7150,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
   <main>
     <div class="wrap">
       <h1>Build a paid score command from your listing.</h1>
-      <p class="lead">Paste the offer you are trying to sell. This page leads with the already-indexed ${config.instantScorePrice} GET command, then gives the search-winning agent-listing URL, instant-score URL, site audit, ${config.scorePrice} score route, and optional ${config.price} full roast route.</p>
+      <p class="lead">Paste the offer you are trying to sell. This page leads with the already-indexed ${config.instantScorePrice} GET command, then gives exact $0.001 commands for buyer-agent skip reasons, discovery audit, site audit, instant scoring, the ${config.scorePrice} score route, and optional ${config.price} full roast route.</p>
       <div class="grid">
         <form class="card" id="builder-form">
           <label for="agentName">Service name</label>
@@ -7170,12 +7183,18 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
             <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(agentListingRoute)}</code></p>
             <pre id="agent-listing-command">${escapeHtml(agentListingCommand)}</pre>
             <button class="button" type="button" data-copy-target="agent-listing-command" data-default-text="Copy agent-listing command">Copy agent-listing command</button>
+            <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(buyerSkipRoute)}</code></p>
+            <pre id="buyer-skip-command">${escapeHtml(buyerSkipCommand)}</pre>
+            <button class="button" type="button" data-copy-target="buyer-skip-command" data-default-text="Copy buyer-skip command">Copy buyer-skip command</button>
             <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(pingRoute)}</code></p>
             <pre id="ping-command">${escapeHtml(pingCommand)}</pre>
             <button class="button secondary" type="button" data-copy-target="ping-command" data-default-text="Copy x402 ping command">Copy x402 ping command</button>
             <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(siteAuditRoute)}</code></p>
             <pre id="site-audit-command">${escapeHtml(siteAuditCommand)}</pre>
             <button class="button secondary" type="button" data-copy-target="site-audit-command" data-default-text="Copy site audit command">Copy site audit command</button>
+            <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(discoveryAuditRoute)}</code></p>
+            <pre id="discovery-audit-command">${escapeHtml(discoveryAuditCommand)}</pre>
+            <button class="button secondary" type="button" data-copy-target="discovery-audit-command" data-default-text="Copy discovery-audit command">Copy discovery-audit command</button>
           </div>
           <div class="card" style="margin-top: 18px;">
             <h2>Score command <span class="metric">${config.scorePrice}</span></h2>
@@ -7241,6 +7260,8 @@ ${copyScript("Copy command")}
   app.get("/sample", async (_request, response) => {
     await recordSignal("sampleViews");
     const indexedCommand = buildGetPayCommand(config, ROAST_PATH);
+    const buyerSkipCommand = buildGetPayCommand(config, "/api/buyer-agent-skip-reasons", INSTANT_SCORE_AMOUNT);
+    const discoveryAuditCommand = buildGetPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const roastCommand = buildPayCommand(config);
     const scoreOutput = buildListingScoreWithUpgrade(requestExample, config);
@@ -7248,6 +7269,8 @@ ${copyScript("Copy command")}
     const builderUrl = absoluteUrl(config, "/builder");
     const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
     const indexedRoute = absoluteUrl(config, ROAST_PATH);
+    const buyerSkipRoute = absoluteUrl(config, "/api/buyer-agent-skip-reasons");
+    const discoveryAuditRoute = absoluteUrl(config, DISCOVERY_AUDIT_PATH);
     const paidRoute = absoluteUrl(config, "/api/listing-score");
     const roastRoute = absoluteUrl(config, "/api/listing-roast");
 
@@ -7300,6 +7323,8 @@ ${copyScript("Copy command")}
       <p class="lead">This shows the score shape before payment. If it matches what your agent or API listing needs, start with the already-indexed GET route, then upgrade to the custom score or full roast only when you need a body-specific review.</p>
       <div class="actions">
         <button class="button" type="button" data-copy-target="indexed-command" data-default-text="Copy $0.001 indexed GET command">Copy $0.001 indexed GET command</button>
+        <button class="button secondary" type="button" data-copy-target="buyer-skip-command" data-default-text="Copy $0.001 buyer-skip command">Copy $0.001 buyer-skip command</button>
+        <button class="button secondary" type="button" data-copy-target="discovery-audit-command" data-default-text="Copy $0.001 discovery-audit command">Copy $0.001 discovery-audit command</button>
         <button class="button secondary" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
         <a class="button secondary" href="${builderUrl}">Build your command</a>
         <a class="button secondary" href="${sampleScoreApi}">Open sample JSON</a>
@@ -7312,6 +7337,12 @@ ${copyScript("Copy command")}
           <h2>Paid score route</h2>
           <p><code>POST ${escapeHtml(paidRoute)}</code></p>
           <p class="muted">Price: <span class="metric">${config.scorePrice}</span> on ${escapeHtml(config.network)}.</p>
+          <h2>Buyer-skip route</h2>
+          <p><code>GET ${escapeHtml(buyerSkipRoute)}</code></p>
+          <p class="muted">Price: <span class="metric">${config.instantScorePrice}</span>; exact path for buyer-agent skip reason intent.</p>
+          <h2>Discovery audit route</h2>
+          <p><code>GET ${escapeHtml(discoveryAuditRoute)}</code></p>
+          <p class="muted">Price: <span class="metric">${config.siteAuditPrice}</span>; exact path for stale Bazaar pricing, route health, and search visibility checks.</p>
           <h2>Upgrade route</h2>
           <p><code>POST ${escapeHtml(roastRoute)}</code></p>
           <p class="muted">The full roast adds skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade call.</p>
@@ -7328,6 +7359,14 @@ ${copyScript("Copy command")}
         <div class="card">
           <h2>Score command</h2>
           <pre id="score-command">${escapeHtml(scoreCommand)}</pre>
+        </div>
+        <div class="card">
+          <h2>Buyer-skip command</h2>
+          <pre id="buyer-skip-command">${escapeHtml(buyerSkipCommand)}</pre>
+        </div>
+        <div class="card">
+          <h2>Discovery audit command</h2>
+          <pre id="discovery-audit-command">${escapeHtml(discoveryAuditCommand)}</pre>
         </div>
         <div class="card">
           <h2>Full roast command</h2>
