@@ -208,6 +208,13 @@ function buildDiscoveryLinks(config) {
   ].join(", ");
 }
 
+function setFreshDiscoveryHeaders(response) {
+  return response
+    .set("Cache-Control", "no-store, max-age=0")
+    .set("Pragma", "no-cache")
+    .set("Expires", "0");
+}
+
 function buildStructuredData(config) {
   return {
     "@context": "https://schema.org",
@@ -4579,7 +4586,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   async function serveOpenApiDocument(_request, response) {
     await recordSignal("openApiViews");
-    response.json(buildOpenApiDocument(config));
+    setFreshDiscoveryHeaders(response).json(buildOpenApiDocument(config));
   }
 
   app.get("/openapi.json", serveOpenApiDocument);
@@ -4597,7 +4604,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   async function serveX402Manifest(_request, response) {
     await recordSignal("x402ManifestViews");
-    response.json(buildX402Manifest(config));
+    setFreshDiscoveryHeaders(response).json(buildX402Manifest(config));
   }
 
   app.get("/x402.json", serveX402Manifest);
@@ -4606,7 +4613,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   async function serveAgentCard(_request, response) {
     await recordSignal("agentCardViews");
-    response.json(buildAgentCard(config));
+    setFreshDiscoveryHeaders(response).json(buildAgentCard(config));
   }
 
   app.get(WELL_KNOWN_AGENT_CARD_PATH, serveAgentCard);
@@ -4614,20 +4621,20 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get(WELL_KNOWN_AI_PLUGIN_PATH, async (_request, response) => {
     await recordSignal("aiPluginViews");
-    response.json(buildAiPluginManifest(config));
+    setFreshDiscoveryHeaders(response).json(buildAiPluginManifest(config));
   });
 
   app.head(WELL_KNOWN_API_CATALOG_PATH, (_request, response) => {
-    response.set("Content-Type", API_CATALOG_CONTENT_TYPE).status(200).end();
+    setFreshDiscoveryHeaders(response).set("Content-Type", API_CATALOG_CONTENT_TYPE).status(200).end();
   });
 
   app.get(WELL_KNOWN_API_CATALOG_PATH, async (_request, response) => {
     await recordSignal("apiCatalogViews");
-    response.set("Content-Type", API_CATALOG_CONTENT_TYPE).send(prettyJson(buildApiCatalog(config)));
+    setFreshDiscoveryHeaders(response).set("Content-Type", API_CATALOG_CONTENT_TYPE).send(prettyJson(buildApiCatalog(config)));
   });
 
   app.head(WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, (_request, response) => {
-    response
+    setFreshDiscoveryHeaders(response)
       .set("Access-Control-Allow-Origin", "*")
       .type("application/json")
       .status(200)
@@ -4636,13 +4643,13 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get(WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, async (_request, response) => {
     await recordSignal("agentSkillsViews");
-    response
+    setFreshDiscoveryHeaders(response)
       .set("Access-Control-Allow-Origin", "*")
       .json(buildAgentSkillsIndex(config));
   });
 
   app.head(WELL_KNOWN_AGENT_SKILL_PATH, (_request, response) => {
-    response
+    setFreshDiscoveryHeaders(response)
       .set("Access-Control-Allow-Origin", "*")
       .type("text/markdown")
       .status(200)
@@ -4651,7 +4658,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get(WELL_KNOWN_AGENT_SKILL_PATH, async (_request, response) => {
     await recordSignal("agentSkillViews");
-    response
+    setFreshDiscoveryHeaders(response)
       .set("Access-Control-Allow-Origin", "*")
       .type("text/markdown")
       .send(buildAgentSkillMarkdown(config));
@@ -4933,27 +4940,27 @@ ${copyScript("Copy command")}
 
   app.get("/api/schema", async (_request, response) => {
     await recordSignal("schemaViews");
-    response.json(buildDiscovery(config));
+    setFreshDiscoveryHeaders(response).json(buildDiscovery(config));
   });
 
   app.get("/api/score-schema", async (_request, response) => {
     await recordSignal("schemaViews");
-    response.json(buildScoreDiscovery(config));
+    setFreshDiscoveryHeaders(response).json(buildScoreDiscovery(config));
   });
 
   app.get("/api/discovery-audit-schema", async (_request, response) => {
     await recordSignal("schemaViews");
-    response.json(buildDiscoveryAuditDiscovery(config));
+    setFreshDiscoveryHeaders(response).json(buildDiscoveryAuditDiscovery(config));
   });
 
   app.get(WELL_KNOWN_MCP_SERVER_CARD_PATH, async (_request, response) => {
     await recordSignal("mcpViews");
-    response.json(buildMcpServerCard(config));
+    setFreshDiscoveryHeaders(response).json(buildMcpServerCard(config));
   });
 
   app.get([WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH], async (_request, response) => {
     await recordSignal("mcpViews");
-    response.json({
+    setFreshDiscoveryHeaders(response).json({
       name: config.serviceName,
       homepage: absoluteUrl(config, "/"),
       builder: absoluteUrl(config, "/builder"),
@@ -5220,42 +5227,42 @@ ${copyScript("Copy command")}
 
   app.get(PAY_NOW_PATH, async (_request, response) => {
     await recordSignal("payNowViews");
-    response.json(buildPayNow(config));
+    setFreshDiscoveryHeaders(response).json(buildPayNow(config));
   });
 
   app.get(PRICING_PATH, async (_request, response) => {
     await recordSignal("pricingViews");
-    response.json(buildPricingCatalog(config));
+    setFreshDiscoveryHeaders(response).json(buildPricingCatalog(config));
   });
 
   app.get(FIND_PATH, async (request, response) => {
     await recordSignal("findViews");
-    response.json(buildFindResult(config, request.query.q || request.query.query || request.query.task || ""));
+    setFreshDiscoveryHeaders(response).json(buildFindResult(config, request.query.q || request.query.query || request.query.task || ""));
   });
 
   app.get(ROUTE_PATH, async (request, response) => {
     await recordSignal("routeViews");
-    response.json(buildRouteResult(config, request.query));
+    setFreshDiscoveryHeaders(response).json(buildRouteResult(config, request.query));
   });
 
   app.post(ROUTE_PATH, async (request, response) => {
     await recordSignal("routeViews");
-    response.json(buildRouteResult(config, request.body || {}));
+    setFreshDiscoveryHeaders(response).json(buildRouteResult(config, request.body || {}));
   });
 
   app.get(LOCAL_DISCOVERY_RESOURCE_PATHS, async (request, response) => {
     await recordSignal("localDiscoveryViews");
-    response.json(buildLocalDiscoveryResources(config, request.query));
+    setFreshDiscoveryHeaders(response).json(buildLocalDiscoveryResources(config, request.query));
   });
 
   app.get(LOCAL_DISCOVERY_SEARCH_PATHS, async (request, response) => {
     await recordSignal("localDiscoveryViews");
-    response.json(buildLocalDiscoverySearch(config, request.query));
+    setFreshDiscoveryHeaders(response).json(buildLocalDiscoverySearch(config, request.query));
   });
 
   app.get(LOCAL_DISCOVERY_MERCHANT_PATHS, async (request, response) => {
     await recordSignal("localDiscoveryViews");
-    response.json(buildLocalDiscoveryMerchant(config, request.query));
+    setFreshDiscoveryHeaders(response).json(buildLocalDiscoveryMerchant(config, request.query));
   });
 
   app.post("/api/track", async (request, response) => {

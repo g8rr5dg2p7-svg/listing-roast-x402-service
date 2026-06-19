@@ -52,6 +52,12 @@ function readPaymentRequiredHeader(headers) {
   return JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
 }
 
+function expectFreshDiscoveryHeaders(headers) {
+  expect(headers.get("cache-control")).toContain("no-store");
+  expect(headers.get("pragma")).toBe("no-cache");
+  expect(headers.get("expires")).toBe("0");
+}
+
 function mockFacilitatorSupportedKinds() {
   const realFetch = globalThis.fetch;
 
@@ -241,6 +247,7 @@ describe("Listing Roast x402 service", () => {
 
       const x402Manifest = await fetchJson(server, "/x402.json");
       expect(x402Manifest.status).toBe(200);
+      expectFreshDiscoveryHeaders(x402Manifest.headers);
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -319,6 +326,7 @@ describe("Listing Roast x402 service", () => {
 
       const wellKnownX402Manifest = await fetchJson(server, "/.well-known/x402.json");
       expect(wellKnownX402Manifest.status).toBe(200);
+      expectFreshDiscoveryHeaders(wellKnownX402Manifest.headers);
       expect(wellKnownX402Manifest.json.resources[0].command).toContain("--max-amount 1000");
       expect(wellKnownX402Manifest.json.resources[0].command).toContain("/api/listing-roast");
       expect(wellKnownX402Manifest.json.resources[1].command).toContain("/api");
@@ -334,11 +342,13 @@ describe("Listing Roast x402 service", () => {
 
       const wellKnownX402Alias = await fetchJson(server, "/.well-known/x402");
       expect(wellKnownX402Alias.status).toBe(200);
+      expectFreshDiscoveryHeaders(wellKnownX402Alias.headers);
       expect(wellKnownX402Alias.json.resources[0].path).toBe("/api/listing-roast");
       expect(wellKnownX402Alias.json.payNow).toContain("/api/pay-now");
 
       const agentCard = await fetchJson(server, "/.well-known/agent-card.json");
       expect(agentCard.status).toBe(200);
+      expectFreshDiscoveryHeaders(agentCard.headers);
       expect(agentCard.json.protocolVersion).toBe("0.3.0");
       expect(agentCard.json.name).toBe("Listing Roast x402");
       expect(agentCard.json.url).toContain("/api/listing-roast");
@@ -363,10 +373,12 @@ describe("Listing Roast x402 service", () => {
 
       const agentJson = await fetchJson(server, "/.well-known/agent.json");
       expect(agentJson.status).toBe(200);
+      expectFreshDiscoveryHeaders(agentJson.headers);
       expect(agentJson.json.skills[0].id).toBe(agentCard.json.skills[0].id);
 
       const aiPlugin = await fetchJson(server, "/.well-known/ai-plugin.json");
       expect(aiPlugin.status).toBe(200);
+      expectFreshDiscoveryHeaders(aiPlugin.headers);
       expect(aiPlugin.json.schema_version).toBe("v1");
       expect(aiPlugin.json.name_for_model).toBe("listing_roast_x402");
       expect(aiPlugin.json.description_for_model).toContain("x402 payment");
@@ -379,12 +391,14 @@ describe("Listing Roast x402 service", () => {
 
       const apiCatalogHead = await fetch(`http://127.0.0.1:${server.address().port}/.well-known/api-catalog`, { method: "HEAD" });
       expect(apiCatalogHead.status).toBe(200);
+      expectFreshDiscoveryHeaders(apiCatalogHead.headers);
       expect(apiCatalogHead.headers.get("content-type")).toContain("application/linkset+json");
       expect(apiCatalogHead.headers.get("content-type")).toContain("rfc9727");
       expect(apiCatalogHead.headers.get("link")).toContain("rel=\"api-catalog\"");
 
       const apiCatalog = await fetchJson(server, "/.well-known/api-catalog");
       expect(apiCatalog.status).toBe(200);
+      expectFreshDiscoveryHeaders(apiCatalog.headers);
       expect(apiCatalog.headers.get("content-type")).toContain("application/linkset+json");
       expect(apiCatalog.headers.get("content-type")).toContain("rfc9727");
       expect(apiCatalog.json.linkset[0].anchor).toContain("/.well-known/api-catalog");
@@ -417,10 +431,12 @@ describe("Listing Roast x402 service", () => {
 
       const agentSkillsHead = await fetch(`http://127.0.0.1:${server.address().port}/.well-known/agent-skills/index.json`, { method: "HEAD" });
       expect(agentSkillsHead.status).toBe(200);
+      expectFreshDiscoveryHeaders(agentSkillsHead.headers);
       expect(agentSkillsHead.headers.get("content-type")).toContain("application/json");
 
       const agentSkills = await fetchJson(server, "/.well-known/agent-skills/index.json");
       expect(agentSkills.status).toBe(200);
+      expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -429,10 +445,12 @@ describe("Listing Roast x402 service", () => {
 
       const agentSkillHead = await fetch(`http://127.0.0.1:${server.address().port}/.well-known/agent-skills/listing-roast-x402/SKILL.md`, { method: "HEAD" });
       expect(agentSkillHead.status).toBe(200);
+      expectFreshDiscoveryHeaders(agentSkillHead.headers);
       expect(agentSkillHead.headers.get("content-type")).toContain("text/markdown");
 
       const agentSkill = await fetchJson(server, "/.well-known/agent-skills/listing-roast-x402/SKILL.md");
       expect(agentSkill.status).toBe(200);
+      expectFreshDiscoveryHeaders(agentSkill.headers);
       expect(agentSkill.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkill.text).toContain("name: listing-roast-x402");
       expect(agentSkill.text).toContain("Do not call paid routes unless the buyer explicitly intends to pay");
@@ -546,10 +564,12 @@ describe("Listing Roast x402 service", () => {
 
       const openApi = await fetchJson(server, "/openapi.json");
       expect(openApi.status).toBe(200);
+      expectFreshDiscoveryHeaders(openApi.headers);
       expect(openApi.json.openapi).toBe("3.1.0");
 
       const wellKnownOpenApi = await fetchJson(server, "/.well-known/openapi.json");
       expect(wellKnownOpenApi.status).toBe(200);
+      expectFreshDiscoveryHeaders(wellKnownOpenApi.headers);
       expect(wellKnownOpenApi.json.openapi).toBe("3.1.0");
       expect(wellKnownOpenApi.json.info.title).toBe(openApi.json.info.title);
 
