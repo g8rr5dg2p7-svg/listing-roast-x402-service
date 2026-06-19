@@ -51,6 +51,7 @@ const PAID_COMPLETION_ROUTE_META = {
   listingScorePost: { routeKey: "listingScorePost", method: "POST", path: "/api/listing-score" },
   x402Ping: { routeKey: "x402Ping", method: "GET", path: "/api/x402-ping" },
   x402SiteAudit: { routeKey: "x402SiteAudit", method: "GET", path: "/api/x402-site-audit" },
+  x402DiscoveryAuditQuick: { routeKey: "x402DiscoveryAuditQuick", method: "GET", path: "/api/x402-discovery-audit" },
   x402DiscoveryAudit: { routeKey: "x402DiscoveryAudit", method: "POST", path: "/api/x402-discovery-audit" },
   listingRoast: { routeKey: "listingRoast", method: "POST", path: "/api/listing-roast" }
 };
@@ -303,7 +304,7 @@ export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) 
     const isScore = kind === "listingScore" || isInstantScore || isIndexedRoastGet || isListingScorePost;
     const isPing = kind === "x402Ping";
     const isSiteAudit = kind === "x402SiteAudit";
-    const isDiscoveryAudit = kind === "x402DiscoveryAudit";
+    const isDiscoveryAudit = kind === "x402DiscoveryAudit" || kind === "x402DiscoveryAuditQuick";
     const isDiscoveryAuditGroup = isSiteAudit || isDiscoveryAudit;
     const isRoast = !isDirectoryPost && !isApiEntry && !isScore && !isPing && !isDiscoveryAuditGroup;
     const listingRoastCompletions = Number(cash.listingRoastCompletions || 0) + (isRoast ? 1 : 0);

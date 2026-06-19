@@ -12,7 +12,8 @@ Live production service:
 - Indexed quick-score route: GET https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Paid x402 ping route: https://listing-roast-x402-service-production.up.railway.app/api/x402-ping
 - x402 site audit route: GET https://listing-roast-x402-service-production.up.railway.app/api/x402-site-audit
-- x402 discovery audit route: POST https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
+- x402 discovery audit quick route: GET https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
+- Full x402 discovery audit route: POST https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Schema: https://listing-roast-x402-service-production.up.railway.app/api/schema
@@ -33,7 +34,8 @@ Current verified state:
 - x402 manifest: HTTP 200.
 - Instant score route: HTTP 402, amount 1000 USDC units.
 - x402 site audit route: HTTP 402, amount 1000 USDC units.
-- x402 discovery audit route: HTTP 402, amount 10000 USDC units.
+- x402 discovery audit quick route: HTTP 402, amount 1000 USDC units.
+- Full x402 discovery audit route: HTTP 402, amount 10000 USDC units.
 - Score route: HTTP 402, amount 5000 USDC units.
 - Full roast route: HTTP 402, amount 10000 USDC units.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
@@ -91,6 +93,13 @@ npm run smoke
 
 SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
 SMOKE_PATH=/api/x402-discovery-audit \
+EXPECTED_X402_NETWORK=eip155:8453 \
+EXPECTED_X402_AMOUNT=1000 \
+npm run smoke
+
+SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
+SMOKE_PATH=/api/x402-discovery-audit \
+SMOKE_METHOD=POST \
 EXPECTED_X402_NETWORK=eip155:8453 \
 EXPECTED_X402_AMOUNT=10000 \
 npm run smoke

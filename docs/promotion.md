@@ -14,7 +14,8 @@ Use this when sharing Listing Roast x402 with builders. Keep the claim tight: th
 - Indexed quick-score route: GET https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Paid x402 ping route: https://listing-roast-x402-service-production.up.railway.app/api/x402-ping
 - x402 site audit route: GET https://listing-roast-x402-service-production.up.railway.app/api/x402-site-audit
-- x402 discovery audit route: POST https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
+- x402 discovery audit quick route: GET https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
+- Full x402 discovery audit route: POST https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Examples: https://listing-roast-x402-service-production.up.railway.app/api/examples
@@ -23,13 +24,13 @@ Use this when sharing Listing Roast x402 with builders. Keep the claim tight: th
 
 ## Short Pitch
 
-Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who need a paid API listing quality score before promotion. Start with the already-indexed $0.001 GET `/api/listing-roast` quick score; use the $0.001 instant score URL, paid ping, or GET site audit when needed; use the $0.005 listing score when you have a JSON payload; upgrade to the $0.01 full roast for buyer-agent skip reasons; or use the $0.01 full discovery audit when Bazaar pricing/search visibility needs a custom body.
+Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who need a paid API listing quality score before promotion. Start with the already-indexed $0.001 GET `/api/listing-roast` quick score; use the $0.001 instant score URL, paid ping, GET site audit, or GET discovery-audit quick route when needed; use the $0.005 listing score when you have a JSON payload; upgrade to the $0.01 full roast for buyer-agent skip reasons; or use the $0.01 full discovery audit when Bazaar pricing/search visibility needs a custom body.
 
 ## X-Style Post
 
 I launched Listing Roast x402: a paid API listing quality score and roast for paid agent/API listing copy before you promote it.
 
-Use the command builder or see the sample output first. Start with the already-indexed $0.001 GET `/api/listing-roast` quick score. Use the paid ping, instant score URL, or GET x402 site audit when needed. Upgrade to the $0.005 score or $0.01 full roast when you want buyer-agent skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade recommendation. If Bazaar shows a stale price or search misses your route, use the $0.001 site audit first or the $0.01 full discovery audit when you need a custom request body.
+Use the command builder or see the sample output first. Start with the already-indexed $0.001 GET `/api/listing-roast` quick score. Use the paid ping, instant score URL, GET x402 site audit, or exact-path GET x402 discovery audit when needed. Upgrade to the $0.005 score or $0.01 full roast when you want buyer-agent skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade recommendation. If Bazaar shows a stale price or search misses your route, use the $0.001 GET discovery audit first or the $0.01 full discovery audit when you need a custom request body.
 
 No account. x402 payment. Base USDC.
 
@@ -52,8 +53,8 @@ Listing Roast x402 takes your listing copy and returns a structured critique:
 - a rewritten listing
 - whether to stop editing and test paid traffic
 
-It is live on Base mainnet with a $0.001 indexed GET quick score, a $0.001 paid ping, a $0.001 instant GET score, a $0.001 GET site-audit endpoint, a $0.005 score endpoint, a $0.01 discovery audit endpoint, and a $0.01 full-roast endpoint.
-The site audit and full discovery audit check a live x402 route against direct 402 metadata and public Bazaar discovery without making paid calls.
+It is live on Base mainnet with a $0.001 indexed GET quick score, a $0.001 paid ping, a $0.001 instant GET score, a $0.001 GET site-audit endpoint, a $0.001 GET discovery-audit endpoint, a $0.005 score endpoint, a $0.01 full discovery audit endpoint, and a $0.01 full-roast endpoint.
+The site audit, quick discovery audit, and full discovery audit check a live x402 route against direct 402 metadata and public Bazaar discovery without making paid calls.
 
 https://listing-roast-x402-service-production.up.railway.app
 
@@ -108,7 +109,15 @@ npx awal@2.8.0 x402 pay https://listing-roast-x402-service-production.up.railway
   --max-amount 1000
 ```
 
-x402 discovery audit:
+x402 discovery audit quick check:
+
+```bash
+npx awal@2.8.0 x402 pay https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit \
+  -X GET \
+  --max-amount 1000
+```
+
+Full x402 discovery audit:
 
 ```bash
 npx awal@2.8.0 x402 pay https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit \
