@@ -1787,6 +1787,53 @@ function buildPaidUseProofLinks(config) {
   };
 }
 
+function buildLocalDiscoverySearchExamples(config) {
+  const examples = [
+    {
+      query: "paid API listing quality",
+      expectedFirstPath: CONVERSION_SCORE_PATH,
+      expectedAmount: INSTANT_SCORE_AMOUNT
+    },
+    {
+      query: "buyer-agent skip reasons",
+      expectedFirstPath: ROAST_PATH,
+      expectedAmount: INSTANT_SCORE_AMOUNT
+    },
+    {
+      query: "agent service clarity",
+      expectedFirstPath: ROAST_PATH,
+      expectedAmount: INSTANT_SCORE_AMOUNT
+    },
+    {
+      query: "x402 discovery audit",
+      expectedFirstPath: DISCOVERY_AUDIT_PATH,
+      expectedAmount: DISCOVERY_AUDIT_QUICK_AMOUNT
+    },
+    {
+      query: "x402 route health check",
+      expectedFirstPath: DISCOVERY_AUDIT_PATH,
+      expectedAmount: DISCOVERY_AUDIT_QUICK_AMOUNT
+    },
+    {
+      query: "paid API preflight",
+      expectedFirstPath: DISCOVERY_AUDIT_PATH,
+      expectedAmount: DISCOVERY_AUDIT_QUICK_AMOUNT
+    },
+    {
+      query: "marketplace listing score",
+      expectedFirstPath: ROAST_PATH,
+      expectedAmount: INSTANT_SCORE_AMOUNT
+    }
+  ];
+
+  return examples.map((example) => ({
+    ...example,
+    searchUrl: `${absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0])}?query=${encodeURIComponent(example.query)}&limit=3`,
+    noSpend: true,
+    reason: "Use seller-hosted discovery search when external marketplace search is stale, incomplete, or misses this buyer intent."
+  }));
+}
+
 function withPaidUseProofDescription(config, description) {
   const proof = buildPaidUseProofLinks(config);
   return `${description} Public paid-use proof before payment: ${proof.paidUsageProof} exposes paidUsageProof and ${proof.cashRegister} exposes wallet-backed paid completion evidence.`;
@@ -3226,7 +3273,8 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       localDiscovery: {
         resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
         search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
-        merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])
+        merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+        searchExamples: buildLocalDiscoverySearchExamples(config)
       },
       apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
       apiV1EntryRoute: absoluteUrl(config, API_V1_ENTRY_PATH),
@@ -3332,6 +3380,7 @@ function buildX402Manifest(config, cashRegister = {}) {
       resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
       search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
       merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+      searchExamples: buildLocalDiscoverySearchExamples(config),
       aliases: {
         resources: LOCAL_DISCOVERY_RESOURCE_PATHS.map((path) => absoluteUrl(config, path)),
         search: LOCAL_DISCOVERY_SEARCH_PATHS.map((path) => absoluteUrl(config, path)),
@@ -3687,7 +3736,8 @@ function buildPricingCatalog(config, cashRegister = {}) {
     localDiscovery: {
       resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
       search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
-      merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])
+      merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+      searchExamples: buildLocalDiscoverySearchExamples(config)
     },
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
     x402Manifest: absoluteUrl(config, "/x402.json"),
@@ -4081,7 +4131,8 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     localDiscovery: {
       resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
       search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
-      merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])
+      merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+      searchExamples: buildLocalDiscoverySearchExamples(config)
     },
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
@@ -5907,6 +5958,7 @@ ${webMcpScript(config)}
         resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
         search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
         merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+        searchExamples: buildLocalDiscoverySearchExamples(config),
         resourceExample: buildLocalDiscoveryResources(config, { limit: 2 }),
         searchExample: buildLocalDiscoverySearch(config, { query: "x402 discovery audit" }),
         merchantExample: buildLocalDiscoveryMerchant(config, { payTo: config.payTo })

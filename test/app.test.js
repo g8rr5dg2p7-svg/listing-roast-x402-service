@@ -391,6 +391,9 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.localDiscovery.resources).toContain("/v2/x402/discovery/resources");
       expect(x402Manifest.json.localDiscovery.search).toContain("/v2/x402/discovery/search");
       expect(x402Manifest.json.localDiscovery.merchant).toContain("/v2/x402/discovery/merchant");
+      expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "buyer-agent skip reasons").expectedFirstPath).toBe("/api/listing-roast");
+      expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "x402 discovery audit").expectedFirstPath).toBe("/api/x402-discovery-audit");
+      expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "paid API preflight").searchUrl).toContain("/v2/x402/discovery/search?query=paid%20API%20preflight");
       expect(x402Manifest.json.localDiscovery.aliases.resources).toContain("http://localhost:8787/.well-known/x402/discovery/resources");
       expect(x402Manifest.json.aliases.some((url) => url.endsWith("/.well-known/x402"))).toBe(true);
       expect(x402Manifest.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
@@ -1023,6 +1026,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json["x-listing-roast"].find).toContain("/api/find");
       expect(openApi.json["x-listing-roast"].route).toContain("/api/route");
       expect(openApi.json["x-listing-roast"].localDiscovery.resources).toContain("/v2/x402/discovery/resources");
+      expect(openApi.json["x-listing-roast"].localDiscovery.searchExamples.find((example) => example.query === "agent service clarity").expectedFirstPath).toBe("/api/listing-roast");
+      expect(openApi.json["x-listing-roast"].localDiscovery.searchExamples.find((example) => example.query === "x402 route health check").expectedFirstPath).toBe("/api/x402-discovery-audit");
       expect(openApi.json["x-listing-roast"].apiV1EntryRoute).toContain("/api/v1");
       expect(openApi.json["x-listing-roast"].v1EntryRoute).toContain("/v1");
       expect(openApi.json["x-listing-roast"].x402ManifestAliases.some((url) => url.endsWith("/.well-known/x402"))).toBe(true);
