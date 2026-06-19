@@ -1729,12 +1729,13 @@ function selectPayNowAction(config, intent = "") {
   };
 }
 
-function buildPayNow(config, intent = "") {
+function buildPayNow(config, intent = "", cashRegister = {}) {
   const selection = selectPayNowAction(config, intent);
   const { intentRoutes, selectedPaidAction } = selection;
 
   return {
     service: config.serviceName,
+    paidUsageProof: buildPaidUsageProof(config, cashRegister),
     intent: selection.intent || null,
     selectedActionKey: selection.selectedActionKey,
     selectedPaidAction,
@@ -3260,13 +3261,14 @@ function buildPaidRouteCatalog(config) {
   }));
 }
 
-function buildPricingCatalog(config) {
+function buildPricingCatalog(config, cashRegister = {}) {
   const routes = buildPaidRouteCatalog(config);
   const intentRoutes = buildPayNowActions(config);
 
   return {
     service: config.serviceName,
     noSpend: true,
+    paidUsageProof: buildPaidUsageProof(config, cashRegister),
     homepage: absoluteUrl(config, "/"),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
@@ -3358,7 +3360,7 @@ function buildLocalDiscoveryItems(config) {
   }));
 }
 
-function buildLocalDiscoveryResources(config, query = {}) {
+function buildLocalDiscoveryResources(config, query = {}, cashRegister = {}) {
   const allItems = buildLocalDiscoveryItems(config);
   const intentRoutes = buildPayNowActions(config);
   const limit = parseDiscoveryLimit(query.limit);
@@ -3370,6 +3372,7 @@ function buildLocalDiscoveryResources(config, query = {}) {
     source: "local-owned-surface",
     service: config.serviceName,
     noSpend: true,
+    paidUsageProof: buildPaidUsageProof(config, cashRegister),
     canonicalBazaar: "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources",
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
@@ -3387,7 +3390,7 @@ function buildLocalDiscoveryResources(config, query = {}) {
   };
 }
 
-function buildLocalDiscoverySearch(config, query = {}) {
+function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
   const rawQuery = String(query.query || query.q || "").trim().slice(0, 400);
   const maxUsdPrice = query.maxUsdPrice == null ? null : Number(query.maxUsdPrice);
   const intentRoutes = buildPayNowActions(config);
@@ -3421,6 +3424,7 @@ function buildLocalDiscoverySearch(config, query = {}) {
     service: config.serviceName,
     query: rawQuery,
     noSpend: true,
+    paidUsageProof: buildPaidUsageProof(config, cashRegister),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
@@ -3433,7 +3437,7 @@ function buildLocalDiscoverySearch(config, query = {}) {
   };
 }
 
-function buildLocalDiscoveryMerchant(config, query = {}) {
+function buildLocalDiscoveryMerchant(config, query = {}, cashRegister = {}) {
   const payTo = String(query.payTo || "").toLowerCase();
   const matchesMerchant = !payTo || payTo === config.payTo.toLowerCase();
   const intentRoutes = buildPayNowActions(config);
@@ -3445,6 +3449,7 @@ function buildLocalDiscoveryMerchant(config, query = {}) {
     service: config.serviceName,
     payTo: query.payTo || config.payTo,
     noSpend: true,
+    paidUsageProof: buildPaidUsageProof(config, cashRegister),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
@@ -3552,7 +3557,7 @@ function scoreCatalogResource(resource, query) {
   return score;
 }
 
-function buildFindResult(config, rawQuery = "") {
+function buildFindResult(config, rawQuery = "", cashRegister = {}) {
   const query = String(rawQuery || "").trim().slice(0, 240);
   const routes = buildPaidRouteCatalog(config);
   const intentRoutes = buildPayNowActions(config);
@@ -3568,6 +3573,7 @@ function buildFindResult(config, rawQuery = "") {
     service: config.serviceName,
     query,
     noSpend: true,
+    paidUsageProof: buildPaidUsageProof(config, cashRegister),
     recommended,
     alternatives: ranked.filter((route) => route.id !== recommended.id).slice(0, 4),
     pricing: absoluteUrl(config, PRICING_PATH),
@@ -3594,7 +3600,7 @@ function normalizeRouteInclude(value) {
   return ["all", "local", "external"].includes(include) ? include : "local";
 }
 
-function buildRouteResult(config, payload = {}) {
+function buildRouteResult(config, payload = {}, cashRegister = {}) {
   const query = String(payload.query || payload.q || payload.task || "").trim().slice(0, 400);
   const include = normalizeRouteInclude(payload.include);
   const top = parseRouteTop(payload.top || payload.k || payload.limit);
@@ -3633,6 +3639,7 @@ function buildRouteResult(config, payload = {}) {
     include,
     top,
     noSpend: true,
+    paidUsageProof: buildPaidUsageProof(config, cashRegister),
     scope: "owned-routes-only",
     results: ranked,
     best: ranked[0] || null,
@@ -6386,42 +6393,50 @@ ${copyScript("Copy command")}
 
   app.get(PAY_NOW_PATH, async (request, response) => {
     await recordSignal("payNowViews");
-    setFreshDiscoveryHeaders(response).json(buildPayNow(config, request.query.intent || request.query.q || request.query.query || request.query.task || ""));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildPayNow(config, request.query.intent || request.query.q || request.query.query || request.query.task || "", cashRegister));
   });
 
   app.get(PRICING_PATH, async (_request, response) => {
     await recordSignal("pricingViews");
-    setFreshDiscoveryHeaders(response).json(buildPricingCatalog(config));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildPricingCatalog(config, cashRegister));
   });
 
   app.get(FIND_PATH, async (request, response) => {
     await recordSignal("findViews");
-    setFreshDiscoveryHeaders(response).json(buildFindResult(config, request.query.q || request.query.query || request.query.task || ""));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildFindResult(config, request.query.q || request.query.query || request.query.task || "", cashRegister));
   });
 
   app.get(ROUTE_PATH, async (request, response) => {
     await recordSignal("routeViews");
-    setFreshDiscoveryHeaders(response).json(buildRouteResult(config, request.query));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildRouteResult(config, request.query, cashRegister));
   });
 
   app.post(ROUTE_PATH, async (request, response) => {
     await recordSignal("routeViews");
-    setFreshDiscoveryHeaders(response).json(buildRouteResult(config, request.body || {}));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildRouteResult(config, request.body || {}, cashRegister));
   });
 
   app.get(LOCAL_DISCOVERY_RESOURCE_PATHS, async (request, response) => {
     await recordSignal("localDiscoveryViews");
-    setFreshDiscoveryHeaders(response).json(buildLocalDiscoveryResources(config, request.query));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildLocalDiscoveryResources(config, request.query, cashRegister));
   });
 
   app.get(LOCAL_DISCOVERY_SEARCH_PATHS, async (request, response) => {
     await recordSignal("localDiscoveryViews");
-    setFreshDiscoveryHeaders(response).json(buildLocalDiscoverySearch(config, request.query));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildLocalDiscoverySearch(config, request.query, cashRegister));
   });
 
   app.get(LOCAL_DISCOVERY_MERCHANT_PATHS, async (request, response) => {
     await recordSignal("localDiscoveryViews");
-    setFreshDiscoveryHeaders(response).json(buildLocalDiscoveryMerchant(config, request.query));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildLocalDiscoveryMerchant(config, request.query, cashRegister));
   });
 
   app.post("/api/track", async (request, response) => {

@@ -1171,6 +1171,8 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.intentRoutes.discoveryAudit.maxAmountRequired).toBe("10000");
       expect(payNow.json.routeSelector.map((route) => route.use)).toContain("fullRoast");
       expect(payNow.json.expectedChallenge.status).toBe(402);
+      expect(payNow.json.paidUsageProof.paidCompletions).toBe(0);
+      expect(payNow.json.paidUsageProof.noSpend).toBe(true);
       expect(payNow.json.noSpendNote).toContain("Fetching this endpoint is free");
 
       const payNowSkipReasons = await fetchJson(server, "/api/pay-now?intent=buyer-agent%20skip%20reasons");
@@ -1206,6 +1208,8 @@ describe("Listing Roast x402 service", () => {
       expect(pricing.status).toBe(200);
       expect(pricing.headers.get("payment-required")).toBeNull();
       expect(pricing.json.noSpend).toBe(true);
+      expect(pricing.json.paidUsageProof.paidCompletions).toBe(0);
+      expect(pricing.json.paidUsageProof.cashRegister).toContain("/api/cash-register");
       expect(pricing.json.count).toBe(14);
       expect(pricing.json.routes[0].path).toBe("/api/listing-roast");
       expect(pricing.json.routes[0].maxAmountRequired).toBe("1000");
@@ -1219,6 +1223,7 @@ describe("Listing Roast x402 service", () => {
       expect(findDiscovery.status).toBe(200);
       expect(findDiscovery.headers.get("payment-required")).toBeNull();
       expect(findDiscovery.json.noSpend).toBe(true);
+      expect(findDiscovery.json.paidUsageProof.paidCompletions).toBe(0);
       expect(findDiscovery.json.recommended.path).toBe("/api/x402-discovery-audit");
       expect(findDiscovery.json.recommended.maxAmountRequired).toBe("1000");
       expect(findDiscovery.json.alternatives.map((route) => route.path)).toContain("/api/x402-site-audit");
@@ -1254,6 +1259,7 @@ describe("Listing Roast x402 service", () => {
       expect(routeDiscovery.status).toBe(200);
       expect(routeDiscovery.headers.get("payment-required")).toBeNull();
       expect(routeDiscovery.json.noSpend).toBe(true);
+      expect(routeDiscovery.json.paidUsageProof.paidCompletions).toBe(0);
       expect(routeDiscovery.json.scope).toBe("owned-routes-only");
       expect(routeDiscovery.json.results).toHaveLength(3);
       expect(routeDiscovery.json.best.path).toBe("/api/x402-discovery-audit");
@@ -1306,6 +1312,7 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscovery.status).toBe(200);
       expect(localDiscovery.headers.get("payment-required")).toBeNull();
       expect(localDiscovery.json.noSpend).toBe(true);
+      expect(localDiscovery.json.paidUsageProof.paidCompletions).toBe(0);
       expect(localDiscovery.json.items).toHaveLength(2);
       expect(localDiscovery.json.pagination.total).toBe(14);
       expect(localDiscovery.json.items[0].resource).toBe("http://localhost:8787/api/listing-roast");
@@ -1338,6 +1345,7 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoverySearch.status).toBe(200);
       expect(localDiscoverySearch.headers.get("payment-required")).toBeNull();
       expect(localDiscoverySearch.json.noSpend).toBe(true);
+      expect(localDiscoverySearch.json.paidUsageProof.paidCompletions).toBe(0);
       expect(localDiscoverySearch.json.resources[0].resource).toBe("http://localhost:8787/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.resources[0].tags).toEqual([
         "x402",
@@ -1359,6 +1367,7 @@ describe("Listing Roast x402 service", () => {
       const localDiscoveryMerchant = await fetchJson(server, "/v2/x402/discovery/merchant?payTo=0x000000000000000000000000000000000000dEaD");
       expect(localDiscoveryMerchant.status).toBe(200);
       expect(localDiscoveryMerchant.headers.get("payment-required")).toBeNull();
+      expect(localDiscoveryMerchant.json.paidUsageProof.paidCompletions).toBe(0);
       expect(localDiscoveryMerchant.json.resources).toHaveLength(14);
       expect(localDiscoveryMerchant.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
       expect(localDiscoveryMerchant.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
@@ -1449,6 +1458,27 @@ describe("Listing Roast x402 service", () => {
       const aiPlugin = await fetchJson(server, "/.well-known/ai-plugin.json");
       expect(aiPlugin.status).toBe(200);
       expect(aiPlugin.json.x_listing_roast.paidUsageProof.paidCompletions).toBe(2);
+
+      const payNow = await fetchJson(server, "/api/pay-now?intent=buyer-agent%20skip%20reasons");
+      expect(payNow.status).toBe(200);
+      expect(payNow.json.paidUsageProof.paidCompletions).toBe(2);
+      expect(payNow.json.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.002");
+
+      const pricing = await fetchJson(server, "/api/pricing");
+      expect(pricing.status).toBe(200);
+      expect(pricing.json.paidUsageProof.proofText).toBe("2 paid completions; $0.002 registered");
+
+      const find = await fetchJson(server, "/api/find?q=buyer-agent%20skip%20reasons");
+      expect(find.status).toBe(200);
+      expect(find.json.paidUsageProof.paidCompletions).toBe(2);
+
+      const route = await fetchJson(server, "/api/route?query=buyer-agent%20skip%20reasons&top=2");
+      expect(route.status).toBe(200);
+      expect(route.json.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.002");
+
+      const localDiscovery = await fetchJson(server, "/v2/x402/discovery/resources?limit=1");
+      expect(localDiscovery.status).toBe(200);
+      expect(localDiscovery.json.paidUsageProof.paidCompletions).toBe(2);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
