@@ -401,7 +401,7 @@ Fetch these before any payment:
 - API catalog: ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
 - Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
 - Examples and commands: ${absoluteUrl(config, "/api/examples")}
-- Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}
+- Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 - Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 - Local route router: ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3
@@ -540,7 +540,7 @@ Agents authorize each paid API call by completing the x402 payment challenge for
 - MCP server card: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 - llms.txt: ${absoluteUrl(config, "/llms.txt")}
 - Full Markdown guide: ${absoluteUrl(config, LLMS_FULL_PATH)}
-- Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}
+- Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 - Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 - Local route router: ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3
@@ -1431,19 +1431,77 @@ function buildRecommendedPaidSequence(intentRoutes) {
   ];
 }
 
-function buildPayNow(config) {
+const PAY_NOW_ACTION_BY_RESOURCE_ID = {
+  indexed_roast_quick_score: "indexedQuickScore",
+  instant_listing_score: "instantScore",
+  x402_marketplace_conversion_score: "conversionScore",
+  agent_listing_conversion_score: "agentListingConversion",
+  x402_ping: "x402Ping",
+  x402_site_audit: "x402SiteAudit",
+  listing_score: "listingScore",
+  listing_roast: "fullRoast",
+  x402_discovery_audit: "discoveryAudit",
+  api_entry: "apiEntry"
+};
+
+function selectPayNowAction(config, intent = "") {
+  const rawIntent = String(intent || "").trim().slice(0, 400);
   const intentRoutes = buildPayNowActions(config);
+  if (!rawIntent) {
+    return {
+      intent: "",
+      intentRoutes,
+      selectedActionKey: "indexedQuickScore",
+      selectedPaidAction: intentRoutes.indexedQuickScore
+    };
+  }
+
+  const ranked = buildPaidRouteCatalog(config)
+    .map((route) => ({ ...route, matchScore: scoreCatalogResource(route, rawIntent) }))
+    .filter((route) => route.matchScore > 0)
+    .sort((left, right) => {
+      if (right.matchScore !== left.matchScore) return right.matchScore - left.matchScore;
+      return Number(left.maxAmountRequired || 0) - Number(right.maxAmountRequired || 0);
+    });
+  const selectedRoute = ranked[0];
+  const selectedActionKey = PAY_NOW_ACTION_BY_RESOURCE_ID[selectedRoute?.id] || "indexedQuickScore";
+
+  return {
+    intent: rawIntent,
+    intentRoutes,
+    selectedActionKey,
+    selectedPaidAction: intentRoutes[selectedActionKey] || intentRoutes.indexedQuickScore,
+    rankedPaidRoutes: ranked.slice(0, 5).map((route) => ({
+      id: route.id,
+      path: route.path,
+      method: route.method,
+      price: route.price,
+      maxAmountRequired: route.maxAmountRequired,
+      matchScore: route.matchScore
+    }))
+  };
+}
+
+function buildPayNow(config, intent = "") {
+  const selection = selectPayNowAction(config, intent);
+  const { intentRoutes, selectedPaidAction } = selection;
 
   return {
     service: config.serviceName,
-    route: intentRoutes.indexedQuickScore.route,
-    method: intentRoutes.indexedQuickScore.method,
-    price: intentRoutes.indexedQuickScore.price,
-    maxAmountRequired: intentRoutes.indexedQuickScore.maxAmountRequired,
+    intent: selection.intent || null,
+    selectedActionKey: selection.selectedActionKey,
+    selectedPaidAction,
+    rankedPaidRoutes: selection.rankedPaidRoutes || [],
+    route: selectedPaidAction.route,
+    method: selectedPaidAction.method,
+    price: selectedPaidAction.price,
+    maxAmountRequired: selectedPaidAction.maxAmountRequired,
     network: config.network,
     payTo: config.payTo,
-    command: intentRoutes.indexedQuickScore.command,
-    reason: "Already-indexed Bazaar route and lowest-friction paid score.",
+    command: selectedPaidAction.command,
+    reason: selection.intent
+      ? `Selected from the buyer intent: ${selection.intent}`
+      : "Already-indexed Bazaar route and lowest-friction paid score.",
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     routeSelector: [
@@ -1475,9 +1533,9 @@ function buildPayNow(config) {
     intentRoutes,
     expectedChallenge: {
       status: 402,
-      amount: INSTANT_SCORE_AMOUNT,
+      amount: selectedPaidAction.maxAmountRequired,
       network: config.network,
-      route: intentRoutes.indexedQuickScore.route
+      route: selectedPaidAction.route
     },
     upgradeRoutes: {
       score: intentRoutes.listingScore,
@@ -1485,6 +1543,7 @@ function buildPayNow(config) {
       discoveryAudit: intentRoutes.discoveryAudit
     },
     marketplaceNote: "CDP Bazaar updates indexed descriptions after a real settled payment; this free handoff reflects the current live route map without spending.",
+    intentHint: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons`,
     noSpendNote: "Fetching this endpoint is free. Payment happens only when a buyer calls the x402 paid route."
   };
 }
@@ -2185,11 +2244,17 @@ function buildOpenApiDocument(config) {
       [PAY_NOW_PATH]: {
         get: {
           operationId: "getPayNow",
-          summary: "Free direct pay-now handoff",
-          description: "Compact no-spend JSON that tells buyer agents which x402 route to pay first.",
+          summary: "Free intent-aware pay-now handoff",
+          description: "Compact no-spend JSON that tells buyer agents which existing x402 route to pay for a task or buyer intent.",
+          parameters: [
+            { name: "intent", in: "query", required: false, schema: { type: "string" }, description: "Buyer task, such as buyer-agent skip reasons, x402 discovery audit, or full listing roast." },
+            { name: "q", in: "query", required: false, schema: { type: "string" }, description: "Alias for intent." },
+            { name: "query", in: "query", required: false, schema: { type: "string" }, description: "Alias for intent." },
+            { name: "task", in: "query", required: false, schema: { type: "string" }, description: "Alias for intent." }
+          ],
           responses: {
             200: {
-              description: "Direct pay-now handoff for the preferred first paid route"
+              description: "Direct pay-now handoff for the selected paid route"
             }
           }
         }
@@ -3326,7 +3391,7 @@ function buildApiCatalog(config) {
     { href: absoluteUrl(config, SITE_AUDIT_PATH), type: "application/json", title: "GET $0.001 x402 site audit and paid API preflight" },
     { href: absoluteUrl(config, "/api/listing-score"), type: "application/json", title: "POST $0.005 paid API listing quality score" },
     { href: absoluteUrl(config, DISCOVERY_AUDIT_PATH), type: "application/json", title: "POST $0.01 x402 discovery audit" },
-    { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "GET free pay-now handoff for the preferred first paid route" },
+    { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "GET free intent-aware pay-now handoff for the selected paid route" },
     { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "GET free paid route pricing catalog" },
     { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "GET free task-to-paid-route finder" },
     { href: absoluteUrl(config, ROUTE_PATH), type: "application/json", title: "GET/POST free local paid-route router" },
@@ -3369,7 +3434,7 @@ function buildApiCatalog(config) {
           { href: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH), type: "application/json", title: "MCP server card" },
           { href: absoluteUrl(config, LLMS_FULL_PATH), type: "text/markdown", title: "Full agent-readable route guide" },
           { href: absoluteUrl(config, INDEX_MARKDOWN_PATH), type: "text/markdown", title: "Homepage Markdown guide" },
-          { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "Pay-now handoff" },
+          { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "Intent-aware pay-now handoff" },
           { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "Paid route pricing catalog" },
           { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "Task-to-paid-route finder" },
           { href: absoluteUrl(config, ROUTE_PATH), type: "application/json", title: "Local paid-route router" },
@@ -3407,7 +3472,7 @@ Listing Roast x402 is a paid HTTP JSON API for builders who need a quick read on
 - MCP discovery alias: ${absoluteUrl(config, WELL_KNOWN_MCP_PATH)}
 - MCP server-card metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 - Examples and commands: ${absoluteUrl(config, "/api/examples")}
-- Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}
+- Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 - Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 - Cash register: ${absoluteUrl(config, "/api/cash-register")}
@@ -4302,7 +4367,7 @@ score: 4/5</div>
         <div>
           <h2>Output built for action.</h2>
           <p>The score response gives the first missing signal and upgrade guidance. The site audit checks direct x402 metadata against Bazaar state at the same low first-click price. The full roast adds skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
-          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. The command builder is available at <a href="${builderUrl}">/builder</a>. The direct pay-now handoff is available at <a href="${payNowUrl}">/api/pay-now</a>. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
+          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. The command builder is available at <a href="${builderUrl}">/builder</a>. The direct pay-now handoff is available at <a href="${payNowUrl}">/api/pay-now</a> and accepts an intent query for task-specific commands. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
         </div>
         <pre>${escapeHtml(prettyJson(scoreOutput))}</pre>
       </div>
@@ -5390,9 +5455,9 @@ ${copyScript("Copy command")}
     response.json({ ...cashRegister, receiverWallet });
   });
 
-  app.get(PAY_NOW_PATH, async (_request, response) => {
+  app.get(PAY_NOW_PATH, async (request, response) => {
     await recordSignal("payNowViews");
-    setFreshDiscoveryHeaders(response).json(buildPayNow(config));
+    setFreshDiscoveryHeaders(response).json(buildPayNow(config, request.query.intent || request.query.q || request.query.query || request.query.task || ""));
   });
 
   app.get(PRICING_PATH, async (_request, response) => {
