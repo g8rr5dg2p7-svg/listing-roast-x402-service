@@ -2124,8 +2124,28 @@ const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   listing_score: "listingScore",
   listing_roast: "fullRoast",
   x402_discovery_audit: "discoveryAudit",
-  api_entry: "apiEntry"
+  api_entry: "apiEntry",
+  api_v1_entry: "apiV1Entry",
+  v1_entry: "v1Entry"
 };
+
+function actionKeyForPaidRoute(route) {
+  return PAY_NOW_ACTION_BY_RESOURCE_ID[route?.id || route?.slug || route?.metadata?.id] || null;
+}
+
+function selectedPaidActionForRoute(intentRoutes, route) {
+  const selectedActionKey = actionKeyForPaidRoute(route);
+  const selectedPaidAction = selectedActionKey ? intentRoutes[selectedActionKey] : null;
+
+  if (!selectedPaidAction) {
+    return null;
+  }
+
+  return {
+    selectedActionKey,
+    selectedPaidAction
+  };
+}
 
 function selectPayNowAction(config, intent = "") {
   const rawIntent = String(intent || "").trim().slice(0, 400);
@@ -3799,6 +3819,7 @@ function buildLocalDiscoveryItems(config) {
     ],
     lastUpdated: now,
     metadata: {
+      id: resource.id,
       serviceName: config.serviceName,
       name: resource.name,
       method: resource.method,
@@ -3862,7 +3883,7 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     .map((item) => ({
       item,
       score: rawQuery ? scoreCatalogResource({
-        id: item.metadata.name,
+        id: item.metadata.id,
         name: item.metadata.name,
         method: item.metadata.method,
         path: item.metadata.path,
@@ -3878,6 +3899,7 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     })
     .slice(0, parseDiscoveryLimit(query.limit, 20))
     .map((entry) => entry.item);
+  const selected = selectedPaidActionForRoute(intentRoutes, resources[0]);
 
   return {
     x402Version: 2,
@@ -3888,6 +3910,7 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
+    ...(selected || {}),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     resources,
@@ -4032,6 +4055,22 @@ function scoreCatalogResource(resource, query) {
     if ([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH].includes(resource.path)) score += 90;
   }
 
+  if (includesAny(normalizedQuery, ["root post", "generic post", "directory post", "directory handoff", "service root"])) {
+    if (resource.id === "directory_root_post") score += 140;
+  }
+
+  if (includesAny(normalizedQuery, ["/api/v1", "api/v1", "api v1"])) {
+    if (resource.path === API_V1_ENTRY_PATH) score += 140;
+  }
+
+  if (includesAny(normalizedQuery, ["/v1", " v1 ", "v1 entry", "short v1"])) {
+    if (resource.path === V1_ENTRY_PATH) score += 140;
+  }
+
+  if (includesAny(normalizedQuery, ["/api first", "probe /api", "api entry"])) {
+    if (resource.path === API_ENTRY_PATH) score += 120;
+  }
+
   return score;
 }
 
@@ -4046,6 +4085,7 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
       return Number(left.maxAmountRequired || 0) - Number(right.maxAmountRequired || 0);
     });
   const recommended = ranked[0] || routes[0];
+  const selected = selectedPaidActionForRoute(intentRoutes, recommended);
 
   return {
     service: config.serviceName,
@@ -4053,6 +4093,7 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     noSpend: true,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
     recommended,
+    ...(selected || {}),
     alternatives: ranked.filter((route) => route.id !== recommended.id).slice(0, 4),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
@@ -4109,6 +4150,7 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
       return Number(left.maxAmountRequired || 0) - Number(right.maxAmountRequired || 0);
     })
     .slice(0, top);
+  const selected = selectedPaidActionForRoute(intentRoutes, ranked[0]);
 
   return {
     service: config.serviceName,
@@ -4121,6 +4163,7 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     scope: "owned-routes-only",
     results: ranked,
     best: ranked[0] || null,
+    ...(selected || {}),
     count: ranked.length,
     totalLocalRoutes: buildPaidRouteCatalog(config).length,
     pricing: absoluteUrl(config, PRICING_PATH),
