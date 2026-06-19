@@ -563,6 +563,13 @@ describe("Listing Roast x402 service", () => {
       const robots = await fetchJson(server, "/robots.txt");
       expect(robots.status).toBe(200);
       expect(robots.text).toContain("Sitemap:");
+      expect(robots.text).toContain("User-agent: ChatGPT-User");
+      expect(robots.text).toContain("User-agent: ClaudeBot");
+      expect(robots.text).toContain("Content-Signal: search=yes,ai-input=yes,ai-train=no");
+      expect(robots.text).toContain("/x402.json");
+      expect(robots.text).toContain("/.well-known/agent-skills/index.json");
+      expect(robots.text).toContain("/.well-known/mcp/server-card.json");
+      expect(robots.text).toContain("Preferred paid route after explicit buyer intent");
 
       const sitemap = await fetchJson(server, "/sitemap.xml");
       expect(sitemap.status).toBe(200);

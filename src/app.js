@@ -1869,6 +1869,49 @@ ${DISCOVERY_KEYWORDS.join(", ")}
 `;
 }
 
+function buildRobotsTxt(config) {
+  const sitemapUrl = absoluteUrl(config, "/sitemap.xml");
+
+  return `User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# Content-Signal: search=yes,ai-input=yes,ai-train=no
+# Free agent discovery:
+# - ${absoluteUrl(config, "/llms.txt")}
+# - ${absoluteUrl(config, LLMS_FULL_PATH)}
+# - ${absoluteUrl(config, "/x402.json")}
+# - ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
+# - ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
+# - ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
+# Preferred paid route after explicit buyer intent: ${absoluteUrl(config, ROAST_PATH)}
+Sitemap: ${sitemapUrl}
+`;
+}
+
 function buildMcpServerCard(config) {
   const metadataUrl = absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH);
 
@@ -2571,10 +2614,7 @@ ${copyScript()}
   app.get("/robots.txt", (_request, response) => {
     response
       .type("text/plain")
-      .send(`User-agent: *
-Allow: /
-Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
-`);
+      .send(buildRobotsTxt(config));
   });
 
   app.get("/sitemap.xml", (_request, response) => {

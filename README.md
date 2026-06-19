@@ -25,7 +25,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /api/score-schema` - score request/response shape.
 - `GET /api/discovery-audit-schema` - x402 discovery-audit request/response shape.
 - `GET /api/examples` - copy-ready request, command, and sample output.
-- `GET /robots.txt` - public crawl hints.
+- `GET /robots.txt` - public crawl hints with AI/search agent access, content-signal preferences, and direct discovery links.
 - `GET /sitemap.xml` - public discovery URLs.
 - `GET /.well-known/mcp.json`, `GET /.well-known/mcp`, `GET /.well-known/mcp-server`, and `GET /.well-known/mcp/server-card.json` - MCP-style discovery metadata and server-card aliases for agent-readiness scanners and MCP-aware clients.
 - `GET /api/instant-listing-score` - protected $0.001 x402 instant score route with optional query params.
