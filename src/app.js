@@ -1360,6 +1360,69 @@ function unpaidPaymentPreview(config, intentRouteKey) {
   });
 }
 
+function buildCustomPaywallHtml(config, intentRouteKey = "indexedQuickScore") {
+  const preview = buildUnpaidPaymentPreview(config, intentRouteKey);
+  const selected = preview.selectedPaidAction;
+  const choices = preview.routeSelector
+    .map((choice) => {
+      const action = preview.intentRoutes[choice.use];
+      return `<li><strong>${escapeHtml(action?.price || "")}</strong> ${escapeHtml(choice.when)} <code>${escapeHtml(action?.path || choice.use)}</code></li>`;
+    })
+    .join("");
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pay Listing Roast x402</title>
+    <style>
+      :root { color-scheme: light dark; --bg: #f7f8f5; --ink: #141614; --muted: #5d655d; --line: #d9ded2; --accent: #116149; --panel: #ffffff; }
+      @media (prefers-color-scheme: dark) { :root { --bg: #111513; --ink: #f3f6f0; --muted: #b5bdb2; --line: #30382f; --accent: #7fe0bd; --panel: #181e1a; } }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; }
+      main { width: min(880px, calc(100% - 32px)); margin: 40px auto; }
+      .eyebrow { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0; }
+      h1 { margin: 8px 0 10px; font-size: clamp(30px, 5vw, 54px); line-height: 1.02; letter-spacing: 0; }
+      p { color: var(--muted); margin: 0 0 18px; max-width: 70ch; }
+      .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px; margin: 22px 0; }
+      .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0; }
+      .meta div { border-top: 1px solid var(--line); padding-top: 10px; }
+      .label { display: block; color: var(--muted); font-size: 13px; }
+      code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+      pre { overflow-x: auto; white-space: pre-wrap; word-break: break-word; background: color-mix(in srgb, var(--panel) 82%, var(--ink)); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+      a { color: var(--accent); font-weight: 700; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+      ul { padding-left: 20px; color: var(--muted); }
+      li { margin: 8px 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="eyebrow">Payment required</div>
+      <h1>${escapeHtml(config.serviceName)}</h1>
+      <p>${escapeHtml(selected.reason)} No account or API key is needed; access unlocks when an x402 payment is sent for this exact route.</p>
+
+      <section class="panel" aria-label="Selected paid route">
+        <div class="meta">
+          <div><span class="label">Route</span><strong>${escapeHtml(selected.path)}</strong></div>
+          <div><span class="label">Method</span><strong>${escapeHtml(selected.method)}</strong></div>
+          <div><span class="label">Price</span><strong>${escapeHtml(selected.price)}</strong></div>
+          <div><span class="label">Max amount</span><strong>${escapeHtml(selected.maxAmountRequired)} USDC units</strong></div>
+        </div>
+        <pre>${escapeHtml(selected.command)}</pre>
+      </section>
+
+      <section aria-label="Other payment routes">
+        <h2>Choose A Different Route</h2>
+        <ul>${choices}</ul>
+      </section>
+
+      <p>Free handoff: <a href="${escapeHtml(preview.freeHandoff)}">/api/pay-now</a> · Manifest: <a href="${escapeHtml(preview.x402Manifest)}">/x402.json</a> · OpenAPI: <a href="${escapeHtml(preview.openApi)}">/.well-known/openapi.json</a></p>
+    </main>
+  </body>
+</html>`;
+}
+
 function buildWebMcpHandoff(config) {
   return {
     service: config.serviceName,
@@ -2820,6 +2883,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast API Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /api first.",
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
         extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config))
       },
@@ -2833,6 +2897,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast API v1 Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /api/v1 first.",
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
         extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config, API_V1_ENTRY_PATH))
       },
@@ -2846,6 +2911,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast v1 Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /v1 first.",
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
         extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config, V1_ENTRY_PATH))
       },
@@ -2859,6 +2925,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Score x402: $0.005 paid API listing quality score for agent-service listing clarity, marketplace conversion, x402 service discoverability, first missing signal, and upgrade guidance.",
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "listingScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "listingScore"),
         extensions: declareDiscoveryExtension(buildScoreDiscovery(config))
       },
@@ -2872,6 +2939,7 @@ function createX402Middleware(config) {
         },
         description: "Instant Listing Score x402: $0.001 GET marketplace listing score and paid API listing quality score for agent-service listing clarity, marketplace conversion, and x402 service discoverability.",
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "indexedQuickScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
         extensions: declareDiscoveryExtension(buildInstantScoreDiscovery(config))
       },
@@ -2885,6 +2953,7 @@ function createX402Middleware(config) {
         },
         description: "x402 Marketplace Conversion Score: $0.001 GET marketplace conversion score for paid API listing quality, agent-service listing clarity, and buyer-agent conversion checks.",
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "agentListingConversion"),
         unpaidResponseBody: unpaidPaymentPreview(config, "agentListingConversion"),
         extensions: declareDiscoveryExtension(buildConversionScoreDiscovery(config))
       },
@@ -2898,6 +2967,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast Agent Listing Conversion Score: $0.001 GET score for agent service listing clarity, buyer-agent skip reasons, agent listing conversion, paid API listing quality, buyer intent, and x402 marketplace conversion.",
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "agentListingConversion"),
         unpaidResponseBody: unpaidPaymentPreview(config, "agentListingConversion"),
         extensions: declareDiscoveryExtension(buildAgentListingConversionDiscovery(config))
       },
@@ -2911,6 +2981,7 @@ function createX402Middleware(config) {
         },
         description: INDEXED_QUICK_SCORE_DESCRIPTION,
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "indexedQuickScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
         extensions: declareDiscoveryExtension(buildIndexedRoastGetDiscovery(config))
       },
@@ -2924,6 +2995,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast x402 Ping: $0.001 paid GET ping to verify the Base x402 rail before buying a score or roast.",
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "indexedQuickScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
         extensions: declareDiscoveryExtension(buildPingDiscovery(config))
       },
@@ -2937,6 +3009,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast x402 Site Audit: $0.001 GET service discoverability audit, paid API preflight, route health check, direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps.",
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "x402SiteAudit"),
         unpaidResponseBody: unpaidPaymentPreview(config, "x402SiteAudit"),
         extensions: declareDiscoveryExtension(buildSiteAuditDiscovery(config))
       },
@@ -2950,6 +3023,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast x402 Discovery Audit: $0.01 Bazaar visibility audit for stale indexed pricing, direct 402 metadata, search position, and no-spend fix steps.",
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAudit"),
         unpaidResponseBody: unpaidPaymentPreview(config, "discoveryAudit"),
         extensions: declareDiscoveryExtension(buildDiscoveryAuditDiscovery(config))
       },
@@ -2963,6 +3037,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast x402: $0.01 marketplace listing conversion roast for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance.",
         mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "fullRoast"),
         unpaidResponseBody: unpaidPaymentPreview(config, "fullRoast"),
         extensions: declareDiscoveryExtension(buildDiscovery(config))
       }

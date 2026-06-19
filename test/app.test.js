@@ -804,6 +804,40 @@ describe("Listing Roast x402 service", () => {
     }
   }, 15000);
 
+  it("shows route-specific browser paywalls for paid route probes", async () => {
+    mockFacilitatorSupportedKinds();
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    const browserHeaders = {
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36"
+    };
+
+    try {
+      const indexed = await fetchJson(server, "/api/listing-roast", { headers: browserHeaders });
+      expect(indexed.status).toBe(402);
+      expect(indexed.headers.get("content-type")).toContain("text/html");
+      expect(indexed.text).toContain("Pay Listing Roast x402");
+      expect(indexed.text).toContain("/api/listing-roast");
+      expect(indexed.text).toContain("x402 pay http://localhost:8787/api/listing-roast");
+      expect(indexed.text).toContain("Choose A Different Route");
+
+      const siteAudit = await fetchJson(server, "/api/x402-site-audit", { headers: browserHeaders });
+      expect(siteAudit.status).toBe(402);
+      expect(siteAudit.headers.get("content-type")).toContain("text/html");
+      expect(siteAudit.text).toContain("/api/x402-site-audit");
+      expect(siteAudit.text).toContain("--max-amount 1000");
+      expect(siteAudit.text).toContain("/api/pay-now");
+
+      const apiClient = await fetchJson(server, "/api/x402-site-audit", { headers: { Accept: "application/json" } });
+      expect(apiClient.status).toBe(402);
+      expect(apiClient.headers.get("content-type")).toContain("application/json");
+      expect(apiClient.json.selectedPaidAction.path).toBe("/api/x402-site-audit");
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  }, 15000);
+
   it("serves common agent docs and OpenAPI aliases without payment", async () => {
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
     const server = await listen(app);
