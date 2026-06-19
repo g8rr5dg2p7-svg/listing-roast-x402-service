@@ -1016,6 +1016,7 @@ describe("Listing Roast x402 service", () => {
       expect(llmsFull.text).toContain("/.well-known/mcp/server-card.json");
       expect(llmsFull.text).toContain("Recommended Paid Sequence");
       expect(llmsFull.text).toContain("Full roast command");
+      expect(llmsFull.text).toContain("after the indexed quick score for the dedicated agent-listing conversion deep dive");
 
       const indexMarkdown = await fetchJson(server, "/index.md");
       expect(indexMarkdown.status).toBe(200);
