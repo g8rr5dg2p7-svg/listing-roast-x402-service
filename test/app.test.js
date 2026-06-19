@@ -812,6 +812,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.status).toBe(200);
       expectFreshDiscoveryHeaders(openApi.headers);
       expect(openApi.json.openapi).toBe("3.1.0");
+      expect(Object.keys(openApi.json.paths)[0]).toBe("/api/listing-roast");
+      expect(Object.keys(openApi.json.paths).indexOf("/api/listing-roast")).toBeLessThan(Object.keys(openApi.json.paths).indexOf("/api"));
 
       const wellKnownOpenApi = await fetchJson(server, "/.well-known/openapi.json");
       expect(wellKnownOpenApi.status).toBe(200);

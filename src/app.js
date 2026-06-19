@@ -2161,6 +2161,80 @@ function buildOpenApiDocument(config, cashRegister = {}) {
     },
     servers: [{ url: config.serviceUrl }],
     paths: {
+      [ROAST_PATH]: {
+        get: {
+          operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
+          tags: ["paid API listing quality", "buyer-agent skip reasons", "agent service listing clarity", "x402 listing", "paid API listing"],
+          summary: "Paid $0.001 paid API listing quality, agent conversion, and buyer-agent skip reasons quick score",
+          description: "Paid API listing quality score, agent listing conversion score, x402 discovery audit triage, buyer-agent skip reasons, and agent service listing clarity from the already-indexed /api/listing-roast URL. Returns a $0.001 score API for paid API discoverability, x402 listing quality, marketplace listing quality, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
+          "x-price": config.instantScorePrice,
+          "x-x402-price": config.instantScorePrice,
+          "x-payment": buildPaymentHint(config, {
+            path: ROAST_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            preferredFirstPaidAction: true,
+            buyerAction: "Pay $0.001 on the already-indexed marketplace route for buyer-agent skip reasons, agent service listing clarity, and a quick listing quality score."
+          }),
+          parameters: [
+            { name: "agentName", in: "query", required: false, schema: { type: "string" } },
+            { name: "listingText", in: "query", required: false, schema: { type: "string" } },
+            { name: "targetBuyer", in: "query", required: false, schema: { type: "string" } },
+            { name: "currentPrice", in: "query", required: false, schema: { type: "string" } },
+            { name: "currentCheckoutPath", in: "query", required: false, schema: { type: "string" } },
+            { name: "goal", in: "query", required: false, schema: { type: "string" } }
+          ],
+          responses: {
+            200: {
+              description: "Paid quick score response from the indexed listing-roast URL",
+              content: {
+                "application/json": {
+                  schema: buildScoreDiscovery(config).output.schema,
+                  example: buildIndexedRoastQuickScore(buildInstantScoreInput(), config)
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        },
+        post: {
+          operationId: "postListingRoast",
+          tags: ["x402 listing", "paid API listing"],
+          summary: "Paid $0.01 marketplace listing conversion roast",
+          description: "Returns paid API listing conversion feedback, marketplace listing quality fixes, buyer-agent skip reasons, rewritten listing copy, and stop-or-upgrade guidance after x402 payment.",
+          "x-price": config.price,
+          "x-x402-price": config.price,
+          "x-payment": buildPaymentHint(config, {
+            path: ROAST_PATH,
+            method: "POST",
+            price: config.price,
+            maxAmountRequired: "10000",
+            buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
+          }),
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: buildDiscovery(config).inputSchema,
+                example: requestExample
+              }
+            }
+          },
+          responses: {
+            200: {
+              description: "Paid full roast response",
+              content: {
+                "application/json": {
+                  schema: buildDiscovery(config).output.schema,
+                  example: buildListingRoast(requestExample)
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        }
+      },
       [API_ENTRY_PATH]: {
         get: {
           operationId: "getListingRoastApiEntry",
@@ -2534,80 +2608,6 @@ function buildOpenApiDocument(config, cashRegister = {}) {
                 "application/json": {
                   schema: buildScoreDiscovery(config).output.schema,
                   example: buildListingScoreWithUpgrade(requestExample, config)
-                }
-              }
-            },
-            402: { description: "x402 payment required" }
-          }
-        }
-      },
-      [ROAST_PATH]: {
-        get: {
-          operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
-          tags: ["paid API listing quality", "buyer-agent skip reasons", "agent service listing clarity", "x402 listing", "paid API listing"],
-          summary: "Paid $0.001 paid API listing quality, agent conversion, and buyer-agent skip reasons quick score",
-          description: "Paid API listing quality score, agent listing conversion score, x402 discovery audit triage, buyer-agent skip reasons, and agent service listing clarity from the already-indexed /api/listing-roast URL. Returns a $0.001 score API for paid API discoverability, x402 listing quality, marketplace listing quality, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
-          "x-price": config.instantScorePrice,
-          "x-x402-price": config.instantScorePrice,
-          "x-payment": buildPaymentHint(config, {
-            path: ROAST_PATH,
-            method: "GET",
-            price: config.instantScorePrice,
-            maxAmountRequired: INSTANT_SCORE_AMOUNT,
-            preferredFirstPaidAction: true,
-            buyerAction: "Pay $0.001 on the already-indexed marketplace route for buyer-agent skip reasons, agent service listing clarity, and a quick listing quality score."
-          }),
-          parameters: [
-            { name: "agentName", in: "query", required: false, schema: { type: "string" } },
-            { name: "listingText", in: "query", required: false, schema: { type: "string" } },
-            { name: "targetBuyer", in: "query", required: false, schema: { type: "string" } },
-            { name: "currentPrice", in: "query", required: false, schema: { type: "string" } },
-            { name: "currentCheckoutPath", in: "query", required: false, schema: { type: "string" } },
-            { name: "goal", in: "query", required: false, schema: { type: "string" } }
-          ],
-          responses: {
-            200: {
-              description: "Paid quick score response from the indexed listing-roast URL",
-              content: {
-                "application/json": {
-                  schema: buildScoreDiscovery(config).output.schema,
-                  example: buildIndexedRoastQuickScore(buildInstantScoreInput(), config)
-                }
-              }
-            },
-            402: { description: "x402 payment required" }
-          }
-        },
-        post: {
-          operationId: "postListingRoast",
-          tags: ["x402 listing", "paid API listing"],
-          summary: "Paid $0.01 marketplace listing conversion roast",
-          description: "Returns paid API listing conversion feedback, marketplace listing quality fixes, buyer-agent skip reasons, rewritten listing copy, and stop-or-upgrade guidance after x402 payment.",
-          "x-price": config.price,
-          "x-x402-price": config.price,
-          "x-payment": buildPaymentHint(config, {
-            path: ROAST_PATH,
-            method: "POST",
-            price: config.price,
-            maxAmountRequired: "10000",
-            buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
-          }),
-          requestBody: {
-            required: true,
-            content: {
-              "application/json": {
-                schema: buildDiscovery(config).inputSchema,
-                example: requestExample
-              }
-            }
-          },
-          responses: {
-            200: {
-              description: "Paid full roast response",
-              content: {
-                "application/json": {
-                  schema: buildDiscovery(config).output.schema,
-                  example: buildListingRoast(requestExample)
                 }
               }
             },
