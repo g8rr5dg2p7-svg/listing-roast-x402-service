@@ -462,8 +462,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-19-manifest-preview-examples-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-19T22:52:24.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-19-openapi-payment-preview-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-19T23:16:42.000Z");
       expect(x402Manifest.json.payNow).toContain("/api/pay-now");
       expect(x402Manifest.json.payNowExamples.skipReasons.selectedActionKey).toBe("buyerAgentSkipReasons");
       expect(x402Manifest.json.payNowExamples.skipReasons.route).toContain("/api/listing-roast");
@@ -697,8 +697,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-19-manifest-preview-examples-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-19T22:52:24.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-19-openapi-payment-preview-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-19T23:16:42.000Z");
       expect(agentTools.json.resource_samples[0].url).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].resource).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].method).toBe("GET");
@@ -1178,6 +1178,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/x402-discovery-audit"].get.tags).toContain("x402 route health check");
       expect(openApi.json.paths["/api/x402-discovery-audit"].get.tags).toContain("stale Bazaar price");
       expect(openApi.json.paths["/api/x402-discovery-audit"].get["x-payment"].maxAmountRequired).toBe("1000");
+      expect(openApi.json.paths["/api/x402-discovery-audit"].get["x-payment"].paidResponsePreview.route).toBe("/api/x402-discovery-audit");
+      expect(openApi.json.paths["/api/x402-discovery-audit"].get["x-payment"].paidResponsePreview.example.endpoint).toBe("x402-discovery-audit-quick");
       expect(openApi.json.paths["/api/x402-discovery-audit"].get["x-payment"].paidUsageProof).toContain("/api/paid-usage-proof");
       const discoveryAuditGetParameters = Object.fromEntries(openApi.json.paths["/api/x402-discovery-audit"].get.parameters.map((parameter) => [parameter.name, parameter]));
       expect(Object.keys(discoveryAuditGetParameters)).toEqual(expect.arrayContaining(["endpointUrl", "url", "base_url", "baseUrl", "targetUrl", "resource"]));
@@ -1211,6 +1213,9 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].maxAmountRequired).toBe("1000");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].preferredFirstPaidAction).toBe(true);
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].buyerAction).toContain("buyer-agent skip reasons");
+      expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].paidResponsePreview.route).toBe("/api/listing-roast");
+      expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].paidResponsePreview.example.endpoint).toBe("listing-roast-quick-score");
+      expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].paidResponsePreview.includes).toContain("next paid action");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].paidUsageProof).toContain("/api/paid-usage-proof");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].cashRegister).toContain("/api/cash-register");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].paidUseProof.paidUsageProof).toContain("/api/paid-usage-proof");
@@ -1222,6 +1227,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get["x-x402-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/listing-roast"].post.security).toEqual([{ x402: [] }]);
       expect(openApi.json.paths["/api/listing-roast"].post["x-payment"].maxAmountRequired).toBe("10000");
+      expect(openApi.json.paths["/api/listing-roast"].post["x-payment"].paidResponsePreview.route).toBe("/api/listing-roast");
+      expect(openApi.json.paths["/api/listing-roast"].post["x-payment"].paidResponsePreview.includes).toContain("full rewrite");
       expect(openApi.json.paths["/api/listing-roast"].post["x-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/listing-roast"].post["x-x402-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("$0.001");
