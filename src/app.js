@@ -213,8 +213,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent clarity, preflight, x402 audit, Bazaar visibility, stale price. $0.001 GET /api/listing-roast; /api/x402-site-audit, /api/x402-discovery-audit, POST /api/listing-roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-compact-output-schema-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T20:51:40.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-proof-header-buffer-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T20:59:57.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -2026,7 +2026,7 @@ function buildLocalDiscoverySearchExamples(config) {
 
 function withPaidUseProofDescription(config, description) {
   const proof = buildPaidUseProofLinks(config);
-  return `${description} Public paid-use proof before payment: ${proof.paidUsageProof} exposes paidUsageProof and ${proof.cashRegister} exposes wallet-backed paid completion evidence.`;
+  return `${description} Proof before payment: ${proof.paidUsageProof}; register: ${proof.cashRegister}.`;
 }
 
 function pickDefined(source, keys) {

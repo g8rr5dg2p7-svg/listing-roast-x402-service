@@ -456,8 +456,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-19-compact-output-schema-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-19T20:51:40.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-19-proof-header-buffer-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-19T20:59:57.000Z");
       expect(x402Manifest.json.payNow).toContain("/api/pay-now");
       expect(x402Manifest.json.payNowExamples.skipReasons.selectedActionKey).toBe("buyerAgentSkipReasons");
       expect(x402Manifest.json.payNowExamples.skipReasons.route).toContain("/api/buyer-agent-skip-reasons");
@@ -687,8 +687,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-19-compact-output-schema-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-19T20:51:40.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-19-proof-header-buffer-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-19T20:59:57.000Z");
       expect(agentTools.json.resource_samples[0].url).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].resource).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].method).toBe("GET");
@@ -2348,7 +2348,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.url).toBe("http://localhost:8787/");
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("directory handoff");
-      expect(challenge.resource.description).toContain("Public paid-use proof before payment");
+      expect(challenge.resource.description).toContain("Proof before payment");
       expect(challenge.resource.description).toContain("/api/paid-usage-proof");
       expect(challenge.resource.description).toContain("/api/cash-register");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
@@ -2608,7 +2608,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("agent clarity");
       expect(challenge.resource.description).toContain("preflight");
       expect(challenge.resource.description).toContain("Bazaar visibility");
-      expect(challenge.resource.description).toContain("Public paid-use proof before payment");
+      expect(challenge.resource.description).toContain("Proof before payment");
       expect(challenge.resource.description).toContain("/api/paid-usage-proof");
       expect(challenge.resource.description).toContain("/api/cash-register");
       expect(challenge.resource.serviceName).toBe("Listing Roast x402");
