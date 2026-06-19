@@ -214,10 +214,20 @@ const SERVICE_TAGS = Object.freeze([
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent clarity, agent service clarity, paid API preflight, x402 audit, x402 discovery audit, Bazaar visibility, stale price. $0.001 GET /api/listing-roast; /api/x402-site-audit, /api/x402-discovery-audit, POST /api/listing-roast.";
+const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
+  "paid API listing quality score",
+  "marketplace listing score",
+  "buyer-agent skip reasons",
+  "buyer agent skip reasons",
+  "agent service clarity",
+  "agent-service listing score",
+  "x402 site audit",
+  "x402 discovery audit"
+]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-action-aliases-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T22:45:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-search-phrases-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T23:20:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -1139,6 +1149,10 @@ function buildScoreDiscovery(config) {
         nextStep: { type: "string" },
         upgradeEndpoint: { type: "string" },
         matchedBuyerIntent: { type: "string" },
+        buyerSearchPhrases: {
+          type: "array",
+          items: { type: "string" }
+        },
         buyerIntentHandoffs: {
           type: "array",
           items: {
@@ -1415,8 +1429,8 @@ function indexedQuickScoreFollowup(config, input) {
   }
 
   return {
-    matchedBuyerIntent: "marketplace listing score, buyer-agent skip reasons, or full listing roast",
-    nextStep: "This GET route keeps the indexed /api/listing-roast URL payable at the lowest price. Use POST /api/listing-roast for the full rewrite and launch recommendation.",
+    matchedBuyerIntent: "paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent service clarity, or full listing roast",
+    nextStep: "This indexed $0.001 GET route fits paid API listing quality, buyer-agent skip reasons, and agent service clarity; use POST /api/listing-roast for the full rewrite.",
     upgradeEndpoint: ROAST_PATH,
     action: buildNextPaidAction(config, input, {
       source: "indexed-quick-score-upgrade",
@@ -1554,6 +1568,7 @@ function buildIndexedRoastQuickScore(input, config) {
     ...buildInstantListingScore(input, config),
     endpoint: "listing-roast-quick-score",
     matchedBuyerIntent: followup.matchedBuyerIntent,
+    buyerSearchPhrases: INDEXED_QUICK_SCORE_SEARCH_PHRASES,
     buyerIntentHandoffs,
     nextPaidActions,
     ...(fullRoastUpgradeDecision ? { fullRoastUpgradeDecision } : {}),
@@ -2200,7 +2215,6 @@ function compactChallengeOutputExample(example) {
     "purpose",
     "verdict",
     "score",
-    "firstFix",
     "matchedBuyerIntent",
     "nextStep",
     "upgradeEndpoint",
