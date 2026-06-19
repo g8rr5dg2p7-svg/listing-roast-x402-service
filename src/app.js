@@ -103,6 +103,14 @@ function prettyJson(value) {
   return JSON.stringify(value, null, 2);
 }
 
+function indentText(value, spaces = 4) {
+  const prefix = " ".repeat(spaces);
+  return String(value)
+    .split("\n")
+    .map((line) => `${prefix}${line}`)
+    .join("\n");
+}
+
 function jsonScript(value) {
   return JSON.stringify(value).replaceAll("<", "\\u003c");
 }
@@ -2210,6 +2218,8 @@ Preferred first paid route:
   - Price: ${config.instantScorePrice}
   - Network: ${config.network}
   - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+  - Command:
+${indentText(buildGetPayCommand(config, ROAST_PATH))}
   - Output: quick paid API listing quality score from the already-indexed listing-roast URL
   - Use first when a marketplace result points to /api/listing-roast or an agent wants the lowest-friction payable route
 
@@ -2219,6 +2229,8 @@ Other paid routes:
   - Price: ${config.instantScorePrice}
   - Network: ${config.network}
   - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+  - Command:
+${indentText(buildGetPayCommand(config))}
   - Output: paid API listing quality score, checked signals, first fix, next step
   - Use when an agent wants a dedicated instant-score URL without first assembling a JSON body
 
@@ -2226,6 +2238,8 @@ Other paid routes:
   - Price: ${config.instantScorePrice}
   - Network: ${config.network}
   - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+  - Command:
+${indentText(buildGetPayCommand(config, CONVERSION_SCORE_PATH, INSTANT_SCORE_AMOUNT))}
   - Output: x402 marketplace conversion score, paid API listing quality score, checked signals, first fix, next step
   - Use when an agent searches for x402 marketplace conversion or wants the route path to match that buyer intent
 
@@ -2233,6 +2247,8 @@ Other paid routes:
   - Price: ${config.instantScorePrice}
   - Network: ${config.network}
   - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+  - Command:
+${indentText(buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT))}
   - Output: agent listing conversion score, agent service listing clarity score, buyer-agent skip reasons, buyer intent checks, first fix, next step
   - Use when an agent searches for agent service listing clarity, agent listing conversion score, buyer-agent skip reasons, or buyer intent clarity
 
@@ -2240,6 +2256,8 @@ Other paid routes:
   - Price: ${config.instantScorePrice}
   - Network: ${config.network}
   - Max amount: ${PING_AMOUNT} USDC units
+  - Command:
+${indentText(buildGetPayCommand(config, PING_PATH, PING_AMOUNT))}
   - Output: paid ping, timestamp, echo message, and next paid routes
   - Use when an agent wants to verify the x402 rail before buying a score or roast
 
@@ -2247,6 +2265,8 @@ Other paid routes:
   - Price: ${config.siteAuditPrice}
   - Network: ${config.network}
   - Max amount: ${SITE_AUDIT_AMOUNT} USDC units
+  - Command:
+${indentText(buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT))}
   - Output: direct 402 metadata check, Bazaar pricing check, search visibility, stale price mismatch, and no-spend fix steps
   - Use when an agent wants a cheap x402 service discoverability audit, paid API preflight, route health check, or site audit without assembling a JSON body
 
@@ -2254,6 +2274,8 @@ Other paid routes:
   - Price: ${config.discoveryAuditPrice}
   - Network: ${config.network}
   - Max amount: ${DISCOVERY_AUDIT_AMOUNT} USDC units
+  - Command:
+${indentText(buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample))}
   - Output: direct 402 metadata check, Bazaar merchant discovery check, search visibility, stale pricing mismatch, and no-spend fix steps
   - Use when a builder sees stale Bazaar pricing, missing Agentic.Market visibility, or a live endpoint that search does not surface
 
@@ -2261,12 +2283,16 @@ Other paid routes:
   - Price: ${config.scorePrice}
   - Network: ${config.network}
   - Max amount: 5000 USDC units
+  - Command:
+${indentText(buildPayCommand(config, "/api/listing-score", "5000"))}
   - Output: paid API listing quality score, checked signals, first fix, next step, upgrade endpoint
 
 - POST ${absoluteUrl(config, ROAST_PATH)}
   - Price: ${config.price}
   - Network: ${config.network}
   - Max amount: 10000 USDC units
+  - Command:
+${indentText(buildPayCommand(config))}
   - Output: buyer-agent skip reasons, top fixes, rewritten listing, stop-or-upgrade guidance
 
 Request body JSON:
@@ -2601,6 +2627,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, ROAST_PATH),
           price: config.instantScorePrice,
           network: config.network,
+          command: buildGetPayCommand(config, ROAST_PATH),
           description: "one-tenth-cent GET marketplace listing score API for marketplace listing quality, paid API discoverability, x402 listing quality, agent service listing clarity, buyer-agent skip reasons, and conversion checks on the indexed listing-roast URL.",
           payment: buildPaymentHint(config, {
             path: ROAST_PATH,
@@ -2620,6 +2647,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, INSTANT_SCORE_PATH),
           price: config.instantScorePrice,
           network: config.network,
+          command: buildGetPayCommand(config),
           description: "one-tenth-cent GET marketplace listing score and paid API listing quality score for agent-service listing clarity, marketplace conversion, and x402 service discoverability.",
           payment: buildPaymentHint(config, {
             path: INSTANT_SCORE_PATH,
@@ -2638,6 +2666,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, CONVERSION_SCORE_PATH),
           price: config.instantScorePrice,
           network: config.network,
+          command: buildGetPayCommand(config, CONVERSION_SCORE_PATH, INSTANT_SCORE_AMOUNT),
           description: "one-tenth-cent GET x402 marketplace conversion score for paid API listing quality, agent-service listing clarity, and buyer-agent conversion checks.",
           payment: buildPaymentHint(config, {
             path: CONVERSION_SCORE_PATH,
@@ -2656,6 +2685,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, AGENT_LISTING_PATH),
           price: config.instantScorePrice,
           network: config.network,
+          command: buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT),
           description: "Listing Roast one-tenth-cent GET agent listing conversion score for agent service listing clarity, buyer-agent skip reasons, buyer intent, paid API listing quality, and marketplace conversion.",
           payment: buildPaymentHint(config, {
             path: AGENT_LISTING_PATH,
@@ -2674,6 +2704,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, PING_PATH),
           price: config.instantScorePrice,
           network: config.network,
+          command: buildGetPayCommand(config, PING_PATH, PING_AMOUNT),
           description: "one-tenth-cent paid ping to verify the Base x402 rail before buying a listing score or roast.",
           payment: buildPaymentHint(config, {
             path: PING_PATH,
@@ -2692,6 +2723,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, SITE_AUDIT_PATH),
           price: config.siteAuditPrice,
           network: config.network,
+          command: buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT),
           description: "one-tenth-cent GET x402 service discoverability audit and paid API preflight for direct 402 metadata, route health, Bazaar pricing, search visibility, and no-spend fix steps.",
           payment: buildPaymentHint(config, {
             path: SITE_AUDIT_PATH,
@@ -2710,6 +2742,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
           price: config.discoveryAuditPrice,
           network: config.network,
+          command: buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample),
           description: "Bazaar discovery audit for stale indexed pricing, missing search visibility, direct 402 metadata, and no-spend fix steps.",
           payment: buildPaymentHint(config, {
             path: DISCOVERY_AUDIT_PATH,
@@ -2728,6 +2761,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, "/api/listing-score"),
           price: config.scorePrice,
           network: config.network,
+          command: buildPayCommand(config, "/api/listing-score", "5000"),
           description: "paid API listing quality score for agent-service listing clarity, marketplace conversion, and x402 service discoverability.",
           payment: buildPaymentHint(config, {
             path: "/api/listing-score",
@@ -2746,6 +2780,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, ROAST_PATH),
           price: config.price,
           network: config.network,
+          command: buildPayCommand(config),
           description: "marketplace listing conversion roast for paid API listing quality, agent service listing clarity, and buyer-agent skip reasons.",
           payment: buildPaymentHint(config, {
             path: ROAST_PATH,

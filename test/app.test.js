@@ -159,6 +159,12 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.payNow).toContain("/api/pay-now");
       expect(mcp.json.keywords).toContain("marketplace listing score");
       expect(mcp.json.tools[0].description).toContain("marketplace listing score");
+      expect(mcp.json.tools[0].command).toContain("/api/listing-roast");
+      expect(mcp.json.tools[0].command).toContain("--max-amount 1000");
+      expect(mcp.json.tools[3].command).toContain("/api/agent-listing-conversion");
+      expect(mcp.json.tools[3].command).toContain("--max-amount 1000");
+      expect(mcp.json.tools[6].command).toContain("/api/x402-discovery-audit");
+      expect(mcp.json.tools[6].command).toContain("--max-amount 10000");
       expect(mcp.json.tools[0].payment.maxAmountRequired).toBe("1000");
       expect(mcp.json.tools[0].payment.preferredFirstPaidAction).toBe(true);
       expect(mcp.json.tools[1].payment.maxAmountRequired).toBe("1000");
@@ -362,6 +368,11 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/api/listing-score");
       expect(llms.text).toContain("/api/pay-now");
       expect(llms.text).toContain("/.well-known/x402");
+      expect(llms.text).toContain("npx awal@2.8.0 x402 pay");
+      expect(llms.text).toContain("x402 pay http://localhost:8787/api/listing-roast");
+      expect(llms.text).toContain("/api/agent-listing-conversion");
+      expect(llms.text).toContain("--max-amount 1000");
+      expect(llms.text).toContain("--max-amount 10000");
       expect(llms.text).toContain("already-indexed listing-roast URL");
       expect(llms.text).toContain("/x402.json");
       expect(llms.text).toContain("marketplace listing score");
