@@ -97,6 +97,7 @@ describe("Listing Roast x402 service", () => {
       expect(home.headers.get("link")).toContain("/.well-known/x402.json");
       expect(home.text).toContain("Copy $0.001 instant command");
       expect(home.text).toContain("Copy x402 ping command");
+      expect(home.text).toContain("Copy $0.001 site audit command");
       expect(home.text).toContain("Copy discovery audit command");
       expect(home.text).toContain("Copy $0.005 score command");
       expect(home.text).toContain("Copy $0.01 roast command");
@@ -111,6 +112,7 @@ describe("Listing Roast x402 service", () => {
       expect(builder.text).toContain("Build a paid score command from your listing.");
       expect(builder.text).toContain("/api/listing-score");
       expect(builder.text).toContain("/api/x402-ping");
+      expect(builder.text).toContain("/api/x402-site-audit");
       expect(builder.text).toContain("builderCommandBuilds");
 
       const sample = await fetchJson(server, "/sample");
@@ -141,14 +143,14 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.x402Manifest).toContain("/x402.json");
       expect(mcp.json.keywords).toContain("marketplace listing score");
       expect(mcp.json.tools[0].description).toContain("marketplace listing score");
-      expect(mcp.json.tools.map((tool) => tool.path)).toEqual(["/api/instant-listing-score", "/api/listing-roast", "/api/x402-ping", "/api/x402-discovery-audit", "/api/listing-score", "/api/listing-roast"]);
+      expect(mcp.json.tools.map((tool) => tool.path)).toEqual(["/api/instant-listing-score", "/api/listing-roast", "/api/x402-ping", "/api/x402-site-audit", "/api/x402-discovery-audit", "/api/listing-score", "/api/listing-roast"]);
 
       const x402Manifest = await fetchJson(server, "/x402.json");
       expect(x402Manifest.status).toBe(200);
       expect(x402Manifest.json.keywords).toContain("paid API listing");
       expect(x402Manifest.json.keywords).toContain("x402 bazaar discovery audit");
-      expect(x402Manifest.json.resources.map((resource) => resource.id)).toEqual(["instant_listing_score", "indexed_roast_quick_score", "x402_ping", "x402_discovery_audit", "listing_score", "listing_roast"]);
-      expect(x402Manifest.json.resources.map((resource) => resource.path)).toEqual(["/api/instant-listing-score", "/api/listing-roast", "/api/x402-ping", "/api/x402-discovery-audit", "/api/listing-score", "/api/listing-roast"]);
+      expect(x402Manifest.json.resources.map((resource) => resource.id)).toEqual(["instant_listing_score", "indexed_roast_quick_score", "x402_ping", "x402_site_audit", "x402_discovery_audit", "listing_score", "listing_roast"]);
+      expect(x402Manifest.json.resources.map((resource) => resource.path)).toEqual(["/api/instant-listing-score", "/api/listing-roast", "/api/x402-ping", "/api/x402-site-audit", "/api/x402-discovery-audit", "/api/listing-score", "/api/listing-roast"]);
       expect(x402Manifest.json.resources[0].keywords).toContain("marketplace listing score");
       expect(x402Manifest.json.resources[0].price).toBe("$0.001");
       expect(x402Manifest.json.resources[0].maxAmountRequired).toBe("1000");
@@ -158,21 +160,25 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.resources[2].price).toBe("$0.001");
       expect(x402Manifest.json.resources[2].keywords).toContain("x402 ping");
       expect(x402Manifest.json.resources[2].maxAmountRequired).toBe("1000");
-      expect(x402Manifest.json.resources[3].price).toBe("$0.01");
-      expect(x402Manifest.json.resources[3].keywords).toContain("x402 bazaar discovery audit");
-      expect(x402Manifest.json.resources[3].maxAmountRequired).toBe("10000");
-      expect(x402Manifest.json.resources[4].price).toBe("$0.005");
-      expect(x402Manifest.json.resources[4].maxAmountRequired).toBe("5000");
-      expect(x402Manifest.json.resources[5].price).toBe("$0.01");
-      expect(x402Manifest.json.resources[5].maxAmountRequired).toBe("10000");
+      expect(x402Manifest.json.resources[3].price).toBe("$0.001");
+      expect(x402Manifest.json.resources[3].keywords).toContain("x402 site audit");
+      expect(x402Manifest.json.resources[3].maxAmountRequired).toBe("1000");
+      expect(x402Manifest.json.resources[4].price).toBe("$0.01");
+      expect(x402Manifest.json.resources[4].keywords).toContain("x402 bazaar discovery audit");
+      expect(x402Manifest.json.resources[4].maxAmountRequired).toBe("10000");
+      expect(x402Manifest.json.resources[5].price).toBe("$0.005");
+      expect(x402Manifest.json.resources[5].maxAmountRequired).toBe("5000");
+      expect(x402Manifest.json.resources[6].price).toBe("$0.01");
+      expect(x402Manifest.json.resources[6].maxAmountRequired).toBe("10000");
 
       const wellKnownX402Manifest = await fetchJson(server, "/.well-known/x402.json");
       expect(wellKnownX402Manifest.status).toBe(200);
       expect(wellKnownX402Manifest.json.resources[0].command).toContain("--max-amount 1000");
       expect(wellKnownX402Manifest.json.resources[1].command).toContain("/api/listing-roast");
       expect(wellKnownX402Manifest.json.resources[2].command).toContain("/api/x402-ping");
-      expect(wellKnownX402Manifest.json.resources[3].command).toContain("/api/x402-discovery-audit");
-      expect(wellKnownX402Manifest.json.resources[5].command).toContain("--max-amount 10000");
+      expect(wellKnownX402Manifest.json.resources[3].command).toContain("/api/x402-site-audit");
+      expect(wellKnownX402Manifest.json.resources[4].command).toContain("/api/x402-discovery-audit");
+      expect(wellKnownX402Manifest.json.resources[6].command).toContain("--max-amount 10000");
 
       const examples = await fetchJson(server, "/api/examples");
       expect(examples.status).toBe(200);
@@ -184,15 +190,19 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.instantScoreRoute).toContain("/api/instant-listing-score");
       expect(examples.json.indexedRoastGetRoute).toContain("/api/listing-roast");
       expect(examples.json.pingRoute).toContain("/api/x402-ping");
+      expect(examples.json.siteAuditRoute).toContain("/api/x402-site-audit");
       expect(examples.json.discoveryAuditRoute).toContain("/api/x402-discovery-audit");
       expect(examples.json.instantScorePrice).toBe("$0.001");
+      expect(examples.json.siteAuditPrice).toBe("$0.001");
       expect(examples.json.instantScoreCommand).toContain("--max-amount 1000");
       expect(examples.json.indexedRoastGetCommand).toContain("--max-amount 1000");
       expect(examples.json.pingCommand).toContain("--max-amount 1000");
+      expect(examples.json.siteAuditCommand).toContain("--max-amount 1000");
       expect(examples.json.discoveryAuditCommand).toContain("--max-amount 10000");
       expect(examples.json.instantScoreOutput.price).toBe("$0.001");
       expect(examples.json.indexedRoastGetOutput.endpoint).toBe("listing-roast-quick-score");
       expect(examples.json.pingOutput.endpoint).toBe("x402-ping");
+      expect(examples.json.siteAuditOutput.endpoint).toBe("x402-site-audit");
       expect(examples.json.discoveryAuditOutput.endpoint).toBe("x402-discovery-audit");
       expect(examples.json.command).toContain("x402 pay");
       expect(examples.json.scoreCommand).toContain("/api/listing-score");
@@ -205,6 +215,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.info["x-keywords"]).toContain("x402 listing");
       expect(openApi.json.paths["/api/instant-listing-score"].get.summary).toContain("$0.001");
       expect(openApi.json.paths["/api/x402-ping"].get.summary).toContain("$0.001");
+      expect(openApi.json.paths["/api/x402-site-audit"].get.summary).toContain("$0.001");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.summary).toContain("$0.01");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("$0.001");
       expect(openApi.json.paths["/api/listing-score"].post.summary).toContain("marketplace listing score");
@@ -216,6 +227,7 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("Command builder");
       expect(llms.text).toContain("/api/instant-listing-score");
       expect(llms.text).toContain("/api/x402-ping");
+      expect(llms.text).toContain("/api/x402-site-audit");
       expect(llms.text).toContain("/api/x402-discovery-audit");
       expect(llms.text).toContain("/api/listing-score");
       expect(llms.text).toContain("already-indexed listing-roast URL");
@@ -232,6 +244,7 @@ describe("Listing Roast x402 service", () => {
       expect(sitemap.text).toContain("/sample");
       expect(sitemap.text).toContain("/api/instant-listing-score");
       expect(sitemap.text).toContain("/api/x402-ping");
+      expect(sitemap.text).toContain("/api/x402-site-audit");
       expect(sitemap.text).toContain("/api/x402-discovery-audit");
       expect(sitemap.text).toContain("/api/sample-score");
       expect(sitemap.text).toContain("/openapi.json");
@@ -322,6 +335,11 @@ describe("Listing Roast x402 service", () => {
       expect(headPing.headers.get("allow")).toBe("GET");
       expect(headPing.headers.get("payment-required")).toBeNull();
       expect(headPing.headers.get("link")).toContain("/x402.json");
+
+      const headSiteAudit = await fetchJson(server, "/api/x402-site-audit", { method: "HEAD" });
+      expect(headSiteAudit.status).toBe(405);
+      expect(headSiteAudit.headers.get("allow")).toBe("GET");
+      expect(headSiteAudit.headers.get("payment-required")).toBeNull();
 
       const headRoast = await fetchJson(server, "/api/listing-roast", { method: "HEAD" });
       expect(headRoast.status).toBe(405);
@@ -435,6 +453,34 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.pingValidUnpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.roastValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.scoreValidUnpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  }, 15000);
+
+  it("protects the x402 site audit route with a one-tenth-cent x402 challenge", async () => {
+    mockFacilitatorSupportedKinds();
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      const response = await fetchJson(server, "/api/x402-site-audit?url=https%3A%2F%2Flisting-roast-x402-service-production.up.railway.app%2Fapi%2Flisting-roast&query=listing%20roast");
+
+      expect(response.status).toBe(402);
+      const challenge = readPaymentRequiredHeader(response.headers);
+      expect(challenge.error).toBe("Payment required");
+      expect(challenge.resource.url).toContain("/api/x402-site-audit");
+      expect(challenge.resource.description).toContain("$0.001");
+      expect(challenge.resource.description).toContain("Site Audit");
+      expect(challenge.accepts[0].network).toBe("eip155:84532");
+      expect(challenge.accepts[0].amount).toBe("1000");
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.validUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.discoveryAuditValidUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.instantScoreValidUnpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.pingValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
     } finally {
       await new Promise((resolve) => server.close(resolve));
