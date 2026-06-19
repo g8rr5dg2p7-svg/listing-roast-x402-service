@@ -351,6 +351,11 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.payNowExamples.discoveryAudit.selectedActionKey).toBe("discoveryAuditQuick");
       expect(x402Manifest.json.payNowExamples.fullRoast.maxAmountRequired).toBe("10000");
       expect(x402Manifest.json.cashRegister).toContain("/api/cash-register");
+      expect(x402Manifest.json.paidUsageProof.paidCompletions).toBe(0);
+      expect(x402Manifest.json.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.00");
+      expect(x402Manifest.json.paidUsageProof.cashRegister).toContain("/api/cash-register");
+      expect(x402Manifest.json.paidUsageProof.walletEvidenceFields).toContain("receiverWallet.usdcUnits");
+      expect(x402Manifest.json.paidUsageProof.noSpend).toBe(true);
       expect(x402Manifest.json.settlementProof.evidenceFields).toContain("receiverWallet.usdcUnits");
       expect(x402Manifest.json.pricing).toContain("/api/pricing");
       expect(x402Manifest.json.find).toContain("/api/find");
@@ -1402,6 +1407,13 @@ describe("Listing Roast x402 service", () => {
       expect(home.status).toBe(200);
       expect(home.text).toContain("2 paid completions");
       expect(home.text).toContain("$0.002 registered in the public cash register");
+
+      const x402Manifest = await fetchJson(server, "/x402.json");
+      expect(x402Manifest.status).toBe(200);
+      expect(x402Manifest.json.paidUsageProof.paidCompletions).toBe(2);
+      expect(x402Manifest.json.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.002");
+      expect(x402Manifest.json.paidUsageProof.proofText).toBe("2 paid completions; $0.002 registered");
+      expect(x402Manifest.json.paidUsageProof.cashRegister).toContain("/api/cash-register");
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }

@@ -2869,7 +2869,23 @@ function buildOpenApiDocument(config) {
   return document;
 }
 
-function buildX402Manifest(config) {
+function buildPaidUsageProof(config, cashRegister = {}) {
+  const paidCompletions = Number(cashRegister.paidCompletions || 0);
+  const estimatedGrossRevenueUsd = String(cashRegister.estimatedGrossRevenueUsd || "0.00").replace(/^\$/, "");
+
+  return {
+    paidCompletions,
+    estimatedGrossRevenueUsd,
+    proofText: `${paidCompletions} paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered`,
+    lastPaidAt: cashRegister.lastPaidAt || null,
+    source: "public_cash_register",
+    cashRegister: absoluteUrl(config, "/api/cash-register"),
+    walletEvidenceFields: ["receiverWallet.usdcBalance", "receiverWallet.usdcUnits", "receiverWallet.checkedAt"],
+    noSpend: true
+  };
+}
+
+function buildX402Manifest(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const baseUrl = absoluteUrl(config, "/").replace(/\/$/, "");
 
@@ -2902,6 +2918,7 @@ function buildX402Manifest(config) {
     payNowExamples: buildPayNowIntentExamples(config),
     intentLandingPages: buildIntentLandingHandoffs(config),
     cashRegister: absoluteUrl(config, "/api/cash-register"),
+    paidUsageProof: buildPaidUsageProof(config, cashRegister),
     settlementProof: buildSettlementProof(config),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
@@ -5687,7 +5704,8 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   async function serveX402Manifest(_request, response) {
     await recordSignal("x402ManifestViews");
-    setFreshDiscoveryHeaders(response).json(buildX402Manifest(config));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildX402Manifest(config, cashRegister));
   }
 
   app.get("/x402.json", serveX402Manifest);
