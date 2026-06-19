@@ -1276,12 +1276,33 @@ function buildPayNowActions(config) {
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
       reason: "Use this first when a marketplace or Bazaar result points to Listing Roast; it is the already-indexed URL and the lowest-friction paid score."
     }),
+    instantScore: buildRoutePaymentAction(config, {
+      path: INSTANT_SCORE_PATH,
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer selected the instant listing score route and wants the lowest-friction paid score."
+    }),
+    conversionScore: buildRoutePaymentAction(config, {
+      path: CONVERSION_SCORE_PATH,
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer selected the x402 marketplace conversion score route."
+    }),
     agentListingConversion: buildRoutePaymentAction(config, {
       path: AGENT_LISTING_PATH,
       method: "GET",
       price: config.instantScorePrice,
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
       reason: "Use this when the buyer is searching for agent listing conversion, agent-service listing clarity, or buyer-agent skip reasons."
+    }),
+    x402Ping: buildRoutePaymentAction(config, {
+      path: PING_PATH,
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: PING_AMOUNT,
+      reason: "Use this when the buyer selected the x402 ping route to verify the payment rail."
     }),
     x402SiteAudit: buildRoutePaymentAction(config, {
       path: SITE_AUDIT_PATH,
@@ -3552,8 +3573,8 @@ function createX402Middleware(config) {
         },
         description: "Instant Listing Score x402: $0.001 GET marketplace listing score and paid API listing quality score for agent-service listing clarity, marketplace conversion, and x402 service discoverability.",
         mimeType: "application/json",
-        customPaywallHtml: buildCustomPaywallHtml(config, "indexedQuickScore"),
-        unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
+        customPaywallHtml: buildCustomPaywallHtml(config, "instantScore"),
+        unpaidResponseBody: unpaidPaymentPreview(config, "instantScore"),
         extensions: declareDiscoveryExtension(buildInstantScoreDiscovery(config))
       },
       [`GET ${CONVERSION_SCORE_PATH}`]: {
@@ -3566,8 +3587,8 @@ function createX402Middleware(config) {
         },
         description: "x402 Marketplace Conversion Score: $0.001 GET marketplace conversion score for paid API listing quality, agent-service listing clarity, and buyer-agent conversion checks.",
         mimeType: "application/json",
-        customPaywallHtml: buildCustomPaywallHtml(config, "agentListingConversion"),
-        unpaidResponseBody: unpaidPaymentPreview(config, "agentListingConversion"),
+        customPaywallHtml: buildCustomPaywallHtml(config, "conversionScore"),
+        unpaidResponseBody: unpaidPaymentPreview(config, "conversionScore"),
         extensions: declareDiscoveryExtension(buildConversionScoreDiscovery(config))
       },
       [`GET ${AGENT_LISTING_PATH}`]: {
@@ -3608,8 +3629,8 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast x402 Ping: $0.001 paid GET ping to verify the Base x402 rail before buying a score or roast.",
         mimeType: "application/json",
-        customPaywallHtml: buildCustomPaywallHtml(config, "indexedQuickScore"),
-        unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
+        customPaywallHtml: buildCustomPaywallHtml(config, "x402Ping"),
+        unpaidResponseBody: unpaidPaymentPreview(config, "x402Ping"),
         extensions: declareDiscoveryExtension(buildPingDiscovery(config))
       },
       [`GET ${SITE_AUDIT_PATH}`]: {
