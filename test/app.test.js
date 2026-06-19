@@ -1520,12 +1520,14 @@ describe("Listing Roast x402 service", () => {
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
     const server = await listen(app);
     try {
-      const response = await fetchJson(server, "/api/agent-listing-conversion");
+      const response = await fetchJson(server, "/api/agent-listing-conversion?serviceUrl=https%3A%2F%2Fexample.com&serviceName=Example");
 
       expect(response.status).toBe(402);
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
-      expect(challenge.resource.url).toContain("/api/agent-listing-conversion");
+      const resourceUrl = new URL(challenge.resource.url);
+      expect(resourceUrl.pathname).toBe("/api/agent-listing-conversion");
+      expect(resourceUrl.search).toBe("");
       expect(challenge.resource.description).toMatch(/^buyer-agent skip reasons/);
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("agent listing conversion");

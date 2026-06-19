@@ -27,6 +27,7 @@ const INSTANT_SCORE_PATH = "/api/instant-listing-score";
 const CONVERSION_SCORE_PATH = "/api/x402-marketplace-conversion";
 const AGENT_LISTING_PATH = "/api/agent-listing-conversion";
 const ROAST_PATH = "/api/listing-roast";
+const SCORE_PATH = "/api/listing-score";
 const PING_PATH = "/api/x402-ping";
 const SITE_AUDIT_PATH = "/api/x402-site-audit";
 const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
@@ -3781,9 +3782,12 @@ function createX402Middleware(config) {
     console.warn("[x402] settle failed", summarizePaymentContext(context));
   });
 
+  const resourceUrl = (routePath) => absoluteUrl(config, routePath);
+
   return paymentMiddleware(
     {
       [`GET ${API_ENTRY_PATH}`]: {
+        resource: resourceUrl(API_ENTRY_PATH),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3798,6 +3802,7 @@ function createX402Middleware(config) {
         extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config))
       },
       [`GET ${API_V1_ENTRY_PATH}`]: {
+        resource: resourceUrl(API_V1_ENTRY_PATH),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3812,6 +3817,7 @@ function createX402Middleware(config) {
         extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config, API_V1_ENTRY_PATH))
       },
       [`GET ${V1_ENTRY_PATH}`]: {
+        resource: resourceUrl(V1_ENTRY_PATH),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3826,6 +3832,7 @@ function createX402Middleware(config) {
         extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config, V1_ENTRY_PATH))
       },
       "POST /api/listing-score": {
+        resource: resourceUrl(SCORE_PATH),
         accepts: {
           scheme: "exact",
           price: config.scorePrice,
@@ -3840,6 +3847,7 @@ function createX402Middleware(config) {
         extensions: declareDiscoveryExtension(buildScoreDiscovery(config))
       },
       [`GET ${INSTANT_SCORE_PATH}`]: {
+        resource: resourceUrl(INSTANT_SCORE_PATH),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3854,6 +3862,7 @@ function createX402Middleware(config) {
         extensions: declareDiscoveryExtension(buildInstantScoreDiscovery(config))
       },
       [`GET ${CONVERSION_SCORE_PATH}`]: {
+        resource: resourceUrl(CONVERSION_SCORE_PATH),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3868,6 +3877,7 @@ function createX402Middleware(config) {
         extensions: declareDiscoveryExtension(buildConversionScoreDiscovery(config))
       },
       [`GET ${AGENT_LISTING_PATH}`]: {
+        resource: resourceUrl(AGENT_LISTING_PATH),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3882,6 +3892,7 @@ function createX402Middleware(config) {
         extensions: declareDiscoveryExtension(buildAgentListingConversionDiscovery(config))
       },
       [`GET ${ROAST_PATH}`]: {
+        resource: resourceUrl(ROAST_PATH),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3896,6 +3907,7 @@ function createX402Middleware(config) {
         extensions: declareDiscoveryExtension(buildIndexedRoastGetDiscovery(config))
       },
       [`GET ${PING_PATH}`]: {
+        resource: resourceUrl(PING_PATH),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3910,6 +3922,7 @@ function createX402Middleware(config) {
         extensions: declareDiscoveryExtension(buildPingDiscovery(config))
       },
       [`GET ${SITE_AUDIT_PATH}`]: {
+        resource: resourceUrl(SITE_AUDIT_PATH),
         accepts: {
           scheme: "exact",
           price: config.siteAuditPrice,
@@ -3924,6 +3937,7 @@ function createX402Middleware(config) {
         extensions: declareDiscoveryExtension(buildSiteAuditDiscovery(config))
       },
       [`POST ${DISCOVERY_AUDIT_PATH}`]: {
+        resource: resourceUrl(DISCOVERY_AUDIT_PATH),
         accepts: {
           scheme: "exact",
           price: config.discoveryAuditPrice,
@@ -3938,6 +3952,7 @@ function createX402Middleware(config) {
         extensions: declareDiscoveryExtension(buildDiscoveryAuditDiscovery(config))
       },
       [`POST ${ROAST_PATH}`]: {
+        resource: resourceUrl(ROAST_PATH),
         accepts: {
           scheme: "exact",
           price: config.price,
