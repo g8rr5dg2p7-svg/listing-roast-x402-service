@@ -605,6 +605,10 @@ describe("Listing Roast x402 service", () => {
       expect(apiCatalog.headers.get("content-type")).toContain("application/linkset+json");
       expect(apiCatalog.headers.get("content-type")).toContain("rfc9727");
       expect(apiCatalog.json.linkset[0].anchor).toContain("/.well-known/api-catalog");
+      expect(apiCatalog.json.linkset[0].item[0].href).toBe("http://localhost:8787/api/listing-roast");
+      expect(apiCatalog.json.linkset[0].item[0].title).toContain("preferred first");
+      expect(apiCatalog.json.linkset[0].item[1].href).toBe("http://localhost:8787/");
+      expect(apiCatalog.json.linkset[0].item[1].title).toContain("root directory handoff");
       expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/api/v1");
       expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/v1");
       expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/api/listing-roast");
