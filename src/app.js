@@ -3663,6 +3663,16 @@ function scoreCatalogResource(resource, query) {
     if (resource.id === "listing_roast") score += 30;
   }
 
+  if (includesAny(normalizedQuery, ["marketplace listing score", "paid api listing quality score", "agent-service listing score", "agent service listing score"])) {
+    if (resource.id === "indexed_roast_quick_score" || resource.path === ROAST_PATH) score += 260;
+    if (resource.path === INSTANT_SCORE_PATH) score += 10;
+  }
+
+  if (includesAny(normalizedQuery, ["x402 marketplace conversion", "marketplace conversion score", "marketplace conversion check"])) {
+    if (resource.path === CONVERSION_SCORE_PATH) score += 140;
+    if (resource.id === "indexed_roast_quick_score" || resource.path === ROAST_PATH) score += 15;
+  }
+
   if (includesAny(normalizedQuery, ["full roast", "rewrite", "top fixes", "launch guidance", "custom body", "body-specific"])) {
     if (resource.id === "listing_roast") score += 125;
     if (resource.id === "listing_score") score += 55;

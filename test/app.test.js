@@ -1470,6 +1470,18 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoverySearch.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
       expect(localDiscoverySearch.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
 
+      const localDiscoveryListingScoreSearch = await fetchJson(server, "/v2/x402/discovery/search?query=marketplace%20listing%20score&limit=2");
+      expect(localDiscoveryListingScoreSearch.status).toBe(200);
+      expect(localDiscoveryListingScoreSearch.headers.get("payment-required")).toBeNull();
+      expect(localDiscoveryListingScoreSearch.json.resources[0].metadata.path).toBe("/api/listing-roast");
+      expect(localDiscoveryListingScoreSearch.json.resources[0].metadata.maxAmountRequired).toBe("1000");
+
+      const localDiscoveryConversionSearch = await fetchJson(server, "/v2/x402/discovery/search?query=x402%20marketplace%20conversion&limit=2");
+      expect(localDiscoveryConversionSearch.status).toBe(200);
+      expect(localDiscoveryConversionSearch.headers.get("payment-required")).toBeNull();
+      expect(localDiscoveryConversionSearch.json.resources[0].metadata.path).toBe("/api/x402-marketplace-conversion");
+      expect(localDiscoveryConversionSearch.json.resources[0].metadata.maxAmountRequired).toBe("1000");
+
       const localDiscoveryMerchant = await fetchJson(server, "/v2/x402/discovery/merchant?payTo=0x000000000000000000000000000000000000dEaD");
       expect(localDiscoveryMerchant.status).toBe(200);
       expect(localDiscoveryMerchant.headers.get("payment-required")).toBeNull();
@@ -1495,7 +1507,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.pricingViews).toBe(1);
       expect(cashRegister.json.signals.findViews).toBe(5);
       expect(cashRegister.json.signals.routeViews).toBe(10);
-      expect(cashRegister.json.signals.localDiscoveryViews).toBe(4);
+      expect(cashRegister.json.signals.localDiscoveryViews).toBe(6);
       expect(cashRegister.json.signals.mcpViews).toBe(4);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(3);
       expect(cashRegister.json.signals.agentCardViews).toBe(2);
