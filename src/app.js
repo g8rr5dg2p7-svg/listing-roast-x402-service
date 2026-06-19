@@ -1548,6 +1548,36 @@ function buildPayNow(config, intent = "") {
   };
 }
 
+function buildPayNowIntentExample(config, intent, selectedActionKey) {
+  const intentRoutes = buildPayNowActions(config);
+  const selectedPaidAction = intentRoutes[selectedActionKey] || intentRoutes.indexedQuickScore;
+
+  return {
+    service: config.serviceName,
+    intent,
+    selectedActionKey,
+    selectedPaidAction,
+    route: selectedPaidAction.route,
+    method: selectedPaidAction.method,
+    price: selectedPaidAction.price,
+    maxAmountRequired: selectedPaidAction.maxAmountRequired,
+    network: config.network,
+    payTo: config.payTo,
+    command: selectedPaidAction.command,
+    reason: `Selected from the buyer intent: ${intent}`,
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes)
+  };
+}
+
+function buildPayNowIntentExamples(config) {
+  return {
+    skipReasons: buildPayNowIntentExample(config, "buyer-agent skip reasons", "agentListingConversion"),
+    discoveryAudit: buildPayNowIntentExample(config, "x402 discovery audit", "x402SiteAudit"),
+    fullRoast: buildPayNowIntentExample(config, "full roast rewrite top fixes", "fullRoast")
+  };
+}
+
 function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore") {
   const payNow = buildPayNow(config);
   const selected = payNow.intentRoutes[intentRouteKey] || payNow.preferredFirstPaidAction;
@@ -2439,6 +2469,7 @@ function buildOpenApiDocument(config) {
       mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
+      payNowExamples: buildPayNowIntentExamples(config),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
       route: absoluteUrl(config, ROUTE_PATH),
@@ -2500,6 +2531,7 @@ function buildX402Manifest(config) {
     mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
     mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
+    payNowExamples: buildPayNowIntentExamples(config),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
     route: absoluteUrl(config, ROUTE_PATH),
@@ -3214,6 +3246,7 @@ function buildAgentCard(config) {
     defaultOutputModes: ["application/json"],
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence,
+    payNowExamples: buildPayNowIntentExamples(config),
     skills: [
       buildAgentSkill(config, {
         id: "indexed-listing-roast-quick-score",
@@ -3324,6 +3357,7 @@ function buildAgentCard(config) {
       noSpendDiscovery: true,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
+      payNowExamples: buildPayNowIntentExamples(config),
       a2aTaskEndpointAvailable: false,
       note: "This public card is a discovery bridge for paid x402 HTTP+JSON routes. Use OpenAPI, x402 manifest, or MCP metadata for exact callable routes."
     }
@@ -3373,7 +3407,8 @@ function buildAiPluginManifest(config) {
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
       recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
-      recommendedPaidSequence
+      recommendedPaidSequence,
+      payNowExamples: buildPayNowIntentExamples(config)
     }
   };
 }
@@ -3673,7 +3708,8 @@ function buildMcpServerCard(config) {
       manifest: absoluteUrl(config, "/x402.json"),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
-      recommendedPaidSequence
+      recommendedPaidSequence,
+      payNowExamples: buildPayNowIntentExamples(config)
     },
     links: {
       metadata: metadataUrl,
@@ -5183,6 +5219,7 @@ ${copyScript("Copy command")}
     await recordSignal("mcpViews");
     const intentRoutes = buildPayNowActions(config);
     const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+    const payNowExamples = buildPayNowIntentExamples(config);
 
     setFreshDiscoveryHeaders(response).json({
       name: config.serviceName,
@@ -5205,6 +5242,7 @@ ${copyScript("Copy command")}
       mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
+      payNowExamples,
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
       route: absoluteUrl(config, ROUTE_PATH),
@@ -5217,7 +5255,8 @@ ${copyScript("Copy command")}
         manifest: absoluteUrl(config, "/x402.json"),
         payNow: absoluteUrl(config, PAY_NOW_PATH),
         preferredFirstPaidAction: intentRoutes.indexedQuickScore,
-        recommendedPaidSequence
+        recommendedPaidSequence,
+        payNowExamples
       },
       keywords: DISCOVERY_KEYWORDS,
       tools: [
