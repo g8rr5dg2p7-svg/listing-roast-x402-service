@@ -23,11 +23,11 @@ Use this when sharing Listing Roast x402 with builders. Keep the claim tight: th
 
 ## Short Pitch
 
-Listing Roast x402 is a paid API for x402, MCP, and agent-service builders. Start with a $0.001 paid ping, instant GET score, or GET site audit; use the $0.005 listing score when you have a JSON payload; upgrade to the $0.01 full roast for buyer-agent skip reasons; or use the $0.01 full discovery audit when Bazaar pricing/search visibility needs a custom body.
+Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who need a paid API listing quality score before promotion. Start with a $0.001 paid ping, instant GET score, or GET site audit; use the $0.005 listing score when you have a JSON payload; upgrade to the $0.01 full roast for buyer-agent skip reasons; or use the $0.01 full discovery audit when Bazaar pricing/search visibility needs a custom body.
 
 ## X-Style Post
 
-I launched Listing Roast x402: a paid API that critiques paid agent/API listing copy before you promote it.
+I launched Listing Roast x402: a paid API listing quality score and roast for paid agent/API listing copy before you promote it.
 
 Use the command builder or see the sample output first. Start with a $0.001 paid ping, instant GET score, or GET x402 site audit. Upgrade to the $0.005 score or $0.01 full roast when you want buyer-agent skip reasons, top fixes, a tighter rewrite, and a stop-or-upgrade recommendation. If Bazaar shows a stale price or search misses your route, use the $0.001 site audit first or the $0.01 full discovery audit when you need a custom request body.
 
@@ -43,7 +43,7 @@ https://listing-roast-x402-service-production.up.railway.app/builder
 
 ## Builder Community Post
 
-I built a small x402 service for people launching paid APIs or agent tools.
+I built a small x402 service for people launching paid APIs or agent tools that need a paid API listing quality score before promotion.
 
 Listing Roast x402 takes your listing copy and returns a structured critique:
 

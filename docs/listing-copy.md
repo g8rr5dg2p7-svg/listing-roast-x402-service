@@ -2,7 +2,7 @@
 
 ## Short Listing
 
-Listing Roast x402 is a paid API for builders launching x402, MCP, or agent-facing services. Start with a $0.001 paid ping, instant GET score, or GET site audit; use the $0.005 score when you have a JSON payload; upgrade to the $0.01 full roast for buyer-agent skip reasons; or use the $0.01 full x402 discovery audit when Bazaar pricing/search visibility needs a custom body.
+Listing Roast x402 is a paid API for builders launching x402, MCP, or agent-facing services who need a paid API listing quality score before promotion. Start with a $0.001 paid ping, instant GET score, or GET site audit; use the $0.005 score when you have a JSON payload; upgrade to the $0.01 full roast for buyer-agent skip reasons; or use the $0.01 full x402 discovery audit when Bazaar pricing/search visibility needs a custom body.
 
 Command builder: https://listing-roast-x402-service-production.up.railway.app/builder
 
@@ -26,7 +26,7 @@ Live URL: https://listing-roast-x402-service-production.up.railway.app
 
 ## Buyer-Facing Description
 
-Listing Roast x402 helps builders avoid promoting paid API/service listings that buyer agents will skip. The command builder creates a copy-ready x402 command from the buyer's own listing, and the sample page shows the score output before payment. For $0.001, the paid ping verifies the x402 rail, the instant GET route and indexed listing-roast GET route return a quick score with no JSON body required, and the site audit checks public x402 metadata and Bazaar search visibility. For $0.005, the score endpoint checks the buyer, output promise, price visibility, checkout clarity, and example payload. For $0.01, the full roast returns a structured JSON critique with skip reasons, top fixes, rewritten listing copy, and a recommendation on whether to stop editing and test traffic or fix the offer first. The $0.01 discovery audit checks a public x402 endpoint against direct 402 metadata and Bazaar search/merchant discovery without making paid calls when a custom JSON body is needed.
+Listing Roast x402 helps builders avoid promoting paid API/service listings that buyer agents will skip. The command builder creates a copy-ready x402 command from the buyer's own listing, and the sample page shows the score output before payment. For $0.001, the paid ping verifies the x402 rail, the instant GET route and indexed listing-roast GET route return a quick paid API listing quality score with no JSON body required, and the site audit checks public x402 metadata and Bazaar search visibility. For $0.005, the score endpoint checks the buyer, output promise, price visibility, checkout clarity, and example payload. For $0.01, the full roast returns a structured JSON critique with skip reasons, top fixes, rewritten listing copy, and a recommendation on whether to stop editing and test traffic or fix the offer first. The $0.01 discovery audit checks a public x402 endpoint against direct 402 metadata and Bazaar search/merchant discovery without making paid calls when a custom JSON body is needed.
 
 ## Example Request
 
