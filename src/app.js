@@ -740,7 +740,7 @@ function buildScoreDiscovery(config) {
   return buildDiscovery(config, {
     routePath: "/api/listing-score",
     price: config.scorePrice,
-    outputExample: buildListingScore(requestExample),
+    outputExample: buildListingScoreWithUpgrade(requestExample, config),
     outputSchema: {
       type: "object",
       required: ["service", "endpoint", "price", "verdict", "score", "checkedSignals", "firstFix", "nextStep", "upgradeEndpoint"],
@@ -859,6 +859,13 @@ function buildNextPaidAction(config, input, options = {}) {
 
 function addNextPaidAction(result, action) {
   return action ? { ...result, nextPaidAction: action } : result;
+}
+
+function buildListingScoreWithUpgrade(input, config) {
+  return addNextPaidAction(buildListingScore(input), buildNextPaidAction(config, input, {
+    source: "listing-score-upgrade",
+    reason: "Buy the full roast from this score when you want the rewritten listing, top fixes, and stop-or-upgrade guidance."
+  }));
 }
 
 function buildInstantListingScore(input, config) {
@@ -2030,7 +2037,7 @@ function buildOpenApiDocument(config) {
               content: {
                 "application/json": {
                   schema: buildScoreDiscovery(config).output.schema,
-                  example: buildListingScore(requestExample)
+                  example: buildListingScoreWithUpgrade(requestExample, config)
                 }
               }
             },
@@ -2581,7 +2588,7 @@ function buildX402Manifest(config) {
         keywords: ["marketplace listing score", "paid API listing quality score", "agent-service listing score", "x402 marketplace conversion"],
         command: buildPayCommand(config, "/api/listing-score", "5000"),
         input: requestExample,
-        outputExample: buildListingScore(requestExample),
+        outputExample: buildListingScoreWithUpgrade(requestExample, config),
         schema: absoluteUrl(config, "/api/score-schema")
       },
       {
@@ -3938,7 +3945,7 @@ export function createApp(overrides = {}) {
     const discoveryAuditCommand = buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample);
     const payCommand = buildPayCommand(config);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
-    const scoreOutput = buildListingScore(requestExample);
+    const scoreOutput = buildListingScoreWithUpgrade(requestExample, config);
     const sampleOutput = buildListingRoast(requestExample);
 
     response.type("html").send(`<!doctype html>
@@ -4429,7 +4436,7 @@ ${webMcpScript(config)}
       siteAuditOutput: buildSiteAuditExampleOutput(config),
       discoveryAuditRequest: discoveryAuditRequestExample,
       discoveryAuditOutput: buildDiscoveryAuditExampleOutput(),
-      scoreOutput: buildListingScore(requestExample),
+      scoreOutput: buildListingScoreWithUpgrade(requestExample, config),
       output: buildListingRoast(requestExample)
     });
   });
@@ -4444,7 +4451,7 @@ ${webMcpScript(config)}
       network: config.network,
       request: requestExample,
       command: buildPayCommand(config, "/api/listing-score", "5000"),
-      output: buildListingScore(requestExample)
+      output: buildListingScoreWithUpgrade(requestExample, config)
     });
   });
 
@@ -4862,7 +4869,7 @@ ${copyScript("Copy command")}
     const indexedCommand = buildGetPayCommand(config, ROAST_PATH);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const roastCommand = buildPayCommand(config);
-    const scoreOutput = buildListingScore(requestExample);
+    const scoreOutput = buildListingScoreWithUpgrade(requestExample, config);
     const indexedOutput = buildIndexedRoastQuickScore(buildInstantScoreInput(), config);
     const builderUrl = absoluteUrl(config, "/builder");
     const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
@@ -5390,7 +5397,7 @@ ${copyScript("Copy command")}
       return;
     }
 
-    const result = buildListingScore(parsed.data);
+    const result = buildListingScoreWithUpgrade(parsed.data, config);
     const cashRegister = await recordPaidCompletion("listingScorePost", 0.005);
     response.json({ ...result, cashRegister });
   });

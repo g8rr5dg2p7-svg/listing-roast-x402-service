@@ -181,6 +181,8 @@ describe("Listing Roast x402 service", () => {
       expect(sampleScore.json.output.endpoint).toBe("listing-score");
       expect(sampleScore.json.output.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(sampleScore.json.output.nextPaidAction.path).toBe("/api/listing-roast");
+      expect(sampleScore.json.output.nextPaidAction.route).toContain("/api/listing-roast");
+      expect(sampleScore.json.output.nextPaidAction.command).toContain("--max-amount 10000");
 
       const schema = await fetchJson(server, "/api/schema");
       expect(schema.status).toBe(200);
@@ -560,6 +562,8 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.command).toContain("x402 pay");
       expect(examples.json.scoreCommand).toContain("/api/listing-score");
       expect(examples.json.scoreOutput.price).toBe("$0.005");
+      expect(examples.json.scoreOutput.nextPaidAction.route).toContain("/api/listing-roast");
+      expect(examples.json.scoreOutput.nextPaidAction.command).toContain("--max-amount 10000");
       expect(examples.json.output.price).toBe("$0.01");
 
       const openApi = await fetchJson(server, "/openapi.json");
@@ -646,6 +650,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-score"].post["x-payment"].maxAmountRequired).toBe("5000");
       expect(openApi.json.paths["/api/listing-score"].post["x-price"]).toBe("$0.005");
       expect(openApi.json.paths["/api/listing-score"].post["x-x402-price"]).toBe("$0.005");
+      expect(openApi.json.paths["/api/listing-score"].post.responses[200].content["application/json"].example.nextPaidAction.command).toContain("--max-amount 10000");
       expect(openApi.json["x-listing-roast"].payNow).toContain("/api/pay-now");
       expect(openApi.json["x-listing-roast"].pricing).toContain("/api/pricing");
       expect(openApi.json["x-listing-roast"].find).toContain("/api/find");
@@ -1539,6 +1544,9 @@ describe("Listing Roast x402 service", () => {
       expect(scoreBodySchema.agentName.description).toContain("agent service");
       expect(scoreBodySchema.listingText.description).toContain("buyer-facing listing copy");
       expect(scoreBodySchema.source.description).toContain("upgrade path");
+      expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.route).toContain("/api/listing-roast");
+      expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.command).toContain("--max-amount 10000");
+      expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.body.source).toBe("listing-score-upgrade");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
