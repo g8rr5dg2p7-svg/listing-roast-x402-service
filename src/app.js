@@ -115,7 +115,7 @@ const DISCOVERY_KEYWORDS = [
   "x402 service discoverability"
 ];
 const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, and x402 service discoverability before promotion.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Listing Roast Quick Score x402: $0.001 GET marketplace listing score and score API marketplace listing quality and discoverability for paid API listings, agent service listing clarity, agent listing conversion score, buyer-agent skip reasons, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and x402 service discoverability on the indexed /api/listing-roast URL.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Marketplace listing score, paid API listing quality score, and buyer-agent skip reasons: $0.001 GET Listing Roast x402 quick score for agent service listing clarity, agent listing conversion score, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and x402 service discoverability on the indexed /api/listing-roast URL. POST the same URL for the $0.01 full roast.";
 const LISTING_REQUEST_SCHEMA_PROPERTIES = {
   agentName: {
     type: "string",

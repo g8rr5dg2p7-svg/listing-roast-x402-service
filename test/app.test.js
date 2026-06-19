@@ -1547,6 +1547,7 @@ describe("Listing Roast x402 service", () => {
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
+      expect(challenge.resource.description).toMatch(/^Marketplace listing score, paid API listing quality score, and buyer-agent skip reasons/);
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("buyer-agent skip reasons");
       expect(challenge.resource.description).toContain("agent service listing clarity");
