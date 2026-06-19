@@ -125,6 +125,12 @@ describe("Listing Roast x402 service", () => {
       expect(health.status).toBe(200);
       expect(health.json.paidRoute).toBe("/api/listing-roast");
       expect(health.headers.get("link")).toContain("/x402.json");
+      expect(health.headers.get("link")).toContain("/api/listing-roast");
+      expect(health.headers.get("link")).toContain("/api/marketplace-listing-score");
+      expect(health.headers.get("link")).toContain("/api/paid-api-listing-quality");
+      expect(health.headers.get("link")).toContain("/api/buyer-agent-skip-reasons");
+      expect(health.headers.get("link")).toContain("/api/agent-service-clarity");
+      expect(health.headers.get("link")).toContain("GET $0.001 paid API listing quality");
       expect(health.headers.get("link")).toContain("/api/pay-now");
       expect(health.headers.get("link")).toContain("/api/pricing");
       expect(health.headers.get("link")).toContain("/api/find");

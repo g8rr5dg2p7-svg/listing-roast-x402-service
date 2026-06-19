@@ -437,8 +437,17 @@ function listingQueryOpenApiParameters(defaults = LISTING_QUERY_PARAMETER_EXAMPL
 }
 
 function buildDiscoveryLinks(config) {
+  const exactPaidRouteLinks = [
+    [ROAST_PATH, "GET $0.001 indexed listing-roast quick score"],
+    ["/api/marketplace-listing-score", "GET $0.001 marketplace listing score"],
+    ["/api/paid-api-listing-quality", "GET $0.001 paid API listing quality"],
+    ["/api/buyer-agent-skip-reasons", "GET $0.001 buyer-agent skip reasons"],
+    ["/api/agent-service-clarity", "GET $0.001 agent service clarity"]
+  ].map(([pathname, title]) => `<${absoluteUrl(config, pathname)}>; rel="payment"; type="application/json"; title="${title}"`);
+
   return [
     `<${absoluteUrl(config, "/x402.json")}>; rel="payment"; type="application/json"`,
+    ...exactPaidRouteLinks,
     `<${absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_X402_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
