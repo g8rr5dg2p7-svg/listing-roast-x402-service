@@ -3628,7 +3628,7 @@ function buildX402Manifest(config, cashRegister = {}) {
         url: absoluteUrl(config, SITE_AUDIT_PATH),
         price: config.siteAuditPrice,
         maxAmountRequired: SITE_AUDIT_AMOUNT,
-        description: "One-tenth-cent GET x402 listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, and paid API preflight for direct 402 metadata, route health, Bazaar pricing, search visibility, OpenAPI, llms.txt, and no-spend next actions.",
+        description: "One-tenth-cent GET x402 listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, and paid API preflight before paying for direct 402 metadata, route health, Bazaar pricing, search visibility, OpenAPI, llms.txt, and no-spend next actions.",
         keywords: ["x402 site audit", "x402 service discoverability audit", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "x402 route health check", "x402 discovery audit", "x402 bazaar discovery audit", "bazaar search visibility", "x402 listing stale price"],
         command: buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT),
         input: buildSiteAuditDiscovery(config).input,
@@ -4430,7 +4430,7 @@ function buildAgentCard(config, cashRegister = {}) {
       buildAgentSkill(config, {
         id: "x402-site-audit",
         name: "x402 site audit",
-        description: "$0.001 GET x402 listing SEO audit, listing rank doctor, seller growth checklist, service discoverability, and paid API preflight audit.",
+        description: "$0.001 GET x402 listing SEO audit, listing rank doctor, seller growth checklist, service discoverability, and paid API preflight before paying audit.",
         tags: ["x402 site audit", "x402 service discoverability", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "paid API preflight"],
         method: "GET",
         path: SITE_AUDIT_PATH,
@@ -4520,7 +4520,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
       `Use GET ${absoluteUrl(config, API_ENTRY_PATH)}, GET ${absoluteUrl(config, API_V1_ENTRY_PATH)}, or GET ${absoluteUrl(config, V1_ENTRY_PATH)} for a generic ${config.instantScorePrice} paid x402 navigation route map with fallback quick score when an agent starts at /api, /api/v1, or /v1 first.`,
       `Preferred first paid action: GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units.`,
       `Use GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent service listing clarity, agent listing conversion score, and buyer-agent skip reasons.`,
-      `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight.`,
+      `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight before paying.`,
       `Use POST ${absoluteUrl(config, ROAST_PATH)} only when the buyer wants the full ${config.price} roast, rewrite, and stop-or-upgrade guidance.`,
       `Use free GET ${absoluteUrl(config, PRICING_PATH)} for the paid route price catalog, free GET ${absoluteUrl(config, FIND_PATH)}?q=<task> to choose one route, and free GET/POST ${absoluteUrl(config, ROUTE_PATH)} to rank local paid routes before spending.`,
       "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, Agent Skills index, MCP metadata, llms.txt, examples, sample score, pricing, route finder, local route router, and pay-now JSON."
@@ -6943,7 +6943,7 @@ ${copyScript("Copy command")}
           price: config.siteAuditPrice,
           network: config.network,
           command: buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT),
-          description: "one-tenth-cent GET x402 listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, and paid API preflight for direct 402 metadata, route health, Bazaar pricing, search visibility, and no-spend fix steps.",
+        description: "one-tenth-cent GET x402 listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, and paid API preflight before paying for direct 402 metadata, route health, Bazaar pricing, search visibility, and no-spend fix steps.",
           payment: buildPaymentHint(config, {
             path: SITE_AUDIT_PATH,
             method: "GET",

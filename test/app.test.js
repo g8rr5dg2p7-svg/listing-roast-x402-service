@@ -477,6 +477,7 @@ describe("Listing Roast x402 service", () => {
       expect(resourcesById.x402_ping.keywords).toContain("x402 ping");
       expect(resourcesById.x402_ping.maxAmountRequired).toBe("1000");
       expect(resourcesById.x402_site_audit.price).toBe("$0.001");
+      expect(resourcesById.x402_site_audit.description).toContain("paid API preflight before paying");
       expect(resourcesById.x402_site_audit.tags).toEqual([
         "x402",
         "discovery audit",
