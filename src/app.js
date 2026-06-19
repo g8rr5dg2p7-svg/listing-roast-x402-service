@@ -2674,6 +2674,7 @@ function buildOpenApiDocument(config) {
       preferredFirstPaidRoute: absoluteUrl(config, ROAST_PATH),
       recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
+      intentLandingPages: buildIntentLandingHandoffs(config),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       conversionScoreRoute: absoluteUrl(config, CONVERSION_SCORE_PATH),
       agentListingConversionRoute: absoluteUrl(config, AGENT_LISTING_PATH),
@@ -2737,6 +2738,7 @@ function buildX402Manifest(config) {
     mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     payNowExamples: buildPayNowIntentExamples(config),
+    intentLandingPages: buildIntentLandingHandoffs(config),
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     settlementProof: buildSettlementProof(config),
     pricing: absoluteUrl(config, PRICING_PATH),
@@ -3033,6 +3035,7 @@ function buildAgentToolsManifest(config) {
     pricing: PRICING_PATH,
     route: ROUTE_PATH,
     settlement_proof: "/api/cash-register",
+    intent_landing_pages: buildIntentLandingHandoffs(config),
     preferred_first_paid_action: {
       name: "indexed_roast_quick_score",
       ...intentRoutes.indexedQuickScore
@@ -4029,6 +4032,30 @@ function buildIntentLandingPages(config) {
       keywords: ["x402 site audit", "paid API preflight", "x402 route health check", "x402 service discoverability audit", "x402 listing SEO audit"]
     }
   ];
+}
+
+function summarizePaidAction(action) {
+  return {
+    route: action.route,
+    path: action.path,
+    method: action.method,
+    price: action.price,
+    maxAmountRequired: action.maxAmountRequired,
+    command: action.command,
+    reason: action.reason
+  };
+}
+
+function buildIntentLandingHandoffs(config) {
+  return buildIntentLandingPages(config).map((page) => ({
+    path: page.path,
+    url: absoluteUrl(config, page.path),
+    title: page.heading,
+    summary: page.summary,
+    keywords: page.keywords,
+    primaryPaidAction: summarizePaidAction(page.primaryAction),
+    supportingPaidAction: summarizePaidAction(page.supportingAction)
+  }));
 }
 
 function buildIntentLandingPage(config, page) {
@@ -5261,6 +5288,12 @@ Local x402 discovery resources: ${absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_P
 Local x402 discovery search: ${absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0])}?query=x402%20discovery%20audit
 Local x402 merchant resources: ${absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])}?payTo=${config.payTo}
 Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
+
+Buyer intent landing pages:
+${buildIntentLandingHandoffs(config).map((page) => `- ${page.title}: ${page.url}
+  - Use when: ${page.summary}
+  - Primary paid action: ${page.primaryPaidAction.method} ${absoluteUrl(config, page.primaryPaidAction.path)} (${page.primaryPaidAction.price}, max ${page.primaryPaidAction.maxAmountRequired})
+  - Supporting paid action: ${page.supportingPaidAction.method} ${absoluteUrl(config, page.supportingPaidAction.path)} (${page.supportingPaidAction.price}, max ${page.supportingPaidAction.maxAmountRequired})`).join("\n")}
 
 Preferred first paid route:
 
