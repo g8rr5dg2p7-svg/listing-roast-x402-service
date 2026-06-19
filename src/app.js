@@ -40,6 +40,9 @@ const DISCOVERY_KEYWORDS = [
   "agent-service listing score",
   "x402 marketplace conversion",
   "x402 site audit",
+  "x402 service discoverability audit",
+  "x402 route health check",
+  "paid API preflight",
   "x402 discovery audit",
   "x402 bazaar discovery audit",
   "x402 listing stale price",
@@ -142,7 +145,7 @@ function buildStructuredData(config) {
         },
         {
           "@type": "Offer",
-          name: "x402 site audit",
+          name: "x402 site audit and paid API preflight",
           price: "0.001",
           priceCurrency: "USD",
           url: absoluteUrl(config, SITE_AUDIT_PATH)
@@ -840,10 +843,10 @@ function buildOpenApiDocument(config) {
       },
       [SITE_AUDIT_PATH]: {
         get: {
-          operationId: "getX402SiteAudit",
-          tags: ["x402 discovery", "x402 site audit", "paid API listing"],
-          summary: "Paid $0.001 x402 site audit",
-          description: "Lowest-friction GET route for agents that want a quick no-spend audit of public x402 discovery, pricing, direct 402 metadata, and Bazaar search visibility before buying the full audit.",
+          operationId: "getX402ServiceDiscoverabilityAuditPaidApiPreflightRouteHealthCheck",
+          tags: ["x402 discovery", "x402 site audit", "x402 service discoverability audit", "paid API preflight", "x402 route health check", "paid API listing"],
+          summary: "Paid $0.001 x402 service discoverability audit and paid API preflight",
+          description: "Lowest-friction GET route for agents that want a quick no-spend x402 service discoverability audit, paid API preflight, route health check, public x402 discovery check, pricing check, direct 402 metadata check, and Bazaar search visibility check before buying the full audit.",
           "x-price": config.siteAuditPrice,
           "x-x402-price": config.siteAuditPrice,
           "x-payment": buildPaymentHint(config, {
@@ -851,7 +854,7 @@ function buildOpenApiDocument(config) {
             method: "GET",
             price: config.siteAuditPrice,
             maxAmountRequired: SITE_AUDIT_AMOUNT,
-            buyerAction: "Pay $0.001 for a no-spend x402 metadata, pricing, and search visibility check."
+            buyerAction: "Pay $0.001 for a no-spend x402 service discoverability audit, paid API preflight, route health check, metadata, pricing, and search visibility check."
           }),
           parameters: [
             { name: "endpointUrl", in: "query", required: false, schema: { type: "string" } },
@@ -1192,8 +1195,8 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, SITE_AUDIT_PATH),
         price: config.siteAuditPrice,
         maxAmountRequired: SITE_AUDIT_AMOUNT,
-        description: "One-tenth-cent GET x402 site audit for direct 402 metadata, Bazaar pricing, search visibility, OpenAPI, llms.txt, and no-spend next actions.",
-        keywords: ["x402 site audit", "x402 discovery audit", "x402 bazaar discovery audit", "bazaar search visibility", "x402 listing stale price"],
+        description: "One-tenth-cent GET x402 service discoverability audit and paid API preflight for direct 402 metadata, route health, Bazaar pricing, search visibility, OpenAPI, llms.txt, and no-spend next actions.",
+        keywords: ["x402 site audit", "x402 service discoverability audit", "paid API preflight", "x402 route health check", "x402 discovery audit", "x402 bazaar discovery audit", "bazaar search visibility", "x402 listing stale price"],
         command: buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT),
         input: buildSiteAuditDiscovery(config).input,
         outputExample: buildSiteAuditExampleOutput(config),
@@ -1339,7 +1342,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast x402 Site Audit: $0.001 GET audit for direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps.",
+        description: "Listing Roast x402 Site Audit: $0.001 GET service discoverability audit, paid API preflight, route health check, direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildSiteAuditDiscovery(config))
       },
@@ -2043,7 +2046,7 @@ Other paid routes:
   - Network: ${config.network}
   - Max amount: ${SITE_AUDIT_AMOUNT} USDC units
   - Output: direct 402 metadata check, Bazaar pricing check, search visibility, stale price mismatch, and no-spend fix steps
-  - Use when an agent wants a cheap x402 site audit without assembling a JSON body
+  - Use when an agent wants a cheap x402 service discoverability audit, paid API preflight, route health check, or site audit without assembling a JSON body
 
 - POST ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)}
   - Price: ${config.discoveryAuditPrice}
@@ -2464,15 +2467,15 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, SITE_AUDIT_PATH),
           price: config.siteAuditPrice,
           network: config.network,
-          description: "one-tenth-cent GET x402 site audit for direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps.",
+          description: "one-tenth-cent GET x402 service discoverability audit and paid API preflight for direct 402 metadata, route health, Bazaar pricing, search visibility, and no-spend fix steps.",
           payment: buildPaymentHint(config, {
             path: SITE_AUDIT_PATH,
             method: "GET",
             price: config.siteAuditPrice,
             maxAmountRequired: SITE_AUDIT_AMOUNT,
-            buyerAction: "Pay $0.001 for a no-spend x402 metadata, pricing, and search visibility check."
+            buyerAction: "Pay $0.001 for a no-spend x402 service discoverability audit, paid API preflight, route health check, metadata, pricing, and search visibility check."
           }),
-          keywords: ["x402 site audit", "x402 discovery audit", "bazaar search visibility", "x402 listing stale price"],
+          keywords: ["x402 site audit", "x402 service discoverability audit", "paid API preflight", "x402 route health check", "x402 discovery audit", "bazaar search visibility", "x402 listing stale price"],
           input: buildSiteAuditDiscovery(config).input
         },
         {
