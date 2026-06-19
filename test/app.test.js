@@ -522,6 +522,8 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.siteAuditCommand).toContain("--max-amount 1000");
       expect(examples.json.discoveryAuditCommand).toContain("--max-amount 10000");
       expect(examples.json.apiEntryOutput.endpoint).toBe("api-entry");
+      expect(examples.json.apiEntryOutput.includedQuickScore.endpoint).toBe("listing-roast-quick-score");
+      expect(examples.json.apiEntryOutput.includedQuickScore.price).toBe("$0.001");
       expect(examples.json.apiEntryOutput.preferredFirstPaidAction.path).toBe("/api/listing-roast");
       expect(examples.json.instantScoreOutput.price).toBe("$0.001");
       expect(examples.json.instantScoreOutput.nextPaidAction.maxAmountRequired).toBe("5000");
