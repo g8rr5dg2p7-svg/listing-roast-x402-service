@@ -496,9 +496,13 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.pricingCatalog.routes[0].path).toBe("/api/listing-roast");
       expect(examples.json.findExamples.discoveryAudit.recommended.path).toBe("/api/x402-site-audit");
       expect(examples.json.findExamples.skipReasons.recommended.path).toBe("/api/agent-listing-conversion");
+      expect(examples.json.findExamples.customScore.recommended.id).toBe("listing_score");
+      expect(examples.json.findExamples.customScore.recommended.method).toBe("POST");
       expect(examples.json.findExamples.fullRewrite.recommended.id).toBe("listing_roast");
       expect(examples.json.routeExamples.discoveryAudit.results[0].path).toBe("/api/x402-site-audit");
       expect(examples.json.routeExamples.skipReasons.results[0].path).toBe("/api/agent-listing-conversion");
+      expect(examples.json.routeExamples.customScore.results[0].id).toBe("listing_score");
+      expect(examples.json.routeExamples.customScore.results[0].method).toBe("POST");
       expect(examples.json.routeExamples.fullRewrite.results[0].path).toBe("/api/listing-roast");
       expect(examples.json.payNow.route).toContain("/api/listing-roast");
       expect(examples.json.payNow.command).toContain("--max-amount 1000");

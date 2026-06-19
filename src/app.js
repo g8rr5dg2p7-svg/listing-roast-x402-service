@@ -4327,11 +4327,13 @@ ${webMcpScript(config)}
       findExamples: {
         discoveryAudit: buildFindResult(config, "x402 discovery audit"),
         skipReasons: buildFindResult(config, "buyer-agent skip reasons"),
+        customScore: buildFindResult(config, "score my paid API listing with a custom body"),
         fullRewrite: buildFindResult(config, "listing roast full rewrite")
       },
       routeExamples: {
         discoveryAudit: buildRouteResult(config, { query: "x402 discovery audit", top: 3 }),
         skipReasons: buildRouteResult(config, { query: "buyer-agent skip reasons", top: 3 }),
+        customScore: buildRouteResult(config, { query: "score my paid API listing with a custom body", top: 3 }),
         fullRewrite: buildRouteResult(config, { query: "listing roast full rewrite", top: 3 })
       },
       apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
