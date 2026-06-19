@@ -80,6 +80,7 @@ const PREFLIGHT_ALIAS_PATHS = Object.freeze(["/api/preflight", "/api/v1/prefligh
 const SITE_AUDIT_PAID_PATHS = Object.freeze([SITE_AUDIT_PATH, ...PREFLIGHT_ALIAS_PATHS]);
 const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
 const PAY_NOW_PATH = "/api/pay-now";
+const COMMANDS_PATH = "/api/commands";
 const PAID_USAGE_PROOF_PATH = "/api/paid-usage-proof";
 const PRICING_PATH = "/api/pricing";
 const FIND_PATH = "/api/find";
@@ -226,8 +227,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-indexed-route-first-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T00:40:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-compact-command-handoff-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T01:05:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -523,6 +524,7 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, WELL_KNOWN_X402_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, API_X402_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
+    `<${absoluteUrl(config, COMMANDS_PATH)}>; rel="help"; type="application/json"; title="compact pay command handoff"`,
     `<${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}>; rel="service-meta"; type="application/json"; title="wallet-backed paid-use proof"`,
     `<${absoluteUrl(config, PRICING_PATH)}>; rel="service-meta"; type="application/json"`,
     `<${absoluteUrl(config, FIND_PATH)}>; rel="search"; type="application/json"`,
@@ -725,6 +727,7 @@ Fetch these before any payment:
 - API catalog: ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
 - Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
 - Examples and commands: ${absoluteUrl(config, "/api/examples")}
+- Compact command handoff: ${absoluteUrl(config, COMMANDS_PATH)}?intent=paid%20API%20listing%20quality
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
 - Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
@@ -873,6 +876,7 @@ Agents authorize each paid API call by completing the x402 payment challenge for
 - MCP server card: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 - llms.txt: ${absoluteUrl(config, "/llms.txt")}
 - Full Markdown guide: ${absoluteUrl(config, LLMS_FULL_PATH)}
+- Compact command handoff: ${absoluteUrl(config, COMMANDS_PATH)}?intent=paid%20API%20listing%20quality
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
 - Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
@@ -2876,6 +2880,64 @@ function buildPayNowIntentExamples(config) {
   };
 }
 
+function compactPaidAction(action) {
+  return {
+    route: action.route,
+    path: action.path,
+    method: action.method,
+    price: action.price,
+    maxAmountRequired: action.maxAmountRequired,
+    command: action.command,
+    reason: action.reason,
+    ...(action.body ? { body: action.body } : {})
+  };
+}
+
+function compactPaidUseProof(proof = {}) {
+  return {
+    paidCompletions: proof.paidCompletions,
+    estimatedGrossRevenueUsd: proof.estimatedGrossRevenueUsd,
+    lastPaidAt: proof.lastPaidAt,
+    preferredConvertedRoute: proof.preferredConvertedRoute,
+    source: proof.source,
+    cashRegister: proof.cashRegister,
+    noSpend: true
+  };
+}
+
+function buildCommandHandoff(config, intent = "", cashRegister = {}) {
+  const handoff = buildPayNow(config, intent, cashRegister);
+  const firstPaidAction = handoff.selectedFirstPaidAction || handoff.preferredFirstPaidAction;
+  const upgradeAction = handoff.selectedPaidSequence?.find((step) => step.step === 2)?.action || handoff.upgradeRoutes.roast;
+
+  return {
+    service: config.serviceName,
+    kind: "compact-pay-command-handoff",
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    noSpend: true,
+    intent: handoff.intent,
+    summary: "Compact command-first handoff for buyer agents. Fetching this JSON is free; payment happens only when the buyer calls the returned x402 route with a valid payment header.",
+    paidUseProof: compactPaidUseProof(handoff.paidUsageProof),
+    firstPaidAction: compactPaidAction(firstPaidAction),
+    ...(handoff.exactIntentPaidAction ? { exactIntentPaidAction: compactPaidAction(handoff.exactIntentPaidAction) } : {}),
+    expectedChallenge: handoff.expectedChallenge,
+    upgradeAfterFit: compactPaidAction(upgradeAction),
+    whenToPay: "Pay only when the buyer explicitly wants a paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent-service clarity check, or full listing roast.",
+    whenNotToPay: "Do not pay for discovery, proof checks, pricing, route selection, or health checks; use the free links below first.",
+    freeBeforePay: {
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      commands: absoluteUrl(config, COMMANDS_PATH),
+      paidUsageProof: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      find: absoluteUrl(config, FIND_PATH),
+      route: absoluteUrl(config, ROUTE_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      openApi: absoluteUrl(config, "/openapi.json")
+    },
+    marketplaceNote: handoff.marketplaceNote
+  };
+}
+
 function buildSettlementProof(config) {
   const settlement = buildLatestWalletSettlementProof(config);
 
@@ -3363,7 +3425,7 @@ function buildOpenApiPaymentRequiredResponse(config, intentRouteKey = "indexedQu
         schema: { type: "string" }
       },
       Link: {
-        description: "Discovery links for the x402 manifest, pay-now helper, pricing catalog, OpenAPI document, and agent metadata.",
+        description: "Discovery links for the x402 manifest, compact command helper, pay-now helper, pricing catalog, OpenAPI document, and agent metadata.",
         schema: { type: "string" }
       }
     },
@@ -3418,6 +3480,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
         recommendedPaidSequence
       },
       "x-recommended-first-paid-action": intentRoutes.indexedQuickScore,
+      "x-commands": absoluteUrl(config, COMMANDS_PATH),
       "x-pay-now": absoluteUrl(config, PAY_NOW_PATH),
       "x-paid-usage-proof": absoluteUrl(config, PAID_USAGE_PROOF_PATH)
     },
@@ -3434,6 +3497,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       buyerInstruction: "If the buyer intends to spend USDC, start with GET /api/listing-roast at $0.001 / max 1000 USDC units; read the 402 Payment-Required header, complete x402 payment, then retry with X-PAYMENT."
     },
     "x-recommended-first-paid-action": intentRoutes.indexedQuickScore,
+    "x-commands": absoluteUrl(config, COMMANDS_PATH),
     "x-pay-now": absoluteUrl(config, PAY_NOW_PATH),
     "x-paid-usage-proof": absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     paths: {
@@ -3900,6 +3964,29 @@ function buildOpenApiDocument(config, cashRegister = {}) {
           }
         }
       },
+      [COMMANDS_PATH]: {
+        get: {
+          operationId: "getCommands",
+          summary: "Free compact x402 command handoff",
+          description: "Small no-spend JSON that returns the recommended paid route, copy-ready x402 command, proof fields, and free links for a buyer intent.",
+          parameters: [
+            { name: "intent", in: "query", required: false, schema: { type: "string" }, description: "Buyer task, such as paid API listing quality, buyer-agent skip reasons, x402 discovery audit, or full listing roast." },
+            { name: "q", in: "query", required: false, schema: { type: "string" }, description: "Alias for intent." },
+            { name: "query", in: "query", required: false, schema: { type: "string" }, description: "Alias for intent." },
+            { name: "task", in: "query", required: false, schema: { type: "string" }, description: "Alias for intent." }
+          ],
+          responses: {
+            200: {
+              description: "Compact command-first handoff for the selected paid route",
+              content: {
+                "application/json": {
+                  example: buildCommandHandoff(config, "paid API listing quality")
+                }
+              }
+            }
+          }
+        }
+      },
       [PAID_USAGE_PROOF_PATH]: {
         get: {
           operationId: "getPaidUsageProof",
@@ -4110,6 +4197,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
       mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+      commands: absoluteUrl(config, COMMANDS_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       payNowExamples: buildPayNowIntentExamples(config),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
@@ -4257,6 +4345,7 @@ function buildPaidUsageProofResponse(config, cashRegister = {}) {
     settlementProof: buildSettlementProof(config),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
+    commands: absoluteUrl(config, COMMANDS_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
@@ -4669,6 +4758,8 @@ function buildX402Manifest(config, cashRegister = {}) {
     mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
     mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
+    commands: absoluteUrl(config, COMMANDS_PATH),
+    compactCommandHandoff: buildCommandHandoff(config, "", cashRegister),
     startHere,
     payNowExamples: buildPayNowIntentExamples(config),
     intentLandingPages: buildIntentLandingHandoffs(config),
@@ -5711,6 +5802,7 @@ function buildAgentCard(config, cashRegister = {}) {
       noSpendDiscovery: true,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
+      commands: absoluteUrl(config, COMMANDS_PATH),
       payNowExamples: buildPayNowIntentExamples(config),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
       paidUsageProof: buildPaidUsageProof(config, cashRegister),
@@ -5740,7 +5832,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
       `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight before paying; direct preflight aliases are ${formatPreflightAliasUrls(config)}.`,
       `Use POST ${absoluteUrl(config, ROAST_PATH)} only when the buyer wants the full ${config.price} roast, rewrite, and stop-or-upgrade guidance.`,
       `Use free GET ${absoluteUrl(config, PRICING_PATH)} for the paid route price catalog, free GET ${absoluteUrl(config, FIND_PATH)}?q=<task> to choose one route, and free GET/POST ${absoluteUrl(config, ROUTE_PATH)} to rank local paid routes before spending.`,
-      "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, Agent Skills index, MCP metadata, llms.txt, examples, sample score, paid-use proof, pricing, route finder, local route router, and pay-now JSON."
+      "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, Agent Skills index, MCP metadata, llms.txt, compact command handoff, examples, sample score, paid-use proof, pricing, route finder, local route router, and pay-now JSON."
     ].join(" "),
     auth: {
       type: "none"
@@ -5793,6 +5885,7 @@ function buildApiCatalog(config) {
     { href: absoluteUrl(config, API_V1_ENTRY_PATH), type: "application/json", title: "GET $0.001 versioned x402 navigation route map" },
     { href: absoluteUrl(config, V1_ENTRY_PATH), type: "application/json", title: "GET $0.001 short versioned x402 navigation route map" },
     { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "GET free intent-aware pay-now handoff for the selected paid route" },
+    { href: absoluteUrl(config, COMMANDS_PATH), type: "application/json", title: "GET free compact command-first pay handoff" },
     { href: absoluteUrl(config, PAID_USAGE_PROOF_PATH), type: "application/json", title: "GET free wallet-backed paid-use proof" },
     { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "GET free paid route pricing catalog" },
     { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "GET free task-to-paid-route finder" },
@@ -5841,6 +5934,7 @@ function buildApiCatalog(config) {
           { href: absoluteUrl(config, LLMS_FULL_PATH), type: "text/markdown", title: "Full agent-readable route guide" },
           { href: absoluteUrl(config, INDEX_MARKDOWN_PATH), type: "text/markdown", title: "Homepage Markdown guide" },
           { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "Intent-aware pay-now handoff" },
+          { href: absoluteUrl(config, COMMANDS_PATH), type: "application/json", title: "Compact command-first pay handoff" },
           { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "Paid route pricing catalog" },
           { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "Task-to-paid-route finder" },
           { href: absoluteUrl(config, ROUTE_PATH), type: "application/json", title: "Local paid-route router" },
@@ -5884,6 +5978,7 @@ Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cos
 - MCP discovery alias: ${absoluteUrl(config, WELL_KNOWN_MCP_PATH)}
 - MCP server-card metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 - Examples and commands: ${absoluteUrl(config, "/api/examples")}
+- Compact command handoff: ${absoluteUrl(config, COMMANDS_PATH)}?intent=paid%20API%20listing%20quality
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
 - Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
@@ -6056,6 +6151,7 @@ Allow: /
 # - ${absoluteUrl(config, "/llms.txt")}
 # - ${absoluteUrl(config, LLMS_FULL_PATH)}
 # - ${absoluteUrl(config, "/x402.json")}
+# - ${absoluteUrl(config, COMMANDS_PATH)}?intent=paid%20API%20listing%20quality
 # - ${absoluteUrl(config, PRICING_PATH)}
 # - ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 # - ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3
@@ -6178,6 +6274,7 @@ function buildIntentLandingPage(config, page) {
   <meta property="og:url" content="${escapeHtml(absoluteUrl(config, page.path))}" />
   <link rel="canonical" href="${escapeHtml(absoluteUrl(config, page.path))}" />
   <link rel="alternate" type="application/json" title="Listing Roast x402 manifest" href="${escapeHtml(absoluteUrl(config, "/x402.json"))}" />
+  <link rel="alternate" type="application/json" title="Listing Roast compact command handoff" href="${escapeHtml(absoluteUrl(config, COMMANDS_PATH))}" />
   <link rel="alternate" type="application/vnd.oai.openapi+json" title="Listing Roast OpenAPI" href="${escapeHtml(absoluteUrl(config, "/openapi.json"))}" />
   <title>${escapeHtml(page.title)}</title>
   <style>
@@ -6215,6 +6312,7 @@ function buildIntentLandingPage(config, page) {
       <nav class="navlinks" aria-label="Primary">
         <a href="/builder">Builder</a>
         <a href="/api/pay-now">Pay-now</a>
+        <a href="/api/commands">Commands</a>
         <a href="/x402.json">Manifest</a>
         <a href="/openapi.json">OpenAPI</a>
       </nav>
@@ -6228,6 +6326,7 @@ function buildIntentLandingPage(config, page) {
         <p>${page.keywords.map((keyword) => `<span class="tag">${escapeHtml(keyword)}</span>`).join("")}</p>
         <a class="button" href="${escapeHtml(page.primaryAction.route)}">${escapeHtml(page.primaryLabel)}</a>
         <a class="button secondary" href="/api/pay-now">Open free route handoff</a>
+        <a class="button secondary" href="/api/commands">Open compact command JSON</a>
       </div>
     </section>
     <section>
@@ -6246,7 +6345,7 @@ function buildIntentLandingPage(config, page) {
         </div>
         <div class="card">
           <h2>Free discovery before payment</h2>
-          <p><a href="/llms.txt">llms.txt</a> gives the short route guide. <a href="/x402.json">x402.json</a> gives machine-readable paid routes. <a href="/api/examples">/api/examples</a> gives command-ready examples.</p>
+          <p><a href="/llms.txt">llms.txt</a> gives the short route guide. <a href="/x402.json">x402.json</a> gives machine-readable paid routes. <a href="/api/commands">/api/commands</a> gives the compact command handoff. <a href="/api/examples">/api/examples</a> gives command-ready examples.</p>
         </div>
         <div class="card">
           <h2>No-spend boundary</h2>
@@ -6867,7 +6966,9 @@ export function createApp(overrides = {}) {
     const mcpUrl = absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH);
     const mcpServerCardUrl = absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH);
     const payNowUrl = absoluteUrl(config, PAY_NOW_PATH);
+    const commandsUrl = absoluteUrl(config, COMMANDS_PATH);
     const indexedPreviewUrl = `${payNowUrl}?intent=marketplace%20listing%20score`;
+    const commandPreviewUrl = `${commandsUrl}?intent=paid%20API%20listing%20quality`;
     const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
     const instantCommand = buildGetPayCommand(config);
     const agentListingCommand = buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT);
@@ -6915,6 +7016,7 @@ export function createApp(overrides = {}) {
   <link rel="canonical" href="${escapeHtml(config.serviceUrl)}/" />
   <link rel="icon" type="image/svg+xml" href="${escapeHtml(absoluteUrl(config, ICON_SVG_PATH))}" />
   <link rel="alternate" type="application/json" title="Listing Roast x402 manifest" href="${escapeHtml(absoluteUrl(config, "/x402.json"))}" />
+  <link rel="alternate" type="application/json" title="Listing Roast compact command handoff" href="${escapeHtml(commandsUrl)}" />
   <link rel="alternate" type="application/vnd.oai.openapi+json" title="Listing Roast OpenAPI" href="${escapeHtml(absoluteUrl(config, "/openapi.json"))}" />
   <link rel="alternate" type="text/plain" title="Listing Roast llms.txt" href="${escapeHtml(absoluteUrl(config, LLMS_PATH))}" />
   <link rel="alternate" type="text/plain" title="Listing Roast well-known llms.txt" href="${escapeHtml(absoluteUrl(config, WELL_KNOWN_LLMS_PATH))}" />
@@ -6984,6 +7086,7 @@ export function createApp(overrides = {}) {
       <nav class="navlinks" aria-label="Primary">
         <a href="#pay">Pay</a>
         <a href="${builderUrl}">Builder</a>
+        <a href="${commandsUrl}">Commands</a>
         <a href="${sampleUrl}">Sample</a>
         <a href="${examplesUrl}">Examples</a>
         <a href="${paidUsageProofUrl}">Proof</a>
@@ -7016,6 +7119,7 @@ export function createApp(overrides = {}) {
             <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
             <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $0.01 roast command">Copy $0.01 roast command</button>
             <a class="button" href="${indexedPreviewUrl}">Preview paid output JSON</a>
+            <a class="button secondary" href="${commandPreviewUrl}">Open compact command JSON</a>
             <a class="button secondary" href="${builderUrl}">Build your command</a>
             <a class="button secondary" href="${sampleUrl}">View sample score</a>
             <a class="button secondary" href="${examplesUrl}">Open examples JSON</a>
@@ -7166,7 +7270,7 @@ score: 4/5</div>
         <div>
           <h2>Output built for action.</h2>
           <p>The score response gives the first missing signal and upgrade guidance. The exact discovery audit GET route checks direct x402 metadata against Bazaar state at the same low first-click price. The full roast adds skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
-          <p class="muted">The current public proof endpoint is available at <a href="${paidUsageProofUrl}">/api/paid-usage-proof</a>. The cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. The command builder is available at <a href="${builderUrl}">/builder</a>. The direct pay-now handoff is available at <a href="${payNowUrl}">/api/pay-now</a> and accepts an intent query for task-specific commands. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
+          <p class="muted">The current public proof endpoint is available at <a href="${paidUsageProofUrl}">/api/paid-usage-proof</a>. The cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. The command builder is available at <a href="${builderUrl}">/builder</a>. The compact command handoff is available at <a href="${commandsUrl}">/api/commands</a>. The direct pay-now handoff is available at <a href="${payNowUrl}">/api/pay-now</a> and accepts an intent query for task-specific commands. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
         </div>
         <pre>${escapeHtml(prettyJson(scoreOutput))}</pre>
       </div>
@@ -7228,7 +7332,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PAID_USAGE_PROOF_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, COMMANDS_PATH, PAID_USAGE_PROOF_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -7246,6 +7350,12 @@ ${webMcpScript(config)}
   app.get(AGENTS_MARKDOWN_PATH, async (_request, response) => {
     await recordSignal("llmsViews");
     response.type("text/markdown").send(buildAgentsMarkdown(config));
+  });
+
+  app.get(COMMANDS_PATH, async (request, response) => {
+    await recordSignal("commandsViews");
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildCommandHandoff(config, request.query.intent || request.query.q || request.query.query || request.query.task || "", cashRegister));
   });
 
   app.get("/api/examples", async (_request, response) => {
@@ -7281,6 +7391,8 @@ ${webMcpScript(config)}
       mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
+      commands: absoluteUrl(config, COMMANDS_PATH),
+      compactCommandHandoff: buildCommandHandoff(config, "", cashRegister),
       payNow,
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
