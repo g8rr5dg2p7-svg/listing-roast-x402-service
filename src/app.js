@@ -361,6 +361,48 @@ function buildStructuredData(config) {
       itemListElement: [
         {
           "@type": "Offer",
+          name: "Indexed listing-roast quick score",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, ROAST_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "Instant listing score",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, INSTANT_SCORE_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "buyer-agent skip reasons and agent listing conversion score",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, AGENT_LISTING_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "x402 marketplace conversion score",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, CONVERSION_SCORE_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "x402 site audit and paid API preflight",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, SITE_AUDIT_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "x402 discovery audit",
+          price: "0.01",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, DISCOVERY_AUDIT_PATH)
+        },
+        {
+          "@type": "Offer",
           name: "Agent API entrypoint",
           price: "0.001",
           priceCurrency: "USD",
@@ -386,48 +428,6 @@ function buildStructuredData(config) {
           price: "0.001",
           priceCurrency: "USD",
           url: absoluteUrl(config, PING_PATH)
-        },
-        {
-          "@type": "Offer",
-          name: "x402 site audit and paid API preflight",
-          price: "0.001",
-          priceCurrency: "USD",
-          url: absoluteUrl(config, SITE_AUDIT_PATH)
-        },
-        {
-          "@type": "Offer",
-          name: "x402 discovery audit",
-          price: "0.01",
-          priceCurrency: "USD",
-          url: absoluteUrl(config, DISCOVERY_AUDIT_PATH)
-        },
-        {
-          "@type": "Offer",
-          name: "Instant listing score",
-          price: "0.001",
-          priceCurrency: "USD",
-          url: absoluteUrl(config, INSTANT_SCORE_PATH)
-        },
-        {
-          "@type": "Offer",
-          name: "x402 marketplace conversion score",
-          price: "0.001",
-          priceCurrency: "USD",
-          url: absoluteUrl(config, CONVERSION_SCORE_PATH)
-        },
-        {
-          "@type": "Offer",
-          name: "buyer-agent skip reasons and agent listing conversion score",
-          price: "0.001",
-          priceCurrency: "USD",
-          url: absoluteUrl(config, AGENT_LISTING_PATH)
-        },
-        {
-          "@type": "Offer",
-          name: "Indexed listing-roast quick score",
-          price: "0.001",
-          priceCurrency: "USD",
-          url: absoluteUrl(config, ROAST_PATH)
         },
         {
           "@type": "Offer",

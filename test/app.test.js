@@ -159,6 +159,11 @@ describe("Listing Roast x402 service", () => {
       expect(home.text).toContain("Open examples JSON");
       expect(home.text).toContain("application/ld+json");
       expect(home.text).toContain("Listing Roast x402 paid routes");
+      const structuredDataMatch = home.text.match(/<script type="application\/ld\+json">([^<]+)<\/script>/);
+      expect(structuredDataMatch).toBeTruthy();
+      const structuredData = JSON.parse(structuredDataMatch[1]);
+      expect(structuredData.hasOfferCatalog.itemListElement[0].name).toBe("Indexed listing-roast quick score");
+      expect(structuredData.hasOfferCatalog.itemListElement[0].url).toBe("http://localhost:8787/api/listing-roast");
       expect(home.text).toContain("/llms-full.txt");
       expect(home.text).toContain("/auth.md");
       expect(home.text).toContain("/.well-known/mcp/server-card.json");
