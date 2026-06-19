@@ -28,6 +28,13 @@ afterEach(async () => {
   delete process.env.BASELINE_LAST_SETTLEMENT_ROUTE_PATH;
   delete process.env.BASELINE_LAST_SETTLEMENT_METHOD;
   delete process.env.BASELINE_LAST_SETTLEMENT_MAX_AMOUNT_REQUIRED;
+  delete process.env.BASELINE_PAID_COMPLETIONS;
+  delete process.env.BASELINE_ESTIMATED_GROSS_REVENUE_USD;
+  delete process.env.BASELINE_LISTING_SCORE_COMPLETIONS;
+  delete process.env.BASELINE_LISTING_SCORE_REVENUE_USD;
+  delete process.env.BASELINE_INDEXED_ROAST_GET_COMPLETIONS;
+  delete process.env.BASELINE_INDEXED_ROAST_GET_REVENUE_USD;
+  delete process.env.BASELINE_LAST_PAID_AT;
   await rm(testDataDir, { recursive: true, force: true });
 });
 
@@ -2233,6 +2240,43 @@ describe("Listing Roast x402 service", () => {
       expect(unpaidIndexedRoast.json.settlementProof.latestWalletSettlement.usdc).toBe("0.001");
       expect(unpaidIndexedRoast.json.settlementProof.latestWalletSettlement.route.path).toBe("/api/listing-roast");
       expect(unpaidIndexedRoast.json.settlementProof.latestWalletSettlement.payerDetails).toBe("omitted");
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  it("shows wallet-derived paid completion proof on the cash register for imported baselines", async () => {
+    process.env.BASELINE_PAID_COMPLETIONS = "2";
+    process.env.BASELINE_ESTIMATED_GROSS_REVENUE_USD = "0.002";
+    process.env.BASELINE_LISTING_SCORE_COMPLETIONS = "2";
+    process.env.BASELINE_LISTING_SCORE_REVENUE_USD = "0.002";
+    process.env.BASELINE_INDEXED_ROAST_GET_COMPLETIONS = "1";
+    process.env.BASELINE_INDEXED_ROAST_GET_REVENUE_USD = "0.001";
+    process.env.BASELINE_LAST_PAID_AT = "2026-06-18T06:43:22.052Z";
+    process.env.BASELINE_LAST_SETTLEMENT_TX_HASH = "0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71";
+    process.env.BASELINE_LAST_SETTLEMENT_USDC_UNITS = "1000";
+    process.env.BASELINE_LAST_SETTLEMENT_CONFIRMED_AT = "2026-06-18T06:43:23.000Z";
+    process.env.BASELINE_LAST_SETTLEMENT_ROUTE_PATH = "/api/listing-roast";
+    process.env.BASELINE_LAST_SETTLEMENT_METHOD = "GET";
+    process.env.BASELINE_LAST_SETTLEMENT_MAX_AMOUNT_REQUIRED = "1000";
+
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.status).toBe(200);
+      expect(cashRegister.json.paidCompletions).toBe(2);
+      expect(cashRegister.json.estimatedGrossRevenueUsd).toBe("0.002");
+      expect(cashRegister.json.lastPaidCompletion.source).toBe("public_wallet_settlement");
+      expect(cashRegister.json.lastPaidCompletion.routeKey).toBe("indexedRoastGet");
+      expect(cashRegister.json.lastPaidCompletion.method).toBe("GET");
+      expect(cashRegister.json.lastPaidCompletion.path).toBe("/api/listing-roast");
+      expect(cashRegister.json.lastPaidCompletion.estimatedRevenueUsd).toBe("0.001");
+      expect(cashRegister.json.lastPaidCompletion.txHash).toBe(process.env.BASELINE_LAST_SETTLEMENT_TX_HASH);
+      expect(cashRegister.json.recentPaidCompletions).toHaveLength(1);
+      expect(cashRegister.json.derivedPaidCompletion.routeKey).toBe("indexedRoastGet");
+      expect(cashRegister.json.latestWalletSettlement.payerDetails).toBe("omitted");
+      expect(cashRegister.json.latestWalletSettlement.route.maxAmountRequired).toBe("1000");
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }

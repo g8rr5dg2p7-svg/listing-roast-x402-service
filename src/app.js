@@ -2880,6 +2880,70 @@ function buildLatestWalletSettlementProof(config) {
   };
 }
 
+function paidCompletionRouteKeyFromSettlement(method, pathname) {
+  const route = `${String(method || "GET").toUpperCase()} ${pathname || ROAST_PATH}`;
+  const routeKeys = {
+    [`GET ${ROOT_DIRECTORY_POST_PATH}`]: "directoryPost",
+    [`POST ${ROOT_DIRECTORY_POST_PATH}`]: "directoryPost",
+    [`GET ${API_ENTRY_PATH}`]: "apiEntry",
+    [`GET ${INSTANT_SCORE_PATH}`]: "instantScore",
+    [`GET ${CONVERSION_SCORE_PATH}`]: "conversionScore",
+    [`GET ${AGENT_LISTING_PATH}`]: "agentListingConversion",
+    [`GET ${ROAST_PATH}`]: "indexedRoastGet",
+    [`POST ${ROAST_PATH}`]: "listingRoast",
+    [`POST ${SCORE_PATH}`]: "listingScorePost",
+    [`GET ${PING_PATH}`]: "x402Ping",
+    [`GET ${SITE_AUDIT_PATH}`]: "x402SiteAudit",
+    [`GET ${DISCOVERY_AUDIT_PATH}`]: "x402DiscoveryAuditQuick",
+    [`POST ${DISCOVERY_AUDIT_PATH}`]: "x402DiscoveryAudit"
+  };
+
+  for (const aliasPath of PREFLIGHT_ALIAS_PATHS) {
+    routeKeys[`GET ${aliasPath}`] = "x402SiteAudit";
+  }
+
+  return routeKeys[route] || "walletSettlement";
+}
+
+function buildDerivedPaidCompletionFromSettlement(cashRegister = {}, settlement = null) {
+  if (!settlement || Number(cashRegister.paidCompletions || 0) <= 0) {
+    return null;
+  }
+
+  const route = settlement.route || {};
+  const method = String(route.method || "GET").toUpperCase();
+  const pathname = route.path || ROAST_PATH;
+
+  return {
+    paidAt: settlement.confirmedAt || cashRegister.lastPaidAt || null,
+    kind: paidCompletionRouteKeyFromSettlement(method, pathname),
+    routeKey: paidCompletionRouteKeyFromSettlement(method, pathname),
+    method,
+    path: pathname,
+    estimatedRevenueUsd: settlement.usdc || null,
+    source: "public_wallet_settlement",
+    txHash: settlement.txHash,
+    evidenceFields: ["latestWalletSettlement", "receiverWallet.usdcUnits"],
+    note: "Derived from public wallet-settlement proof because this paid completion was imported as a baseline rather than recorded by the local event log."
+  };
+}
+
+function buildPublicCashRegister(config, cashRegister = {}, receiverWallet = {}) {
+  const latestWalletSettlement = buildLatestWalletSettlementProof(config);
+  const recentPaidCompletions = Array.isArray(cashRegister.recentPaidCompletions) ? cashRegister.recentPaidCompletions : [];
+  const derivedPaidCompletion = buildDerivedPaidCompletionFromSettlement(cashRegister, latestWalletSettlement);
+  const shouldUseDerivedPaidCompletion = derivedPaidCompletion && !cashRegister.lastPaidCompletion && recentPaidCompletions.length === 0;
+
+  return {
+    ...cashRegister,
+    ...(latestWalletSettlement ? { latestWalletSettlement } : {}),
+    ...(shouldUseDerivedPaidCompletion ? { derivedPaidCompletion } : {}),
+    lastPaidCompletion: cashRegister.lastPaidCompletion || (shouldUseDerivedPaidCompletion ? derivedPaidCompletion : null),
+    recentPaidCompletions: shouldUseDerivedPaidCompletion ? [derivedPaidCompletion] : recentPaidCompletions,
+    receiverWallet
+  };
+}
+
 function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", selectedPaidAction = null) {
   const quickScoreExample = () => buildIndexedRoastQuickScoreDiscoveryExample(buildInstantScoreInput(), config);
   const previewByIntent = {
@@ -8183,7 +8247,7 @@ ${copyScript("Copy command")}
   app.get("/api/cash-register", async (_request, response) => {
     const cashRegister = await getCashRegister();
     const receiverWallet = await getReceiverBalanceSnapshot(config);
-    response.json({ ...cashRegister, receiverWallet });
+    response.json(buildPublicCashRegister(config, cashRegister, receiverWallet));
   });
 
   app.get(PAY_NOW_PATH, async (request, response) => {
