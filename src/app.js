@@ -33,6 +33,27 @@ const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
 const PAY_NOW_PATH = "/api/pay-now";
 const PRICING_PATH = "/api/pricing";
 const FIND_PATH = "/api/find";
+const LOCAL_DISCOVERY_RESOURCE_PATHS = [
+  "/v2/x402/discovery/resources",
+  "/x402/discovery/resources",
+  "/discovery/resources",
+  "/.well-known/x402/discovery/resources",
+  "/v1/x402/discovery/resources"
+];
+const LOCAL_DISCOVERY_SEARCH_PATHS = [
+  "/v2/x402/discovery/search",
+  "/x402/discovery/search",
+  "/discovery/search",
+  "/.well-known/x402/discovery/search",
+  "/v1/x402/discovery/search"
+];
+const LOCAL_DISCOVERY_MERCHANT_PATHS = [
+  "/v2/x402/discovery/merchant",
+  "/x402/discovery/merchant",
+  "/discovery/merchant",
+  "/.well-known/x402/discovery/merchant",
+  "/v1/x402/discovery/merchant"
+];
 const WELL_KNOWN_X402_PATH = "/.well-known/x402";
 const WELL_KNOWN_X402_JSON_PATH = "/.well-known/x402.json";
 const WELL_KNOWN_OPENAPI_JSON_PATH = "/.well-known/openapi.json";
@@ -159,6 +180,8 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
     `<${absoluteUrl(config, PRICING_PATH)}>; rel="service-meta"; type="application/json"`,
     `<${absoluteUrl(config, FIND_PATH)}>; rel="search"; type="application/json"`,
+    `<${absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0])}>; rel="service-meta"; type="application/json"`,
+    `<${absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0])}>; rel="search"; type="application/json"`,
     `<${absoluteUrl(config, "/openapi.json")}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
     `<${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
     `<${absoluteUrl(config, API_V1_OPENAPI_JSON_PATH)}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
@@ -2078,6 +2101,72 @@ function buildOpenApiDocument(config) {
             }
           }
         }
+      },
+      [LOCAL_DISCOVERY_RESOURCE_PATHS[0]]: {
+        get: {
+          operationId: "getLocalX402DiscoveryResources",
+          summary: "Free local x402 discovery resources",
+          description: "No-spend Bazaar-shaped local catalog for buyer agents that probe x402 discovery resources on this seller domain.",
+          parameters: [
+            { name: "limit", in: "query", required: false, schema: { type: "integer", minimum: 1, maximum: 1000 } },
+            { name: "offset", in: "query", required: false, schema: { type: "integer", minimum: 0 } }
+          ],
+          responses: {
+            200: {
+              description: "Local Bazaar-shaped discovery resources",
+              content: {
+                "application/json": {
+                  example: buildLocalDiscoveryResources(config)
+                }
+              }
+            }
+          }
+        }
+      },
+      [LOCAL_DISCOVERY_SEARCH_PATHS[0]]: {
+        get: {
+          operationId: "searchLocalX402DiscoveryResources",
+          summary: "Free local x402 discovery search",
+          description: "No-spend local search over this seller's paid x402 routes for agents that probe x402 discovery search on this seller domain.",
+          parameters: [
+            { name: "query", in: "query", required: false, schema: { type: "string" } },
+            { name: "q", in: "query", required: false, schema: { type: "string" } },
+            { name: "network", in: "query", required: false, schema: { type: "string" } },
+            { name: "payTo", in: "query", required: false, schema: { type: "string" } },
+            { name: "maxUsdPrice", in: "query", required: false, schema: { type: "string" } },
+            { name: "limit", in: "query", required: false, schema: { type: "integer", minimum: 1, maximum: 1000 } }
+          ],
+          responses: {
+            200: {
+              description: "Local Bazaar-shaped search results",
+              content: {
+                "application/json": {
+                  example: buildLocalDiscoverySearch(config, { query: "x402 discovery audit" })
+                }
+              }
+            }
+          }
+        }
+      },
+      [LOCAL_DISCOVERY_MERCHANT_PATHS[0]]: {
+        get: {
+          operationId: "getLocalX402MerchantResources",
+          summary: "Free local x402 merchant resources",
+          description: "No-spend local merchant lookup for this seller domain.",
+          parameters: [
+            { name: "payTo", in: "query", required: false, schema: { type: "string" } }
+          ],
+          responses: {
+            200: {
+              description: "Local merchant resources for this seller",
+              content: {
+                "application/json": {
+                  example: buildLocalDiscoveryMerchant(config)
+                }
+              }
+            }
+          }
+        }
       }
     },
     "x-listing-roast": {
@@ -2100,6 +2189,11 @@ function buildOpenApiDocument(config) {
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
+      localDiscovery: {
+        resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
+        search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
+        merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])
+      },
       apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
       apiV1EntryRoute: absoluteUrl(config, API_V1_ENTRY_PATH),
       v1EntryRoute: absoluteUrl(config, V1_ENTRY_PATH),
@@ -2158,6 +2252,16 @@ function buildX402Manifest(config) {
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
+    localDiscovery: {
+      resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
+      search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
+      merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+      aliases: {
+        resources: LOCAL_DISCOVERY_RESOURCE_PATHS.map((path) => absoluteUrl(config, path)),
+        search: LOCAL_DISCOVERY_SEARCH_PATHS.map((path) => absoluteUrl(config, path)),
+        merchant: LOCAL_DISCOVERY_MERCHANT_PATHS.map((path) => absoluteUrl(config, path))
+      }
+    },
     aliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
     network: config.network,
     payTo: config.payTo,
@@ -2395,6 +2499,11 @@ function buildPricingCatalog(config) {
     homepage: absoluteUrl(config, "/"),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
+    localDiscovery: {
+      resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
+      search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
+      merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])
+    },
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
     x402Manifest: absoluteUrl(config, "/x402.json"),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
@@ -2407,6 +2516,149 @@ function buildPricingCatalog(config) {
       `${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite`
     ],
     note: "This pricing catalog is free to fetch. It only describes paid x402 routes; payment happens when a buyer calls a paid route with a valid x402 payment header."
+  };
+}
+
+function parseDiscoveryLimit(value, fallback = 100) {
+  const parsed = Number.parseInt(String(value || ""), 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(parsed, 1), 1000);
+}
+
+function parseDiscoveryOffset(value) {
+  const parsed = Number.parseInt(String(value || ""), 10);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.max(parsed, 0);
+}
+
+function atomicAmountToUsd(amount) {
+  const numeric = Number(amount || 0);
+  return Number.isFinite(numeric) ? numeric / Number(USDC_DECIMALS) : 0;
+}
+
+function buildLocalDiscoveryItems(config) {
+  const now = new Date().toISOString();
+
+  return buildX402Manifest(config).resources.map((resource) => ({
+    resource: resource.url,
+    type: "http",
+    x402Version: 2,
+    description: resource.description,
+    accepts: [
+      {
+        scheme: "exact",
+        network: config.network,
+        amount: resource.maxAmountRequired,
+        asset: config.network === BASE_MAINNET_NETWORK ? BASE_USDC_CONTRACT : "USDC",
+        payTo: config.payTo,
+        extra: {
+          name: "USDC",
+          decimals: 6
+        }
+      }
+    ],
+    lastUpdated: now,
+    metadata: {
+      serviceName: config.serviceName,
+      name: resource.name,
+      method: resource.method,
+      path: resource.path,
+      price: resource.price,
+      maxAmountRequired: resource.maxAmountRequired,
+      description: resource.description,
+      tags: resource.keywords || [],
+      input: resource.input || {},
+      output: {
+        example: resource.outputExample || {}
+      },
+      schema: resource.schema,
+      command: resource.command,
+      preferredFirstPaidAction: resource.id === "indexed_roast_quick_score",
+      noSpendHandoff: absoluteUrl(config, PAY_NOW_PATH)
+    }
+  }));
+}
+
+function buildLocalDiscoveryResources(config, query = {}) {
+  const allItems = buildLocalDiscoveryItems(config);
+  const limit = parseDiscoveryLimit(query.limit);
+  const offset = parseDiscoveryOffset(query.offset);
+  const items = allItems.slice(offset, offset + limit);
+
+  return {
+    x402Version: 2,
+    source: "local-owned-surface",
+    service: config.serviceName,
+    noSpend: true,
+    canonicalBazaar: "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources",
+    items,
+    pagination: {
+      limit,
+      offset,
+      total: allItems.length
+    },
+    search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
+    merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+    note: "Free local Bazaar-shaped catalog for buyer agents that probe discovery paths on this seller domain. Canonical CDP Bazaar discovery remains hosted by Coinbase."
+  };
+}
+
+function buildLocalDiscoverySearch(config, query = {}) {
+  const rawQuery = String(query.query || query.q || "").trim().slice(0, 400);
+  const maxUsdPrice = query.maxUsdPrice == null ? null : Number(query.maxUsdPrice);
+  const resources = buildLocalDiscoveryItems(config)
+    .filter((item) => !query.network || item.accepts.some((accept) => accept.network === query.network))
+    .filter((item) => !query.payTo || item.accepts.some((accept) => String(accept.payTo).toLowerCase() === String(query.payTo).toLowerCase()))
+    .filter((item) => !Number.isFinite(maxUsdPrice) || item.accepts.some((accept) => atomicAmountToUsd(accept.amount) <= maxUsdPrice))
+    .map((item) => ({
+      item,
+      score: rawQuery ? scoreCatalogResource({
+        id: item.metadata.name,
+        name: item.metadata.name,
+        method: item.metadata.method,
+        path: item.metadata.path,
+        description: item.description,
+        keywords: item.metadata.tags,
+        preferredFirstPaidAction: item.metadata.preferredFirstPaidAction
+      }, rawQuery) : (item.metadata.preferredFirstPaidAction ? 1 : 0)
+    }))
+    .filter((entry) => !rawQuery || entry.score > 0)
+    .sort((left, right) => {
+      if (right.score !== left.score) return right.score - left.score;
+      return atomicAmountToUsd(left.item.accepts[0]?.amount) - atomicAmountToUsd(right.item.accepts[0]?.amount);
+    })
+    .slice(0, parseDiscoveryLimit(query.limit, 20))
+    .map((entry) => entry.item);
+
+  return {
+    x402Version: 2,
+    source: "local-owned-surface",
+    service: config.serviceName,
+    query: rawQuery,
+    noSpend: true,
+    resources,
+    partialResults: false,
+    searchMethod: "local-hybrid",
+    canonicalBazaarSearch: "https://api.cdp.coinbase.com/platform/v2/x402/discovery/search",
+    note: "Free local search over this seller's paid x402 route catalog. Payment only happens when a buyer calls a paid route with a valid x402 payment header."
+  };
+}
+
+function buildLocalDiscoveryMerchant(config, query = {}) {
+  const payTo = String(query.payTo || "").toLowerCase();
+  const matchesMerchant = !payTo || payTo === config.payTo.toLowerCase();
+  const items = matchesMerchant ? buildLocalDiscoveryItems(config) : [];
+
+  return {
+    x402Version: 2,
+    source: "local-owned-surface",
+    service: config.serviceName,
+    payTo: query.payTo || config.payTo,
+    noSpend: true,
+    resources: items,
+    count: items.length,
+    canonicalMerchantDiscovery: "https://api.cdp.coinbase.com/platform/v2/x402/discovery/merchant",
+    note: "Free local merchant lookup for this seller domain. Canonical merchant discovery remains hosted by Coinbase."
   };
 }
 
@@ -2764,6 +3016,9 @@ function buildApiCatalog(config) {
     { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "GET free pay-now handoff for the preferred first paid route" },
     { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "GET free paid route pricing catalog" },
     { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "GET free task-to-paid-route finder" },
+    { href: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]), type: "application/json", title: "GET free local x402 discovery resources" },
+    { href: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]), type: "application/json", title: "GET free local x402 discovery search" },
+    { href: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]), type: "application/json", title: "GET free local x402 merchant resources" },
     { href: absoluteUrl(config, "/api/examples"), type: "application/json", title: "GET free examples, commands, payment hints, and sample outputs" },
     { href: absoluteUrl(config, "/api/sample-score"), type: "application/json", title: "GET free sample score output" }
   ];
@@ -2803,6 +3058,9 @@ function buildApiCatalog(config) {
           { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "Pay-now handoff" },
           { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "Paid route pricing catalog" },
           { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "Task-to-paid-route finder" },
+          { href: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]), type: "application/json", title: "Local x402 discovery resources" },
+          { href: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]), type: "application/json", title: "Local x402 discovery search" },
+          { href: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]), type: "application/json", title: "Local x402 merchant resources" },
           { href: absoluteUrl(config, "/api/examples"), type: "application/json", title: "Examples and copy-ready commands" }
         ],
         status: [
@@ -3767,7 +4025,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -3922,6 +4180,14 @@ ${webMcpScript(config)}
           buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
         })
       },
+      localDiscovery: {
+        resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
+        search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
+        merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+        resourceExample: buildLocalDiscoveryResources(config, { limit: 2 }),
+        searchExample: buildLocalDiscoverySearch(config, { query: "x402 discovery audit" }),
+        merchantExample: buildLocalDiscoveryMerchant(config, { payTo: config.payTo })
+      },
       keywords: DISCOVERY_KEYWORDS,
       request: requestExample,
       apiEntryCommand: buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
@@ -4001,6 +4267,9 @@ MCP server card: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 Pay-now JSON: ${absoluteUrl(config, PAY_NOW_PATH)}
 Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 Route finder examples: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit, ${absoluteUrl(config, FIND_PATH)}?q=buyer-agent%20skip%20reasons, ${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite
+Local x402 discovery resources: ${absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0])}
+Local x402 discovery search: ${absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0])}?query=x402%20discovery%20audit
+Local x402 merchant resources: ${absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])}?payTo=${config.payTo}
 Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
 
 Preferred first paid route:
@@ -4774,6 +5043,21 @@ ${copyScript("Copy command")}
   app.get(FIND_PATH, async (request, response) => {
     await recordSignal("findViews");
     response.json(buildFindResult(config, request.query.q || request.query.query || request.query.task || ""));
+  });
+
+  app.get(LOCAL_DISCOVERY_RESOURCE_PATHS, async (request, response) => {
+    await recordSignal("localDiscoveryViews");
+    response.json(buildLocalDiscoveryResources(config, request.query));
+  });
+
+  app.get(LOCAL_DISCOVERY_SEARCH_PATHS, async (request, response) => {
+    await recordSignal("localDiscoveryViews");
+    response.json(buildLocalDiscoverySearch(config, request.query));
+  });
+
+  app.get(LOCAL_DISCOVERY_MERCHANT_PATHS, async (request, response) => {
+    await recordSignal("localDiscoveryViews");
+    response.json(buildLocalDiscoveryMerchant(config, request.query));
   });
 
   app.post("/api/track", async (request, response) => {
