@@ -208,6 +208,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality and discoverability for paid API listing quality, marketplace listing score, buyer-agent skip reasons, agent service listing clarity, x402 site audit starter, x402 discovery audit triage, Bazaar search visibility, and stale pricing triage: $0.001 GET on indexed /api/listing-roast for paid API preflight before paying. Use /api/x402-site-audit for pre-pay metadata, /api/x402-discovery-audit for stale Bazaar, or POST /api/listing-roast for $0.01 full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-agent-tools-resource-sample-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T19:25:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -3656,8 +3658,10 @@ function buildPreflightAliasManifestResources(config) {
 function buildPrimaryEndpointHandoff(config, intentRoutes = buildPayNowActions(config)) {
   const action = intentRoutes.indexedQuickScore;
   return {
+    id: "indexed_roast_quick_score",
     name: "indexed_roast_quick_score",
     title: "GET $0.001 indexed listing-roast quick score",
+    serviceName: X402_SERVICE_NAME,
     method: action.method,
     path: action.path,
     url: action.route,
@@ -3668,20 +3672,41 @@ function buildPrimaryEndpointHandoff(config, intentRoutes = buildPayNowActions(c
     payTo: config.payTo,
     command: action.command,
     reason: action.reason,
+    description: INDEXED_QUICK_SCORE_DESCRIPTION,
+    tags: routeTags("indexedQuickScore"),
+    keywords: uniqueTerms([
+      "listing roast",
+      "marketplace listing score",
+      "paid API listing quality score",
+      "buyer-agent skip reasons",
+      "x402 discovery audit",
+      "stale Bazaar price",
+      ...routeTags("indexedQuickScore")
+    ]),
     note: `Use GET ${ROAST_PATH} as the first paid call. POST ${ROOT_DIRECTORY_POST_PATH} is only a fallback directory handoff.`
   };
 }
 
 function buildPrimaryResourceSample(primaryEndpoint) {
   return {
+    id: primaryEndpoint.id,
+    name: primaryEndpoint.name,
+    title: primaryEndpoint.title,
+    serviceName: primaryEndpoint.serviceName,
     url: primaryEndpoint.url,
+    resource: primaryEndpoint.url,
     kind: "http",
     method: primaryEndpoint.method,
     path: primaryEndpoint.path,
     price: primaryEndpoint.price,
     price_usd: priceToUsd(primaryEndpoint.price),
     maxAmountRequired: primaryEndpoint.maxAmountRequired,
-    max_amount_required: primaryEndpoint.maxAmountRequired
+    max_amount_required: primaryEndpoint.maxAmountRequired,
+    description: primaryEndpoint.description,
+    tags: primaryEndpoint.tags,
+    keywords: primaryEndpoint.keywords,
+    command: primaryEndpoint.command,
+    reason: primaryEndpoint.reason
   };
 }
 
@@ -3697,6 +3722,10 @@ function buildX402Manifest(config, cashRegister = {}) {
     displayName: config.serviceName,
     service: config.serviceName,
     baseUrl,
+    version: DISCOVERY_METADATA_VERSION,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    lastUpdated: DISCOVERY_METADATA_UPDATED_AT,
     description: DISCOVERY_DESCRIPTION,
     providerUrl: config.serviceUrl,
     iconUrl: absoluteUrl(config, ICON_SVG_PATH),
@@ -4046,6 +4075,9 @@ function buildAgentToolsManifest(config) {
     name: config.serviceName,
     type: "x402-paid-api-service",
     version: "0.3",
+    metadata_version: DISCOVERY_METADATA_VERSION,
+    metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
+    last_updated: DISCOVERY_METADATA_UPDATED_AT,
     description: DISCOVERY_DESCRIPTION,
     serviceName: config.serviceName,
     provider_url: config.serviceUrl,
