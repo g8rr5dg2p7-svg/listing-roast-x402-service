@@ -563,6 +563,7 @@ describe("Listing Roast x402 service", () => {
 
       const robots = await fetchJson(server, "/robots.txt");
       expect(robots.status).toBe(200);
+      expect(robots.headers.get("cache-control")).toContain("no-store");
       expect(robots.text).toContain("Sitemap:");
       expect(robots.text).toContain("User-agent: ChatGPT-User");
       expect(robots.text).toContain("User-agent: ClaudeBot");
@@ -574,6 +575,7 @@ describe("Listing Roast x402 service", () => {
 
       const sitemap = await fetchJson(server, "/sitemap.xml");
       expect(sitemap.status).toBe(200);
+      expect(sitemap.headers.get("cache-control")).toContain("no-store");
       expect(sitemap.text).toContain("/builder");
       expect(sitemap.text).toContain("/sample");
       expect(sitemap.text).toContain("/api/pay-now");
