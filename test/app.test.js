@@ -430,6 +430,12 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
       expect(x402Manifest.json.recommendedFirstPaidAction.route).toContain("/api/listing-roast");
       expect(x402Manifest.json.recommendedFirstPaidAction.maxAmountRequired).toBe("1000");
+      expect(x402Manifest.json.primaryEndpoint.path).toBe("/api/listing-roast");
+      expect(x402Manifest.json.primaryEndpoint.method).toBe("GET");
+      expect(x402Manifest.json.primaryEndpoint.maxAmountRequired).toBe("1000");
+      expect(x402Manifest.json.primaryEndpoint.note).toContain("POST / is only a fallback directory handoff");
+      expect(x402Manifest.json.call.primary_method).toBe("GET");
+      expect(x402Manifest.json.call.x402_route).toBe("/api/listing-roast");
       expect(x402Manifest.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(x402Manifest.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
       expect(x402Manifest.json.recommendedPaidSequence[1].use).toBe("fullRoast");
@@ -601,6 +607,11 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.tags).toContain("marketplace listing score");
       expect(agentTools.json.openapi).toBe("/openapi.json");
       expect(agentTools.json.x402_catalog).toBe("/x402.json");
+      expect(agentTools.json.primary_endpoint.path).toBe("/api/listing-roast");
+      expect(agentTools.json.primary_endpoint.method).toBe("GET");
+      expect(agentTools.json.primary_endpoint.note).toContain("POST / is only a fallback directory handoff");
+      expect(agentTools.json.call.primary_method).toBe("GET");
+      expect(agentTools.json.call.x402_route).toBe("/api/listing-roast");
       expect(agentTools.json.preferred_first_paid_action.path).toBe("/api/listing-roast");
       expect(agentTools.json.preferred_first_paid_action.maxAmountRequired).toBe("1000");
       expect(agentTools.json.intent_landing_pages.map((page) => page.path)).toEqual(["/paid-api-listing-quality", "/agent-listing-conversion", "/x402-discovery-audit", "/x402-site-audit"]);

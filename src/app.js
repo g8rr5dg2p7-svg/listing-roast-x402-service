@@ -3653,8 +3653,28 @@ function buildPreflightAliasManifestResources(config) {
   }));
 }
 
+function buildPrimaryEndpointHandoff(config, intentRoutes = buildPayNowActions(config)) {
+  const action = intentRoutes.indexedQuickScore;
+  return {
+    name: "indexed_roast_quick_score",
+    title: "GET $0.001 indexed listing-roast quick score",
+    method: action.method,
+    path: action.path,
+    url: action.route,
+    route: action.route,
+    price: action.price,
+    maxAmountRequired: action.maxAmountRequired,
+    network: config.network,
+    payTo: config.payTo,
+    command: action.command,
+    reason: action.reason,
+    note: `Use GET ${ROAST_PATH} as the first paid call. POST ${ROOT_DIRECTORY_POST_PATH} is only a fallback directory handoff.`
+  };
+}
+
 function buildX402Manifest(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
+  const primaryEndpoint = buildPrimaryEndpointHandoff(config, intentRoutes);
   const baseUrl = absoluteUrl(config, "/").replace(/\/$/, "");
 
   return {
@@ -3727,6 +3747,16 @@ function buildX402Manifest(config, cashRegister = {}) {
     },
     capabilities: {
       tools: 21
+    },
+    primaryEndpoint,
+    primaryPaidEndpoint: primaryEndpoint,
+    call: {
+      primaryEndpoint,
+      primary_url: primaryEndpoint.url,
+      primary_method: primaryEndpoint.method,
+      x402_route: primaryEndpoint.path,
+      command: primaryEndpoint.command,
+      note: primaryEndpoint.note
     },
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
@@ -3957,6 +3987,7 @@ function priceToUsd(price) {
 function buildAgentToolsManifest(config) {
   const x402Manifest = buildX402Manifest(config);
   const intentRoutes = buildPayNowActions(config);
+  const primaryEndpoint = buildPrimaryEndpointHandoff(config, intentRoutes);
   const payment = {
     asset: config.network === BASE_MAINNET_NETWORK ? BASE_USDC_CONTRACT : "USDC",
     assetName: config.network === BASE_MAINNET_NETWORK ? "Base mainnet USDC" : "USDC",
@@ -4017,6 +4048,16 @@ function buildAgentToolsManifest(config) {
     pricing: PRICING_PATH,
     route: ROUTE_PATH,
     settlement_proof: "/api/cash-register",
+    primary_endpoint: primaryEndpoint,
+    primary_paid_endpoint: primaryEndpoint,
+    call: {
+      primary_endpoint: primaryEndpoint,
+      primary_url: primaryEndpoint.url,
+      primary_method: primaryEndpoint.method,
+      x402_route: primaryEndpoint.path,
+      command: primaryEndpoint.command,
+      note: primaryEndpoint.note
+    },
     intent_landing_pages: buildIntentLandingHandoffs(config),
     preferred_first_paid_action: {
       name: "indexed_roast_quick_score",
