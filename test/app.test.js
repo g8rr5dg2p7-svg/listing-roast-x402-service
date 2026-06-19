@@ -412,8 +412,9 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.localDiscovery.resources).toContain("/v2/x402/discovery/resources");
       expect(x402Manifest.json.localDiscovery.search).toContain("/v2/x402/discovery/search");
       expect(x402Manifest.json.localDiscovery.merchant).toContain("/v2/x402/discovery/merchant");
-      expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "paid API listing quality").expectedFirstPath).toBe("/api/listing-roast");
-      expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "buyer-agent skip reasons").expectedFirstPath).toBe("/api/listing-roast");
+      expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "paid API listing quality").expectedFirstPath).toBe("/api/paid-api-listing-quality");
+      expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "buyer-agent skip reasons").expectedFirstPath).toBe("/api/buyer-agent-skip-reasons");
+      expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "agent service clarity").expectedFirstPath).toBe("/api/agent-service-clarity");
       expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "x402 discovery audit").expectedFirstPath).toBe("/api/x402-discovery-audit");
       expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "paid API preflight").expectedFirstPath).toBe("/api/x402-site-audit");
       expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "paid API preflight").searchUrl).toContain("/v2/x402/discovery/search?query=paid%20API%20preflight");
@@ -428,7 +429,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.recommendedPaidSequence[1].use).toBe("fullRoast");
       expect(x402Manifest.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(x402Manifest.json.intentLandingPages.map((page) => page.path)).toEqual(["/paid-api-listing-quality", "/agent-listing-conversion", "/x402-discovery-audit", "/x402-site-audit"]);
-      expect(x402Manifest.json.intentLandingPages[0].primaryPaidAction.path).toBe("/api/listing-roast");
+      expect(x402Manifest.json.intentLandingPages[0].primaryPaidAction.path).toBe("/api/paid-api-listing-quality");
+      expect(x402Manifest.json.intentLandingPages[0].supportingPaidAction.path).toBe("/api/listing-roast");
       expect(x402Manifest.json.intentLandingPages[2].primaryPaidAction.path).toBe("/api/x402-discovery-audit");
       expect(x402Manifest.json.intentLandingPages[2].primaryPaidAction.method).toBe("GET");
       expect(x402Manifest.json.intentLandingPages[2].primaryPaidAction.maxAmountRequired).toBe("1000");
@@ -1110,7 +1112,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json["x-listing-roast"].find).toContain("/api/find");
       expect(openApi.json["x-listing-roast"].route).toContain("/api/route");
       expect(openApi.json["x-listing-roast"].localDiscovery.resources).toContain("/v2/x402/discovery/resources");
-      expect(openApi.json["x-listing-roast"].localDiscovery.searchExamples.find((example) => example.query === "agent service clarity").expectedFirstPath).toBe("/api/listing-roast");
+      expect(openApi.json["x-listing-roast"].localDiscovery.searchExamples.find((example) => example.query === "agent service clarity").expectedFirstPath).toBe("/api/agent-service-clarity");
       expect(openApi.json["x-listing-roast"].localDiscovery.searchExamples.find((example) => example.query === "x402 route health check").expectedFirstPath).toBe("/api/x402-discovery-audit");
       expect(openApi.json["x-listing-roast"].localDiscovery.searchExamples.find((example) => example.query === "paid API preflight").expectedFirstPath).toBe("/api/x402-site-audit");
       expect(openApi.json["x-listing-roast"].apiV1EntryRoute).toContain("/api/v1");
@@ -1160,7 +1162,8 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/agent-listing-conversion");
       expect(llms.text).toContain("/x402-discovery-audit");
       expect(llms.text).toContain("/x402-site-audit");
-      expect(llms.text).toContain("Primary paid action: GET http://localhost:8787/api/listing-roast ($0.001, max 1000)");
+      expect(llms.text).toContain("Primary paid action: GET http://localhost:8787/api/paid-api-listing-quality ($0.001, max 1000)");
+      expect(llms.text).toContain("Supporting paid action: GET http://localhost:8787/api/listing-roast ($0.001, max 1000)");
       expect(llms.text).toContain("/api/listing-score");
       expect(llms.text).toContain("/api/pay-now");
       expect(llms.text).toContain("/api/pricing");

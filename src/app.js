@@ -1885,17 +1885,17 @@ function buildLocalDiscoverySearchExamples(config) {
   const examples = [
     {
       query: "paid API listing quality",
-      expectedFirstPath: ROAST_PATH,
+      expectedFirstPath: "/api/paid-api-listing-quality",
       expectedAmount: INSTANT_SCORE_AMOUNT
     },
     {
       query: "buyer-agent skip reasons",
-      expectedFirstPath: ROAST_PATH,
+      expectedFirstPath: "/api/buyer-agent-skip-reasons",
       expectedAmount: INSTANT_SCORE_AMOUNT
     },
     {
       query: "agent service clarity",
-      expectedFirstPath: ROAST_PATH,
+      expectedFirstPath: "/api/agent-service-clarity",
       expectedAmount: INSTANT_SCORE_AMOUNT
     },
     {
@@ -5097,10 +5097,10 @@ function buildIntentLandingPages(config) {
       title: "Paid API listing quality score | Listing Roast x402",
       heading: "Paid API listing quality score for x402 services",
       summary: "Use this when a buyer agent is searching for paid API listing quality, marketplace listing quality, x402 listing quality, or paid API discoverability before spending USDC.",
-      primaryAction: intentRoutes.indexedQuickScore,
-      primaryLabel: "Start with the $0.001 indexed quick score",
-      supportingAction: intentRoutes.fullRoast,
-      supportingLabel: "Upgrade to the $0.01 full roast only when the quick score is promising.",
+      primaryAction: intentRoutes.paidApiListingQuality,
+      primaryLabel: "Use the $0.001 paid API listing quality route",
+      supportingAction: intentRoutes.indexedQuickScore,
+      supportingLabel: "Use the indexed /api/listing-roast route when a marketplace result points there.",
       keywords: ["paid API listing quality", "marketplace listing quality", "x402 listing quality", "paid API discoverability", "buyer-agent skip reasons"]
     },
     {
