@@ -1365,6 +1365,10 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.intentRoutes.x402SiteAudit.path).toBe("/api/x402-site-audit");
       expect(payNow.json.intentRoutes.discoveryAudit.maxAmountRequired).toBe("10000");
       expect(payNow.json.routeSelector.map((route) => route.use)).toContain("fullRoast");
+      expect(payNow.json.routeSelector.map((route) => route.use)).toContain("marketplaceListingScore");
+      expect(payNow.json.routeSelector.map((route) => route.use)).toContain("paidApiListingQuality");
+      expect(payNow.json.routeSelector.map((route) => route.use)).toContain("buyerAgentSkipReasons");
+      expect(payNow.json.routeSelector.map((route) => route.use)).toContain("agentServiceClarity");
       expect(payNow.json.expectedChallenge.status).toBe(402);
       expect(payNow.json.paidUsageProof.paidCompletions).toBe(0);
       expect(payNow.json.paidUsageProof.noSpend).toBe(true);

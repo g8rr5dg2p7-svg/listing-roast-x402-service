@@ -2320,8 +2320,24 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     routeSelector: [
       {
-        when: "Marketplace, Bazaar, paid API listing quality, or buyer-agent skip-reason searches",
+        when: "Generic Marketplace or Bazaar result with no more specific buyer phrase",
         use: "indexedQuickScore"
+      },
+      {
+        when: "Buyer asks exactly for marketplace listing score or marketplace listing quality",
+        use: "marketplaceListingScore"
+      },
+      {
+        when: "Buyer asks exactly for paid API listing quality",
+        use: "paidApiListingQuality"
+      },
+      {
+        when: "Buyer asks exactly for buyer-agent skip reasons",
+        use: "buyerAgentSkipReasons"
+      },
+      {
+        when: "Buyer asks exactly for agent service clarity or agent-service listing score",
+        use: "agentServiceClarity"
       },
       {
         when: "Buyer asks for the dedicated agent-listing conversion deep dive",
