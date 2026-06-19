@@ -4934,6 +4934,11 @@ export function createApp(overrides = {}) {
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const scoreOutput = buildListingScoreWithUpgrade(requestExample, config);
     const sampleOutput = buildListingRoast(requestExample);
+    const cashRegister = await getCashRegister();
+    const paidCompletionCount = Number(cashRegister.paidCompletions || 0);
+    const paidCompletionLabel = `${paidCompletionCount} paid ${paidCompletionCount === 1 ? "completion" : "completions"}`;
+    const grossRevenueUsd = String(cashRegister.estimatedGrossRevenueUsd || "0.00").replace(/^\$/, "");
+    const grossRevenueLabel = `$${grossRevenueUsd} registered`;
 
     response.type("html").send(`<!doctype html>
 <html lang="en">
@@ -5043,7 +5048,7 @@ export function createApp(overrides = {}) {
             <a class="button secondary" href="${schemaUrl}">View JSON schema</a>
           </div>
           <div class="proof" aria-label="Proof points">
-            <div><strong class="metric">Live</strong><span class="muted">Production x402 route</span></div>
+            <div><strong class="metric">${escapeHtml(paidCompletionLabel)}</strong><span class="muted">${escapeHtml(grossRevenueLabel)} in the public cash register</span></div>
             <div><strong>${config.instantScorePrice} -> ${config.price}</strong><span class="muted">GET quick score, then POST full roast</span></div>
             <div><strong class="metric">Discovery audit</strong><span class="muted">Checks stale Bazaar listings</span></div>
           </div>

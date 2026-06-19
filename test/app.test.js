@@ -1391,6 +1391,22 @@ describe("Listing Roast x402 service", () => {
     }
   });
 
+  it("surfaces paid completion proof on the homepage", async () => {
+    await recordPaidCompletion("instantScore", 0.001);
+    await recordPaidCompletion("indexedRoastGet", 0.001);
+
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      const home = await fetchJson(server, "/");
+      expect(home.status).toBe(200);
+      expect(home.text).toContain("2 paid completions");
+      expect(home.text).toContain("$0.002 registered in the public cash register");
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
   it("protects the paid route with a one-cent x402 challenge", async () => {
     mockFacilitatorSupportedKinds();
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
