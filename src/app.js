@@ -42,7 +42,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     operationId: "getMarketplaceListingScoreAlias",
     summary: "Paid $0.001 marketplace listing score alias",
     catalogTitle: "GET $0.001 marketplace listing score quick-score alias",
-    description: "One-tenth-cent GET alias for marketplace listing score buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and next paid action guidance.",
+    description: "Marketplace listing score x402: $0.001 GET alias for marketplace listing score buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and next paid action guidance.",
     keywords: ["marketplace listing score", "marketplace listing quality", "listing quality score", "x402 listing quality", "paid API listing quality"]
   },
   "/api/paid-api-listing-quality": {
@@ -51,7 +51,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     operationId: "getPaidApiListingQualityAlias",
     summary: "Paid $0.001 paid API listing quality alias",
     catalogTitle: "GET $0.001 paid API listing quality quick-score alias",
-    description: "One-tenth-cent GET alias for paid API listing quality buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with marketplace listing score, agent service clarity, buyer-agent skip reasons, and upgrade guidance.",
+    description: "Paid API listing quality score x402: $0.001 GET alias for paid API listing quality buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with marketplace listing score, agent service clarity, buyer-agent skip reasons, and upgrade guidance.",
     keywords: ["paid API listing quality", "paid API listing quality score", "paid API listing", "agent-service listing score", "marketplace listing score"]
   },
   "/api/buyer-agent-skip-reasons": {
@@ -60,7 +60,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     operationId: "getBuyerAgentSkipReasonsAlias",
     summary: "Paid $0.001 buyer-agent skip reasons alias",
     catalogTitle: "GET $0.001 buyer-agent skip reasons quick-score alias",
-    description: "One-tenth-cent GET alias for buyer-agent skip reason searches. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with top skip reasons, agent service clarity, and the next paid action.",
+    description: "Buyer-agent skip reasons and buyer agent skip reasons x402: $0.001 GET alias for buyer-agent skip reason searches. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with top skip reasons, agent service clarity, and the next paid action.",
     keywords: ["buyer-agent skip reasons", "buyer agent skip reasons", "agent skip reasons", "agent listing conversion", "agent service clarity"]
   },
   "/api/agent-service-clarity": {
@@ -69,7 +69,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     operationId: "getAgentServiceClarityAlias",
     summary: "Paid $0.001 agent service clarity alias",
     catalogTitle: "GET $0.001 agent service clarity quick-score alias",
-    description: "One-tenth-cent GET alias for agent service clarity and promotion-readiness buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with buyer-agent skip reasons, marketplace listing quality, and first-fix guidance.",
+    description: "Agent service clarity and agent-service listing score x402: $0.001 GET alias for agent service clarity and promotion-readiness buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with buyer-agent skip reasons, marketplace listing quality, and first-fix guidance.",
     keywords: ["agent service clarity", "agent service listing clarity", "agent-service listing score", "agent listing clarity", "agent service promotion readiness"]
   }
 });
@@ -213,8 +213,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent clarity, agent service clarity, paid API preflight, x402 audit, x402 discovery audit, Bazaar visibility, stale price. $0.001 GET /api/listing-roast; /api/x402-site-audit, /api/x402-discovery-audit, POST /api/listing-roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-proven-first-alias-guidance-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T21:31:19.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-exact-alias-openers-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T21:42:34.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
