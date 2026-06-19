@@ -4061,9 +4061,9 @@ export function createApp(overrides = {}) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="A paid x402 API for listing scores, full listing roasts, and Bazaar discovery audits when x402 pricing or search visibility looks stale." />
+  <meta name="description" content="A paid x402 score API for marketplace listing quality and discoverability. Start with GET /api/listing-roast at $0.001, then upgrade to POST /api/listing-roast at $0.01." />
   <meta property="og:title" content="${escapeHtml(config.serviceName)}" />
-  <meta property="og:description" content="Find out why buyer agents skip your paid API listing before you promote it." />
+  <meta property="og:description" content="Score paid API listing quality and discoverability before buyer agents skip the listing." />
   <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
   <link rel="canonical" href="${escapeHtml(config.serviceUrl)}/" />
   <link rel="alternate" type="application/json" title="Listing Roast x402 manifest" href="${escapeHtml(absoluteUrl(config, "/x402.json"))}" />
@@ -4147,7 +4147,7 @@ export function createApp(overrides = {}) {
       <div class="wrap heroGrid">
         <div>
           <h1>Find out why buyer agents skip your paid API listing.</h1>
-          <p class="lead">Start with the already-indexed ${config.instantScorePrice} GET quick score on <code>${ROAST_PATH}</code>. Use <code>${AGENT_LISTING_PATH}</code> when buyer agents search for listing clarity or skip reasons, run a ${config.siteAuditPrice} GET site audit when x402 discovery looks stale, or pay ${config.price} for the full roast.</p>
+          <p class="lead">Score API marketplace listing quality and discoverability before buyer agents skip the listing. Recommended paid sequence: start with the already-indexed ${config.instantScorePrice} <code>GET ${ROAST_PATH}</code> quick score, then upgrade to <code>POST ${ROAST_PATH}</code> at ${config.price} for the full roast.</p>
           <div class="actions">
             <button class="button" type="button" data-copy-target="indexed-command" data-default-text="Copy $0.001 indexed GET command">Copy $0.001 indexed GET command</button>
             <button class="button" type="button" data-copy-target="agent-listing-command" data-default-text="Copy agent-listing command">Copy agent-listing command</button>
@@ -4164,7 +4164,7 @@ export function createApp(overrides = {}) {
           </div>
           <div class="proof" aria-label="Proof points">
             <div><strong class="metric">Live</strong><span class="muted">Production x402 route</span></div>
-            <div><strong>${config.instantScorePrice} / ${config.scorePrice} / ${config.price}</strong><span class="muted">Indexed GET, instant, score, audit, or roast</span></div>
+            <div><strong>${config.instantScorePrice} -> ${config.price}</strong><span class="muted">GET quick score, then POST full roast</span></div>
             <div><strong class="metric">Discovery audit</strong><span class="muted">Checks stale Bazaar listings</span></div>
           </div>
         </div>
@@ -4208,14 +4208,19 @@ score: 4/5</div>
     <section class="band" id="pay">
       <div class="wrap grid2">
         <div>
-          <h2>Pay the indexed ${config.instantScorePrice} route first, audit discovery when needed.</h2>
-          <p>All paid endpoints are protected by x402. The already-indexed <code>${ROAST_PATH}</code> GET route is the preferred first paid action for Bazaar traffic; the GET site audit is the lowest-friction discovery audit for agents that do not want to assemble a body first.</p>
+          <h2>Pay the indexed ${config.instantScorePrice} route first, then upgrade when the score is promising.</h2>
+          <p>All paid endpoints are protected by x402. The already-indexed <code>GET ${ROAST_PATH}</code> route is the preferred first paid action for Bazaar traffic; <code>POST ${ROAST_PATH}</code> is the full one-cent roast. The GET site audit is the lowest-friction discovery audit for agents that do not want to assemble a body first.</p>
           <p>
             <span class="tag">Base mainnet</span>
             <span class="tag">USDC</span>
             <span class="tag">No account</span>
             <span class="tag">Agent-readable JSON</span>
           </p>
+        </div>
+        <div class="card">
+          <h3>Recommended paid sequence</h3>
+          <p><code>GET ${ROAST_PATH}</code> first for the ${config.instantScorePrice} quick score.</p>
+          <p><code>POST ${ROAST_PATH}</code> next for the ${config.price} full roast when the buyer wants rewritten copy, top fixes, and launch guidance.</p>
         </div>
         <div class="card">
           <h3>Preferred indexed quick score route</h3>
@@ -4321,7 +4326,7 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div class="card">
           <h3>Discovery</h3>
-          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path returns a $0.001 quick score challenge, <code>GET /api/agent-listing-conversion</code> targets buyer-agent skip-reason searches, and <code>GET /api/x402-site-audit</code> returns a $0.001 discovery audit challenge.</p>
+          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path returns a $0.001 score API marketplace listing quality and discoverability challenge, <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> targets buyer-agent skip-reason searches, and <code>GET /api/x402-site-audit</code> returns a $0.001 discovery audit challenge.</p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
         <div class="card">

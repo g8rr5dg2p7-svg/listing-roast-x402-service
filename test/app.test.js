@@ -119,6 +119,10 @@ describe("Listing Roast x402 service", () => {
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
       expect(home.headers.get("link")).toContain("/.well-known/x402.json");
+      expect(home.text).toContain("score API marketplace listing quality and discoverability");
+      expect(home.text).toContain("Recommended paid sequence");
+      expect(home.text).toContain("GET /api/listing-roast");
+      expect(home.text).toContain("POST /api/listing-roast");
       expect(home.text).toContain("Copy $0.001 indexed GET command");
       expect(home.text).toContain("Copy agent-listing command");
       expect(home.text).toContain("Agent listing conversion command");

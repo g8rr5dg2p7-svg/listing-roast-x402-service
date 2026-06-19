@@ -1,6 +1,6 @@
 # Listing Roast x402 Service
 
-Standalone x402 paid API for paid API listing quality scoring, critiquing agent-service listing copy, and auditing stale x402/Bazaar discovery state. It leads with the already-indexed $0.001 GET `/api/listing-roast` quick score, also supports $0.001 generic navigation routes with fallback quick scores at `/api`, `/api/v1`, and `/v1`, and has $0.001 instant, marketplace-conversion, agent-listing-conversion, ping, and site-audit GET endpoints, a $0.005 score endpoint, a $0.01 full-roast endpoint, and a $0.01 discovery audit endpoint.
+Standalone x402 paid API for marketplace listing quality and discoverability scoring, critiquing agent-service listing copy, and auditing stale x402/Bazaar discovery state. It leads with the already-indexed $0.001 GET `/api/listing-roast` quick score, then upgrades promising buyers to the $0.01 POST `/api/listing-roast` full roast. It also supports $0.001 generic navigation routes with fallback quick scores at `/api`, `/api/v1`, and `/v1`, and has $0.001 instant, marketplace-conversion, agent-listing-conversion, ping, and site-audit GET endpoints, a $0.005 score endpoint, and a $0.01 discovery audit endpoint.
 
 This is intentionally separate from ApexScout and any other active project. It has a public homepage with Markdown negotiation, a command-builder page, a shareable sample page, protected JSON API routes, MCP-visible metadata and aliases, OpenAPI with explicit x402 payment hints and common aliases, AGENTS.md, docs aliases, llms.txt, llms-full.txt, x402 discovery link headers, an agent-card discovery bridge, a fallback AI plugin manifest, an RFC 9727 API catalog, Agent Skills discovery, and a local aggregate cash register.
 
@@ -36,12 +36,12 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /api/instant-listing-score` - protected $0.001 x402 instant score route with optional query params.
 - `GET /api/x402-marketplace-conversion` - protected $0.001 x402 marketplace conversion score route with optional query params.
 - `GET /api/agent-listing-conversion` - protected $0.001 agent listing conversion score route for buyer agents searching agent-service listing clarity or buyer-agent skip reasons.
-- `GET /api/listing-roast` - protected $0.001 x402 quick score on the already-indexed listing-roast URL. This is the preferred first paid action for buyer agents coming from Bazaar.
+- `GET /api/listing-roast` - protected $0.001 x402 quick score on the already-indexed listing-roast URL. This is the preferred first paid action for buyer agents coming from Bazaar and the route to try first for marketplace listing quality and discoverability.
 - `GET /api/x402-ping` - protected $0.001 paid ping for verifying the x402 payment rail.
 - `GET /api/x402-site-audit` - protected $0.001 x402/Bazaar site audit for direct 402 metadata, stale pricing, and search visibility. It makes no paid calls.
 - `POST /api/x402-discovery-audit` - protected $0.01 x402/Bazaar discovery audit for stale pricing, missing search visibility, and direct 402 metadata checks. It makes no paid calls.
 - `POST /api/listing-score` - protected $0.005 x402 score route.
-- `POST /api/listing-roast` - protected $0.01 x402 full-roast route.
+- `POST /api/listing-roast` - protected $0.01 x402 full-roast upgrade after the quick score.
 - `GET /api/cash-register` - deployment-local funnel counters, paid completion count, route-level paid counters, and receiver wallet USDC balance on Base mainnet.
 
 ## Promotion
