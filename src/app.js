@@ -2766,6 +2766,7 @@ function buildLocalDiscoveryItems(config) {
 
 function buildLocalDiscoveryResources(config, query = {}) {
   const allItems = buildLocalDiscoveryItems(config);
+  const intentRoutes = buildPayNowActions(config);
   const limit = parseDiscoveryLimit(query.limit);
   const offset = parseDiscoveryOffset(query.offset);
   const items = allItems.slice(offset, offset + limit);
@@ -2776,6 +2777,10 @@ function buildLocalDiscoveryResources(config, query = {}) {
     service: config.serviceName,
     noSpend: true,
     canonicalBazaar: "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources",
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    pricing: absoluteUrl(config, PRICING_PATH),
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     items,
     pagination: {
       limit,
@@ -2791,6 +2796,7 @@ function buildLocalDiscoveryResources(config, query = {}) {
 function buildLocalDiscoverySearch(config, query = {}) {
   const rawQuery = String(query.query || query.q || "").trim().slice(0, 400);
   const maxUsdPrice = query.maxUsdPrice == null ? null : Number(query.maxUsdPrice);
+  const intentRoutes = buildPayNowActions(config);
   const resources = buildLocalDiscoveryItems(config)
     .filter((item) => !query.network || item.accepts.some((accept) => accept.network === query.network))
     .filter((item) => !query.payTo || item.accepts.some((accept) => String(accept.payTo).toLowerCase() === String(query.payTo).toLowerCase()))
@@ -2821,6 +2827,10 @@ function buildLocalDiscoverySearch(config, query = {}) {
     service: config.serviceName,
     query: rawQuery,
     noSpend: true,
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    pricing: absoluteUrl(config, PRICING_PATH),
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     resources,
     partialResults: false,
     searchMethod: "local-hybrid",
@@ -2832,6 +2842,7 @@ function buildLocalDiscoverySearch(config, query = {}) {
 function buildLocalDiscoveryMerchant(config, query = {}) {
   const payTo = String(query.payTo || "").toLowerCase();
   const matchesMerchant = !payTo || payTo === config.payTo.toLowerCase();
+  const intentRoutes = buildPayNowActions(config);
   const items = matchesMerchant ? buildLocalDiscoveryItems(config) : [];
 
   return {
@@ -2840,6 +2851,10 @@ function buildLocalDiscoveryMerchant(config, query = {}) {
     service: config.serviceName,
     payTo: query.payTo || config.payTo,
     noSpend: true,
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    pricing: absoluteUrl(config, PRICING_PATH),
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     resources: items,
     count: items.length,
     canonicalMerchantDiscovery: "https://api.cdp.coinbase.com/platform/v2/x402/discovery/merchant",

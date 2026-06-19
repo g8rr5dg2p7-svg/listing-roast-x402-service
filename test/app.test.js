@@ -989,6 +989,11 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscovery.json.items[0].resource).toBe("http://localhost:8787/api/listing-roast");
       expect(localDiscovery.json.items[0].accepts[0].amount).toBe("1000");
       expect(localDiscovery.json.items[0].metadata.preferredFirstPaidAction).toBe(true);
+      expect(localDiscovery.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(localDiscovery.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(localDiscovery.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(localDiscovery.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(localDiscovery.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
 
       const localDiscoveryAlias = await fetchJson(server, "/.well-known/x402/discovery/resources?limit=1");
       expect(localDiscoveryAlias.status).toBe(200);
@@ -1000,11 +1005,17 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoverySearch.json.noSpend).toBe(true);
       expect(localDiscoverySearch.json.resources[0].resource).toBe("http://localhost:8787/api/x402-site-audit");
       expect(localDiscoverySearch.json.resources.map((resource) => resource.metadata.path)).toContain("/api/x402-discovery-audit");
+      expect(localDiscoverySearch.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(localDiscoverySearch.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(localDiscoverySearch.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
 
       const localDiscoveryMerchant = await fetchJson(server, "/v2/x402/discovery/merchant?payTo=0x000000000000000000000000000000000000dEaD");
       expect(localDiscoveryMerchant.status).toBe(200);
       expect(localDiscoveryMerchant.headers.get("payment-required")).toBeNull();
       expect(localDiscoveryMerchant.json.resources).toHaveLength(12);
+      expect(localDiscoveryMerchant.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(localDiscoveryMerchant.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(localDiscoveryMerchant.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.status).toBe(200);
