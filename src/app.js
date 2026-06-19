@@ -131,6 +131,20 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   discoveryAudit: ["x402", "Bazaar visibility", "discovery audit", "stale pricing", "paid API preflight"],
   fullRoast: ["x402", "listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons"]
 });
+const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
+  indexed_roast_quick_score: "indexedQuickScore",
+  api_entry: "apiEntry",
+  api_v1_entry: "apiEntry",
+  v1_entry: "apiEntry",
+  instant_listing_score: "instantScore",
+  x402_marketplace_conversion_score: "conversionScore",
+  agent_listing_conversion_score: "agentListingConversion",
+  x402_ping: "x402Ping",
+  x402_site_audit: "x402SiteAudit",
+  x402_discovery_audit: "discoveryAudit",
+  listing_score: "listingScore",
+  listing_roast: "fullRoast"
+});
 const LISTING_REQUEST_SCHEMA_PROPERTIES = {
   agentName: {
     type: "string",
@@ -209,6 +223,24 @@ function indentText(value, spaces = 4) {
     .split("\n")
     .map((line) => `${prefix}${line}`)
     .join("\n");
+}
+
+function uniqueTerms(values = []) {
+  return Array.from(new Set(values.filter((value) => typeof value === "string" && value.trim()).map((value) => value.trim())));
+}
+
+function routeTags(routeKey) {
+  return ROUTE_SERVICE_TAGS[routeKey] || [];
+}
+
+function enrichManifestResource(resource) {
+  const tags = routeTags(MANIFEST_RESOURCE_ROUTE_KEYS[resource.id]);
+  return {
+    serviceName: X402_SERVICE_NAME,
+    ...resource,
+    tags,
+    keywords: uniqueTerms([...(resource.keywords || []), ...tags])
+  };
 }
 
 function jsonScript(value) {
@@ -2857,13 +2889,14 @@ function buildX402Manifest(config) {
         outputExample: buildListingRoast(requestExample),
         schema: absoluteUrl(config, "/api/schema")
       }
-    ]
+    ].map(enrichManifestResource)
   };
 }
 
 function buildPaidRouteCatalog(config) {
   return buildX402Manifest(config).resources.map((resource) => ({
     id: resource.id,
+    serviceName: resource.serviceName,
     name: resource.name,
     method: resource.method,
     path: resource.path,
@@ -2871,6 +2904,7 @@ function buildPaidRouteCatalog(config) {
     price: resource.price,
     maxAmountRequired: resource.maxAmountRequired,
     description: resource.description,
+    tags: resource.tags,
     keywords: resource.keywords,
     command: resource.command,
     schema: resource.schema,
@@ -2935,7 +2969,10 @@ function buildLocalDiscoveryItems(config) {
     resource: resource.url,
     type: "http",
     x402Version: 2,
+    serviceName: resource.serviceName || config.serviceName,
     description: resource.description,
+    tags: resource.tags || [],
+    keywords: resource.keywords || [],
     accepts: [
       {
         scheme: "exact",
@@ -2958,7 +2995,9 @@ function buildLocalDiscoveryItems(config) {
       price: resource.price,
       maxAmountRequired: resource.maxAmountRequired,
       description: resource.description,
-      tags: resource.keywords || [],
+      serviceTags: resource.tags || [],
+      tags: uniqueTerms([...(resource.tags || []), ...(resource.keywords || [])]),
+      keywords: resource.keywords || [],
       input: resource.input || {},
       output: {
         example: resource.outputExample || {}
@@ -3855,7 +3894,7 @@ function buildMcpServerCard(config) {
 function routeServiceMetadata(routeKey) {
   return {
     serviceName: X402_SERVICE_NAME,
-    tags: ROUTE_SERVICE_TAGS[routeKey]
+    tags: routeTags(routeKey)
   };
 }
 
