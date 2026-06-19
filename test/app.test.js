@@ -458,8 +458,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-19-exact-alias-openers-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-19T21:42:34.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-19-paid-preview-402-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-19T22:09:17.000Z");
       expect(x402Manifest.json.payNow).toContain("/api/pay-now");
       expect(x402Manifest.json.payNowExamples.skipReasons.selectedActionKey).toBe("buyerAgentSkipReasons");
       expect(x402Manifest.json.payNowExamples.skipReasons.route).toContain("/api/listing-roast");
@@ -690,8 +690,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-19-exact-alias-openers-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-19T21:42:34.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-19-paid-preview-402-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-19T22:09:17.000Z");
       expect(agentTools.json.resource_samples[0].url).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].resource).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].method).toBe("GET");
@@ -2710,6 +2710,12 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.error).toBe("payment_required");
       expect(response.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(response.json.selectedPaidAction.command).toContain("--max-amount 1000");
+      expect(response.json.paidResponsePreview.noSpendPreview).toBe(true);
+      expect(response.json.paidResponsePreview.route).toBe("/api/listing-roast");
+      expect(response.json.paidResponsePreview.maxAmountRequired).toBe("1000");
+      expect(response.json.paidResponsePreview.includes).toContain("score");
+      expect(response.json.paidResponsePreview.example.endpoint).toBe("listing-roast-quick-score");
+      expect(response.json.paidResponsePreview.example.nextPaidAction.path).toBe("/api/listing-roast");
       expect(response.json.paidUsageProof).toContain("/api/paid-usage-proof");
       expect(response.json.cashRegister).toContain("/api/cash-register");
       expect(response.json.settlementProof.cashRegister).toContain("/api/cash-register");
@@ -2771,6 +2777,9 @@ describe("Listing Roast x402 service", () => {
         expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
         expect(response.json.selectedPaidAction.command).toContain(routePath);
         expect(response.json.intentRoutes[expectedByPath[routePath]].path).toBe(routePath);
+        expect(response.json.paidResponsePreview.route).toBe(routePath);
+        expect(response.json.paidResponsePreview.maxAmountRequired).toBe("1000");
+        expect(response.json.paidResponsePreview.example.endpoint).toBe("listing-roast-quick-score");
       }
     } finally {
       await new Promise((resolve) => server.close(resolve));
@@ -2918,6 +2927,10 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
       expect(response.json.selectedPaidAction.command).toContain("/api/x402-discovery-audit");
       expect(response.json.selectedPaidAction.command).toContain("--max-amount 1000");
+      expect(response.json.paidResponsePreview.route).toBe("/api/x402-discovery-audit");
+      expect(response.json.paidResponsePreview.includes).toContain("search visibility");
+      expect(response.json.paidResponsePreview.example.endpoint).toBe("x402-discovery-audit-quick");
+      expect(response.json.paidResponsePreview.example.bazaarDiscovery).toBeDefined();
       expect(response.json.paidUsageProof).toContain("/api/paid-usage-proof");
       expect(response.json.x402Retry.route).toContain("/api/x402-discovery-audit");
       expect(response.json.x402Retry.paymentHeader).toBe("X-PAYMENT");

@@ -213,8 +213,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent clarity, agent service clarity, paid API preflight, x402 audit, x402 discovery audit, Bazaar visibility, stale price. $0.001 GET /api/listing-roast; /api/x402-site-audit, /api/x402-discovery-audit, POST /api/listing-roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-exact-alias-openers-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T21:42:34.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-paid-preview-402-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T22:09:17.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -2764,6 +2764,98 @@ function buildLatestWalletSettlementProof(config) {
   };
 }
 
+function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", selectedPaidAction = null) {
+  const quickScoreExample = () => buildIndexedRoastQuickScoreDiscoveryExample(buildInstantScoreInput(), config);
+  const previewByIntent = {
+    directoryPost: {
+      includes: ["route map", "preferred first paid action", "paid usage proof"],
+      example: () => buildApiEntryOutput(config)
+    },
+    apiEntry: {
+      includes: ["route map", "preferred first paid action", "paid usage proof"],
+      example: () => buildApiEntryOutput(config)
+    },
+    apiV1Entry: {
+      includes: ["route map", "preferred first paid action", "paid usage proof"],
+      example: () => buildApiEntryOutput(config)
+    },
+    v1Entry: {
+      includes: ["route map", "preferred first paid action", "paid usage proof"],
+      example: () => buildApiEntryOutput(config)
+    },
+    indexedQuickScore: {
+      includes: ["verdict", "score", "first fix", "next paid action"],
+      example: quickScoreExample
+    },
+    marketplaceListingScore: {
+      includes: ["marketplace listing score", "buyer-agent skip reasons", "next paid action"],
+      example: quickScoreExample
+    },
+    paidApiListingQuality: {
+      includes: ["paid API listing quality score", "first fix", "upgrade path"],
+      example: quickScoreExample
+    },
+    buyerAgentSkipReasons: {
+      includes: ["buyer-agent skip reasons", "score", "first fix"],
+      example: quickScoreExample
+    },
+    agentServiceClarity: {
+      includes: ["agent service clarity", "score", "first fix"],
+      example: quickScoreExample
+    },
+    instantScore: {
+      includes: ["verdict", "score", "first fix", "upgrade path"],
+      example: () => buildInstantListingScore(buildInstantScoreInput(), config)
+    },
+    conversionScore: {
+      includes: ["marketplace conversion verdict", "score", "next paid action"],
+      example: () => buildConversionScore(buildInstantScoreInput(), config)
+    },
+    agentListingConversion: {
+      includes: ["buyer-agent skip reasons", "agent service clarity", "next paid action"],
+      example: () => buildAgentListingConversionScore(buildInstantScoreInput(), config)
+    },
+    x402Ping: {
+      includes: ["payment confirmation echo", "route", "message"],
+      example: () => buildPingOutput(config, { msg: "hello from x402" })
+    },
+    x402SiteAudit: {
+      includes: ["direct 402 check", "metadata readiness", "next actions"],
+      example: () => buildSiteAuditExampleOutput(config)
+    },
+    discoveryAuditQuick: {
+      includes: ["stale pricing check", "search visibility", "route health", "next actions"],
+      example: () => buildDiscoveryAuditQuickExampleOutput(config)
+    },
+    listingScore: {
+      includes: ["custom score", "first fix", "upgrade path"],
+      example: () => buildListingScoreWithUpgrade(requestExample, config)
+    },
+    fullRoast: {
+      includes: ["full rewrite", "top fixes", "stop-or-upgrade guidance"],
+      example: () => buildListingRoast(requestExample)
+    },
+    discoveryAudit: {
+      includes: ["full x402 discovery audit", "mismatches", "next actions"],
+      example: () => buildDiscoveryAuditExampleOutput()
+    }
+  };
+  const preview = previewByIntent[intentRouteKey] || previewByIntent.indexedQuickScore;
+  const action = selectedPaidAction || {};
+
+  return {
+    noSpendPreview: true,
+    outputType: "paid_json_response",
+    route: action.path,
+    method: action.method,
+    price: action.price,
+    maxAmountRequired: action.maxAmountRequired,
+    whyPay: `Pay ${action.price || config.instantScorePrice} to receive this JSON output immediately after retrying with X-PAYMENT.`,
+    includes: preview.includes,
+    example: compactChallengeOutputExample(preview.example())
+  };
+}
+
 function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore") {
   const payNow = buildPayNow(config);
   const selected = payNow.intentRoutes[intentRouteKey] || payNow.preferredFirstPaidAction;
@@ -2775,6 +2867,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore")
     service: config.serviceName,
     noSpendPreview: true,
     selectedPaidAction: selected,
+    paidResponsePreview: buildPaidResponsePreview(config, intentRouteKey, selected),
     preferredFirstPaidAction: payNow.preferredFirstPaidAction,
     recommendedPaidSequence: payNow.recommendedPaidSequence,
     routeSelector: payNow.routeSelector,
