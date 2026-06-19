@@ -6473,7 +6473,8 @@ ${webMcpScript(config)}
 
   app.get("/api/examples", async (_request, response) => {
     await recordSignal("examplesViews");
-    const payNow = buildPayNow(config);
+    const cashRegister = await getCashRegister();
+    const payNow = buildPayNow(config, "", cashRegister);
 
     response.json({
       service: config.serviceName,
@@ -6504,10 +6505,14 @@ ${webMcpScript(config)}
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
       payNow,
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      cashRegister: absoluteUrl(config, "/api/cash-register"),
+      paidUsageProof: buildPaidUsageProof(config, cashRegister),
+      settlementProof: buildSettlementProof(config, cashRegister),
       payNowExamples: {
-        skipReasons: buildPayNow(config, "buyer-agent skip reasons"),
-        discoveryAudit: buildPayNow(config, "x402 discovery audit"),
-        fullRoast: buildPayNow(config, "full roast rewrite top fixes")
+        skipReasons: buildPayNow(config, "buyer-agent skip reasons", cashRegister),
+        discoveryAudit: buildPayNow(config, "x402 discovery audit", cashRegister),
+        fullRoast: buildPayNow(config, "full roast rewrite top fixes", cashRegister)
       },
       pricing: absoluteUrl(config, PRICING_PATH),
       pricingCatalog: buildPricingCatalog(config),

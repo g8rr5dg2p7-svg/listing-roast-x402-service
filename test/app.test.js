@@ -872,8 +872,15 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.mcpAliases[1]).toContain("/.well-known/mcp-server");
       expect(examples.json.mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(examples.json.payNowUrl).toContain("/api/pay-now");
+      expect(examples.json.paidUsageProofUrl).toContain("/api/paid-usage-proof");
+      expect(examples.json.cashRegister).toContain("/api/cash-register");
+      expect(examples.json.paidUsageProof.paidCompletions).toBe(0);
+      expect(examples.json.paidUsageProof.noSpend).toBe(true);
+      expect(examples.json.paidUsageProof.preferredConvertedRoute.path).toBe("/api/listing-roast");
+      expect(examples.json.settlementProof.cashRegister).toContain("/api/cash-register");
       expect(examples.json.payNowExamples.skipReasons.selectedActionKey).toBe("buyerAgentSkipReasons");
       expect(examples.json.payNowExamples.skipReasons.route).toContain("/api/buyer-agent-skip-reasons");
+      expect(examples.json.payNowExamples.skipReasons.paidUsageProof.noSpend).toBe(true);
       expect(examples.json.payNowExamples.discoveryAudit.selectedActionKey).toBe("discoveryAuditQuick");
       expect(examples.json.payNowExamples.discoveryAudit.route).toContain("/api/x402-discovery-audit");
       expect(examples.json.payNowExamples.fullRoast.selectedActionKey).toBe("fullRoast");
