@@ -26,7 +26,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /.well-known/mcp.json` - simple tool metadata.
 - `GET /api/instant-listing-score` - protected $0.001 x402 instant score route with optional query params.
 - `GET /api/x402-marketplace-conversion` - protected $0.001 x402 marketplace conversion score route with optional query params.
-- `GET /api/agent-listing-conversion` - protected $0.001 agent listing conversion score route for buyer agents searching agent-service listing clarity.
+- `GET /api/agent-listing-conversion` - protected $0.001 agent listing conversion score route for buyer agents searching agent-service listing clarity or buyer-agent skip reasons.
 - `GET /api/listing-roast` - protected $0.001 x402 quick score on the already-indexed listing-roast URL. This is the preferred first paid action for buyer agents coming from Bazaar.
 - `GET /api/x402-ping` - protected $0.001 paid ping for verifying the x402 payment rail.
 - `GET /api/x402-site-audit` - protected $0.001 x402/Bazaar site audit for direct 402 metadata, stale pricing, and search visibility. It makes no paid calls.

@@ -194,6 +194,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.resources[2].maxAmountRequired).toBe("1000");
       expect(x402Manifest.json.resources[3].price).toBe("$0.001");
       expect(x402Manifest.json.resources[3].keywords).toContain("agent service listing clarity");
+      expect(x402Manifest.json.resources[3].keywords).toContain("buyer-agent skip reasons");
       expect(x402Manifest.json.resources[3].maxAmountRequired).toBe("1000");
       expect(x402Manifest.json.resources[4].price).toBe("$0.001");
       expect(x402Manifest.json.resources[4].keywords).toContain("x402 ping");
@@ -305,6 +306,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/agent-listing-conversion"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/agent-listing-conversion"].get.summary).toContain("agent listing conversion");
       expect(openApi.json.paths["/api/agent-listing-conversion"].get.description).toContain("agent service listing clarity");
+      expect(openApi.json.paths["/api/agent-listing-conversion"].get.description).toContain("buyer-agent skip reasons");
       expect(openApi.json.paths["/api/x402-ping"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/x402-ping"].get["x-x402-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/x402-ping"].get.summary).toContain("$0.001");
@@ -613,6 +615,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.url).toContain("/api/agent-listing-conversion");
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("Agent Listing Conversion");
+      expect(challenge.resource.description).toContain("buyer-agent skip reasons");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
 

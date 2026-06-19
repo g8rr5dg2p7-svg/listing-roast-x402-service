@@ -544,7 +544,7 @@ function buildAgentListingConversionScore(input, config) {
   return addNextPaidAction({
     ...buildInstantListingScore(input, config),
     endpoint: "agent-listing-conversion-score",
-    nextStep: "This route is optimized for buyer agents searching agent service listing clarity or agent listing conversion score. Use POST /api/listing-roast for the full rewrite and launch recommendation.",
+    nextStep: "This route is optimized for buyer agents searching agent service listing clarity, agent listing conversion score, or buyer-agent skip reasons. Use POST /api/listing-roast for the full rewrite and launch recommendation.",
     upgradeEndpoint: ROAST_PATH
   }, buildNextPaidAction(config, input, {
     source: "agent-listing-conversion-upgrade",
@@ -919,9 +919,9 @@ function buildOpenApiDocument(config) {
       [AGENT_LISTING_PATH]: {
         get: {
           operationId: "getAgentListingConversionScore",
-          tags: ["agent listing conversion", "agent service listing clarity", "x402 listing", "paid API listing", "paid API listing quality"],
-          summary: "Paid $0.001 agent listing conversion score",
-          description: "Lowest-friction GET route for buyer agents searching agent service listing clarity, agent listing conversion score, buyer intent, paid API listing quality, or marketplace conversion. Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.",
+          tags: ["agent listing conversion", "agent service listing clarity", "buyer-agent skip reasons", "x402 listing", "paid API listing", "paid API listing quality"],
+          summary: "Paid $0.001 agent listing conversion score and buyer-agent skip reasons",
+          description: "Lowest-friction GET route for buyer agents searching agent service listing clarity, agent listing conversion score, buyer-agent skip reasons, buyer intent, paid API listing quality, or marketplace conversion. Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
@@ -1325,8 +1325,8 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, AGENT_LISTING_PATH),
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: "One-tenth-cent GET agent listing conversion score for agent service listing clarity, buyer intent, paid API listing quality, and marketplace conversion. Optimized for agents searching agent-service listing clarity.",
-        keywords: ["agent listing conversion score", "agent service listing clarity", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "marketplace listing conversion", "GET paid API"],
+        description: "One-tenth-cent GET agent listing conversion score for agent service listing clarity, buyer-agent skip reasons, buyer intent, paid API listing quality, and marketplace conversion. Optimized for agents searching agent-service listing clarity or buyer-agent skip reasons.",
+        keywords: ["agent listing conversion score", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "marketplace listing conversion", "GET paid API"],
         command: buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT),
         input: buildInstantScoreDiscovery(config).input,
         outputExample: buildAgentListingConversionScore(buildInstantScoreInput(), config),
@@ -1478,7 +1478,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Agent Listing Conversion Score: $0.001 GET score for agent service listing clarity, agent listing conversion, paid API listing quality, buyer intent, and x402 marketplace conversion.",
+        description: "Agent Listing Conversion Score: $0.001 GET score for agent service listing clarity, buyer-agent skip reasons, agent listing conversion, paid API listing quality, buyer intent, and x402 marketplace conversion.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildAgentListingConversionDiscovery(config))
       },
@@ -2220,8 +2220,8 @@ Other paid routes:
   - Price: ${config.instantScorePrice}
   - Network: ${config.network}
   - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
-  - Output: agent listing conversion score, agent service listing clarity score, buyer intent checks, first fix, next step
-  - Use when an agent searches for agent service listing clarity, agent listing conversion score, or buyer intent clarity
+  - Output: agent listing conversion score, agent service listing clarity score, buyer-agent skip reasons, buyer intent checks, first fix, next step
+  - Use when an agent searches for agent service listing clarity, agent listing conversion score, buyer-agent skip reasons, or buyer intent clarity
 
 - GET ${absoluteUrl(config, PING_PATH)}
   - Price: ${config.instantScorePrice}
@@ -2638,7 +2638,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, AGENT_LISTING_PATH),
           price: config.instantScorePrice,
           network: config.network,
-          description: "one-tenth-cent GET agent listing conversion score for agent service listing clarity, buyer intent, paid API listing quality, and marketplace conversion.",
+          description: "one-tenth-cent GET agent listing conversion score for agent service listing clarity, buyer-agent skip reasons, buyer intent, paid API listing quality, and marketplace conversion.",
           payment: buildPaymentHint(config, {
             path: AGENT_LISTING_PATH,
             method: "GET",
@@ -2646,7 +2646,7 @@ ${copyScript("Copy command")}
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
             buyerAction: "Pay $0.001 for an agent listing conversion score without building a JSON body."
           }),
-          keywords: ["agent listing conversion score", "agent service listing clarity", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "GET paid API"],
+          keywords: ["agent listing conversion score", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "GET paid API"],
           input: buildInstantScoreDiscovery(config).input
         },
         {
