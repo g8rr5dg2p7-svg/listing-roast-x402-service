@@ -177,11 +177,11 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
 });
 const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
   agentName: "Listing Roast x402",
-  listingText: "A paid x402 score API for marketplace listing quality, buyer-agent skip reasons, and agent-service clarity before promotion. Start with the already-indexed quick score route, then upgrade only when the score is promising.",
+  listingText: "A paid x402 score API for marketplace listing quality, paid API preflight, stale Bazaar price/search visibility, buyer-agent skip reasons, and agent-service clarity before promotion. Start with the already-indexed quick score route, then use the $0.001 discovery audit when a buyer needs to fix x402 Bazaar listing metadata.",
   targetBuyer: "x402 and MCP builders",
   currentPrice: "$0.001 GET; $0.01 POST upgrade",
   currentCheckoutPath: "/api/listing-roast",
-  goal: "Convert buyer agents through the lowest-friction paid score"
+  goal: "Convert buyer agents through the lowest-friction paid score, then route stale Bazaar listing or paid API preflight buyers to the $0.001 discovery audit"
 });
 const quickScoreRequestExample = Object.freeze({
   ...LISTING_QUERY_PARAMETER_EXAMPLES
@@ -917,6 +917,22 @@ function buildDiscovery(config, options = {}) {
   };
 }
 
+function paidActionOutputSchema() {
+  return {
+    type: "object",
+    properties: {
+      route: { type: "string" },
+      path: { type: "string" },
+      method: { type: "string" },
+      price: { type: "string" },
+      maxAmountRequired: { type: "string" },
+      body: { type: "object" },
+      command: { type: "string" },
+      reason: { type: "string" }
+    }
+  };
+}
+
 function buildScoreDiscovery(config) {
   return buildDiscovery(config, {
     routePath: "/api/listing-score",
@@ -935,19 +951,22 @@ function buildScoreDiscovery(config) {
         firstFix: { type: "string" },
         nextStep: { type: "string" },
         upgradeEndpoint: { type: "string" },
-        nextPaidAction: {
-          type: "object",
-          properties: {
-            route: { type: "string" },
-            path: { type: "string" },
-            method: { type: "string" },
-            price: { type: "string" },
-            maxAmountRequired: { type: "string" },
-            body: { type: "object" },
-            command: { type: "string" },
-            reason: { type: "string" }
+        matchedBuyerIntent: { type: "string" },
+        buyerIntentHandoffs: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              intent: { type: "string" },
+              path: { type: "string" },
+              method: { type: "string" },
+              price: { type: "string" },
+              maxAmountRequired: { type: "string" },
+              reason: { type: "string" }
+            }
           }
-        }
+        },
+        nextPaidAction: paidActionOutputSchema()
       }
     }
   });
@@ -1087,20 +1106,9 @@ function indexedQuickScoreFollowup(config, input) {
     input.goal
   ].filter(Boolean).join(" ").toLowerCase();
 
-  if (includesAny(intentText, ["site audit", "metadata", "openapi", "llms", "robots", "sitemap", "endpoint counts", "payment schemes", "buyer-readiness", "buyer readiness"])) {
-    return {
-      nextStep: "This indexed quick score confirms the listing fit. For live no-spend metadata checks, buy GET /api/x402-site-audit next.",
-      upgradeEndpoint: SITE_AUDIT_PATH,
-      action: buildGetNextPaidAction(config, SITE_AUDIT_PATH, {
-        price: config?.siteAuditPrice || "$0.001",
-        maxAmountRequired: SITE_AUDIT_AMOUNT,
-        reason: "Buy the $0.001 x402 site audit when you want live no-spend checks for OpenAPI, llms.txt, route health, pricing, and buyer-readiness signals."
-      })
-    };
-  }
-
   if (includesAny(intentText, ["discovery audit", "bazaar", "stale price", "stale pricing", "search visibility", "search position", "route health", "paid api preflight", "preflight"])) {
     return {
+      matchedBuyerIntent: "fix x402 Bazaar listing, stale price, search visibility, route health, or paid API preflight",
       nextStep: "This indexed quick score confirms the listing fit. For stale Bazaar pricing, route health, and search visibility, buy GET /api/x402-discovery-audit next.",
       upgradeEndpoint: DISCOVERY_AUDIT_PATH,
       action: buildGetNextPaidAction(config, DISCOVERY_AUDIT_PATH, {
@@ -1111,7 +1119,21 @@ function indexedQuickScoreFollowup(config, input) {
     };
   }
 
+  if (includesAny(intentText, ["site audit", "metadata", "openapi", "llms", "robots", "sitemap", "endpoint counts", "payment schemes", "buyer-readiness", "buyer readiness"])) {
+    return {
+      matchedBuyerIntent: "x402 site audit, metadata, route health, or buyer-readiness",
+      nextStep: "This indexed quick score confirms the listing fit. For live no-spend metadata checks, buy GET /api/x402-site-audit next.",
+      upgradeEndpoint: SITE_AUDIT_PATH,
+      action: buildGetNextPaidAction(config, SITE_AUDIT_PATH, {
+        price: config?.siteAuditPrice || "$0.001",
+        maxAmountRequired: SITE_AUDIT_AMOUNT,
+        reason: "Buy the $0.001 x402 site audit when you want live no-spend checks for OpenAPI, llms.txt, route health, pricing, and buyer-readiness signals."
+      })
+    };
+  }
+
   return {
+    matchedBuyerIntent: "marketplace listing score, buyer-agent skip reasons, or full listing roast",
     nextStep: "This GET route keeps the indexed /api/listing-roast URL payable at the lowest price. Use POST /api/listing-roast for the full rewrite and launch recommendation.",
     upgradeEndpoint: ROAST_PATH,
     action: buildNextPaidAction(config, input, {
@@ -1119,6 +1141,45 @@ function indexedQuickScoreFollowup(config, input) {
       reason: "Buy the full roast from the already-indexed URL when the quick score is promising and you want the rewrite, top fixes, and stop-or-upgrade guidance."
     })
   };
+}
+
+function indexedQuickScoreIntentHandoffs(config, input) {
+  const compactAction = (action) => action ? {
+    path: action.path,
+    method: action.method,
+    price: action.price,
+    maxAmountRequired: action.maxAmountRequired,
+    reason: action.reason
+  } : null;
+
+  return [
+    {
+      intent: "fix x402 Bazaar listing, stale price, search visibility, route health, or paid API preflight",
+      action: buildGetNextPaidAction(config, DISCOVERY_AUDIT_PATH, {
+        price: config?.siteAuditPrice || "$0.001",
+        maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
+        reason: "Buy the $0.001 exact-path x402 discovery audit when you want stale Bazaar pricing, route health, direct 402 metadata, and search visibility checks."
+      })
+    },
+    {
+      intent: "OpenAPI, llms.txt, robots, sitemap, payment metadata, or buyer-readiness checks",
+      action: buildGetNextPaidAction(config, SITE_AUDIT_PATH, {
+        price: config?.siteAuditPrice || "$0.001",
+        maxAmountRequired: SITE_AUDIT_AMOUNT,
+        reason: "Buy the $0.001 x402 site audit when you want live no-spend checks for OpenAPI, llms.txt, route health, pricing, and buyer-readiness signals."
+      })
+    },
+    {
+      intent: "full listing rewrite, top fixes, and launch recommendation",
+      action: buildNextPaidAction(config, input, {
+        source: "indexed-quick-score-upgrade",
+        reason: "Buy the full roast from the already-indexed URL when the quick score is promising and you want the rewrite, top fixes, and stop-or-upgrade guidance."
+      })
+    }
+  ].map((handoff) => ({
+    intent: handoff.intent,
+    ...compactAction(handoff.action)
+  })).filter((handoff) => handoff.path);
 }
 
 function buildListingScoreWithUpgrade(input, config) {
@@ -1174,6 +1235,8 @@ function buildIndexedRoastQuickScore(input, config) {
   return addNextPaidAction({
     ...buildInstantListingScore(input, config),
     endpoint: "listing-roast-quick-score",
+    matchedBuyerIntent: followup.matchedBuyerIntent,
+    buyerIntentHandoffs: indexedQuickScoreIntentHandoffs(config, input),
     nextStep: followup.nextStep,
     upgradeEndpoint: followup.upgradeEndpoint
   }, followup.action);
