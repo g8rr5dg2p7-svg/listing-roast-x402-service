@@ -58,6 +58,24 @@ function expectFreshDiscoveryHeaders(headers) {
   expect(headers.get("expires")).toBe("0");
 }
 
+function scoreAgent402OpenApiOperation(operation, query) {
+  const terms = query.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).slice(0, 32);
+  const slug = (operation.operationId || "").toLowerCase();
+  const name = (operation.summary || "").toLowerCase();
+  const category = (operation.tags || [])[0] || "other";
+  const hay = `${operation.summary || ""} ${operation.description || ""} ${category} ${(operation.tags || []).join(" ")}`.toLowerCase();
+  let score = 0;
+
+  for (const term of terms) {
+    if (slug === term) score += 10;
+    else if (slug.includes(term)) score += 4;
+    if (name.includes(term)) score += 2;
+    if (hay.includes(term)) score += 1;
+  }
+
+  return score;
+}
+
 function mockFacilitatorSupportedKinds() {
   const realFetch = globalThis.fetch;
 
@@ -707,7 +725,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/x402-discovery-audit"].post["x-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post["x-x402-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.summary).toContain("$0.01");
-      expect(openApi.json.paths["/api/listing-roast"].get.operationId).toBe("getBuyerAgentSkipReasonsListingRoastQuickScore");
+      expect(openApi.json.paths["/api/listing-roast"].get.operationId).toBe("getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore");
+      expect(openApi.json.paths["/api/listing-roast"].get.tags[0]).toBe("paid API listing quality");
       expect(openApi.json.paths["/api/listing-roast"].get.security).toEqual([{ x402: [] }]);
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].maxAmountRequired).toBe("1000");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].preferredFirstPaidAction).toBe(true);
@@ -735,6 +754,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].post.responses[402].content["application/json"].example.selectedPaidAction.maxAmountRequired).toBe("10000");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.command).toContain("/api/listing-roast");
+      expect(scoreAgent402OpenApiOperation(openApi.json.paths["/api/listing-roast"].get, "paid API listing quality")).toBeGreaterThan(scoreAgent402OpenApiOperation(openApi.json.paths["/api/x402-site-audit"].get, "paid API listing quality"));
+      expect(scoreAgent402OpenApiOperation(openApi.json.paths["/api/listing-roast"].get, "buyer-agent skip reasons")).toBeGreaterThan(scoreAgent402OpenApiOperation(openApi.json.paths["/api/agent-listing-conversion"].get, "buyer-agent skip reasons"));
       expect(openApi.json.paths["/api/pay-now"].get.operationId).toBe("getPayNow");
       expect(openApi.json.paths["/api/pay-now"].get.security).toBeUndefined();
       expect(openApi.json.paths["/api/pay-now"].get.parameters.map((parameter) => parameter.name)).toContain("intent");

@@ -2256,8 +2256,8 @@ function buildOpenApiDocument(config) {
       },
       [ROAST_PATH]: {
         get: {
-          operationId: "getBuyerAgentSkipReasonsListingRoastQuickScore",
-          tags: ["buyer-agent skip reasons", "agent service listing clarity", "x402 listing", "paid API listing", "paid API listing quality"],
+          operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
+          tags: ["paid API listing quality", "buyer-agent skip reasons", "agent service listing clarity", "x402 listing", "paid API listing"],
           summary: "Paid $0.001 buyer-agent skip reasons and listing quality quick score",
           description: "Buyer-agent skip reasons, agent service listing clarity, marketplace listing score, and paid API listing quality from the already-indexed /api/listing-roast URL. Returns a $0.001 score API for paid API discoverability, x402 listing quality, agent listing conversion, x402 discovery audit triage, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
           "x-price": config.instantScorePrice,
