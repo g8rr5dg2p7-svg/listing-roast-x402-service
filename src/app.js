@@ -41,6 +41,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     name: "marketplace_listing_score",
     operationId: "getMarketplaceListingScoreAlias",
     summary: "Paid $0.001 marketplace listing score alias",
+    catalogTitle: "GET $0.001 marketplace listing score quick-score alias",
     description: "One-tenth-cent GET alias for marketplace listing score buyers. Returns the same quick score as the indexed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and next paid action guidance.",
     keywords: ["marketplace listing score", "marketplace listing quality", "listing quality score", "x402 listing quality", "paid API listing quality"]
   },
@@ -49,6 +50,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     name: "paid_api_listing_quality",
     operationId: "getPaidApiListingQualityAlias",
     summary: "Paid $0.001 paid API listing quality alias",
+    catalogTitle: "GET $0.001 paid API listing quality quick-score alias",
     description: "One-tenth-cent GET alias for paid API listing quality buyers. Returns the same quick score as the indexed /api/listing-roast route, with marketplace listing score, agent service clarity, buyer-agent skip reasons, and upgrade guidance.",
     keywords: ["paid API listing quality", "paid API listing quality score", "paid API listing", "agent-service listing score", "marketplace listing score"]
   },
@@ -57,6 +59,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     name: "buyer_agent_skip_reasons",
     operationId: "getBuyerAgentSkipReasonsAlias",
     summary: "Paid $0.001 buyer-agent skip reasons alias",
+    catalogTitle: "GET $0.001 buyer-agent skip reasons quick-score alias",
     description: "One-tenth-cent GET alias for buyer-agent skip reason searches. Returns the same quick score as the indexed /api/listing-roast route, with top skip reasons, agent service clarity, and the next paid action.",
     keywords: ["buyer-agent skip reasons", "buyer agent skip reasons", "agent skip reasons", "agent listing conversion", "agent service clarity"]
   },
@@ -65,6 +68,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     name: "agent_service_clarity",
     operationId: "getAgentServiceClarityAlias",
     summary: "Paid $0.001 agent service clarity alias",
+    catalogTitle: "GET $0.001 agent service clarity quick-score alias",
     description: "One-tenth-cent GET alias for agent service clarity and promotion-readiness buyers. Returns the same quick score as the indexed /api/listing-roast route, with buyer-agent skip reasons, marketplace listing quality, and first-fix guidance.",
     keywords: ["agent service clarity", "agent service listing clarity", "agent-service listing score", "agent listing clarity", "agent service promotion readiness"]
   }
@@ -4815,7 +4819,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
 function buildApiCatalog(config) {
   const item = [
     { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET preferred first $0.001 indexed x402 marketplace listing score and POST $0.01 full roast" },
-    ...QUICK_SCORE_ALIAS_PATHS.map((pathname) => ({ href: absoluteUrl(config, pathname), type: "application/json", title: "GET $0.001 quick-score alias for paid API listing quality and buyer-agent skip reasons" })),
+    ...QUICK_SCORE_ALIAS_PATHS.map((pathname) => ({ href: absoluteUrl(config, pathname), type: "application/json", title: QUICK_SCORE_ALIAS_METADATA[pathname].catalogTitle })),
     { href: absoluteUrl(config, ROOT_DIRECTORY_POST_PATH), type: "application/json", title: "POST $0.001 root directory handoff for generic agent-tools snippets" },
     { href: absoluteUrl(config, INSTANT_SCORE_PATH), type: "application/json", title: "GET $0.001 instant paid API listing quality score" },
     { href: absoluteUrl(config, CONVERSION_SCORE_PATH), type: "application/json", title: "GET $0.001 x402 marketplace conversion score" },

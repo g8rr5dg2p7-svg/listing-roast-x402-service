@@ -715,6 +715,11 @@ describe("Listing Roast x402 service", () => {
         expect(apiCatalog.json.linkset[0].item[index + 1].href).toBe(`http://localhost:8787${aliasPath}`);
         expect(apiCatalog.json.linkset[0].item[index + 1].title).toContain("quick-score alias");
       });
+      const apiCatalogItemsByHref = Object.fromEntries(apiCatalog.json.linkset[0].item.map((item) => [item.href, item]));
+      expect(apiCatalogItemsByHref["http://localhost:8787/api/marketplace-listing-score"].title).toBe("GET $0.001 marketplace listing score quick-score alias");
+      expect(apiCatalogItemsByHref["http://localhost:8787/api/paid-api-listing-quality"].title).toBe("GET $0.001 paid API listing quality quick-score alias");
+      expect(apiCatalogItemsByHref["http://localhost:8787/api/buyer-agent-skip-reasons"].title).toBe("GET $0.001 buyer-agent skip reasons quick-score alias");
+      expect(apiCatalogItemsByHref["http://localhost:8787/api/agent-service-clarity"].title).toBe("GET $0.001 agent service clarity quick-score alias");
       expect(apiCatalog.json.linkset[0].item[5].href).toBe("http://localhost:8787/");
       expect(apiCatalog.json.linkset[0].item[5].title).toContain("root directory handoff");
       expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/api/v1");
