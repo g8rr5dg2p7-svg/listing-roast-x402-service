@@ -213,8 +213,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent clarity, preflight, x402 audit, Bazaar visibility, stale price. $0.001 GET /api/listing-roast; /api/x402-site-audit, /api/x402-discovery-audit, POST /api/listing-roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-proof-header-buffer-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T20:59:57.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-indexed-route-upsell-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T21:09:35.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -231,11 +231,11 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
 });
 const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
   agentName: "Listing Roast x402",
-  listingText: "Score paid API listing quality, paid API preflight, stale Bazaar price/search, buyer-agent skip reasons, and agent-service clarity. Start with $0.001 GET /api/listing-roast; use $0.001 site audit for route checks and discovery audit for stale Bazaar metadata.",
+  listingText: "Score paid API listing quality, marketplace listing score, buyer-agent skip reasons, and agent-service clarity. Start with $0.001 GET /api/listing-roast; upgrade to $0.01 POST /api/listing-roast for the full roast when the quick score shows fit.",
   targetBuyer: "x402 and MCP builders",
   currentPrice: "$0.001 GET; $0.01 POST upgrade",
   currentCheckoutPath: "/api/listing-roast",
-  goal: "Convert buyer agents through the lowest-friction paid score, then route pre-pay checks to site audit and stale Bazaar buyers to discovery audit"
+  goal: "Convert buyer agents through the lowest-friction paid score, then upgrade promising buyers to the $0.01 full roast while keeping secondary audit handoffs available."
 });
 const quickScoreRequestExample = Object.freeze({
   ...LISTING_QUERY_PARAMETER_EXAMPLES
