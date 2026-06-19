@@ -28,6 +28,47 @@ const INSTANT_SCORE_PATH = "/api/instant-listing-score";
 const CONVERSION_SCORE_PATH = "/api/x402-marketplace-conversion";
 const AGENT_LISTING_PATH = "/api/agent-listing-conversion";
 const ROAST_PATH = "/api/listing-roast";
+const QUICK_SCORE_ALIAS_PATHS = Object.freeze([
+  "/api/marketplace-listing-score",
+  "/api/paid-api-listing-quality",
+  "/api/buyer-agent-skip-reasons",
+  "/api/agent-service-clarity"
+]);
+const QUICK_SCORE_PAID_PATHS = Object.freeze([ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS]);
+const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
+  "/api/marketplace-listing-score": {
+    id: "marketplace_listing_score_alias",
+    name: "marketplace_listing_score",
+    operationId: "getMarketplaceListingScoreAlias",
+    summary: "Paid $0.001 marketplace listing score alias",
+    description: "One-tenth-cent GET alias for marketplace listing score buyers. Returns the same quick score as the indexed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and next paid action guidance.",
+    keywords: ["marketplace listing score", "marketplace listing quality", "listing quality score", "x402 listing quality", "paid API listing quality"]
+  },
+  "/api/paid-api-listing-quality": {
+    id: "paid_api_listing_quality_alias",
+    name: "paid_api_listing_quality",
+    operationId: "getPaidApiListingQualityAlias",
+    summary: "Paid $0.001 paid API listing quality alias",
+    description: "One-tenth-cent GET alias for paid API listing quality buyers. Returns the same quick score as the indexed /api/listing-roast route, with marketplace listing score, agent service clarity, buyer-agent skip reasons, and upgrade guidance.",
+    keywords: ["paid API listing quality", "paid API listing quality score", "paid API listing", "agent-service listing score", "marketplace listing score"]
+  },
+  "/api/buyer-agent-skip-reasons": {
+    id: "buyer_agent_skip_reasons_alias",
+    name: "buyer_agent_skip_reasons",
+    operationId: "getBuyerAgentSkipReasonsAlias",
+    summary: "Paid $0.001 buyer-agent skip reasons alias",
+    description: "One-tenth-cent GET alias for buyer-agent skip reason searches. Returns the same quick score as the indexed /api/listing-roast route, with top skip reasons, agent service clarity, and the next paid action.",
+    keywords: ["buyer-agent skip reasons", "buyer agent skip reasons", "agent skip reasons", "agent listing conversion", "agent service clarity"]
+  },
+  "/api/agent-service-clarity": {
+    id: "agent_service_clarity_alias",
+    name: "agent_service_clarity",
+    operationId: "getAgentServiceClarityAlias",
+    summary: "Paid $0.001 agent service clarity alias",
+    description: "One-tenth-cent GET alias for agent service clarity and promotion-readiness buyers. Returns the same quick score as the indexed /api/listing-roast route, with buyer-agent skip reasons, marketplace listing quality, and first-fix guidance.",
+    keywords: ["agent service clarity", "agent service listing clarity", "agent-service listing score", "agent listing clarity", "agent service promotion readiness"]
+  }
+});
 const SCORE_PATH = "/api/listing-score";
 const PING_PATH = "/api/x402-ping";
 const SITE_AUDIT_PATH = "/api/x402-site-audit";
@@ -199,6 +240,10 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   agent_listing_conversion_score: "agentListingConversion",
   x402_ping: "x402Ping",
   x402_site_audit: "x402SiteAudit",
+  marketplace_listing_score_alias: "indexedQuickScore",
+  paid_api_listing_quality_alias: "indexedQuickScore",
+  buyer_agent_skip_reasons_alias: "indexedQuickScore",
+  agent_service_clarity_alias: "indexedQuickScore",
   paid_api_preflight: "x402SiteAudit",
   api_v1_paid_api_preflight: "x402SiteAudit",
   root_paid_api_preflight: "x402SiteAudit",
@@ -270,6 +315,14 @@ export function getConfig(overrides = {}) {
 
 function absoluteUrl(config, pathname) {
   return `${config.serviceUrl}${pathname}`;
+}
+
+function quickScoreAliasUrls(config) {
+  return QUICK_SCORE_ALIAS_PATHS.map((pathname) => absoluteUrl(config, pathname));
+}
+
+function formatQuickScoreAliasUrls(config) {
+  return quickScoreAliasUrls(config).join(", ");
 }
 
 function preflightAliasUrls(config) {
@@ -586,6 +639,10 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 \`\`\`
 
 Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT} USDC units.
+
+Exact buyer-phrase aliases for the same quick score:
+
+${QUICK_SCORE_ALIAS_PATHS.map((pathname) => `- GET ${absoluteUrl(config, pathname)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units)`).join("\n")}
 
 ## Recommended Paid Sequence
 
@@ -3381,6 +3438,26 @@ function buildOpenApiDocument(config, cashRegister = {}) {
     }
   };
 
+  for (const aliasPath of QUICK_SCORE_ALIAS_PATHS) {
+    const metadata = QUICK_SCORE_ALIAS_METADATA[aliasPath];
+    paymentActionByRoute[`GET ${aliasPath}`] = "indexedQuickScore";
+    document.paths[aliasPath] = {
+      get: {
+        ...document.paths[ROAST_PATH].get,
+        operationId: metadata.operationId,
+        summary: metadata.summary,
+        description: `${metadata.description} Canonical route: GET ${ROAST_PATH}.`,
+        "x-payment": buildPaymentHint(config, {
+          path: aliasPath,
+          method: "GET",
+          price: config.instantScorePrice,
+          maxAmountRequired: INSTANT_SCORE_AMOUNT,
+          buyerAction: `Pay $0.001 for ${metadata.name.replaceAll("_", " ")}.`
+        })
+      }
+    };
+  }
+
   const preflightAliasOperationIds = {
     "/api/preflight": "getPaidApiPreflight",
     "/api/v1/preflight": "getApiV1PaidApiPreflight",
@@ -3448,6 +3525,28 @@ function buildPaidUsageProof(config, cashRegister = {}) {
     walletEvidenceFields: ["receiverWallet.usdcBalance", "receiverWallet.usdcUnits", "receiverWallet.checkedAt"],
     noSpend: true
   };
+}
+
+function buildQuickScoreAliasManifestResources(config) {
+  return QUICK_SCORE_ALIAS_PATHS.map((path) => {
+    const metadata = QUICK_SCORE_ALIAS_METADATA[path];
+    return {
+      id: metadata.id,
+      name: metadata.name,
+      method: "GET",
+      path,
+      url: absoluteUrl(config, path),
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      description: metadata.description,
+      keywords: uniqueTerms([...metadata.keywords, "listing roast", "GET paid API", "x402 quick score", "paid API discoverability"]),
+      command: buildGetPayCommand(config, path, INSTANT_SCORE_AMOUNT),
+      input: buildInstantScoreDiscovery(config).input,
+      outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput(), config),
+      schema: absoluteUrl(config, "/api/score-schema"),
+      canonicalRoute: ROAST_PATH
+    };
+  });
 }
 
 function buildPreflightAliasManifestResources(config) {
@@ -3543,11 +3642,13 @@ function buildX402Manifest(config, cashRegister = {}) {
       }
     },
     capabilities: {
-      tools: 17
+      tools: 21
     },
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
+    quickScoreAliases: quickScoreAliasUrls(config),
+    preflightAliases: preflightAliasUrls(config),
     resources: [
       {
         id: "indexed_roast_quick_score",
@@ -3564,6 +3665,7 @@ function buildX402Manifest(config, cashRegister = {}) {
         outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput(), config),
         schema: absoluteUrl(config, "/api/score-schema")
       },
+      ...buildQuickScoreAliasManifestResources(config),
       {
         id: "directory_root_post",
         name: "directory_root_post",
@@ -4555,6 +4657,7 @@ function buildAgentCard(config, cashRegister = {}) {
       mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
       mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+      quickScoreAliases: quickScoreAliasUrls(config),
       preflightAliases: preflightAliasUrls(config),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       noSpendDiscovery: true,
@@ -4584,7 +4687,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
       "Use it when a builder needs a paid API listing quality score, buyer-agent skip reasons, x402 marketplace conversion feedback, or x402 service discoverability guidance before promotion.",
       "Protected routes require x402 payment in USDC on Base before JSON output is returned.",
       `Use GET ${absoluteUrl(config, API_ENTRY_PATH)}, GET ${absoluteUrl(config, API_V1_ENTRY_PATH)}, or GET ${absoluteUrl(config, V1_ENTRY_PATH)} for a generic ${config.instantScorePrice} paid x402 navigation route map with fallback quick score when an agent starts at /api, /api/v1, or /v1 first.`,
-      `Preferred first paid action: GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units.`,
+      `Preferred first paid action: GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units; direct quick-score aliases are ${formatQuickScoreAliasUrls(config)}.`,
       `Use GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent service listing clarity, agent listing conversion score, and buyer-agent skip reasons.`,
       `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight before paying; direct preflight aliases are ${formatPreflightAliasUrls(config)}.`,
       `Use POST ${absoluteUrl(config, ROAST_PATH)} only when the buyer wants the full ${config.price} roast, rewrite, and stop-or-upgrade guidance.`,
@@ -4612,6 +4715,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+      quickScoreAliases: quickScoreAliasUrls(config),
       preflightAliases: preflightAliasUrls(config),
       recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
@@ -4626,6 +4730,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
 function buildApiCatalog(config) {
   const item = [
     { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET preferred first $0.001 indexed x402 marketplace listing score and POST $0.01 full roast" },
+    ...QUICK_SCORE_ALIAS_PATHS.map((pathname) => ({ href: absoluteUrl(config, pathname), type: "application/json", title: "GET $0.001 quick-score alias for paid API listing quality and buyer-agent skip reasons" })),
     { href: absoluteUrl(config, ROOT_DIRECTORY_POST_PATH), type: "application/json", title: "POST $0.001 root directory handoff for generic agent-tools snippets" },
     { href: absoluteUrl(config, INSTANT_SCORE_PATH), type: "application/json", title: "GET $0.001 instant paid API listing quality score" },
     { href: absoluteUrl(config, CONVERSION_SCORE_PATH), type: "application/json", title: "GET $0.001 x402 marketplace conversion score" },
@@ -4708,6 +4813,8 @@ Listing Roast x402 is a paid HTTP JSON API for builders who need a quick read on
 
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
 
+Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, paid API listing quality, buyer-agent skip reasons, and agent service clarity searches.
+
 ## Free Discovery
 
 - Homepage: ${absoluteUrl(config, "/")}
@@ -4740,6 +4847,7 @@ Do not call paid routes unless the buyer explicitly intends to pay USDC through 
 - Price: ${config.instantScorePrice}
 - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
 - Best for: paid API listing quality, marketplace listing quality, x402 listing quality, agent service listing clarity, and buyer-agent skip reasons.
+- Exact buyer-phrase aliases: GET ${formatQuickScoreAliasUrls(config)}
 
 \`\`\`bash
 ${buildGetPayCommand(config, ROAST_PATH)}
@@ -4795,6 +4903,7 @@ Listing Roast x402 is a paid API for agents and builders who need a quick x402 l
 - Price: ${config.instantScorePrice}
 - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
 - Use it for the fastest paid score from the already-indexed listing-roast URL.
+- Exact buyer-phrase aliases: GET ${formatQuickScoreAliasUrls(config)}.
 
 \`\`\`bash
 ${buildGetPayCommand(config, ROAST_PATH)}
@@ -4807,6 +4916,11 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 - GET ${absoluteUrl(config, V1_ENTRY_PATH)} for agents that start at /v1 first.
 
 Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and returns the paid route map after x402 payment.
+
+## Quick-Score Buyer Phrase Aliases
+
+- GET ${formatQuickScoreAliasUrls(config)} are direct aliases for marketplace listing score, paid API listing quality, buyer-agent skip reasons, and agent service clarity searches.
+- Each alias costs ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and returns the same quick-score output as GET ${absoluteUrl(config, ROAST_PATH)}.
 
 ## Paid API Preflight Aliases
 
@@ -5133,6 +5247,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
       llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
       llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
+      quickScoreAliases: quickScoreAliasUrls(config),
       preflightAliases: preflightAliasUrls(config),
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH)
     },
@@ -5333,6 +5448,25 @@ function createX402Middleware(config) {
         unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
         extensions: declareChallengeDiscoveryExtension(buildIndexedRoastGetDiscovery(config))
       },
+      ...Object.fromEntries(QUICK_SCORE_ALIAS_PATHS.map((routePath) => {
+        const metadata = QUICK_SCORE_ALIAS_METADATA[routePath];
+        return [`GET ${routePath}`, {
+          resource: resourceUrl(routePath),
+          ...routeServiceMetadata("indexedQuickScore"),
+          accepts: {
+            scheme: "exact",
+            price: config.instantScorePrice,
+            network: config.network,
+            payTo: config.payTo,
+            maxTimeoutSeconds: 300
+          },
+          description: withPaidUseProofDescription(config, metadata.description),
+          mimeType: "application/json",
+          customPaywallHtml: buildCustomPaywallHtml(config, "indexedQuickScore"),
+          unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
+          extensions: declareChallengeDiscoveryExtension(buildIndexedRoastGetDiscovery(config))
+        }];
+      })),
       [`GET ${PING_PATH}`]: {
         resource: resourceUrl(PING_PATH),
         ...routeServiceMetadata("x402Ping"),
@@ -5530,7 +5664,7 @@ async function recordGetScoreProbe(request, _response, next) {
     const pathname = new URL(request.originalUrl, "http://local").pathname;
     await recordSignal("unpaidChallenges");
     await recordSignal("validUnpaidChallenges");
-    await recordSignal(pathname === ROAST_PATH ? "indexedRoastGetValidUnpaidChallenges" : validUnpaidSignalForPath(pathname));
+    await recordSignal(QUICK_SCORE_PAID_PATHS.includes(pathname) ? "indexedRoastGetValidUnpaidChallenges" : validUnpaidSignalForPath(pathname));
   }
   next();
 }
@@ -5963,7 +6097,7 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div class="card">
           <h3>Discovery</h3>
-          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, paid API listing quality, and buyer-agent skip-reason searches; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
+          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, paid API listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
           <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
@@ -6001,7 +6135,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -6082,6 +6216,7 @@ ${webMcpScript(config)}
       conversionScoreRoute: absoluteUrl(config, CONVERSION_SCORE_PATH),
       agentListingConversionRoute: absoluteUrl(config, AGENT_LISTING_PATH),
       indexedRoastGetRoute: absoluteUrl(config, ROAST_PATH),
+      quickScoreAliases: quickScoreAliasUrls(config),
       pingRoute: absoluteUrl(config, PING_PATH),
       siteAuditRoute: absoluteUrl(config, SITE_AUDIT_PATH),
       discoveryAuditRoute: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
@@ -6249,6 +6384,8 @@ Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who n
 
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
 
+Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, paid API listing quality, buyer-agent skip reasons, and agent service clarity searches.
+
 Paid API preflight aliases: GET ${formatPreflightAliasUrls(config)}. These aliases cost ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT} USDC units, and return the x402 site-audit output for agents that probe common preflight URLs before paying more.
 
 Homepage: ${absoluteUrl(config, "/")}
@@ -6296,6 +6433,7 @@ Preferred first paid route:
 ${indentText(buildGetPayCommand(config, ROAST_PATH))}
   - Output: quick paid API listing quality score from the already-indexed listing-roast URL
   - Use first when a marketplace result points to /api/listing-roast or an agent wants the lowest-friction payable route
+  - Exact buyer-phrase aliases: GET ${formatQuickScoreAliasUrls(config)}
 
 Recommended paid sequence:
 
@@ -6860,6 +6998,7 @@ ${copyScript("Copy command")}
         settlementProof: buildSettlementProof(config)
       },
       keywords: DISCOVERY_KEYWORDS,
+      quickScoreAliases: quickScoreAliasUrls(config),
       preflightAliases: preflightAliasUrls(config),
       tools: [
         {
@@ -7180,10 +7319,10 @@ ${copyScript("Copy command")}
   });
 
   app.head([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], rejectHeadPaidRoute);
-  app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
+  app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ...QUICK_SCORE_PAID_PATHS, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
   app.post(ROOT_DIRECTORY_POST_PATH, recordDirectoryPostProbe);
   app.get([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], recordApiEntryProbe);
-  app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH], recordGetScoreProbe);
+  app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ...QUICK_SCORE_PAID_PATHS], recordGetScoreProbe);
   app.get(PING_PATH, recordPingProbe);
   app.get([...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH], recordAuditProbe);
   app.post(ROAST_PATH, validateListingRoastRequest);
@@ -7233,7 +7372,7 @@ ${copyScript("Copy command")}
     response.json({ ...result, cashRegister });
   });
 
-  app.get(ROAST_PATH, async (request, response) => {
+  app.get(QUICK_SCORE_PAID_PATHS, async (request, response) => {
     const result = buildIndexedRoastQuickScore(buildInstantScoreInput(request.query), config);
     const cashRegister = await recordPaidCompletion("indexedRoastGet", 0.001);
     response.json({ ...result, cashRegister });
