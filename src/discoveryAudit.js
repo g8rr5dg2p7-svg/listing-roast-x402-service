@@ -4,6 +4,7 @@ import { z } from "zod";
 
 const CDP_DISCOVERY_BASE = "https://api.cdp.coinbase.com/platform/v2/x402/discovery";
 const DEFAULT_TIMEOUT_MS = 4500;
+const SETTLE_RESOURCE_ACTION = "Confirm the buyer/client settle request includes paymentPayload.resource for this exact endpoint and preserves the Bazaar extension metadata; Bazaar catalogs settled resources, not unpaid probes.";
 
 const PRIVATE_HOSTS = new Set([
   "localhost",
@@ -86,7 +87,7 @@ export const discoveryAuditRequestExample = {
 
 export const discoveryAuditOutputSchema = {
   type: "object",
-  required: ["service", "endpoint", "price", "verdict", "auditedAt", "direct402", "bazaarDiscovery", "mismatches", "nextActions", "safety"],
+  required: ["service", "endpoint", "price", "verdict", "auditedAt", "direct402", "bazaarDiscovery", "catalogRefresh", "mismatches", "nextActions", "safety"],
   properties: {
     service: { type: "string" },
     endpoint: { type: "string" },
@@ -96,6 +97,7 @@ export const discoveryAuditOutputSchema = {
     input: { type: "object" },
     direct402: { type: "object" },
     bazaarDiscovery: { type: "object" },
+    catalogRefresh: { type: "object" },
     mismatches: { type: "array", items: { type: "string" } },
     nextActions: { type: "array", items: { type: "string" } },
     safety: { type: "string" }
@@ -196,6 +198,18 @@ function compactResource(resource) {
   };
 }
 
+function discoveryResources(payload) {
+  if (Array.isArray(payload?.resources)) {
+    return payload.resources;
+  }
+
+  if (Array.isArray(payload?.items)) {
+    return payload.items;
+  }
+
+  return [];
+}
+
 async function inspectMerchantDiscovery(payTo) {
   if (!payTo) {
     return { resources: [], error: "no_payTo_from_direct_402" };
@@ -205,8 +219,8 @@ async function inspectMerchantDiscovery(payTo) {
   const payload = await fetchJson(`${CDP_DISCOVERY_BASE}/merchant?${params.toString()}`);
 
   return {
-    total: payload.pagination?.total ?? payload.resources?.length ?? 0,
-    resources: (payload.resources || []).map(compactResource),
+    total: payload.pagination?.total ?? discoveryResources(payload).length,
+    resources: discoveryResources(payload).map(compactResource),
     error: payload.error || null
   };
 }
@@ -221,13 +235,14 @@ async function inspectSearch(input, direct402) {
   }
 
   const payload = await fetchJson(`${CDP_DISCOVERY_BASE}/search?${params.toString()}`);
+  const resources = discoveryResources(payload);
 
   return {
     query,
-    count: payload.resources?.length || 0,
+    count: resources.length,
     searchMethod: payload.searchMethod || null,
     partialResults: Boolean(payload.partialResults),
-    resources: (payload.resources || []).map(compactResource),
+    resources: resources.map(compactResource),
     error: payload.error || null
   };
 }
@@ -269,9 +284,11 @@ function buildAssessment(input, direct402, merchantDiscovery, searchDiscovery) {
   if (!indexedResource) {
     mismatches.push("CDP merchant discovery does not show this exact endpoint URL.");
     nextActions.push("Complete one real settled payment through the CDP Facilitator for this URL so Bazaar can catalog the current metadata.");
+    nextActions.push(SETTLE_RESOURCE_ACTION);
   } else if (direct402.amount && indexedResource.amount && direct402.amount !== indexedResource.amount) {
     mismatches.push(`Bazaar has stale pricing: indexed amount ${indexedResource.amount}, direct amount ${direct402.amount}.`);
     nextActions.push("Get a real settled payment on the current route; Bazaar updates catalog entries from settle traffic, not from unpaid probes.");
+    nextActions.push(SETTLE_RESOURCE_ACTION);
   }
 
   if (!searchResource) {
@@ -302,6 +319,45 @@ function buildAssessment(input, direct402, merchantDiscovery, searchDiscovery) {
   };
 }
 
+function buildCatalogRefresh(input, direct402, assessment) {
+  const hasStalePricing = Boolean(
+    assessment.indexedResource?.amount &&
+    direct402.amount &&
+    assessment.indexedResource.amount !== direct402.amount
+  );
+  const needsSettlementRefresh = !assessment.indexedResource || hasStalePricing;
+  const status = !direct402.ok
+    ? "blocked_until_402_fixed"
+    : !direct402.hasBazaarExtension
+      ? "blocked_until_bazaar_extension_declared"
+      : needsSettlementRefresh
+        ? "needs_settled_payment_with_resource_metadata"
+        : !assessment.searchResource
+          ? "indexed_but_needs_search_positioning"
+          : "current";
+
+  return {
+    status,
+    directChallengeReadyForCatalog: Boolean(direct402.ok && direct402.hasBazaarExtension),
+    needsRealSettlement: needsSettlementRefresh,
+    exactResourceUrl: input.endpointUrl,
+    settlementRequirements: [
+      "A real buyer must complete verify and settle through the CDP Facilitator for this exact endpoint URL.",
+      "The settle payload must include paymentPayload.resource for the exact resource URL so CDP can catalog the route.",
+      "The client/facilitator path should preserve the Bazaar extension metadata declared in the 402 challenge."
+    ],
+    whyUnpaidProbesAreNotEnough: "Unpaid 402/details/search probes can prove direct route truth, but they do not refresh CDP Bazaar catalog entries.",
+    evidence: {
+      direct402Ok: Boolean(direct402.ok),
+      bazaarExtensionPresent: Boolean(direct402.hasBazaarExtension),
+      merchantIndexed: Boolean(assessment.indexedResource),
+      searchVisible: Boolean(assessment.searchResource),
+      indexedAmount: assessment.indexedResource?.amount || null,
+      directAmount: direct402.amount || null
+    }
+  };
+}
+
 export function buildDiscoveryAuditExampleOutput() {
   return {
     service: "Listing Roast x402",
@@ -324,8 +380,31 @@ export function buildDiscoveryAuditExampleOutput() {
       indexedAmount: "1000000",
       searchQuery: "listing roast"
     },
+    catalogRefresh: {
+      status: "needs_settled_payment_with_resource_metadata",
+      directChallengeReadyForCatalog: true,
+      needsRealSettlement: true,
+      exactResourceUrl: discoveryAuditRequestExample.endpointUrl,
+      settlementRequirements: [
+        "A real buyer must complete verify and settle through the CDP Facilitator for this exact endpoint URL.",
+        "The settle payload must include paymentPayload.resource for the exact resource URL so CDP can catalog the route.",
+        "The client/facilitator path should preserve the Bazaar extension metadata declared in the 402 challenge."
+      ],
+      whyUnpaidProbesAreNotEnough: "Unpaid 402/details/search probes can prove direct route truth, but they do not refresh CDP Bazaar catalog entries.",
+      evidence: {
+        direct402Ok: true,
+        bazaarExtensionPresent: true,
+        merchantIndexed: true,
+        searchVisible: false,
+        indexedAmount: "1000000",
+        directAmount: "1000"
+      }
+    },
     mismatches: ["Bazaar has stale pricing: indexed amount 1000000, direct amount 1000."],
-    nextActions: ["Get a real settled payment on the current route; Bazaar updates catalog entries from settle traffic, not from unpaid probes."],
+    nextActions: [
+      "Get a real settled payment on the current route; Bazaar updates catalog entries from settle traffic, not from unpaid probes.",
+      SETTLE_RESOURCE_ACTION
+    ],
     safety: "No paid calls were made by this audit. It only requested unpaid 402 metadata and public discovery records."
   };
 }
@@ -361,6 +440,7 @@ export async function buildX402DiscoveryAudit(rawInput) {
       merchantLookupError: merchantDiscovery.error,
       searchLookupError: searchDiscovery.error
     },
+    catalogRefresh: buildCatalogRefresh(input, direct402, assessment),
     mismatches: assessment.mismatches,
     nextActions: assessment.nextActions,
     safety: "No paid calls were made by this audit. It only requested unpaid 402 metadata and public discovery records."

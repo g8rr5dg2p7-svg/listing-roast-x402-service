@@ -54,7 +54,7 @@ Listing Roast x402 takes your listing copy and returns a structured critique:
 - whether to stop editing and test paid traffic
 
 It is live on Base mainnet with a $0.001 indexed GET quick score that now covers marketplace listing quality, x402 site-audit starter intent, discovery-audit triage, and paid API preflight; a $0.001 paid ping; a $0.001 instant GET score; a $0.001 GET site-audit endpoint; a $0.001 GET discovery-audit endpoint; a $0.005 score endpoint; a $0.01 full discovery audit endpoint; and a $0.01 full-roast endpoint.
-The site audit, quick discovery audit, and full discovery audit check a live x402 route against direct 402 metadata and public Bazaar discovery without making paid calls.
+The site audit, quick discovery audit, and full discovery audit check a live x402 route against direct 402 metadata, public Bazaar discovery, and the settlement metadata needed for Bazaar catalog refresh without making paid calls.
 
 https://listing-roast-x402-service-production.up.railway.app
 

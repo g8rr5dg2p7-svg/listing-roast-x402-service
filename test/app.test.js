@@ -772,7 +772,11 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.indexedRoastGetOutput.nextPaidAction.command).toContain("--max-amount 10000");
       expect(examples.json.pingOutput.endpoint).toBe("x402-ping");
       expect(examples.json.siteAuditOutput.endpoint).toBe("x402-site-audit");
+      expect(examples.json.siteAuditOutput.catalogRefresh.status).toBe("needs_settled_payment_with_resource_metadata");
+      expect(examples.json.siteAuditOutput.catalogRefresh.settlementRequirements.join(" ")).toContain("paymentPayload.resource");
       expect(examples.json.discoveryAuditOutput.endpoint).toBe("x402-discovery-audit");
+      expect(examples.json.discoveryAuditOutput.catalogRefresh.whyUnpaidProbesAreNotEnough).toContain("do not refresh CDP Bazaar");
+      expect(examples.json.discoveryAuditOutput.nextActions.join(" ")).toContain("Bazaar catalogs settled resources");
       expect(examples.json.command).toContain("x402 pay");
       expect(examples.json.scoreCommand).toContain("/api/listing-score");
       expect(examples.json.scoreOutput.price).toBe("$0.005");

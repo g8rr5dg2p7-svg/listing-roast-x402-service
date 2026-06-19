@@ -40,9 +40,9 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /api/agent-listing-conversion` - protected $0.001 agent listing conversion score route for buyer agents searching agent-service listing clarity or buyer-agent skip reasons.
 - `GET /api/listing-roast` - protected $0.001 x402 quick score on the already-indexed listing-roast URL. This is the preferred first paid action for buyer agents coming from Bazaar and the route to try first for marketplace listing quality, x402 site-audit starter intent, x402 discovery-audit triage, paid API preflight, and discoverability.
 - `GET /api/x402-ping` - protected $0.001 paid ping for verifying the x402 payment rail.
-- `GET /api/x402-site-audit` - protected $0.001 x402/Bazaar site audit for direct 402 metadata, stale pricing, and search visibility. It makes no paid calls.
-- `GET /api/x402-discovery-audit` - protected $0.001 exact-path x402/Bazaar discovery audit quick check for stale pricing, missing search visibility, and direct 402 metadata checks. It makes no paid calls.
-- `POST /api/x402-discovery-audit` - protected $0.01 full x402/Bazaar discovery audit for stale pricing, missing search visibility, and direct 402 metadata checks with a custom body. It makes no paid calls.
+- `GET /api/x402-site-audit` - protected $0.001 x402/Bazaar site audit for direct 402 metadata, stale pricing, search visibility, and catalog-refresh settlement requirements. It makes no paid calls.
+- `GET /api/x402-discovery-audit` - protected $0.001 exact-path x402/Bazaar discovery audit quick check for stale pricing, missing search visibility, direct 402 metadata, and whether the next real settlement needs `paymentPayload.resource` metadata. It makes no paid calls.
+- `POST /api/x402-discovery-audit` - protected $0.01 full x402/Bazaar discovery audit for stale pricing, missing search visibility, direct 402 metadata, and catalog-refresh settlement requirements with a custom body. It makes no paid calls.
 - `POST /api/listing-score` - protected $0.005 x402 score route.
 - `POST /api/listing-roast` - protected $0.01 x402 full-roast upgrade after the quick score.
 - `GET /api/cash-register` - deployment-local funnel counters, paid completion count, route-level paid counters, and receiver wallet USDC balance on Base mainnet.
