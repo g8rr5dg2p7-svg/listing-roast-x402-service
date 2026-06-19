@@ -738,9 +738,12 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/x402-site-audit"].get.summary).toContain("$0.001");
       expect(openApi.json.paths["/api/x402-site-audit"].get.summary).toContain("x402 service discoverability audit");
       expect(openApi.json.paths["/api/x402-site-audit"].get.summary).toContain("paid API preflight");
+      expect(openApi.json.paths["/api/x402-site-audit"].get.tags).toContain("stale Bazaar price");
+      expect(openApi.json.paths["/api/x402-site-audit"].get.description).toContain("stale Bazaar price");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post["x-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post["x-x402-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.summary).toContain("$0.01");
+      expect(openApi.json.paths["/api/x402-discovery-audit"].post.tags).toContain("stale Bazaar price");
       expect(openApi.json.paths["/api/listing-roast"].get.operationId).toBe("getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore");
       expect(openApi.json.paths["/api/listing-roast"].get.tags[0]).toBe("paid API listing quality");
       expect(openApi.json.paths["/api/listing-roast"].get.security).toEqual([{ x402: [] }]);

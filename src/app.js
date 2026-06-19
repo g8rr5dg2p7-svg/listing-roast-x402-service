@@ -2188,9 +2188,9 @@ function buildOpenApiDocument(config) {
       [SITE_AUDIT_PATH]: {
         get: {
           operationId: "getX402ServiceDiscoverabilityAuditPaidApiPreflightRouteHealthCheck",
-          tags: ["x402 discovery", "x402 site audit", "x402 service discoverability audit", "paid API preflight", "x402 route health check", "paid API listing"],
-          summary: "Paid $0.001 x402 service discoverability audit and paid API preflight",
-          description: "Lowest-friction GET route for agents that want a quick no-spend x402 service discoverability audit, paid API preflight, route health check, public x402 discovery check, pricing check, direct 402 metadata check, and Bazaar search visibility check before buying the full audit.",
+          tags: ["x402 discovery", "x402 site audit", "x402 service discoverability audit", "paid API preflight", "x402 route health check", "stale Bazaar price", "paid API listing"],
+          summary: "Paid $0.001 stale Bazaar price, x402 service discoverability audit, and paid API preflight",
+          description: "Lowest-friction GET route for agents that want a quick no-spend x402 service discoverability audit, paid API preflight, route health check, public x402 discovery check, pricing check, stale Bazaar price check, direct 402 metadata check, and Bazaar search visibility check before buying the full audit.",
           "x-price": config.siteAuditPrice,
           "x-x402-price": config.siteAuditPrice,
           "x-payment": buildPaymentHint(config, {
@@ -2226,9 +2226,9 @@ function buildOpenApiDocument(config) {
       [DISCOVERY_AUDIT_PATH]: {
         post: {
           operationId: "postX402DiscoveryAudit",
-          tags: ["x402 discovery", "paid API listing"],
+          tags: ["x402 discovery", "stale Bazaar price", "paid API listing"],
           summary: "Paid $0.01 x402 Bazaar discovery audit",
-          description: "Audits a public x402 endpoint without making paid calls. Checks the direct unpaid 402 challenge, Bazaar extension metadata, CDP merchant discovery, stale indexed pricing, and search visibility.",
+          description: "Audits a public x402 endpoint without making paid calls. Checks the direct unpaid 402 challenge, Bazaar extension metadata, CDP merchant discovery, stale Bazaar price or stale indexed pricing, and search visibility.",
           "x-price": config.discoveryAuditPrice,
           "x-x402-price": config.discoveryAuditPrice,
           "x-payment": buildPaymentHint(config, {
