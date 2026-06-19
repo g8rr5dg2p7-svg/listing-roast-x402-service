@@ -46,12 +46,17 @@ const DISCOVERY_KEYWORDS = [
   "x402 discovery audit",
   "x402 bazaar discovery audit",
   "x402 listing stale price",
+  "buyer-agent skip reasons",
+  "buyer agent skip reasons",
+  "agent service listing clarity",
+  "agent service listing audit",
+  "x402 listing quality",
   "paid API listing",
   "x402 listing",
   "x402 service discoverability"
 ];
-const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing score, marketplace listing conversion, and x402 service discoverability before promotion.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Listing Roast Quick Score x402: $0.001 GET score API for marketplace listing quality, paid API discoverability, x402 service clarity, and buyer-agent conversion checks on the indexed /api/listing-roast URL.";
+const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, and x402 service discoverability before promotion.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Listing Roast Quick Score x402: $0.001 GET score API for marketplace listing quality, paid API discoverability, x402 listing quality, agent service listing clarity, buyer-agent skip reasons, and conversion checks on the indexed /api/listing-roast URL.";
 
 export function getConfig(overrides = {}) {
   const payTo = overrides.payTo || process.env.PAY_TO || (process.env.NODE_ENV === "production" ? "" : DEFAULT_DEV_PAY_TO);
@@ -960,7 +965,7 @@ function buildOpenApiDocument(config) {
           operationId: "getIndexedListingRoastX402MarketplaceConversionQuickScore",
           tags: ["x402 listing", "paid API listing", "paid API listing quality"],
           summary: "Paid $0.001 indexed x402 marketplace conversion quick score",
-          description: "Lowest-price GET challenge on the already-indexed /api/listing-roast URL. Returns a $0.001 score API for marketplace listing quality, paid API discoverability, x402 service clarity, and buyer-agent conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
+          description: "Lowest-price GET challenge on the already-indexed /api/listing-roast URL. Returns a $0.001 score API for marketplace listing quality, paid API discoverability, x402 listing quality, agent service listing clarity, buyer-agent skip reasons, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
@@ -1135,8 +1140,8 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, ROAST_PATH),
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: "One-tenth-cent GET score API for marketplace listing quality, paid API discoverability, x402 service clarity, agent-service listing score, and buyer-agent conversion checks on the already-indexed listing-roast URL. POST the same URL for the full one-cent roast.",
-        keywords: ["listing roast", "score API", "marketplace listing quality", "paid API discoverability", "agent-service listing score", "x402 marketplace conversion", "GET paid API"],
+        description: "One-tenth-cent GET score API for marketplace listing quality, paid API discoverability, x402 listing quality, agent service listing clarity, buyer-agent skip reasons, and conversion checks on the already-indexed listing-roast URL. POST the same URL for the full one-cent roast.",
+        keywords: ["listing roast", "score API", "marketplace listing quality", "paid API discoverability", "x402 listing quality", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "x402 marketplace conversion", "GET paid API"],
         command: buildGetPayCommand(config, ROAST_PATH),
         input: buildInstantScoreDiscovery(config).input,
         outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput()),
@@ -1240,8 +1245,8 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, ROAST_PATH),
         price: config.price,
         maxAmountRequired: "10000",
-        description: "One-cent marketplace listing conversion roast for paid API listing quality, buyer-agent skip reasons, top fixes, rewrite, and launch guidance.",
-        keywords: ["marketplace listing conversion", "paid API listing quality", "agent-service listing score", "x402 marketplace conversion"],
+        description: "One-cent marketplace listing conversion roast for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and launch guidance.",
+        keywords: ["marketplace listing conversion", "paid API listing quality", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "x402 marketplace conversion"],
         command: buildPayCommand(config),
         input: requestExample,
         outputExample: buildListingRoast(requestExample),
@@ -1366,7 +1371,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast x402: $0.01 marketplace listing conversion roast for paid API listing quality, agent-service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance.",
+        description: "Listing Roast x402: $0.01 marketplace listing conversion roast for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildDiscovery(config))
       }
@@ -2394,7 +2399,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, ROAST_PATH),
           price: config.instantScorePrice,
           network: config.network,
-          description: "one-tenth-cent GET marketplace listing score API for marketplace listing quality, paid API discoverability, x402 service clarity, agent-service listing score, and buyer-agent conversion checks on the indexed listing-roast URL.",
+          description: "one-tenth-cent GET marketplace listing score API for marketplace listing quality, paid API discoverability, x402 listing quality, agent service listing clarity, buyer-agent skip reasons, and conversion checks on the indexed listing-roast URL.",
           payment: buildPaymentHint(config, {
             path: ROAST_PATH,
             method: "GET",
@@ -2403,7 +2408,7 @@ ${copyScript("Copy command")}
             preferredFirstPaidAction: true,
             buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
           }),
-          keywords: ["listing roast", "score API", "marketplace listing quality", "paid API discoverability", "agent-service listing score", "x402 marketplace conversion"],
+          keywords: ["listing roast", "score API", "marketplace listing quality", "paid API discoverability", "x402 listing quality", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "x402 marketplace conversion"],
           input: buildInstantScoreDiscovery(config).input
         },
         {
@@ -2521,7 +2526,7 @@ ${copyScript("Copy command")}
           url: absoluteUrl(config, ROAST_PATH),
           price: config.price,
           network: config.network,
-          description: "marketplace listing conversion roast for paid API listing quality, agent-service listing clarity, and buyer-agent skip reasons.",
+          description: "marketplace listing conversion roast for paid API listing quality, agent service listing clarity, and buyer-agent skip reasons.",
           payment: buildPaymentHint(config, {
             path: ROAST_PATH,
             method: "POST",
@@ -2529,7 +2534,7 @@ ${copyScript("Copy command")}
             maxAmountRequired: "10000",
             buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
           }),
-          keywords: ["marketplace listing conversion", "paid API listing quality", "agent-service listing score"],
+          keywords: ["marketplace listing conversion", "paid API listing quality", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score"],
           input: requestExample
         }
       ]
