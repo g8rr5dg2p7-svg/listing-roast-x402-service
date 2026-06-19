@@ -393,7 +393,20 @@ function buildScoreDiscovery(config) {
         checkedSignals: { type: "object" },
         firstFix: { type: "string" },
         nextStep: { type: "string" },
-        upgradeEndpoint: { type: "string" }
+        upgradeEndpoint: { type: "string" },
+        nextPaidAction: {
+          type: "object",
+          properties: {
+            route: { type: "string" },
+            path: { type: "string" },
+            method: { type: "string" },
+            price: { type: "string" },
+            maxAmountRequired: { type: "string" },
+            body: { type: "object" },
+            command: { type: "string" },
+            reason: { type: "string" }
+          }
+        }
       }
     }
   });
@@ -451,32 +464,81 @@ function buildInstantScoreInput(query = {}) {
   });
 }
 
-function buildInstantListingScore(input) {
+function buildUpgradeRequestBody(input, source = "score-upgrade") {
   return {
+    agentName: input.agentName,
+    listingText: input.listingText,
+    targetBuyer: input.targetBuyer,
+    currentPrice: input.currentPrice,
+    currentCheckoutPath: input.currentCheckoutPath,
+    goal: input.goal,
+    source
+  };
+}
+
+function buildNextPaidAction(config, input, options = {}) {
+  if (!config) {
+    return null;
+  }
+
+  const path = options.path || ROAST_PATH;
+  const maxAmountRequired = options.maxAmountRequired || "10000";
+  const body = buildUpgradeRequestBody(input, options.source || "score-upgrade");
+
+  return {
+    route: absoluteUrl(config, path),
+    path,
+    method: "POST",
+    price: options.price || config.price,
+    maxAmountRequired,
+    body,
+    command: buildPayCommand(config, path, maxAmountRequired, body),
+    reason: options.reason || "Buy the full roast when you want the rewritten listing, top fixes, and stop-or-upgrade guidance."
+  };
+}
+
+function addNextPaidAction(result, action) {
+  return action ? { ...result, nextPaidAction: action } : result;
+}
+
+function buildInstantListingScore(input, config) {
+  return addNextPaidAction({
     ...buildListingScore(input),
     endpoint: "instant-listing-score",
     price: "$0.001",
     nextStep: "This GET route is the lowest-friction paid check. Use /api/listing-score for a scored POST payload or /api/listing-roast for the full rewrite.",
     upgradeEndpoint: "/api/listing-score"
-  };
+  }, buildNextPaidAction(config, input, {
+    path: "/api/listing-score",
+    price: config?.scorePrice || "$0.005",
+    maxAmountRequired: "5000",
+    source: "instant-score-upgrade",
+    reason: "Buy the custom-body score when the default sample is useful but you want the score applied to your exact listing."
+  }));
 }
 
-function buildConversionScore(input) {
-  return {
-    ...buildInstantListingScore(input),
+function buildConversionScore(input, config) {
+  return addNextPaidAction({
+    ...buildInstantListingScore(input, config),
     endpoint: "x402-marketplace-conversion-score",
     nextStep: "This route is optimized for x402 marketplace conversion buyers. Use GET /api/listing-roast when a marketplace result points to the already-indexed URL, or POST /api/listing-roast for the full rewrite.",
     upgradeEndpoint: ROAST_PATH
-  };
+  }, buildNextPaidAction(config, input, {
+    source: "conversion-score-upgrade",
+    reason: "Buy the full roast when the conversion score shows enough buyer intent to justify a rewrite and launch recommendation."
+  }));
 }
 
-function buildIndexedRoastQuickScore(input) {
-  return {
-    ...buildInstantListingScore(input),
+function buildIndexedRoastQuickScore(input, config) {
+  return addNextPaidAction({
+    ...buildInstantListingScore(input, config),
     endpoint: "listing-roast-quick-score",
     nextStep: "This GET route keeps the indexed /api/listing-roast URL payable at the lowest price. Use POST /api/listing-roast for the full rewrite and launch recommendation.",
     upgradeEndpoint: ROAST_PATH
-  };
+  }, buildNextPaidAction(config, input, {
+    source: "indexed-quick-score-upgrade",
+    reason: "Buy the full roast from the already-indexed URL when the quick score is promising and you want the rewrite, top fixes, and stop-or-upgrade guidance."
+  }));
 }
 
 function buildInstantScoreDiscovery(config) {
@@ -503,7 +565,7 @@ function buildInstantScoreDiscovery(config) {
       }
     },
     output: {
-      example: buildInstantListingScore(buildInstantScoreInput()),
+      example: buildInstantListingScore(buildInstantScoreInput(), config),
       schema: buildScoreDiscovery(config).output.schema
     },
     service: {
@@ -523,7 +585,7 @@ function buildConversionScoreDiscovery(config) {
     ...discovery,
     output: {
       ...discovery.output,
-      example: buildConversionScore(buildInstantScoreInput())
+      example: buildConversionScore(buildInstantScoreInput(), config)
     },
     service: {
       ...discovery.service,
@@ -539,7 +601,7 @@ function buildIndexedRoastGetDiscovery(config) {
     ...discovery,
     output: {
       ...discovery.output,
-      example: buildIndexedRoastQuickScore(buildInstantScoreInput())
+      example: buildIndexedRoastQuickScore(buildInstantScoreInput(), config)
     },
     service: {
       ...discovery.service,
@@ -769,7 +831,7 @@ function buildOpenApiDocument(config) {
               content: {
                 "application/json": {
                   schema: buildScoreDiscovery(config).output.schema,
-                  example: buildInstantListingScore(buildInstantScoreInput())
+                  example: buildInstantListingScore(buildInstantScoreInput(), config)
                 }
               }
             },
@@ -806,7 +868,7 @@ function buildOpenApiDocument(config) {
               content: {
                 "application/json": {
                   schema: buildScoreDiscovery(config).output.schema,
-                  example: buildConversionScore(buildInstantScoreInput())
+                  example: buildConversionScore(buildInstantScoreInput(), config)
                 }
               }
             },
@@ -990,7 +1052,7 @@ function buildOpenApiDocument(config) {
               content: {
                 "application/json": {
                   schema: buildScoreDiscovery(config).output.schema,
-                  example: buildIndexedRoastQuickScore(buildInstantScoreInput())
+                  example: buildIndexedRoastQuickScore(buildInstantScoreInput(), config)
                 }
               }
             },
@@ -1144,7 +1206,7 @@ function buildX402Manifest(config) {
         keywords: ["listing roast", "score API", "marketplace listing quality", "paid API discoverability", "x402 listing quality", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "x402 marketplace conversion", "GET paid API"],
         command: buildGetPayCommand(config, ROAST_PATH),
         input: buildInstantScoreDiscovery(config).input,
-        outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput()),
+        outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput(), config),
         schema: absoluteUrl(config, "/api/score-schema")
       },
       {
@@ -1159,7 +1221,7 @@ function buildX402Manifest(config) {
         keywords: ["marketplace listing score", "paid API listing quality score", "agent-service listing score", "x402 marketplace conversion", "GET paid API"],
         command: buildGetPayCommand(config),
         input: buildInstantScoreDiscovery(config).input,
-        outputExample: buildInstantListingScore(buildInstantScoreInput()),
+        outputExample: buildInstantListingScore(buildInstantScoreInput(), config),
         schema: absoluteUrl(config, "/api/score-schema")
       },
       {
@@ -1174,7 +1236,7 @@ function buildX402Manifest(config) {
         keywords: ["x402 marketplace conversion", "marketplace listing score", "paid API listing quality score", "agent-service listing score", "GET paid API"],
         command: buildGetPayCommand(config, CONVERSION_SCORE_PATH, INSTANT_SCORE_AMOUNT),
         input: buildInstantScoreDiscovery(config).input,
-        outputExample: buildConversionScore(buildInstantScoreInput()),
+        outputExample: buildConversionScore(buildInstantScoreInput(), config),
         schema: absoluteUrl(config, "/api/score-schema")
       },
       {
@@ -1968,9 +2030,9 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       discoveryAuditCommand: buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample),
       command: buildPayCommand(config),
       scoreCommand: buildPayCommand(config, "/api/listing-score", "5000"),
-      instantScoreOutput: buildInstantListingScore(buildInstantScoreInput()),
-      conversionScoreOutput: buildConversionScore(buildInstantScoreInput()),
-      indexedRoastGetOutput: buildIndexedRoastQuickScore(buildInstantScoreInput()),
+      instantScoreOutput: buildInstantListingScore(buildInstantScoreInput(), config),
+      conversionScoreOutput: buildConversionScore(buildInstantScoreInput(), config),
+      indexedRoastGetOutput: buildIndexedRoastQuickScore(buildInstantScoreInput(), config),
       pingOutput: buildPingOutput(config, { msg: "hello from x402" }),
       siteAuditRequest: buildDiscoveryAuditInputFromQuery(),
       siteAuditOutput: buildSiteAuditExampleOutput(config),
@@ -2264,7 +2326,7 @@ ${copyScript("Copy command")}
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const roastCommand = buildPayCommand(config);
     const scoreOutput = buildListingScore(requestExample);
-    const indexedOutput = buildIndexedRoastQuickScore(buildInstantScoreInput());
+    const indexedOutput = buildIndexedRoastQuickScore(buildInstantScoreInput(), config);
     const builderUrl = absoluteUrl(config, "/builder");
     const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
     const indexedRoute = absoluteUrl(config, ROAST_PATH);
@@ -2585,19 +2647,19 @@ ${copyScript("Copy command")}
   app.use(createX402Middleware(config));
 
   app.get(INSTANT_SCORE_PATH, async (request, response) => {
-    const result = buildInstantListingScore(buildInstantScoreInput(request.query));
+    const result = buildInstantListingScore(buildInstantScoreInput(request.query), config);
     const cashRegister = await recordPaidCompletion("instantScore", 0.001);
     response.json({ ...result, cashRegister });
   });
 
   app.get(CONVERSION_SCORE_PATH, async (request, response) => {
-    const result = buildConversionScore(buildInstantScoreInput(request.query));
+    const result = buildConversionScore(buildInstantScoreInput(request.query), config);
     const cashRegister = await recordPaidCompletion("instantScore", 0.001);
     response.json({ ...result, cashRegister });
   });
 
   app.get(ROAST_PATH, async (request, response) => {
-    const result = buildIndexedRoastQuickScore(buildInstantScoreInput(request.query));
+    const result = buildIndexedRoastQuickScore(buildInstantScoreInput(request.query), config);
     const cashRegister = await recordPaidCompletion("indexedRoastGet", 0.001);
     response.json({ ...result, cashRegister });
   });

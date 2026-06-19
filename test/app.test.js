@@ -134,6 +134,8 @@ describe("Listing Roast x402 service", () => {
       expect(sampleScore.json.price).toBe("$0.005");
       expect(sampleScore.json.command).toContain("--max-amount 5000");
       expect(sampleScore.json.output.endpoint).toBe("listing-score");
+      expect(sampleScore.json.output.nextPaidAction.maxAmountRequired).toBe("10000");
+      expect(sampleScore.json.output.nextPaidAction.path).toBe("/api/listing-roast");
 
       const schema = await fetchJson(server, "/api/schema");
       expect(schema.status).toBe(200);
@@ -256,8 +258,14 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.siteAuditCommand).toContain("--max-amount 1000");
       expect(examples.json.discoveryAuditCommand).toContain("--max-amount 10000");
       expect(examples.json.instantScoreOutput.price).toBe("$0.001");
+      expect(examples.json.instantScoreOutput.nextPaidAction.maxAmountRequired).toBe("5000");
+      expect(examples.json.instantScoreOutput.nextPaidAction.command).toContain("/api/listing-score");
       expect(examples.json.conversionScoreOutput.endpoint).toBe("x402-marketplace-conversion-score");
+      expect(examples.json.conversionScoreOutput.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(examples.json.indexedRoastGetOutput.endpoint).toBe("listing-roast-quick-score");
+      expect(examples.json.indexedRoastGetOutput.nextPaidAction.maxAmountRequired).toBe("10000");
+      expect(examples.json.indexedRoastGetOutput.nextPaidAction.command).toContain("/api/listing-roast");
+      expect(examples.json.indexedRoastGetOutput.nextPaidAction.command).toContain("--max-amount 10000");
       expect(examples.json.pingOutput.endpoint).toBe("x402-ping");
       expect(examples.json.siteAuditOutput.endpoint).toBe("x402-site-audit");
       expect(examples.json.discoveryAuditOutput.endpoint).toBe("x402-discovery-audit");
@@ -306,6 +314,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("x402 marketplace conversion");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("buyer-agent skip reasons");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent service listing clarity");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.maxAmountRequired).toBe("10000");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.command).toContain("/api/listing-roast");
       expect(openApi.json.paths["/api/pay-now"].get.operationId).toBe("getPayNow");
       expect(openApi.json.paths["/api/listing-score"].post.summary).toContain("marketplace listing score");
       expect(openApi.json.paths["/api/listing-score"].post["x-payment"].maxAmountRequired).toBe("5000");
