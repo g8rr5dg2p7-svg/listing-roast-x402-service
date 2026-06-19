@@ -156,13 +156,16 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   discoveryAudit: ["x402", "Bazaar visibility", "discovery audit", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "stale Bazaar price", "paid API preflight"],
   fullRoast: ["x402", "listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons"]
 });
-const quickScoreRequestExample = Object.freeze({
+const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
   agentName: "Listing Roast x402",
   listingText: "A paid x402 score API for marketplace listing quality, buyer-agent skip reasons, and agent-service clarity before promotion. Start with the already-indexed quick score route, then upgrade only when the score is promising.",
   targetBuyer: "x402 and MCP builders",
   currentPrice: "$0.001 GET; $0.01 POST upgrade",
   currentCheckoutPath: "/api/listing-roast",
   goal: "Convert buyer agents through the lowest-friction paid score"
+});
+const quickScoreRequestExample = Object.freeze({
+  ...LISTING_QUERY_PARAMETER_EXAMPLES
 });
 const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   indexed_roast_quick_score: "indexedQuickScore",
@@ -183,27 +186,33 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
 const LISTING_REQUEST_SCHEMA_PROPERTIES = {
   agentName: {
     type: "string",
-    description: "Name of the paid API, MCP tool, agent service, or marketplace listing being evaluated."
+    description: "Name of the paid API, MCP tool, agent service, or marketplace listing being evaluated.",
+    example: LISTING_QUERY_PARAMETER_EXAMPLES.agentName
   },
   listingText: {
     type: "string",
-    description: "Current buyer-facing listing copy, README excerpt, marketplace description, or route summary to score."
+    description: "Current buyer-facing listing copy, README excerpt, marketplace description, or route summary to score.",
+    example: LISTING_QUERY_PARAMETER_EXAMPLES.listingText
   },
   targetBuyer: {
     type: "string",
-    description: "The buyer or agent persona the listing should convert, such as x402 builders, MCP users, or API buyers."
+    description: "The buyer or agent persona the listing should convert, such as x402 builders, MCP users, or API buyers.",
+    example: LISTING_QUERY_PARAMETER_EXAMPLES.targetBuyer
   },
   currentPrice: {
     type: "string",
-    description: "Advertised price or max x402 amount the buyer will see before paying."
+    description: "Advertised price or max x402 amount the buyer will see before paying.",
+    example: LISTING_QUERY_PARAMETER_EXAMPLES.currentPrice
   },
   currentCheckoutPath: {
     type: "string",
-    description: "The endpoint, checkout path, or x402 route the buyer is expected to call."
+    description: "The endpoint, checkout path, or x402 route the buyer is expected to call.",
+    example: LISTING_QUERY_PARAMETER_EXAMPLES.currentCheckoutPath
   },
   goal: {
     type: "string",
-    description: "The conversion goal, such as more paid completions, fewer buyer-agent skips, or better marketplace search fit."
+    description: "The conversion goal, such as more paid completions, fewer buyer-agent skips, or better marketplace search fit.",
+    example: LISTING_QUERY_PARAMETER_EXAMPLES.goal
   },
   source: {
     type: "string",
@@ -293,6 +302,16 @@ function listingRequestSchemaProperties({ includeSource = true } = {}) {
 
   const { source, ...properties } = LISTING_REQUEST_SCHEMA_PROPERTIES;
   return properties;
+}
+
+function listingQueryOpenApiParameters() {
+  return Object.entries(listingRequestSchemaProperties({ includeSource: false })).map(([name, schema]) => ({
+    name,
+    in: "query",
+    required: false,
+    schema,
+    example: schema.example
+  }));
 }
 
 function buildDiscoveryLinks(config) {
@@ -2177,14 +2196,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
             preferredFirstPaidAction: true,
             buyerAction: "Pay $0.001 on the already-indexed marketplace route for buyer-agent skip reasons, agent service listing clarity, and a quick listing quality score."
           }),
-          parameters: [
-            { name: "agentName", in: "query", required: false, schema: { type: "string" } },
-            { name: "listingText", in: "query", required: false, schema: { type: "string" } },
-            { name: "targetBuyer", in: "query", required: false, schema: { type: "string" } },
-            { name: "currentPrice", in: "query", required: false, schema: { type: "string" } },
-            { name: "currentCheckoutPath", in: "query", required: false, schema: { type: "string" } },
-            { name: "goal", in: "query", required: false, schema: { type: "string" } }
-          ],
+          parameters: listingQueryOpenApiParameters(),
           responses: {
             200: {
               description: "Paid quick score response from the indexed listing-roast URL",
@@ -2337,14 +2349,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
             buyerAction: "Pay $0.001 for an immediate listing quality score without building a JSON body."
           }),
-          parameters: [
-            { name: "agentName", in: "query", required: false, schema: { type: "string" } },
-            { name: "listingText", in: "query", required: false, schema: { type: "string" } },
-            { name: "targetBuyer", in: "query", required: false, schema: { type: "string" } },
-            { name: "currentPrice", in: "query", required: false, schema: { type: "string" } },
-            { name: "currentCheckoutPath", in: "query", required: false, schema: { type: "string" } },
-            { name: "goal", in: "query", required: false, schema: { type: "string" } }
-          ],
+          parameters: listingQueryOpenApiParameters(),
           responses: {
             200: {
               description: "Paid instant listing score response",
@@ -2374,14 +2379,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
             buyerAction: "Pay $0.001 for an x402 marketplace conversion score without building a JSON body."
           }),
-          parameters: [
-            { name: "agentName", in: "query", required: false, schema: { type: "string" } },
-            { name: "listingText", in: "query", required: false, schema: { type: "string" } },
-            { name: "targetBuyer", in: "query", required: false, schema: { type: "string" } },
-            { name: "currentPrice", in: "query", required: false, schema: { type: "string" } },
-            { name: "currentCheckoutPath", in: "query", required: false, schema: { type: "string" } },
-            { name: "goal", in: "query", required: false, schema: { type: "string" } }
-          ],
+          parameters: listingQueryOpenApiParameters(),
           responses: {
             200: {
               description: "Paid x402 marketplace conversion score response",
@@ -2411,14 +2409,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
             buyerAction: "Pay $0.001 for an agent listing conversion score without building a JSON body."
           }),
-          parameters: [
-            { name: "agentName", in: "query", required: false, schema: { type: "string" } },
-            { name: "listingText", in: "query", required: false, schema: { type: "string" } },
-            { name: "targetBuyer", in: "query", required: false, schema: { type: "string" } },
-            { name: "currentPrice", in: "query", required: false, schema: { type: "string" } },
-            { name: "currentCheckoutPath", in: "query", required: false, schema: { type: "string" } },
-            { name: "goal", in: "query", required: false, schema: { type: "string" } }
-          ],
+          parameters: listingQueryOpenApiParameters(),
           responses: {
             200: {
               description: "Paid agent listing conversion score response",

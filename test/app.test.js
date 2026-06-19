@@ -929,6 +929,9 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent service listing clarity");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("x402 discovery audit triage");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Bazaar search visibility");
+      const indexedRoastGetParameters = Object.fromEntries(openApi.json.paths["/api/listing-roast"].get.parameters.map((parameter) => [parameter.name, parameter]));
+      expect(indexedRoastGetParameters.currentPrice.example).toBe("$0.001 GET; $0.01 POST upgrade");
+      expect(indexedRoastGetParameters.currentCheckoutPath.example).toBe("/api/listing-roast");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[402].description).toContain("X-PAYMENT");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[402].headers["Payment-Required"].description).toContain("resource URL");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[402].headers.Link.description).toContain("pay-now");
@@ -2020,6 +2023,8 @@ describe("Listing Roast x402 service", () => {
       const indexedQuerySchema = challenge.extensions.bazaar.schema.properties.input.properties.queryParams.properties;
       expect(indexedQuerySchema.agentName.description).toContain("paid API");
       expect(indexedQuerySchema.listingText.description).toContain("marketplace description");
+      expect(indexedQuerySchema.currentPrice.example).toBe("$0.001 GET; $0.01 POST upgrade");
+      expect(indexedQuerySchema.currentCheckoutPath.example).toBe("/api/listing-roast");
       expect(indexedQuerySchema.goal.description).toContain("paid completions");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
