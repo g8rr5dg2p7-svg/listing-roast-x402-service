@@ -1214,6 +1214,9 @@ describe("Listing Roast x402 service", () => {
       expect(sitemap.text).toContain("/api/agent-listing-conversion");
       expect(sitemap.text).toContain("/api/x402-ping");
       expect(sitemap.text).toContain("/api/x402-site-audit");
+      expect(sitemap.text).toContain("/api/preflight");
+      expect(sitemap.text).toContain("/api/v1/preflight");
+      expect(sitemap.text).toContain("/preflight");
       expect(sitemap.text).toContain("/api/x402-discovery-audit");
       expect(sitemap.text).toContain("/api/sample-score");
       expect(sitemap.text).toContain("/openapi.json");
@@ -1905,6 +1908,11 @@ describe("Listing Roast x402 service", () => {
       expect(headSiteAudit.headers.get("allow")).toBe("GET");
       expect(headSiteAudit.headers.get("payment-required")).toBeNull();
 
+      const headPreflightAlias = await fetchJson(server, "/api/preflight", { method: "HEAD" });
+      expect(headPreflightAlias.status).toBe(405);
+      expect(headPreflightAlias.headers.get("allow")).toBe("GET");
+      expect(headPreflightAlias.headers.get("payment-required")).toBeNull();
+
       const headRoast = await fetchJson(server, "/api/listing-roast", { method: "HEAD" });
       expect(headRoast.status).toBe(405);
       expect(headRoast.headers.get("allow")).toBe("GET, POST");
@@ -2394,6 +2402,34 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.instantScoreValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.pingValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  }, 15000);
+
+  it("protects common paid API preflight aliases with the site audit x402 challenge", async () => {
+    mockFacilitatorSupportedKinds();
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      for (const path of ["/api/preflight", "/api/v1/preflight", "/preflight"]) {
+        const response = await fetchJson(server, `${path}?url=https%3A%2F%2Flisting-roast-x402-service-production.up.railway.app%2Fapi%2Flisting-roast&query=paid%20API%20preflight`);
+        expect(response.status).toBe(402);
+        const challenge = readPaymentRequiredHeader(response.headers);
+        expect(challenge.error).toBe("Payment required");
+        expect(challenge.resource.url).toContain(path);
+        expect(challenge.resource.description).toContain("paid API preflight");
+        expect(challenge.accepts[0].network).toBe("eip155:84532");
+        expect(challenge.accepts[0].amount).toBe("1000");
+        expect(response.json.selectedPaidAction.path).toBe("/api/x402-site-audit");
+        expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
+      }
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.json.signals.unpaidChallenges).toBe(3);
+      expect(cashRegister.json.signals.validUnpaidChallenges).toBe(3);
+      expect(cashRegister.json.signals.siteAuditValidUnpaidChallenges).toBe(3);
+      expect(cashRegister.json.signals.discoveryAuditValidUnpaidChallenges).toBe(0);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }

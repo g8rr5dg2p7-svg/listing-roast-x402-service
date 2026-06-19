@@ -31,6 +31,8 @@ const ROAST_PATH = "/api/listing-roast";
 const SCORE_PATH = "/api/listing-score";
 const PING_PATH = "/api/x402-ping";
 const SITE_AUDIT_PATH = "/api/x402-site-audit";
+const PREFLIGHT_ALIAS_PATHS = Object.freeze(["/api/preflight", "/api/v1/preflight", "/preflight"]);
+const SITE_AUDIT_PAID_PATHS = Object.freeze([SITE_AUDIT_PATH, ...PREFLIGHT_ALIAS_PATHS]);
 const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
 const PAY_NOW_PATH = "/api/pay-now";
 const PRICING_PATH = "/api/pricing";
@@ -5095,6 +5097,22 @@ function createX402Middleware(config) {
   });
 
   const resourceUrl = (routePath) => absoluteUrl(config, routePath);
+  const buildSiteAuditPaymentRoute = (routePath) => ({
+    resource: resourceUrl(routePath),
+    ...routeServiceMetadata("x402SiteAudit"),
+    accepts: {
+      scheme: "exact",
+      price: config.siteAuditPrice,
+      network: config.network,
+      payTo: config.payTo,
+      maxTimeoutSeconds: 300
+    },
+    description: withPaidUseProofDescription(config, "Listing Roast x402 Site Audit: $0.001 GET listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, paid API preflight before paying more, route health check, direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps."),
+    mimeType: "application/json",
+    customPaywallHtml: buildCustomPaywallHtml(config, "x402SiteAudit"),
+    unpaidResponseBody: unpaidPaymentPreview(config, "x402SiteAudit"),
+    extensions: declareChallengeDiscoveryExtension(buildSiteAuditDiscovery(config))
+  });
 
   return paymentMiddleware(
     {
@@ -5257,22 +5275,7 @@ function createX402Middleware(config) {
         unpaidResponseBody: unpaidPaymentPreview(config, "x402Ping"),
         extensions: declareChallengeDiscoveryExtension(buildPingDiscovery(config))
       },
-      [`GET ${SITE_AUDIT_PATH}`]: {
-        resource: resourceUrl(SITE_AUDIT_PATH),
-        ...routeServiceMetadata("x402SiteAudit"),
-        accepts: {
-          scheme: "exact",
-          price: config.siteAuditPrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
-        description: withPaidUseProofDescription(config, "Listing Roast x402 Site Audit: $0.001 GET listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, paid API preflight before paying more, route health check, direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps."),
-        mimeType: "application/json",
-        customPaywallHtml: buildCustomPaywallHtml(config, "x402SiteAudit"),
-        unpaidResponseBody: unpaidPaymentPreview(config, "x402SiteAudit"),
-        extensions: declareChallengeDiscoveryExtension(buildSiteAuditDiscovery(config))
-      },
+      ...Object.fromEntries(SITE_AUDIT_PAID_PATHS.map((routePath) => [`GET ${routePath}`, buildSiteAuditPaymentRoute(routePath)])),
       [`GET ${DISCOVERY_AUDIT_PATH}`]: {
         resource: resourceUrl(DISCOVERY_AUDIT_PATH),
         ...routeServiceMetadata("discoveryAuditQuick"),
@@ -5426,7 +5429,7 @@ function validUnpaidSignalForPath(pathname) {
     return "pingValidUnpaidChallenges";
   }
 
-  if (pathname === SITE_AUDIT_PATH) {
+  if (SITE_AUDIT_PAID_PATHS.includes(pathname)) {
     return "siteAuditValidUnpaidChallenges";
   }
 
@@ -5924,7 +5927,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -7100,12 +7103,12 @@ ${copyScript("Copy command")}
   });
 
   app.head([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], rejectHeadPaidRoute);
-  app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
+  app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
   app.post(ROOT_DIRECTORY_POST_PATH, recordDirectoryPostProbe);
   app.get([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], recordApiEntryProbe);
   app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH], recordGetScoreProbe);
   app.get(PING_PATH, recordPingProbe);
-  app.get([SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH], recordAuditProbe);
+  app.get([...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH], recordAuditProbe);
   app.post(ROAST_PATH, validateListingRoastRequest);
   app.post("/api/listing-score", validateListingRoastRequest);
   app.post(DISCOVERY_AUDIT_PATH, validateDiscoveryAuditRequest);
@@ -7165,7 +7168,7 @@ ${copyScript("Copy command")}
     response.json({ ...result, cashRegister });
   });
 
-  app.get(SITE_AUDIT_PATH, async (request, response) => {
+  app.get(SITE_AUDIT_PAID_PATHS, async (request, response) => {
     const parsed = discoveryAuditRequestSchema.safeParse(buildDiscoveryAuditInputFromQuery(request.query));
     if (!parsed.success) {
       response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
