@@ -1596,19 +1596,22 @@ function buildAgentSkill(config, options) {
 }
 
 function buildAgentCard(config) {
+  const supportedInterfaces = [
+    { url: absoluteUrl(config, ROAST_PATH), transport: "HTTP+JSON" },
+    { url: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH), transport: "OPENAPI" },
+    { url: absoluteUrl(config, "/x402.json"), transport: "X402" },
+    { url: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH), transport: "MCP" },
+    { url: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH), transport: "MCP-SERVER-CARD" }
+  ];
+
   return {
     protocolVersion: "0.3.0",
     name: config.serviceName,
     description: "Paid HTTP+JSON x402 service for listing quality, buyer-agent skip reasons, and x402 discoverability audits.",
     url: absoluteUrl(config, ROAST_PATH),
     preferredTransport: "HTTP+JSON",
-    additionalInterfaces: [
-      { url: absoluteUrl(config, ROAST_PATH), transport: "HTTP+JSON" },
-      { url: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH), transport: "OPENAPI" },
-      { url: absoluteUrl(config, "/x402.json"), transport: "X402" },
-      { url: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH), transport: "MCP" },
-      { url: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH), transport: "MCP-SERVER-CARD" }
-    ],
+    supportedInterfaces,
+    additionalInterfaces: supportedInterfaces,
     provider: {
       organization: config.serviceName,
       url: absoluteUrl(config, "/")
@@ -1873,6 +1876,7 @@ function buildRobotsTxt(config) {
   const sitemapUrl = absoluteUrl(config, "/sitemap.xml");
 
   return `User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 User-agent: GPTBot
@@ -1899,7 +1903,7 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-# Content-Signal: search=yes,ai-input=yes,ai-train=no
+# Content-Signal policy: search=yes, ai-input=yes, ai-train=no
 # Free agent discovery:
 # - ${absoluteUrl(config, "/llms.txt")}
 # - ${absoluteUrl(config, LLMS_FULL_PATH)}

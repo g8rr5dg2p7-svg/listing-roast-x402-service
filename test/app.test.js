@@ -300,6 +300,7 @@ describe("Listing Roast x402 service", () => {
       expect(agentCard.json.name).toBe("Listing Roast x402");
       expect(agentCard.json.url).toContain("/api/listing-roast");
       expect(agentCard.json.preferredTransport).toBe("HTTP+JSON");
+      expect(agentCard.json.supportedInterfaces.map((item) => item.transport)).toEqual(["HTTP+JSON", "OPENAPI", "X402", "MCP", "MCP-SERVER-CARD"]);
       expect(agentCard.json.additionalInterfaces.map((item) => item.transport)).toEqual(["HTTP+JSON", "OPENAPI", "X402", "MCP", "MCP-SERVER-CARD"]);
       expect(agentCard.json.securitySchemes.x402.name).toBe("X-PAYMENT");
       expect(agentCard.json.security[0]).toEqual({ x402: [] });
@@ -565,7 +566,7 @@ describe("Listing Roast x402 service", () => {
       expect(robots.text).toContain("Sitemap:");
       expect(robots.text).toContain("User-agent: ChatGPT-User");
       expect(robots.text).toContain("User-agent: ClaudeBot");
-      expect(robots.text).toContain("Content-Signal: search=yes,ai-input=yes,ai-train=no");
+      expect(robots.text).toContain("Content-Signal: search=yes, ai-input=yes, ai-train=no");
       expect(robots.text).toContain("/x402.json");
       expect(robots.text).toContain("/.well-known/agent-skills/index.json");
       expect(robots.text).toContain("/.well-known/mcp/server-card.json");
