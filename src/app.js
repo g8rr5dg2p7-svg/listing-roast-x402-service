@@ -3629,6 +3629,7 @@ function scoreCatalogResource(resource, query) {
   ].join(" ").toLowerCase();
   const tokens = normalizedQuery.split(/[^a-z0-9]+/).filter((token) => token.length > 2);
   let score = resource.preferredFirstPaidAction ? 5 : 0;
+  const isIndexedRoastGet = resource.id === "indexed_roast_quick_score" || (String(resource.method || "").toUpperCase() === "GET" && resource.path === ROAST_PATH);
 
   if (normalizedQuery && searchable.includes(normalizedQuery)) {
     score += 25;
@@ -3658,19 +3659,19 @@ function scoreCatalogResource(resource, query) {
   }
 
   if (includesAny(normalizedQuery, ["skip reason", "skip reasons", "agent listing", "listing clarity", "agent service clarity", "agent-service", "buyer intent"])) {
-    if (resource.id === "indexed_roast_quick_score") score += 155;
+    if (isIndexedRoastGet) score += 155;
     if (resource.path === AGENT_LISTING_PATH) score += 90;
     if (resource.id === "listing_roast") score += 30;
   }
 
   if (includesAny(normalizedQuery, ["marketplace listing score", "paid api listing quality score", "agent-service listing score", "agent service listing score"])) {
-    if (resource.id === "indexed_roast_quick_score" || resource.path === ROAST_PATH) score += 260;
+    if (isIndexedRoastGet) score += 260;
     if (resource.path === INSTANT_SCORE_PATH) score += 10;
   }
 
   if (includesAny(normalizedQuery, ["x402 marketplace conversion", "marketplace conversion score", "marketplace conversion check"])) {
     if (resource.path === CONVERSION_SCORE_PATH) score += 140;
-    if (resource.id === "indexed_roast_quick_score" || resource.path === ROAST_PATH) score += 15;
+    if (isIndexedRoastGet) score += 15;
   }
 
   if (includesAny(normalizedQuery, ["full roast", "rewrite", "top fixes", "launch guidance", "custom body", "body-specific"])) {
