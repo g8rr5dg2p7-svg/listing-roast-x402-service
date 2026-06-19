@@ -521,6 +521,12 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.mcpAliases[1]).toContain("/.well-known/mcp-server");
       expect(examples.json.mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(examples.json.payNowUrl).toContain("/api/pay-now");
+      expect(examples.json.payNowExamples.skipReasons.selectedActionKey).toBe("agentListingConversion");
+      expect(examples.json.payNowExamples.skipReasons.route).toContain("/api/agent-listing-conversion");
+      expect(examples.json.payNowExamples.discoveryAudit.selectedActionKey).toBe("x402SiteAudit");
+      expect(examples.json.payNowExamples.discoveryAudit.route).toContain("/api/x402-site-audit");
+      expect(examples.json.payNowExamples.fullRoast.selectedActionKey).toBe("fullRoast");
+      expect(examples.json.payNowExamples.fullRoast.maxAmountRequired).toBe("10000");
       expect(examples.json.pricing).toContain("/api/pricing");
       expect(examples.json.find).toContain("/api/find");
       expect(examples.json.route).toContain("/api/route");

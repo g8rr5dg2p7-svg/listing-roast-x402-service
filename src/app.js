@@ -4473,6 +4473,11 @@ ${webMcpScript(config)}
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
       payNow,
+      payNowExamples: {
+        skipReasons: buildPayNow(config, "buyer-agent skip reasons"),
+        discoveryAudit: buildPayNow(config, "x402 discovery audit"),
+        fullRoast: buildPayNow(config, "full roast rewrite top fixes")
+      },
       pricing: absoluteUrl(config, PRICING_PATH),
       pricingCatalog: buildPricingCatalog(config),
       find: absoluteUrl(config, FIND_PATH),
