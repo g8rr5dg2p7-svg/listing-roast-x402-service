@@ -213,8 +213,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent clarity, preflight, x402 audit, Bazaar visibility, stale price. $0.001 GET /api/listing-roast; /api/x402-site-audit, /api/x402-discovery-audit, POST /api/listing-roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-indexed-route-upsell-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T21:09:35.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-unpaid-settlement-proof-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T21:21:15.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -2717,6 +2717,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore")
   const payNow = buildPayNow(config);
   const selected = payNow.intentRoutes[intentRouteKey] || payNow.preferredFirstPaidAction;
   const paidUseProof = buildPaidUseProofLinks(config);
+  const settlementProof = buildSettlementProof(config);
 
   return {
     error: "payment_required",
@@ -2731,6 +2732,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore")
     paidUsageProof: paidUseProof.paidUsageProof,
     cashRegister: paidUseProof.cashRegister,
     paidUseProof,
+    settlementProof,
     x402Retry: {
       paymentRequiredHeader: "Payment-Required",
       paymentHeader: "X-PAYMENT",
