@@ -79,6 +79,16 @@ const AGENT_SKILLS_SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/sche
 const AGENTS_MARKDOWN_PATH = "/AGENTS.md";
 const DOCS_PATH = "/docs";
 const API_DOCS_PATH = "/api-docs";
+const PAID_API_LISTING_QUALITY_PATH = "/paid-api-listing-quality";
+const AGENT_LISTING_CONVERSION_PAGE_PATH = "/agent-listing-conversion";
+const X402_DISCOVERY_AUDIT_PAGE_PATH = "/x402-discovery-audit";
+const X402_SITE_AUDIT_PAGE_PATH = "/x402-site-audit";
+const INTENT_LANDING_PATHS = [
+  PAID_API_LISTING_QUALITY_PATH,
+  AGENT_LISTING_CONVERSION_PAGE_PATH,
+  X402_DISCOVERY_AUDIT_PAGE_PATH,
+  X402_SITE_AUDIT_PAGE_PATH
+];
 const API_V1_OPENAPI_JSON_PATH = "/api/v1/openapi.json";
 const SWAGGER_JSON_PATH = "/swagger.json";
 const OPENAPI_YAML_PATH = "/openapi.yaml";
@@ -3951,6 +3961,10 @@ Allow: /
 
 # Content-Signal policy: search=yes, ai-input=yes, ai-train=no
 # Free agent discovery:
+# - ${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}
+# - ${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}
+# - ${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}
+# - ${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}
 # - ${absoluteUrl(config, "/llms.txt")}
 # - ${absoluteUrl(config, LLMS_FULL_PATH)}
 # - ${absoluteUrl(config, "/x402.json")}
@@ -3964,6 +3978,154 @@ Allow: /
 # Preferred paid route after explicit buyer intent: ${absoluteUrl(config, ROAST_PATH)}
 Sitemap: ${sitemapUrl}
 `;
+}
+
+function buildIntentLandingPages(config) {
+  const intentRoutes = buildPayNowActions(config);
+
+  return [
+    {
+      path: PAID_API_LISTING_QUALITY_PATH,
+      title: "Paid API listing quality score | Listing Roast x402",
+      heading: "Paid API listing quality score for x402 services",
+      summary: "Use this when a buyer agent is searching for paid API listing quality, marketplace listing quality, x402 listing quality, or paid API discoverability before spending USDC.",
+      primaryAction: intentRoutes.indexedQuickScore,
+      primaryLabel: "Start with the $0.001 indexed quick score",
+      supportingAction: intentRoutes.fullRoast,
+      supportingLabel: "Upgrade to the $0.01 full roast only when the quick score is promising.",
+      keywords: ["paid API listing quality", "marketplace listing quality", "x402 listing quality", "paid API discoverability", "buyer-agent skip reasons"]
+    },
+    {
+      path: AGENT_LISTING_CONVERSION_PAGE_PATH,
+      title: "Agent listing conversion score | Listing Roast x402",
+      heading: "Agent listing conversion score and buyer-agent skip reasons",
+      summary: "Use this when the buyer wants to know whether agents understand the offer, price, output, and checkout path before paying.",
+      primaryAction: intentRoutes.agentListingConversion,
+      primaryLabel: "Use the $0.001 agent listing conversion route",
+      supportingAction: intentRoutes.fullRoast,
+      supportingLabel: "Upgrade to the $0.01 full roast for rewritten listing copy and launch guidance.",
+      keywords: ["agent listing conversion", "agent service listing clarity", "buyer-agent skip reasons", "buyer intent", "paid API listing quality"]
+    },
+    {
+      path: X402_DISCOVERY_AUDIT_PAGE_PATH,
+      title: "x402 discovery audit | Listing Roast x402",
+      heading: "x402 discovery audit for stale Bazaar visibility",
+      summary: "Use this when a seller needs to compare direct x402 payment metadata with marketplace search visibility, stale pricing, and route health before promotion.",
+      primaryAction: intentRoutes.x402SiteAudit,
+      primaryLabel: "Start with the $0.001 GET site audit",
+      supportingAction: intentRoutes.discoveryAudit,
+      supportingLabel: "Use the $0.01 POST discovery audit when a custom endpoint body is needed.",
+      keywords: ["x402 discovery audit", "x402 bazaar discovery audit", "bazaar search visibility", "x402 listing stale price", "x402 route health check"]
+    },
+    {
+      path: X402_SITE_AUDIT_PAGE_PATH,
+      title: "x402 site audit | Listing Roast x402",
+      heading: "x402 site audit and paid API preflight",
+      summary: "Use this when a buyer wants a quick route-health, OpenAPI, llms.txt, pricing, and Bazaar visibility check without assembling a request body.",
+      primaryAction: intentRoutes.x402SiteAudit,
+      primaryLabel: "Use the $0.001 GET site audit",
+      supportingAction: intentRoutes.discoveryAudit,
+      supportingLabel: "Use the $0.01 POST discovery audit for a custom-body report.",
+      keywords: ["x402 site audit", "paid API preflight", "x402 route health check", "x402 service discoverability audit", "x402 listing SEO audit"]
+    }
+  ];
+}
+
+function buildIntentLandingPage(config, page) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="${escapeHtml(page.summary)}" />
+  <meta name="keywords" content="${escapeHtml(page.keywords.join(", "))}" />
+  <meta property="og:title" content="${escapeHtml(page.heading)}" />
+  <meta property="og:description" content="${escapeHtml(page.summary)}" />
+  <meta property="og:url" content="${escapeHtml(absoluteUrl(config, page.path))}" />
+  <link rel="canonical" href="${escapeHtml(absoluteUrl(config, page.path))}" />
+  <link rel="alternate" type="application/json" title="Listing Roast x402 manifest" href="${escapeHtml(absoluteUrl(config, "/x402.json"))}" />
+  <link rel="alternate" type="application/vnd.oai.openapi+json" title="Listing Roast OpenAPI" href="${escapeHtml(absoluteUrl(config, "/openapi.json"))}" />
+  <title>${escapeHtml(page.title)}</title>
+  <style>
+    :root { color-scheme: light; --ink: #171717; --muted: #5b6470; --line: #d8dee7; --paper: #fbfaf7; --panel: #ffffff; --blue: #1458d4; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--paper); color: var(--ink); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+    header, section, footer { width: 100%; }
+    .nav { display: flex; justify-content: space-between; gap: 18px; align-items: center; min-height: 64px; border-bottom: 1px solid var(--line); }
+    .brand { font-weight: 800; color: var(--ink); text-decoration: none; }
+    .navlinks { display: flex; gap: 16px; flex-wrap: wrap; }
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .hero { padding: 54px 0 34px; border-bottom: 1px solid var(--line); background: #fff; }
+    h1 { font-size: clamp(2.2rem, 5vw, 4.4rem); line-height: 1; letter-spacing: 0; margin: 0 0 18px; max-width: 820px; }
+    h2 { font-size: 1.5rem; letter-spacing: 0; margin: 0 0 12px; }
+    p { max-width: 760px; margin: 0 0 16px; }
+    .lead { font-size: 1.16rem; color: #333c47; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr); gap: 18px; padding: 30px 0; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; min-width: 0; }
+    code, pre { background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+    code { padding: 2px 6px; overflow-wrap: anywhere; word-break: break-word; }
+    pre { padding: 16px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 15px; border-radius: 8px; border: 1px solid #101010; background: #111; color: #fff; text-decoration: none; font-weight: 700; margin: 8px 10px 0 0; }
+    .button.secondary { background: #fff; color: #111; border-color: var(--line); }
+    .muted { color: var(--muted); }
+    .tag { display: inline-flex; align-items: center; min-height: 28px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: #2d3745; font-size: 0.9rem; margin: 0 6px 8px 0; }
+    footer { border-top: 1px solid var(--line); padding: 24px 0 42px; color: var(--muted); }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .nav { align-items: flex-start; flex-direction: column; padding: 14px 0; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="/">Listing Roast x402</a>
+      <nav class="navlinks" aria-label="Primary">
+        <a href="/builder">Builder</a>
+        <a href="/api/pay-now">Pay-now</a>
+        <a href="/x402.json">Manifest</a>
+        <a href="/openapi.json">OpenAPI</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <h1>${escapeHtml(page.heading)}</h1>
+        <p class="lead">${escapeHtml(page.summary)}</p>
+        <p>${page.keywords.map((keyword) => `<span class="tag">${escapeHtml(keyword)}</span>`).join("")}</p>
+        <a class="button" href="${escapeHtml(page.primaryAction.route)}">${escapeHtml(page.primaryLabel)}</a>
+        <a class="button secondary" href="/api/pay-now">Open free route handoff</a>
+      </div>
+    </section>
+    <section>
+      <div class="wrap grid">
+        <div class="card">
+          <h2>Primary paid route</h2>
+          <p><code>${escapeHtml(page.primaryAction.method)} ${escapeHtml(page.primaryAction.path)}</code></p>
+          <p class="muted">Price: ${escapeHtml(page.primaryAction.price)}. Max amount: ${escapeHtml(page.primaryAction.maxAmountRequired)} USDC units. ${escapeHtml(page.primaryAction.reason)}</p>
+          <pre>${escapeHtml(page.primaryAction.command)}</pre>
+        </div>
+        <div class="card">
+          <h2>Upgrade path</h2>
+          <p>${escapeHtml(page.supportingLabel)}</p>
+          <p><code>${escapeHtml(page.supportingAction.method)} ${escapeHtml(page.supportingAction.path)}</code></p>
+          <p class="muted">Price: ${escapeHtml(page.supportingAction.price)}. Max amount: ${escapeHtml(page.supportingAction.maxAmountRequired)} USDC units.</p>
+        </div>
+        <div class="card">
+          <h2>Free discovery before payment</h2>
+          <p><a href="/llms.txt">llms.txt</a> gives the short route guide. <a href="/x402.json">x402.json</a> gives machine-readable paid routes. <a href="/api/examples">/api/examples</a> gives command-ready examples.</p>
+        </div>
+        <div class="card">
+          <h2>No-spend boundary</h2>
+          <p class="muted">This page does not call a paid route. A buyer should only run the x402 command when they explicitly intend to spend USDC.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="wrap">Listing Roast x402: paid listing scores, agent listing conversion, and x402 discovery audits.</div>
+  </footer>
+</body>
+</html>`;
 }
 
 function buildMcpServerCard(config) {
@@ -4804,6 +4966,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Discovery</h3>
           <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path returns a $0.001 score API marketplace listing quality and discoverability challenge, <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> targets buyer-agent skip-reason searches, and <code>GET /api/x402-site-audit</code> returns a $0.001 discovery audit challenge.</p>
+          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
         <div class="card">
@@ -4824,6 +4987,13 @@ ${webMcpScript(config)}
 </html>`);
   });
 
+  for (const page of buildIntentLandingPages(config)) {
+    app.get(page.path, async (_request, response) => {
+      await recordSignal("routeViews");
+      response.type("html").send(buildIntentLandingPage(config, page));
+    });
+  }
+
   app.get("/robots.txt", (_request, response) => {
     response
       .set("Cache-Control", "no-store, max-age=0")
@@ -4833,7 +5003,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 

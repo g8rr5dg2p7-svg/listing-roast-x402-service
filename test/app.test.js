@@ -167,6 +167,35 @@ describe("Listing Roast x402 service", () => {
       expect(home.text).toContain("readOnlyHint");
       expect(home.text).toContain("This tool never calls a paid endpoint");
       expect(home.text).toContain("Do not call paid routes unless the buyer explicitly intends to pay USDC");
+      expect(home.text).toContain("/paid-api-listing-quality");
+      expect(home.text).toContain("/agent-listing-conversion");
+      expect(home.text).toContain("/x402-discovery-audit");
+      expect(home.text).toContain("/x402-site-audit");
+
+      const paidApiListingQuality = await fetchJson(server, "/paid-api-listing-quality");
+      expect(paidApiListingQuality.status).toBe(200);
+      expect(paidApiListingQuality.text).toContain("Paid API listing quality score for x402 services");
+      expect(paidApiListingQuality.text).toContain("/api/listing-roast");
+      expect(paidApiListingQuality.text).toContain("--max-amount 1000");
+      expect(paidApiListingQuality.text).toContain("This page does not call a paid route");
+
+      const agentListingConversion = await fetchJson(server, "/agent-listing-conversion");
+      expect(agentListingConversion.status).toBe(200);
+      expect(agentListingConversion.text).toContain("Agent listing conversion score and buyer-agent skip reasons");
+      expect(agentListingConversion.text).toContain("/api/agent-listing-conversion");
+      expect(agentListingConversion.text).toContain("agent service listing clarity");
+
+      const x402DiscoveryAudit = await fetchJson(server, "/x402-discovery-audit");
+      expect(x402DiscoveryAudit.status).toBe(200);
+      expect(x402DiscoveryAudit.text).toContain("x402 discovery audit for stale Bazaar visibility");
+      expect(x402DiscoveryAudit.text).toContain("/api/x402-site-audit");
+      expect(x402DiscoveryAudit.text).toContain("/api/x402-discovery-audit");
+
+      const x402SiteAudit = await fetchJson(server, "/x402-site-audit");
+      expect(x402SiteAudit.status).toBe(200);
+      expect(x402SiteAudit.text).toContain("x402 site audit and paid API preflight");
+      expect(x402SiteAudit.text).toContain("/api/x402-site-audit");
+      expect(x402SiteAudit.text).toContain("x402 route health check");
 
       const homeMarkdown = await fetchJson(server, "/", {
         headers: { Accept: "text/markdown" }
@@ -969,6 +998,10 @@ describe("Listing Roast x402 service", () => {
       expect(robots.text).toContain("Content-Signal: search=yes, ai-input=yes, ai-train=no");
       expect(robots.text).toContain("/x402.json");
       expect(robots.text).toContain("/api/route");
+      expect(robots.text).toContain("/paid-api-listing-quality");
+      expect(robots.text).toContain("/agent-listing-conversion");
+      expect(robots.text).toContain("/x402-discovery-audit");
+      expect(robots.text).toContain("/x402-site-audit");
       expect(robots.text).toContain("/.well-known/agent-tools.json");
       expect(robots.text).toContain("/.well-known/agent-skills/index.json");
       expect(robots.text).toContain("/.well-known/mcp/server-card.json");
@@ -977,6 +1010,10 @@ describe("Listing Roast x402 service", () => {
       const sitemap = await fetchJson(server, "/sitemap.xml");
       expect(sitemap.status).toBe(200);
       expect(sitemap.headers.get("cache-control")).toContain("no-store");
+      expect(sitemap.text).toContain("/paid-api-listing-quality");
+      expect(sitemap.text).toContain("/agent-listing-conversion");
+      expect(sitemap.text).toContain("/x402-discovery-audit");
+      expect(sitemap.text).toContain("/x402-site-audit");
       expect(sitemap.text).toContain("/builder");
       expect(sitemap.text).toContain("/sample");
       expect(sitemap.text).toContain("/api/pay-now");
@@ -1270,7 +1307,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.payNowViews).toBe(4);
       expect(cashRegister.json.signals.pricingViews).toBe(1);
       expect(cashRegister.json.signals.findViews).toBe(5);
-      expect(cashRegister.json.signals.routeViews).toBe(5);
+      expect(cashRegister.json.signals.routeViews).toBe(9);
       expect(cashRegister.json.signals.localDiscoveryViews).toBe(4);
       expect(cashRegister.json.signals.mcpViews).toBe(4);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(3);
