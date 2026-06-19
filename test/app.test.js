@@ -691,6 +691,8 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/api/pricing");
       expect(llms.text).toContain("/api/route");
       expect(llms.text).toContain("/api/find?q=x402%20discovery%20audit");
+      expect(llms.text).toContain("/api/find?q=score%20my%20paid%20API%20listing%20with%20a%20custom%20body");
+      expect(llms.text).toContain("/api/route?query=score%20my%20paid%20API%20listing%20with%20a%20custom%20body&top=3");
       expect(llms.text).toContain("/v2/x402/discovery/resources");
       expect(llms.text).toContain("/v2/x402/discovery/search");
       expect(llms.text).toContain("/v2/x402/discovery/merchant");
