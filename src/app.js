@@ -2118,7 +2118,7 @@ function buildOpenApiPaymentRequiredResponse(config, intentRouteKey = "indexedQu
   };
 }
 
-function buildOpenApiDocument(config) {
+function buildOpenApiDocument(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const paymentActionByRoute = {
     [`GET ${API_ENTRY_PATH}`]: "apiEntry",
@@ -2821,6 +2821,7 @@ function buildOpenApiDocument(config) {
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       payNowExamples: buildPayNowIntentExamples(config),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
+      paidUsageProof: buildPaidUsageProof(config, cashRegister),
       settlementProof: buildSettlementProof(config),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
@@ -5686,7 +5687,8 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   async function serveOpenApiDocument(_request, response) {
     await recordSignal("openApiViews");
-    setFreshDiscoveryHeaders(response).json(buildOpenApiDocument(config));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildOpenApiDocument(config, cashRegister));
   }
 
   app.get("/openapi.json", serveOpenApiDocument);

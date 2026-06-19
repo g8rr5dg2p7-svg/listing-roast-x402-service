@@ -951,6 +951,9 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json["x-listing-roast"].llmsFull).toContain("/llms-full.txt");
       expect(openApi.json["x-listing-roast"].mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(openApi.json["x-listing-roast"].cashRegister).toContain("/api/cash-register");
+      expect(openApi.json["x-listing-roast"].paidUsageProof.paidCompletions).toBe(0);
+      expect(openApi.json["x-listing-roast"].paidUsageProof.estimatedGrossRevenueUsd).toBe("0.00");
+      expect(openApi.json["x-listing-roast"].paidUsageProof.noSpend).toBe(true);
       expect(openApi.json["x-listing-roast"].settlementProof.evidenceFields).toContain("receiverWallet.usdcBalance");
       expect(openApi.json["x-listing-roast"].recommendedFirstPaidAction.route).toContain("/api/listing-roast");
       expect(openApi.json["x-listing-roast"].recommendedPaidSequence[0].use).toBe("indexedQuickScore");
@@ -1414,6 +1417,12 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.002");
       expect(x402Manifest.json.paidUsageProof.proofText).toBe("2 paid completions; $0.002 registered");
       expect(x402Manifest.json.paidUsageProof.cashRegister).toContain("/api/cash-register");
+
+      const openApi = await fetchJson(server, "/openapi.json");
+      expect(openApi.status).toBe(200);
+      expect(openApi.json["x-listing-roast"].paidUsageProof.paidCompletions).toBe(2);
+      expect(openApi.json["x-listing-roast"].paidUsageProof.estimatedGrossRevenueUsd).toBe("0.002");
+      expect(openApi.json["x-listing-roast"].paidUsageProof.proofText).toBe("2 paid completions; $0.002 registered");
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
