@@ -1578,6 +1578,19 @@ function buildPayNowIntentExamples(config) {
   };
 }
 
+function buildSettlementProof(config) {
+  return {
+    cashRegister: absoluteUrl(config, "/api/cash-register"),
+    evidenceFields: [
+      "paidCompletions",
+      "estimatedGrossRevenueUsd",
+      "receiverWallet.usdcBalance",
+      "receiverWallet.usdcUnits"
+    ],
+    note: "Use this free endpoint to verify public paid-completion counters and receiver wallet snapshot before treating revenue as settled."
+  };
+}
+
 function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore") {
   const payNow = buildPayNow(config);
   const selected = payNow.intentRoutes[intentRouteKey] || payNow.preferredFirstPaidAction;
@@ -2470,6 +2483,8 @@ function buildOpenApiDocument(config) {
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       payNowExamples: buildPayNowIntentExamples(config),
+      cashRegister: absoluteUrl(config, "/api/cash-register"),
+      settlementProof: buildSettlementProof(config),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
       route: absoluteUrl(config, ROUTE_PATH),
@@ -2532,6 +2547,8 @@ function buildX402Manifest(config) {
     mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     payNowExamples: buildPayNowIntentExamples(config),
+    cashRegister: absoluteUrl(config, "/api/cash-register"),
+    settlementProof: buildSettlementProof(config),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
     route: absoluteUrl(config, ROUTE_PATH),
@@ -3247,6 +3264,8 @@ function buildAgentCard(config) {
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence,
     payNowExamples: buildPayNowIntentExamples(config),
+    cashRegister: absoluteUrl(config, "/api/cash-register"),
+    settlementProof: buildSettlementProof(config),
     skills: [
       buildAgentSkill(config, {
         id: "indexed-listing-roast-quick-score",
@@ -3358,6 +3377,8 @@ function buildAgentCard(config) {
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
       payNowExamples: buildPayNowIntentExamples(config),
+      cashRegister: absoluteUrl(config, "/api/cash-register"),
+      settlementProof: buildSettlementProof(config),
       a2aTaskEndpointAvailable: false,
       note: "This public card is a discovery bridge for paid x402 HTTP+JSON routes. Use OpenAPI, x402 manifest, or MCP metadata for exact callable routes."
     }
@@ -3408,7 +3429,9 @@ function buildAiPluginManifest(config) {
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
       recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
-      payNowExamples: buildPayNowIntentExamples(config)
+      payNowExamples: buildPayNowIntentExamples(config),
+      cashRegister: absoluteUrl(config, "/api/cash-register"),
+      settlementProof: buildSettlementProof(config)
     }
   };
 }
@@ -3473,13 +3496,15 @@ function buildApiCatalog(config) {
           { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "Paid route pricing catalog" },
           { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "Task-to-paid-route finder" },
           { href: absoluteUrl(config, ROUTE_PATH), type: "application/json", title: "Local paid-route router" },
+          { href: absoluteUrl(config, "/api/cash-register"), type: "application/json", title: "Paid completion and receiver wallet proof" },
           { href: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]), type: "application/json", title: "Local x402 discovery resources" },
           { href: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]), type: "application/json", title: "Local x402 discovery search" },
           { href: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]), type: "application/json", title: "Local x402 merchant resources" },
           { href: absoluteUrl(config, "/api/examples"), type: "application/json", title: "Examples and copy-ready commands" }
         ],
         status: [
-          { href: absoluteUrl(config, "/health"), type: "application/json", title: "Service health" }
+          { href: absoluteUrl(config, "/health"), type: "application/json", title: "Service health" },
+          { href: absoluteUrl(config, "/api/cash-register"), type: "application/json", title: "Paid completion and receiver wallet proof" }
         ]
       }
     ]
@@ -3709,7 +3734,9 @@ function buildMcpServerCard(config) {
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
-      payNowExamples: buildPayNowIntentExamples(config)
+      payNowExamples: buildPayNowIntentExamples(config),
+      cashRegister: absoluteUrl(config, "/api/cash-register"),
+      settlementProof: buildSettlementProof(config)
     },
     links: {
       metadata: metadataUrl,
@@ -3721,6 +3748,7 @@ function buildMcpServerCard(config) {
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
       route: absoluteUrl(config, ROUTE_PATH),
+      cashRegister: absoluteUrl(config, "/api/cash-register"),
       llms: absoluteUrl(config, "/llms.txt"),
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH)
@@ -5243,6 +5271,8 @@ ${copyScript("Copy command")}
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       payNowExamples,
+      cashRegister: absoluteUrl(config, "/api/cash-register"),
+      settlementProof: buildSettlementProof(config),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
       route: absoluteUrl(config, ROUTE_PATH),
@@ -5256,7 +5286,9 @@ ${copyScript("Copy command")}
         payNow: absoluteUrl(config, PAY_NOW_PATH),
         preferredFirstPaidAction: intentRoutes.indexedQuickScore,
         recommendedPaidSequence,
-        payNowExamples
+        payNowExamples,
+        cashRegister: absoluteUrl(config, "/api/cash-register"),
+        settlementProof: buildSettlementProof(config)
       },
       keywords: DISCOVERY_KEYWORDS,
       tools: [
