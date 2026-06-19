@@ -1366,6 +1366,13 @@ describe("Listing Roast x402 service", () => {
       expect(routeDiscovery.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(routeDiscovery.json.paymentRule).toContain("Do not call");
 
+      const routeFixBazaar = await fetchJson(server, "/api/route?intent=fix%20x402%20bazaar%20listing&top=3");
+      expect(routeFixBazaar.status).toBe(200);
+      expect(routeFixBazaar.headers.get("payment-required")).toBeNull();
+      expect(routeFixBazaar.json.query).toBe("fix x402 bazaar listing");
+      expect(routeFixBazaar.json.best.path).toBe("/api/x402-discovery-audit");
+      expect(routeFixBazaar.json.best.maxAmountRequired).toBe("1000");
+
       const routeSellerSeo = await fetchJson(server, "/api/route", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -1487,7 +1494,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.payNowViews).toBe(7);
       expect(cashRegister.json.signals.pricingViews).toBe(1);
       expect(cashRegister.json.signals.findViews).toBe(5);
-      expect(cashRegister.json.signals.routeViews).toBe(9);
+      expect(cashRegister.json.signals.routeViews).toBe(10);
       expect(cashRegister.json.signals.localDiscoveryViews).toBe(4);
       expect(cashRegister.json.signals.mcpViews).toBe(4);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(3);

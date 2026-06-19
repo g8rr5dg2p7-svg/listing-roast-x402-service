@@ -3741,7 +3741,7 @@ function normalizeRouteInclude(value) {
 }
 
 function buildRouteResult(config, payload = {}, cashRegister = {}) {
-  const query = String(payload.query || payload.q || payload.task || "").trim().slice(0, 400);
+  const query = String(payload.query || payload.q || payload.task || payload.intent || "").trim().slice(0, 400);
   const include = normalizeRouteInclude(payload.include);
   const top = parseRouteTop(payload.top || payload.k || payload.limit);
   const externalOnly = include === "external";
