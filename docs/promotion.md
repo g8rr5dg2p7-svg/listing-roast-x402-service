@@ -139,7 +139,7 @@ Score:
 ```bash
 npx awal@2.8.0 x402 pay https://listing-roast-x402-service-production.up.railway.app/api/listing-score \
   -X POST \
-  -d '{"agentName":"Example x402 API","listingText":"A paid x402 API that helps builders check whether buyer agents understand the offer before paying. It returns JSON with skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade recommendation. Example payloads are included for quick testing.","targetBuyer":"x402 and MCP builders","currentPrice":"$1.00","currentCheckoutPath":"/api/listing-roast","goal":"Increase first paid conversion"}' \
+  -d '{"agentName":"Example x402 API","listingText":"A paid x402 API that helps builders check whether buyer agents understand the offer before paying. It returns JSON with skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade recommendation. Example payloads are included for quick testing.","targetBuyer":"x402 and MCP builders","currentPrice":"$0.01","currentCheckoutPath":"/api/example-agent-score","goal":"Increase first paid conversion"}' \
   --max-amount 5000
 ```
 
@@ -148,7 +148,7 @@ Full roast:
 ```bash
 npx awal@2.8.0 x402 pay https://listing-roast-x402-service-production.up.railway.app/api/listing-roast \
   -X POST \
-  -d '{"agentName":"Example x402 API","listingText":"A paid x402 API that helps builders check whether buyer agents understand the offer before paying. It returns JSON with skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade recommendation. Example payloads are included for quick testing.","targetBuyer":"x402 and MCP builders","currentPrice":"$1.00","currentCheckoutPath":"/api/listing-roast","goal":"Increase first paid conversion"}' \
+  -d '{"agentName":"Example x402 API","listingText":"A paid x402 API that helps builders check whether buyer agents understand the offer before paying. It returns JSON with skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade recommendation. Example payloads are included for quick testing.","targetBuyer":"x402 and MCP builders","currentPrice":"$0.01","currentCheckoutPath":"/api/example-agent-score","goal":"Increase first paid conversion"}' \
   --max-amount 10000
 ```
 

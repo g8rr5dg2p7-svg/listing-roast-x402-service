@@ -1752,6 +1752,12 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/instant-listing-score");
       expect(challenge.resource.description).toContain("$0.001");
+      expect(challenge.extensions.bazaar.info.input.queryParams.agentName).toBe("Listing Roast x402");
+      expect(challenge.extensions.bazaar.info.input.queryParams.currentPrice).toBe("$0.001 GET; $0.01 POST upgrade");
+      expect(challenge.extensions.bazaar.info.input.queryParams.currentPrice).not.toBe("$1.00");
+      expect(challenge.extensions.bazaar.info.output.example.agentName).toBeUndefined();
+      expect(challenge.extensions.bazaar.info.output.example.price).toBe("$0.001");
+      expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.body.currentPrice).toBe("$0.001 GET; $0.01 POST upgrade");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
       expect(response.json.error).toBe("payment_required");
@@ -1880,7 +1886,12 @@ describe("Listing Roast x402 service", () => {
         "agent service clarity",
         "route health"
       ]);
-      expect(challenge.extensions.bazaar.info.input.queryParams.goal).toBe("Increase first paid conversion");
+      expect(challenge.extensions.bazaar.info.input.queryParams.agentName).toBe("Listing Roast x402");
+      expect(challenge.extensions.bazaar.info.input.queryParams.currentPrice).toBe("$0.001 GET; $0.01 POST upgrade");
+      expect(challenge.extensions.bazaar.info.input.queryParams.currentPrice).not.toBe("$1.00");
+      expect(challenge.extensions.bazaar.info.input.queryParams.goal).toBe("Convert buyer agents through the lowest-friction paid score");
+      expect(challenge.extensions.bazaar.info.output.example.price).toBe("$0.001");
+      expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.body.currentPrice).toBe("$0.001 GET; $0.01 POST upgrade");
       const indexedQuerySchema = challenge.extensions.bazaar.schema.properties.input.properties.queryParams.properties;
       expect(indexedQuerySchema.agentName.description).toContain("paid API");
       expect(indexedQuerySchema.listingText.description).toContain("marketplace description");

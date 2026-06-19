@@ -87,7 +87,7 @@ function issueList(input, checks) {
 }
 
 function rewrite(input, checks) {
-  const price = input.currentPrice || "$1 per call";
+  const price = input.currentPrice || "the listed price";
   const path = input.currentCheckoutPath || "POST /api/your-paid-route";
   const target = input.targetBuyer || "x402 and MCP builders";
   const output = checks.hasOutput ? firstSentence(input.listingText) : "a structured critique with skip reasons, conversion fixes, and a stop-or-upgrade recommendation";
@@ -165,7 +165,7 @@ export const requestExample = {
   agentName: "Example x402 API",
   listingText: "A paid x402 API that helps builders check whether buyer agents understand the offer before paying. It returns JSON with skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade recommendation. Example payloads are included for quick testing.",
   targetBuyer: "x402 and MCP builders",
-  currentPrice: "$1.00",
-  currentCheckoutPath: "/api/listing-roast",
+  currentPrice: "$0.01",
+  currentCheckoutPath: "/api/example-agent-score",
   goal: "Increase first paid conversion"
 };

@@ -16,8 +16,8 @@ const listingBody = {
   agentName: "Smoke Test API",
   listingText: "A paid x402 API that helps builders check whether buyer agents understand the offer before paying.",
   targetBuyer: "x402 builders",
-  currentPrice: "$1.00",
-  currentCheckoutPath: "/api/listing-roast"
+  currentPrice: "$0.01",
+  currentCheckoutPath: "/api/example-agent-score"
 };
 
 const requestOptions = {

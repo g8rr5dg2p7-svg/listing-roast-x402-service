@@ -156,6 +156,14 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   discoveryAudit: ["x402", "Bazaar visibility", "discovery audit", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "stale Bazaar price", "paid API preflight"],
   fullRoast: ["x402", "listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons"]
 });
+const quickScoreRequestExample = Object.freeze({
+  agentName: "Listing Roast x402",
+  listingText: "A paid x402 score API for marketplace listing quality, buyer-agent skip reasons, and agent-service clarity before promotion. Start with the already-indexed quick score route, then upgrade only when the score is promising.",
+  targetBuyer: "x402 and MCP builders",
+  currentPrice: "$0.001 GET; $0.01 POST upgrade",
+  currentCheckoutPath: "/api/listing-roast",
+  goal: "Convert buyer agents through the lowest-friction paid score"
+});
 const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   indexed_roast_quick_score: "indexedQuickScore",
   directory_root_post: "directoryPost",
@@ -945,12 +953,12 @@ function buildDiscoveryAuditQuickExampleOutput(config) {
 
 function buildInstantScoreInput(query = {}) {
   return listingRoastRequestSchema.parse({
-    agentName: queryValue(query.agentName, requestExample.agentName),
-    listingText: queryValue(query.listingText || query.text, requestExample.listingText),
-    targetBuyer: queryValue(query.targetBuyer, requestExample.targetBuyer),
-    currentPrice: queryValue(query.currentPrice, requestExample.currentPrice),
-    currentCheckoutPath: queryValue(query.currentCheckoutPath, requestExample.currentCheckoutPath),
-    goal: queryValue(query.goal, requestExample.goal),
+    agentName: queryValue(query.agentName, quickScoreRequestExample.agentName),
+    listingText: queryValue(query.listingText || query.text, quickScoreRequestExample.listingText),
+    targetBuyer: queryValue(query.targetBuyer, quickScoreRequestExample.targetBuyer),
+    currentPrice: queryValue(query.currentPrice, quickScoreRequestExample.currentPrice),
+    currentCheckoutPath: queryValue(query.currentCheckoutPath, quickScoreRequestExample.currentCheckoutPath),
+    goal: queryValue(query.goal, quickScoreRequestExample.goal),
     source: "instant-get-score"
   });
 }
@@ -1113,12 +1121,12 @@ function buildIndexedRoastQuickScore(input, config) {
 
 function buildInstantScoreDiscovery(config) {
   const queryExample = {
-    agentName: requestExample.agentName,
-    listingText: requestExample.listingText,
-    targetBuyer: requestExample.targetBuyer,
-    currentPrice: requestExample.currentPrice,
-    currentCheckoutPath: requestExample.currentCheckoutPath,
-    goal: requestExample.goal
+    agentName: quickScoreRequestExample.agentName,
+    listingText: quickScoreRequestExample.listingText,
+    targetBuyer: quickScoreRequestExample.targetBuyer,
+    currentPrice: quickScoreRequestExample.currentPrice,
+    currentCheckoutPath: quickScoreRequestExample.currentCheckoutPath,
+    goal: quickScoreRequestExample.goal
   };
 
   return {
