@@ -2196,9 +2196,9 @@ function buildOpenApiDocument(config) {
       },
       [SITE_AUDIT_PATH]: {
         get: {
-          operationId: "getX402ServiceDiscoverabilityAuditPaidApiPreflightRouteHealthCheck",
+          operationId: "getX402CatalogMetadataQualitySellerIntelligenceListingSeoAudit",
           tags: ["x402 discovery", "x402 site audit", "x402 seller discoverability", "x402 service discoverability audit", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "x402 route health check", "stale Bazaar price", "paid API listing"],
-          summary: "Paid $0.001 x402 listing SEO audit, rank doctor, seller intelligence, growth checklist, and Bazaar fix",
+          summary: "Paid $0.001 x402 catalog metadata quality, seller intelligence, listing SEO audit, rank doctor, growth checklist, and Bazaar fix",
           description: "Lowest-friction GET route for agents that want a quick no-spend x402 listing SEO audit, x402 listing rank doctor, x402 seller growth checklist, x402 seller intelligence, x402 marketplace SEO audit, x402 seller discoverability audit, fix x402 Bazaar listing guidance, x402 catalog metadata quality check, paid API preflight, route health check, public x402 discovery check, pricing check, stale Bazaar price check, direct 402 metadata check, and Bazaar search visibility check before buying the full audit.",
           "x-price": config.siteAuditPrice,
           "x-x402-price": config.siteAuditPrice,

@@ -748,8 +748,9 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/x402-ping"].get.summary).toContain("$0.001");
       expect(openApi.json.paths["/api/x402-site-audit"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/x402-site-audit"].get["x-x402-price"]).toBe("$0.001");
-      expect(openApi.json.paths["/api/x402-site-audit"].get.operationId).toBe("getX402ServiceDiscoverabilityAuditPaidApiPreflightRouteHealthCheck");
+      expect(openApi.json.paths["/api/x402-site-audit"].get.operationId).toBe("getX402CatalogMetadataQualitySellerIntelligenceListingSeoAudit");
       expect(openApi.json.paths["/api/x402-site-audit"].get.summary).toContain("$0.001");
+      expect(openApi.json.paths["/api/x402-site-audit"].get.summary).toContain("catalog metadata quality");
       expect(openApi.json.paths["/api/x402-site-audit"].get.summary).toContain("listing SEO audit");
       expect(openApi.json.paths["/api/x402-site-audit"].get.summary).toContain("rank doctor");
       expect(openApi.json.paths["/api/x402-site-audit"].get.summary).toContain("seller intelligence");
