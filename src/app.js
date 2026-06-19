@@ -216,8 +216,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent clarity, agent service clarity, paid API preflight, x402 audit, x402 discovery audit, Bazaar visibility, stale price. $0.001 GET /api/listing-roast; /api/x402-site-audit, /api/x402-discovery-audit, POST /api/listing-roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-buyer-skip-alias-first-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T22:35:24.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-action-aliases-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T22:45:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -417,6 +417,37 @@ function enrichManifestResource(resource) {
     tags,
     keywords: uniqueTerms([...(resource.keywords || []), ...tags])
   };
+}
+
+function buildManifestActionAliases(config, resources) {
+  return resources.map((resource) => ({
+    id: resource.id,
+    name: resource.name,
+    title: resource.name,
+    description: resource.description,
+    method: resource.method,
+    path: resource.path,
+    url: resource.url,
+    route: resource.url,
+    price: resource.price,
+    priceUsd: priceToUsd(resource.price),
+    maxAmountRequired: resource.maxAmountRequired,
+    max_amount_required: resource.maxAmountRequired,
+    network: config.network,
+    paymentRequired: true,
+    x402: {
+      network: config.network,
+      asset: "USDC",
+      payTo: config.payTo,
+      maxAmountRequired: resource.maxAmountRequired
+    },
+    command: resource.command,
+    schema: resource.schema,
+    tags: resource.tags || [],
+    keywords: resource.keywords || [],
+    preferredFirstPaidAction: resource.id === "indexed_roast_quick_score",
+    ...(resource.canonicalRoute ? { canonicalRoute: resource.canonicalRoute } : {})
+  }));
 }
 
 function jsonScript(value) {
@@ -4226,105 +4257,7 @@ function buildX402Manifest(config, cashRegister = {}) {
   const primaryEndpoint = buildPrimaryEndpointHandoff(config, intentRoutes);
   const primaryResourceSample = buildPrimaryResourceSample(primaryEndpoint);
   const baseUrl = absoluteUrl(config, "/").replace(/\/$/, "");
-
-  return {
-    name: config.serviceName,
-    serviceName: config.serviceName,
-    displayName: config.serviceName,
-    service: config.serviceName,
-    baseUrl,
-    version: DISCOVERY_METADATA_VERSION,
-    metadataVersion: DISCOVERY_METADATA_VERSION,
-    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
-    lastUpdated: DISCOVERY_METADATA_UPDATED_AT,
-    description: DISCOVERY_DESCRIPTION,
-    providerUrl: config.serviceUrl,
-    iconUrl: absoluteUrl(config, ICON_SVG_PATH),
-    icon: absoluteUrl(config, ICON_SVG_PATH),
-    category: SERVICE_CATEGORY,
-    tags: SERVICE_TAGS,
-    keywords: DISCOVERY_KEYWORDS,
-    homepage: absoluteUrl(config, "/"),
-    builder: absoluteUrl(config, "/builder"),
-    sample: absoluteUrl(config, "/sample"),
-    openApi: absoluteUrl(config, "/openapi.json"),
-    openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)],
-    llms: absoluteUrl(config, LLMS_PATH),
-    llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
-    llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
-    llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
-    markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH),
-    agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
-    agentCardAliases: agentCardAliasUrls(config),
-    aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
-    apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
-    agentTools: absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH),
-    agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
-    mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
-    mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
-    mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
-    payNow: absoluteUrl(config, PAY_NOW_PATH),
-    payNowExamples: buildPayNowIntentExamples(config),
-    intentLandingPages: buildIntentLandingHandoffs(config),
-    paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
-    cashRegister: absoluteUrl(config, "/api/cash-register"),
-    paidUsageProof: buildPaidUsageProof(config, cashRegister),
-    settlementProof: buildSettlementProof(config),
-    pricing: absoluteUrl(config, PRICING_PATH),
-    find: absoluteUrl(config, FIND_PATH),
-    route: absoluteUrl(config, ROUTE_PATH),
-    localDiscovery: {
-      resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
-      search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
-      merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
-      searchExamples: buildLocalDiscoverySearchExamples(config),
-      aliases: {
-        resources: LOCAL_DISCOVERY_RESOURCE_PATHS.map((path) => absoluteUrl(config, path)),
-        search: LOCAL_DISCOVERY_SEARCH_PATHS.map((path) => absoluteUrl(config, path)),
-        merchant: LOCAL_DISCOVERY_MERCHANT_PATHS.map((path) => absoluteUrl(config, path))
-      }
-    },
-    aliases: x402ManifestAliasUrls(config),
-    network: config.network,
-    payTo: config.payTo,
-    payment: {
-      primaryNetwork: "base",
-      network: config.network,
-      currency: "USDC",
-      asset: "USDC",
-      payTo: config.payTo,
-      x402: {
-        primaryNetwork: "base",
-        network: config.network,
-        asset: "USDC",
-        payTo: config.payTo
-      }
-    },
-    capabilities: {
-      tools: 21
-    },
-    primaryEndpoint,
-    primaryPaidEndpoint: primaryEndpoint,
-    resource_count: 1,
-    resource_samples: [primaryResourceSample],
-    call_info: {
-      resource_count: 1,
-      resource_samples: [primaryResourceSample]
-    },
-    call: {
-      primaryEndpoint,
-      primary_url: primaryEndpoint.url,
-      primary_method: primaryEndpoint.method,
-      x402_route: primaryEndpoint.path,
-      command: primaryEndpoint.command,
-      note: primaryEndpoint.note
-    },
-    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
-    recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
-    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
-    quickScoreAliases: quickScoreAliasUrls(config),
-    preflightAliases: preflightAliasUrls(config),
-    resources: [
+  const resources = [
       {
         id: "indexed_roast_quick_score",
         name: "marketplace_listing_score_paid_api_listing_quality_score",
@@ -4537,7 +4470,111 @@ function buildX402Manifest(config, cashRegister = {}) {
         outputExample: buildListingRoast(requestExample),
         schema: absoluteUrl(config, "/api/schema")
       }
-    ].map(enrichManifestResource)
+    ].map(enrichManifestResource);
+  const actionAliases = buildManifestActionAliases(config, resources);
+
+  return {
+    name: config.serviceName,
+    serviceName: config.serviceName,
+    displayName: config.serviceName,
+    service: config.serviceName,
+    baseUrl,
+    version: DISCOVERY_METADATA_VERSION,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    lastUpdated: DISCOVERY_METADATA_UPDATED_AT,
+    description: DISCOVERY_DESCRIPTION,
+    providerUrl: config.serviceUrl,
+    iconUrl: absoluteUrl(config, ICON_SVG_PATH),
+    icon: absoluteUrl(config, ICON_SVG_PATH),
+    category: SERVICE_CATEGORY,
+    tags: SERVICE_TAGS,
+    keywords: DISCOVERY_KEYWORDS,
+    homepage: absoluteUrl(config, "/"),
+    builder: absoluteUrl(config, "/builder"),
+    sample: absoluteUrl(config, "/sample"),
+    openApi: absoluteUrl(config, "/openapi.json"),
+    openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)],
+    llms: absoluteUrl(config, LLMS_PATH),
+    llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
+    llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
+    llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
+    markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH),
+    agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
+    agentCardAliases: agentCardAliasUrls(config),
+    aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
+    apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
+    agentTools: absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH),
+    agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
+    mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
+    mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
+    mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    payNowExamples: buildPayNowIntentExamples(config),
+    intentLandingPages: buildIntentLandingHandoffs(config),
+    paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+    cashRegister: absoluteUrl(config, "/api/cash-register"),
+    paidUsageProof: buildPaidUsageProof(config, cashRegister),
+    settlementProof: buildSettlementProof(config),
+    pricing: absoluteUrl(config, PRICING_PATH),
+    find: absoluteUrl(config, FIND_PATH),
+    route: absoluteUrl(config, ROUTE_PATH),
+    localDiscovery: {
+      resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
+      search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
+      merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+      searchExamples: buildLocalDiscoverySearchExamples(config),
+      aliases: {
+        resources: LOCAL_DISCOVERY_RESOURCE_PATHS.map((path) => absoluteUrl(config, path)),
+        search: LOCAL_DISCOVERY_SEARCH_PATHS.map((path) => absoluteUrl(config, path)),
+        merchant: LOCAL_DISCOVERY_MERCHANT_PATHS.map((path) => absoluteUrl(config, path))
+      }
+    },
+    aliases: x402ManifestAliasUrls(config),
+    network: config.network,
+    payTo: config.payTo,
+    payment: {
+      primaryNetwork: "base",
+      network: config.network,
+      currency: "USDC",
+      asset: "USDC",
+      payTo: config.payTo,
+      x402: {
+        primaryNetwork: "base",
+        network: config.network,
+        asset: "USDC",
+        payTo: config.payTo
+      }
+    },
+    capabilities: {
+      tools: resources.length,
+      actions: actionAliases.length
+    },
+    primaryEndpoint,
+    primaryPaidEndpoint: primaryEndpoint,
+    resource_count: 1,
+    resource_samples: [primaryResourceSample],
+    call_info: {
+      resource_count: 1,
+      resource_samples: [primaryResourceSample]
+    },
+    call: {
+      primaryEndpoint,
+      primary_url: primaryEndpoint.url,
+      primary_method: primaryEndpoint.method,
+      x402_route: primaryEndpoint.path,
+      command: primaryEndpoint.command,
+      note: primaryEndpoint.note
+    },
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
+    quickScoreAliases: quickScoreAliasUrls(config),
+    preflightAliases: preflightAliasUrls(config),
+    resources,
+    actions: actionAliases,
+    paidActions: actionAliases,
+    tools: actionAliases
   };
 }
 
@@ -5261,6 +5298,7 @@ function buildAgentSkill(config, options) {
 function buildAgentCard(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+  const actionAliases = buildManifestActionAliases(config, buildX402Manifest(config, cashRegister).resources);
   const supportedInterfaces = [
     { url: absoluteUrl(config, ROAST_PATH), transport: "HTTP+JSON" },
     { url: absoluteUrl(config, API_ENTRY_PATH), transport: "HTTP+JSON" },
@@ -5321,6 +5359,9 @@ function buildAgentCard(config, cashRegister = {}) {
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
     settlementProof: buildSettlementProof(config),
+    actions: actionAliases,
+    paidActions: actionAliases,
+    tools: actionAliases,
     skills: [
       buildAgentSkill(config, {
         id: "indexed-listing-roast-quick-score",
