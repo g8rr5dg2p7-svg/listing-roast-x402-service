@@ -213,8 +213,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality and discoverability for paid API listing quality, marketplace listing score, buyer-agent skip reasons, agent service listing clarity, paid API preflight, x402 site audit starter, x402 discovery audit triage, Bazaar search visibility, and stale pricing triage: lowest-price $0.001 GET on indexed /api/listing-roast. This paid-use-confirmed route has wallet proof at /api/paid-usage-proof; try it before higher-priced listing scorers or the $0.01 roast. Use /api/x402-site-audit for pre-pay metadata, /api/x402-discovery-audit for stale Bazaar, or POST /api/listing-roast for the full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-intent-landing-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T20:29:59.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-url-aliases-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T20:37:19.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -1121,7 +1121,10 @@ function queryValue(value, fallback) {
 function buildDiscoveryAuditInputFromQuery(query = {}) {
   const requestBody = queryValue(query.requestBody, "");
   const input = {
-    endpointUrl: queryValue(query.endpointUrl || query.url, discoveryAuditRequestExample.endpointUrl),
+    endpointUrl: queryValue(
+      query.endpointUrl || query.url || query.base_url || query.baseUrl || query.targetUrl || query.resource || query.endpoint || query.route,
+      discoveryAuditRequestExample.endpointUrl
+    ),
     method: queryValue(query.method, discoveryAuditRequestExample.method).toUpperCase(),
     expectedAmount: queryValue(query.expectedAmount || query.amount, discoveryAuditRequestExample.expectedAmount),
     expectedNetwork: queryValue(query.expectedNetwork || query.network, discoveryAuditRequestExample.expectedNetwork),
@@ -1175,10 +1178,15 @@ function normalizeDiscoveryAuditRequestBody(body) {
   }
 
   const endpointUrl = body.endpointUrl
-    || combineServiceUrlAndPath(body.serviceUrl || body.baseUrl, body.expectedCheckoutPath || body.checkoutPath || body.path)
     || body.url
+    || body.targetUrl
+    || body.target_url
+    || body.resource
+    || body.resourceUrl
+    || body.resource_url
     || body.endpoint
-    || body.route;
+    || body.route
+    || combineServiceUrlAndPath(body.serviceUrl || body.service_url || body.baseUrl || body.base_url, body.expectedCheckoutPath || body.checkoutPath || body.path);
   const expectedAmount = body.expectedAmount
     || body.maxAmountRequired
     || body.amount
@@ -1807,11 +1815,38 @@ function buildDiscoveryAuditDiscovery(config) {
     bodyType: "json",
     inputSchema: {
       type: "object",
-      required: ["endpointUrl"],
+      anyOf: [
+        { required: ["endpointUrl"] },
+        { required: ["url"] },
+        { required: ["base_url"] },
+        { required: ["baseUrl"] },
+        { required: ["targetUrl"] },
+        { required: ["resource"] }
+      ],
       properties: {
         endpointUrl: {
           type: "string",
           description: "Public HTTPS x402 endpoint to inspect without making a paid call."
+        },
+        url: {
+          type: "string",
+          description: "Alias for endpointUrl. Use this when the buyer agent expects preflight tools to accept a url query or JSON field."
+        },
+        base_url: {
+          type: "string",
+          description: "Alias for endpointUrl. Use this when the buyer agent supplies snake_case base URL input."
+        },
+        baseUrl: {
+          type: "string",
+          description: "Alias for endpointUrl. Use this when the buyer agent supplies camelCase base URL input."
+        },
+        targetUrl: {
+          type: "string",
+          description: "Alias for endpointUrl. Use this when the buyer agent names the audited endpoint as targetUrl."
+        },
+        resource: {
+          type: "string",
+          description: "Alias for endpointUrl. Use this when the buyer agent names the audited x402 endpoint as a resource."
         },
         method: {
           type: "string",
@@ -3239,6 +3274,10 @@ function buildOpenApiDocument(config, cashRegister = {}) {
           parameters: [
             { name: "endpointUrl", in: "query", required: false, schema: { type: "string" } },
             { name: "url", in: "query", required: false, schema: { type: "string" } },
+            { name: "base_url", in: "query", required: false, schema: { type: "string" } },
+            { name: "baseUrl", in: "query", required: false, schema: { type: "string" } },
+            { name: "targetUrl", in: "query", required: false, schema: { type: "string" } },
+            { name: "resource", in: "query", required: false, schema: { type: "string" } },
             { name: "method", in: "query", required: false, schema: { type: "string", enum: ["GET", "POST"] } },
             { name: "expectedAmount", in: "query", required: false, schema: { type: "string" } },
             { name: "expectedNetwork", in: "query", required: false, schema: { type: "string" } },
@@ -3277,6 +3316,10 @@ function buildOpenApiDocument(config, cashRegister = {}) {
           parameters: [
             { name: "endpointUrl", in: "query", required: false, schema: { type: "string" } },
             { name: "url", in: "query", required: false, schema: { type: "string" } },
+            { name: "base_url", in: "query", required: false, schema: { type: "string" } },
+            { name: "baseUrl", in: "query", required: false, schema: { type: "string" } },
+            { name: "targetUrl", in: "query", required: false, schema: { type: "string" } },
+            { name: "resource", in: "query", required: false, schema: { type: "string" } },
             { name: "method", in: "query", required: false, schema: { type: "string", enum: ["GET", "POST"] } },
             { name: "expectedAmount", in: "query", required: false, schema: { type: "string" } },
             { name: "expectedNetwork", in: "query", required: false, schema: { type: "string" } },
@@ -7905,7 +7948,7 @@ ${copyScript("Copy command")}
   });
 
   app.post(DISCOVERY_AUDIT_PATH, async (request, response) => {
-    const parsed = discoveryAuditRequestSchema.safeParse(request.discoveryAuditInput ?? request.body);
+    const parsed = discoveryAuditRequestSchema.safeParse(request.discoveryAuditInput ?? normalizeDiscoveryAuditRequestBody(request.body));
     if (!parsed.success) {
       response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
       return;
