@@ -521,6 +521,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.resource_samples[0].max_amount_required).toBe("1000");
       expect(x402Manifest.json.resource_samples[0].description).toContain("marketplace listing score");
       expect(x402Manifest.json.resource_samples[0].keywords).toContain("paid API listing quality score");
+      expect(x402Manifest.json.resource_count).toBe(PAID_RESOURCE_COUNT);
+      expect(x402Manifest.json.call_info.resource_count).toBe(PAID_RESOURCE_COUNT);
       expect(x402Manifest.json.call_info.resource_samples[0].method).toBe("GET");
       expect(x402Manifest.json.call.primary_method).toBe("GET");
       expect(x402Manifest.json.call.x402_route).toBe("/api/listing-roast");
@@ -728,6 +730,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.resource_samples[0].price_usd).toBe("0.001");
       expect(agentTools.json.resource_samples[0].description).toContain("marketplace listing score");
       expect(agentTools.json.resource_samples[0].keywords).toContain("paid API listing quality score");
+      expect(agentTools.json.resource_count).toBe(PAID_RESOURCE_COUNT);
+      expect(agentTools.json.call_info.resource_count).toBe(PAID_RESOURCE_COUNT);
       expect(agentTools.json.call_info.resource_samples[0].method).toBe("GET");
       expect(agentTools.json.openapi).toBe("/openapi.json");
       expect(agentTools.json.x402_catalog).toBe("/x402.json");

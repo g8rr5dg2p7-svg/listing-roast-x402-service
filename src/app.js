@@ -4552,10 +4552,10 @@ function buildX402Manifest(config, cashRegister = {}) {
     },
     primaryEndpoint,
     primaryPaidEndpoint: primaryEndpoint,
-    resource_count: 1,
+    resource_count: resources.length,
     resource_samples: [primaryResourceSample],
     call_info: {
-      resource_count: 1,
+      resource_count: resources.length,
       resource_samples: [primaryResourceSample]
     },
     call: {
@@ -4637,10 +4637,10 @@ function buildAgentToolsManifest(config) {
     base_url: x402Manifest.baseUrl,
     payment,
     paid_relay: true,
-    resource_count: 1,
+    resource_count: tools.length,
     resource_samples: [primaryResourceSample],
     call_info: {
-      resource_count: 1,
+      resource_count: tools.length,
       resource_samples: [primaryResourceSample]
     },
     catalog: "/x402.json",
