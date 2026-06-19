@@ -2207,10 +2207,10 @@ function buildOpenApiDocument(config) {
       },
       [ROAST_PATH]: {
         get: {
-          operationId: "getIndexedListingRoastX402MarketplaceConversionQuickScore",
-          tags: ["x402 listing", "paid API listing", "paid API listing quality"],
-          summary: "Paid $0.001 indexed x402 marketplace conversion quick score",
-          description: "Lowest-price GET challenge on the already-indexed /api/listing-roast URL. Returns a $0.001 score API for marketplace listing quality, paid API discoverability, x402 listing quality, agent service listing clarity, buyer-agent skip reasons, x402 discovery audit triage, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
+          operationId: "getBuyerAgentSkipReasonsListingRoastQuickScore",
+          tags: ["buyer-agent skip reasons", "agent service listing clarity", "x402 listing", "paid API listing", "paid API listing quality"],
+          summary: "Paid $0.001 buyer-agent skip reasons and listing quality quick score",
+          description: "Buyer-agent skip reasons, agent service listing clarity, marketplace listing score, and paid API listing quality from the already-indexed /api/listing-roast URL. Returns a $0.001 score API for paid API discoverability, x402 listing quality, agent listing conversion, x402 discovery audit triage, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
@@ -2219,7 +2219,7 @@ function buildOpenApiDocument(config) {
             price: config.instantScorePrice,
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
             preferredFirstPaidAction: true,
-            buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
+            buyerAction: "Pay $0.001 on the already-indexed marketplace route for buyer-agent skip reasons, agent service listing clarity, and a quick listing quality score."
           }),
           parameters: [
             { name: "agentName", in: "query", required: false, schema: { type: "string" } },

@@ -705,10 +705,11 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/x402-discovery-audit"].post["x-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post["x-x402-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.summary).toContain("$0.01");
-      expect(openApi.json.paths["/api/listing-roast"].get.operationId).toBe("getIndexedListingRoastX402MarketplaceConversionQuickScore");
+      expect(openApi.json.paths["/api/listing-roast"].get.operationId).toBe("getBuyerAgentSkipReasonsListingRoastQuickScore");
       expect(openApi.json.paths["/api/listing-roast"].get.security).toEqual([{ x402: [] }]);
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].maxAmountRequired).toBe("1000");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].preferredFirstPaidAction).toBe(true);
+      expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].buyerAction).toContain("buyer-agent skip reasons");
       expect(openApi.json.paths["/api/listing-roast"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/listing-roast"].get["x-x402-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/listing-roast"].post.security).toEqual([{ x402: [] }]);
@@ -716,8 +717,9 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].post["x-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/listing-roast"].post["x-x402-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("$0.001");
-      expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("x402 marketplace conversion");
-      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("buyer-agent skip reasons");
+      expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("buyer-agent skip reasons");
+      expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("listing quality");
+      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Buyer-agent skip reasons");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent service listing clarity");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("x402 discovery audit triage");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Bazaar search visibility");
