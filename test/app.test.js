@@ -212,6 +212,13 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.payNow).toContain("/api/pay-now");
       expect(mcp.json.pricing).toContain("/api/pricing");
       expect(mcp.json.find).toContain("/api/find");
+      expect(mcp.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(mcp.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(mcp.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(mcp.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(mcp.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
+      expect(mcp.json.payment.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(mcp.json.payment.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(mcp.json.keywords).toContain("marketplace listing score");
       expect(mcp.json.tools[0].description).toContain("marketplace listing score");
       expect(mcp.json.tools[0].command).toContain("/api/listing-roast");
@@ -245,6 +252,8 @@ describe("Listing Roast x402 service", () => {
       expect(mcpServerCard.json.serverInfo.name).toBe("Listing Roast x402");
       expect(mcpServerCard.json.transport).toBe("http");
       expect(mcpServerCard.json.payment.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
+      expect(mcpServerCard.json.payment.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(mcpServerCard.json.payment.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(mcpServerCard.json.links.llmsFull).toContain("/llms-full.txt");
 
       const x402Manifest = await fetchJson(server, "/x402.json");
@@ -460,6 +469,10 @@ describe("Listing Roast x402 service", () => {
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
       expect(agentSkills.json.skills[0].type).toBe("skill-md");
       expect(agentSkills.json.skills[0].url).toContain("/.well-known/agent-skills/listing-roast-x402/SKILL.md");
+      expect(agentSkills.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(agentSkills.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(agentSkills.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
+      expect(agentSkills.json.skills[0].metadata.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
 
       const agentSkillHead = await fetch(`http://127.0.0.1:${server.address().port}/.well-known/agent-skills/listing-roast-x402/SKILL.md`, { method: "HEAD" });
       expect(agentSkillHead.status).toBe(200);
@@ -472,6 +485,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentSkill.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkill.text).toContain("name: listing-roast-x402");
       expect(agentSkill.text).toContain("Do not call paid routes unless the buyer explicitly intends to pay");
+      expect(agentSkill.text).toContain("Recommended Paid Sequence");
+      expect(agentSkill.text).toContain("Full roast command");
       expect(agentSkill.text).toContain("/api/listing-roast");
       expect(agentSkill.text).toContain("/api/agent-listing-conversion");
       expect(agentSkills.json.skills[0].digest).toBe(`sha256:${createHash("sha256").update(agentSkill.text).digest("hex")}`);
@@ -879,6 +894,10 @@ describe("Listing Roast x402 service", () => {
       expect(pricing.json.count).toBe(12);
       expect(pricing.json.routes[0].path).toBe("/api/listing-roast");
       expect(pricing.json.routes[0].maxAmountRequired).toBe("1000");
+      expect(pricing.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(pricing.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(pricing.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(pricing.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(pricing.json.routes.map((route) => route.path)).toContain("/api/x402-site-audit");
 
       const findDiscovery = await fetchJson(server, "/api/find?q=x402%20discovery%20audit");

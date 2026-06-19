@@ -425,6 +425,17 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 
 Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT} USDC units.
 
+## Recommended Paid Sequence
+
+1. Start with GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units. This is the already-indexed quick score route and the lowest-friction paid test.
+2. Upgrade to POST ${absoluteUrl(config, ROAST_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
+
+Full roast command:
+
+\`\`\`bash
+${buildPayCommand(config, ROAST_PATH, "10000")}
+\`\`\`
+
 ## Other Paid Actions
 
 Generic x402 navigation route:
@@ -545,6 +556,17 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 
 Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT} USDC units.
 
+## Recommended Paid Sequence
+
+1. Start with GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units. This is the already-indexed quick score route and the lowest-friction paid test.
+2. Upgrade to POST ${absoluteUrl(config, ROAST_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
+
+Full roast command:
+
+\`\`\`bash
+${buildPayCommand(config)}
+\`\`\`
+
 ## Paid Routes
 
 - GET ${absoluteUrl(config, API_ENTRY_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; generic paid x402 navigation route map plus fallback quick score for agents that start at /api first.
@@ -569,14 +591,23 @@ Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}
 
 function buildAgentSkillsIndex(config) {
   const skill = buildAgentSkillMarkdown(config);
+  const intentRoutes = buildPayNowActions(config);
+  const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+
   return {
     $schema: AGENT_SKILLS_SCHEMA,
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence,
     skills: [
       {
         name: "listing-roast-x402",
         type: "skill-md",
         description: "Use Listing Roast x402 when an agent needs a paid API listing quality score, buyer-agent skip reasons, agent-service listing clarity, x402 marketplace conversion feedback, or a discoverability audit before promoting a paid x402/API service. Start with free discovery and only pay when the buyer intends to spend USDC.",
         url: absoluteUrl(config, WELL_KNOWN_AGENT_SKILL_PATH),
+        metadata: {
+          preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+          recommendedPaidSequence
+        },
         digest: sha256Digest(skill)
       }
     ]
@@ -2642,6 +2673,7 @@ function buildPaidRouteCatalog(config) {
 
 function buildPricingCatalog(config) {
   const routes = buildPaidRouteCatalog(config);
+  const intentRoutes = buildPayNowActions(config);
 
   return {
     service: config.serviceName,
@@ -2660,6 +2692,7 @@ function buildPricingCatalog(config) {
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     count: routes.length,
     preferredFirstPaidAction: routes[0],
+    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     routes,
     queryExamples: [
       `${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit`,
@@ -3504,6 +3537,8 @@ Sitemap: ${sitemapUrl}
 
 function buildMcpServerCard(config) {
   const metadataUrl = absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH);
+  const intentRoutes = buildPayNowActions(config);
+  const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
 
   return {
     mcp_version: "2025-06-18",
@@ -3540,12 +3575,8 @@ function buildMcpServerCard(config) {
       asset: "USDC",
       manifest: absoluteUrl(config, "/x402.json"),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
-      preferredFirstPaidAction: {
-        route: absoluteUrl(config, ROAST_PATH),
-        method: "GET",
-        price: config.instantScorePrice,
-        maxAmountRequired: INSTANT_SCORE_AMOUNT
-      }
+      preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+      recommendedPaidSequence
     },
     links: {
       metadata: metadataUrl,
@@ -5038,6 +5069,9 @@ ${copyScript("Copy command")}
 
   app.get([WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH], async (_request, response) => {
     await recordSignal("mcpViews");
+    const intentRoutes = buildPayNowActions(config);
+    const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+
     setFreshDiscoveryHeaders(response).json({
       name: config.serviceName,
       homepage: absoluteUrl(config, "/"),
@@ -5062,6 +5096,17 @@ ${copyScript("Copy command")}
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
       route: absoluteUrl(config, ROUTE_PATH),
+      preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+      recommendedPaidSequence,
+      payment: {
+        protocol: "x402",
+        network: config.network,
+        asset: "USDC",
+        manifest: absoluteUrl(config, "/x402.json"),
+        payNow: absoluteUrl(config, PAY_NOW_PATH),
+        preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+        recommendedPaidSequence
+      },
       keywords: DISCOVERY_KEYWORDS,
       tools: [
         {
