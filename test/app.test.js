@@ -2337,6 +2337,38 @@ describe("Listing Roast x402 service", () => {
     }
   }, 15000);
 
+  it("accepts buyer-style aliases before the paid x402 discovery audit challenge", async () => {
+    mockFacilitatorSupportedKinds();
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      const response = await fetchJson(server, "/api/x402-discovery-audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          serviceUrl: "https://listing-roast-x402-service-production.up.railway.app",
+          expectedCheckoutPath: "/api/listing-roast",
+          expectedPrice: "$0.001",
+          network: "eip155:8453",
+          goal: "verify x402 route health"
+        })
+      });
+
+      expect(response.status).toBe(402);
+      const challenge = readPaymentRequiredHeader(response.headers);
+      expect(challenge.accepts[0].amount).toBe("10000");
+      expect(response.json.error).toBe("payment_required");
+      expect(response.json.selectedPaidAction.path).toBe("/api/x402-discovery-audit");
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.json.signals.validUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.discoveryAuditValidUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.invalidRequests).toBe(0);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  }, 15000);
+
   it("protects the score route with a half-cent x402 challenge", async () => {
     mockFacilitatorSupportedKinds();
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });

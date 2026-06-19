@@ -1013,6 +1013,69 @@ function buildDiscoveryAuditInputFromQuery(query = {}) {
   return input;
 }
 
+function usdcPriceToAmountUnits(value) {
+  if (typeof value !== "string" && typeof value !== "number") {
+    return undefined;
+  }
+
+  const raw = String(value).trim().toLowerCase();
+  if (/^\d+$/.test(raw)) {
+    return raw;
+  }
+
+  const numeric = Number(raw.replace(/\$/g, "").replace(/usdc/g, "").trim());
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return undefined;
+  }
+
+  return String(Math.round(numeric * 1_000_000));
+}
+
+function combineServiceUrlAndPath(serviceUrl, path) {
+  if (typeof serviceUrl !== "string" || !serviceUrl.trim()) {
+    return undefined;
+  }
+
+  if (typeof path !== "string" || !path.trim()) {
+    return serviceUrl.trim();
+  }
+
+  try {
+    return new URL(path.trim(), serviceUrl.trim()).toString();
+  } catch {
+    return serviceUrl.trim();
+  }
+}
+
+function normalizeDiscoveryAuditRequestBody(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return body;
+  }
+
+  const endpointUrl = body.endpointUrl
+    || combineServiceUrlAndPath(body.serviceUrl || body.baseUrl, body.expectedCheckoutPath || body.checkoutPath || body.path)
+    || body.url
+    || body.endpoint
+    || body.route;
+  const expectedAmount = body.expectedAmount
+    || body.maxAmountRequired
+    || body.amount
+    || usdcPriceToAmountUnits(body.expectedPrice || body.price);
+  const searchQuery = body.searchQuery
+    || body.query
+    || body.intent
+    || body.goal;
+
+  return {
+    ...(endpointUrl ? { endpointUrl } : {}),
+    ...(body.method || body.expectedMethod ? { method: String(body.method || body.expectedMethod).toUpperCase() } : {}),
+    ...(expectedAmount ? { expectedAmount: String(expectedAmount) } : {}),
+    ...(body.expectedNetwork || body.network ? { expectedNetwork: body.expectedNetwork || body.network } : {}),
+    ...(searchQuery ? { searchQuery: String(searchQuery) } : {}),
+    ...(body.requestBody || body.body ? { requestBody: body.requestBody || body.body } : {})
+  };
+}
+
 function buildSiteAuditOutput(config, auditOutput) {
   return {
     ...auditOutput,
@@ -4981,7 +5044,7 @@ async function validateDiscoveryAuditRequest(request, response, next) {
     return;
   }
 
-  const parsed = discoveryAuditRequestSchema.safeParse(request.body);
+  const parsed = discoveryAuditRequestSchema.safeParse(normalizeDiscoveryAuditRequestBody(request.body));
   if (!parsed.success) {
     await recordSignal("invalidRequests");
     response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
