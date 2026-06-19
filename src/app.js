@@ -33,6 +33,7 @@ const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
 const PAY_NOW_PATH = "/api/pay-now";
 const PRICING_PATH = "/api/pricing";
 const FIND_PATH = "/api/find";
+const ROUTE_PATH = "/api/route";
 const LOCAL_DISCOVERY_RESOURCE_PATHS = [
   "/v2/x402/discovery/resources",
   "/x402/discovery/resources",
@@ -180,6 +181,7 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
     `<${absoluteUrl(config, PRICING_PATH)}>; rel="service-meta"; type="application/json"`,
     `<${absoluteUrl(config, FIND_PATH)}>; rel="search"; type="application/json"`,
+    `<${absoluteUrl(config, ROUTE_PATH)}>; rel="service-meta"; type="application/json"`,
     `<${absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0])}>; rel="service-meta"; type="application/json"`,
     `<${absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0])}>; rel="search"; type="application/json"`,
     `<${absoluteUrl(config, "/openapi.json")}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
@@ -353,6 +355,9 @@ Fetch these before any payment:
 - Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
 - Examples and commands: ${absoluteUrl(config, "/api/examples")}
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}
+- Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
+- Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
+- Local route router: ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3
 - Route guide: ${absoluteUrl(config, "/llms.txt")}
 - Full route guide: ${absoluteUrl(config, LLMS_FULL_PATH)}
 - MCP metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH)}
@@ -478,6 +483,9 @@ Agents authorize each paid API call by completing the x402 payment challenge for
 - llms.txt: ${absoluteUrl(config, "/llms.txt")}
 - Full Markdown guide: ${absoluteUrl(config, LLMS_FULL_PATH)}
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}
+- Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
+- Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
+- Local route router: ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3
 - WebMCP handoff: load ${absoluteUrl(config, "/")} in a WebMCP-capable browser and call \`listing_roast_x402_handoff\`.
 
 ## Preferred First Paid Action
@@ -2102,6 +2110,62 @@ function buildOpenApiDocument(config) {
           }
         }
       },
+      [ROUTE_PATH]: {
+        get: {
+          operationId: "routePaidLocalTools",
+          summary: "Free local x402 route ranking",
+          description: "No-spend local router that ranks this seller's existing paid x402 routes for a buyer query. Supports Agent402-style query/top/include fields, but only returns owned Listing Roast routes.",
+          parameters: [
+            { name: "query", in: "query", required: false, schema: { type: "string" }, description: "Buyer task, such as x402 discovery audit, buyer-agent skip reasons, or listing roast full rewrite." },
+            { name: "q", in: "query", required: false, schema: { type: "string" }, description: "Alias for query." },
+            { name: "task", in: "query", required: false, schema: { type: "string" }, description: "Alias for query." },
+            { name: "top", in: "query", required: false, schema: { type: "integer", minimum: 1, maximum: 20 }, description: "Maximum ranked routes to return." },
+            { name: "include", in: "query", required: false, schema: { type: "string", enum: ["all", "local", "external"] }, description: "Use all or local for owned routes. external returns an empty local result because this endpoint does not route third-party sellers." }
+          ],
+          responses: {
+            200: {
+              description: "Ranked owned paid routes for the requested task",
+              content: {
+                "application/json": {
+                  example: buildRouteResult(config, { query: "x402 discovery audit", top: 3 })
+                }
+              }
+            }
+          }
+        },
+        post: {
+          operationId: "routePaidLocalToolsPost",
+          summary: "Free local x402 route ranking",
+          description: "POST form of the no-spend local router. Accepts Agent402-style JSON body fields: query, top, include.",
+          requestBody: {
+            required: false,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    query: { type: "string" },
+                    task: { type: "string" },
+                    top: { type: "integer", minimum: 1, maximum: 20 },
+                    include: { type: "string", enum: ["all", "local", "external"] }
+                  }
+                },
+                example: { query: "buyer-agent skip reasons", top: 3, include: "local" }
+              }
+            }
+          },
+          responses: {
+            200: {
+              description: "Ranked owned paid routes for the requested task",
+              content: {
+                "application/json": {
+                  example: buildRouteResult(config, { query: "buyer-agent skip reasons", top: 3, include: "local" })
+                }
+              }
+            }
+          }
+        }
+      },
       [LOCAL_DISCOVERY_RESOURCE_PATHS[0]]: {
         get: {
           operationId: "getLocalX402DiscoveryResources",
@@ -2189,6 +2253,7 @@ function buildOpenApiDocument(config) {
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
+      route: absoluteUrl(config, ROUTE_PATH),
       localDiscovery: {
         resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
         search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
@@ -2252,6 +2317,7 @@ function buildX402Manifest(config) {
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
+    route: absoluteUrl(config, ROUTE_PATH),
     localDiscovery: {
       resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
       search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
@@ -2499,6 +2565,7 @@ function buildPricingCatalog(config) {
     homepage: absoluteUrl(config, "/"),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
+    route: absoluteUrl(config, ROUTE_PATH),
     localDiscovery: {
       resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
       search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
@@ -2513,7 +2580,8 @@ function buildPricingCatalog(config) {
     queryExamples: [
       `${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit`,
       `${absoluteUrl(config, FIND_PATH)}?q=buyer-agent%20skip%20reasons`,
-      `${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite`
+      `${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite`,
+      `${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3`
     ],
     note: "This pricing catalog is free to fetch. It only describes paid x402 routes; payment happens when a buyer calls a paid route with a valid x402 payment header."
   };
@@ -2745,11 +2813,84 @@ function buildFindResult(config, rawQuery = "") {
     alternatives: ranked.filter((route) => route.id !== recommended.id).slice(0, 4),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
+    route: absoluteUrl(config, ROUTE_PATH),
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
     x402Manifest: absoluteUrl(config, "/x402.json"),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     paymentRule: "Do not call the recommended paid route unless the buyer explicitly intends to pay USDC through x402.",
     note: "This endpoint is free. It maps a buyer task to the best existing paid route, price, max amount, schema, and copy-ready command."
+  };
+}
+
+function parseRouteTop(value) {
+  const parsed = Number.parseInt(String(value || ""), 10);
+  if (!Number.isFinite(parsed)) return 5;
+  return Math.min(Math.max(parsed, 1), 20);
+}
+
+function normalizeRouteInclude(value) {
+  const include = String(value || "local").toLowerCase();
+  return ["all", "local", "external"].includes(include) ? include : "local";
+}
+
+function buildRouteResult(config, payload = {}) {
+  const query = String(payload.query || payload.q || payload.task || "").trim().slice(0, 400);
+  const include = normalizeRouteInclude(payload.include);
+  const top = parseRouteTop(payload.top || payload.k || payload.limit);
+  const externalOnly = include === "external";
+  const routes = externalOnly ? [] : buildPaidRouteCatalog(config);
+  const ranked = routes
+    .map((route) => ({
+      slug: route.id,
+      id: route.id,
+      name: route.name,
+      method: route.method,
+      path: route.path,
+      route: route.url,
+      url: route.url,
+      price: route.price,
+      maxAmountRequired: route.maxAmountRequired,
+      schema: route.schema,
+      command: route.command,
+      description: route.description,
+      preferredFirstPaidAction: route.preferredFirstPaidAction,
+      source: "local-owned-surface",
+      matchScore: query ? scoreCatalogResource(route, query) : (route.preferredFirstPaidAction ? 1 : 0)
+    }))
+    .filter((route) => !query || route.matchScore > 0)
+    .sort((left, right) => {
+      if (right.matchScore !== left.matchScore) return right.matchScore - left.matchScore;
+      return Number(left.maxAmountRequired || 0) - Number(right.maxAmountRequired || 0);
+    })
+    .slice(0, top);
+
+  return {
+    service: config.serviceName,
+    router: "local-owned-x402-router",
+    query,
+    include,
+    top,
+    noSpend: true,
+    scope: "owned-routes-only",
+    results: ranked,
+    best: ranked[0] || null,
+    count: ranked.length,
+    totalLocalRoutes: buildPaidRouteCatalog(config).length,
+    pricing: absoluteUrl(config, PRICING_PATH),
+    find: absoluteUrl(config, FIND_PATH),
+    route: absoluteUrl(config, ROUTE_PATH),
+    openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+    x402Manifest: absoluteUrl(config, "/x402.json"),
+    localDiscovery: {
+      resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
+      search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
+      merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])
+    },
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    paymentRule: "This router is free. Do not call a returned paid route unless the buyer explicitly intends to pay USDC through x402.",
+    note: externalOnly
+      ? "include=external is accepted for Agent402-style clients, but this seller-hosted router only ranks owned Listing Roast routes and does not proxy third-party sellers."
+      : "Free Agent402-style local route ranking over this seller's paid x402 routes. Payment only happens when a buyer calls a returned paid route with a valid x402 payment header."
   };
 }
 
@@ -2937,6 +3078,7 @@ function buildAgentCard(config) {
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
+      route: absoluteUrl(config, ROUTE_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
       llms: absoluteUrl(config, "/llms.txt"),
@@ -2967,8 +3109,8 @@ function buildAiPluginManifest(config) {
       `Use GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent service listing clarity, agent listing conversion score, and buyer-agent skip reasons.`,
       `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight.`,
       `Use POST ${absoluteUrl(config, ROAST_PATH)} only when the buyer wants the full ${config.price} roast, rewrite, and stop-or-upgrade guidance.`,
-      `Use free GET ${absoluteUrl(config, PRICING_PATH)} for the paid route price catalog and free GET ${absoluteUrl(config, FIND_PATH)}?q=<task> to choose the right paid route before spending.`,
-      "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, Agent Skills index, MCP metadata, llms.txt, examples, sample score, pricing, route finder, and pay-now JSON."
+      `Use free GET ${absoluteUrl(config, PRICING_PATH)} for the paid route price catalog, free GET ${absoluteUrl(config, FIND_PATH)}?q=<task> to choose one route, and free GET/POST ${absoluteUrl(config, ROUTE_PATH)} to rank local paid routes before spending.`,
+      "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, Agent Skills index, MCP metadata, llms.txt, examples, sample score, pricing, route finder, local route router, and pay-now JSON."
     ].join(" "),
     auth: {
       type: "none"
@@ -2986,6 +3128,7 @@ function buildAiPluginManifest(config) {
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
+      route: absoluteUrl(config, ROUTE_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
@@ -3016,6 +3159,7 @@ function buildApiCatalog(config) {
     { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "GET free pay-now handoff for the preferred first paid route" },
     { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "GET free paid route pricing catalog" },
     { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "GET free task-to-paid-route finder" },
+    { href: absoluteUrl(config, ROUTE_PATH), type: "application/json", title: "GET/POST free local paid-route router" },
     { href: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]), type: "application/json", title: "GET free local x402 discovery resources" },
     { href: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]), type: "application/json", title: "GET free local x402 discovery search" },
     { href: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]), type: "application/json", title: "GET free local x402 merchant resources" },
@@ -3058,6 +3202,7 @@ function buildApiCatalog(config) {
           { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "Pay-now handoff" },
           { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "Paid route pricing catalog" },
           { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "Task-to-paid-route finder" },
+          { href: absoluteUrl(config, ROUTE_PATH), type: "application/json", title: "Local paid-route router" },
           { href: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]), type: "application/json", title: "Local x402 discovery resources" },
           { href: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]), type: "application/json", title: "Local x402 discovery search" },
           { href: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]), type: "application/json", title: "Local x402 merchant resources" },
@@ -3232,6 +3377,7 @@ Allow: /
 # - ${absoluteUrl(config, "/x402.json")}
 # - ${absoluteUrl(config, PRICING_PATH)}
 # - ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
+# - ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3
 # - ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
 # - ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
 # - ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
@@ -3294,6 +3440,7 @@ function buildMcpServerCard(config) {
       apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
+      route: absoluteUrl(config, ROUTE_PATH),
       llms: absoluteUrl(config, "/llms.txt"),
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH)
@@ -4025,7 +4172,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -4078,10 +4225,16 @@ ${webMcpScript(config)}
       pricing: absoluteUrl(config, PRICING_PATH),
       pricingCatalog: buildPricingCatalog(config),
       find: absoluteUrl(config, FIND_PATH),
+      route: absoluteUrl(config, ROUTE_PATH),
       findExamples: {
         discoveryAudit: buildFindResult(config, "x402 discovery audit"),
         skipReasons: buildFindResult(config, "buyer-agent skip reasons"),
         fullRewrite: buildFindResult(config, "listing roast full rewrite")
+      },
+      routeExamples: {
+        discoveryAudit: buildRouteResult(config, { query: "x402 discovery audit", top: 3 }),
+        skipReasons: buildRouteResult(config, { query: "buyer-agent skip reasons", top: 3 }),
+        fullRewrite: buildRouteResult(config, { query: "listing roast full rewrite", top: 3 })
       },
       apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
       apiV1EntryRoute: absoluteUrl(config, API_V1_ENTRY_PATH),
@@ -4267,6 +4420,7 @@ MCP server card: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 Pay-now JSON: ${absoluteUrl(config, PAY_NOW_PATH)}
 Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 Route finder examples: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit, ${absoluteUrl(config, FIND_PATH)}?q=buyer-agent%20skip%20reasons, ${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite
+Local route router examples: GET ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3, POST ${absoluteUrl(config, ROUTE_PATH)} {"query":"buyer-agent skip reasons","top":3,"include":"local"}
 Local x402 discovery resources: ${absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0])}
 Local x402 discovery search: ${absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0])}?query=x402%20discovery%20audit
 Local x402 merchant resources: ${absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])}?payTo=${config.payTo}
@@ -4789,6 +4943,7 @@ ${copyScript("Copy command")}
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
+      route: absoluteUrl(config, ROUTE_PATH),
       keywords: DISCOVERY_KEYWORDS,
       tools: [
         {
@@ -5043,6 +5198,16 @@ ${copyScript("Copy command")}
   app.get(FIND_PATH, async (request, response) => {
     await recordSignal("findViews");
     response.json(buildFindResult(config, request.query.q || request.query.query || request.query.task || ""));
+  });
+
+  app.get(ROUTE_PATH, async (request, response) => {
+    await recordSignal("routeViews");
+    response.json(buildRouteResult(config, request.query));
+  });
+
+  app.post(ROUTE_PATH, async (request, response) => {
+    await recordSignal("routeViews");
+    response.json(buildRouteResult(config, request.body || {}));
   });
 
   app.get(LOCAL_DISCOVERY_RESOURCE_PATHS, async (request, response) => {

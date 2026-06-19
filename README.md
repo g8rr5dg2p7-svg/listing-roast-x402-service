@@ -19,6 +19,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /AGENTS.md`, `GET /docs`, and `GET /api-docs` - agent-readable safety, route, and discovery docs.
 - `GET /llms.txt`, `GET /llms-full.txt`, and `GET /index.md` - agent-readable service summaries and route guides.
 - `GET /x402.json` and `GET /.well-known/x402.json` - current owned x402 route manifest.
+- `GET /api/pricing`, `GET /api/find`, and `GET/POST /api/route` - free no-spend buyer handoffs for prices, task-to-route matching, and Agent402-style local route ranking before payment.
 - `GET /v2/x402/discovery/resources`, `GET /v2/x402/discovery/search`, and `GET /v2/x402/discovery/merchant` - free local Bazaar-shaped discovery aliases for agents that probe seller-hosted x402 discovery paths.
 - `GET /.well-known/agent-card.json` and `GET /.well-known/agent.json` - agent-card discovery bridge for the paid x402 HTTP+JSON routes.
 - `GET /.well-known/ai-plugin.json` - fallback plugin-style manifest that points older agent probes to the OpenAPI and x402 payment metadata.
