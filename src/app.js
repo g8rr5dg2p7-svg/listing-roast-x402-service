@@ -557,7 +557,14 @@ function buildStructuredData(config) {
         },
         {
           "@type": "Offer",
-          name: "x402 discovery audit",
+          name: "x402 discovery audit quick check",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, DISCOVERY_AUDIT_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "Full x402 discovery audit",
           price: "0.01",
           priceCurrency: "USD",
           url: absoluteUrl(config, DISCOVERY_AUDIT_PATH)
@@ -2500,12 +2507,15 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
 function buildPayNowIntentExample(config, intent, selectedActionKey) {
   const intentRoutes = buildPayNowActions(config);
   const selectedPaidAction = intentRoutes[selectedActionKey] || intentRoutes.indexedQuickScore;
+  const provenFirstPaidAction = intentRoutes.indexedQuickScore;
 
   return {
     service: config.serviceName,
     intent,
     selectedActionKey,
     selectedPaidAction,
+    selectedFirstPaidAction: selectedPaidAction,
+    selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
     route: selectedPaidAction.route,
     method: selectedPaidAction.method,
     price: selectedPaidAction.price,
@@ -2514,7 +2524,9 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
     payTo: config.payTo,
     command: selectedPaidAction.command,
     reason: `Selected from the buyer intent: ${intent}`,
-    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    preferredFirstPaidAction: provenFirstPaidAction,
+    provenFirstPaidAction,
+    buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, provenFirstPaidAction),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes)
   };
 }
@@ -4471,6 +4483,8 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     .slice(0, parseDiscoveryLimit(query.limit, 20))
     .map((entry) => entry.item);
   const selected = selectedPaidActionForRoute(intentRoutes, resources[0]);
+  const selectedActionKey = selected?.selectedActionKey || "indexedQuickScore";
+  const selectedPaidAction = selected?.selectedPaidAction || intentRoutes.indexedQuickScore;
 
   return {
     x402Version: 2,
@@ -4483,7 +4497,11 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
     ...(selected || {}),
+    selectedFirstPaidAction: selectedPaidAction,
+    selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
+    buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, intentRoutes.indexedQuickScore),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    provenFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     resources,
     partialResults: false,
