@@ -578,6 +578,9 @@ describe("Listing Roast x402 service", () => {
       expect(authMarkdown.text).toContain("does not use accounts, API keys, OAuth login");
       expect(authMarkdown.text).toContain("Type: x402 payment");
       expect(authMarkdown.text).toContain("OAuth/OIDC: not supported");
+      expect(authMarkdown.text).toContain("## Agent Registration");
+      expect(authMarkdown.text).toContain("Registration endpoint: none");
+      expect(authMarkdown.text).toContain("Token endpoint: none");
       expect(authMarkdown.text).toContain("Do not make a paid call unless the buyer explicitly intends to spend USDC");
 
       const wellKnownAuthMarkdown = await fetchJson(server, "/.well-known/auth.md");

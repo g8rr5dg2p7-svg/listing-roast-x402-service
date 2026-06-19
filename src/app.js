@@ -370,6 +370,20 @@ Access is HTTP-native:
 - Agent registration: not supported
 - User account: not required
 
+## Agent Registration
+
+Agent registration is not supported and is not required for Listing Roast x402.
+
+- Registration endpoint: none
+- Identity endpoint: none
+- Claim endpoint: none
+- Token endpoint: none
+- Authorization server: none
+- Supported identity types: none
+- Supported scopes: none
+
+Agents authorize each paid API call by completing the x402 payment challenge for that exact request. There are no long-lived credentials to register, issue, refresh, or revoke.
+
 ## Free Discovery
 
 - Homepage: ${absoluteUrl(config, "/")}
