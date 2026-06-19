@@ -3690,7 +3690,7 @@ function buildAgentSkill(config, options) {
   };
 }
 
-function buildAgentCard(config) {
+function buildAgentCard(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const supportedInterfaces = [
@@ -3750,6 +3750,7 @@ function buildAgentCard(config) {
     recommendedPaidSequence,
     payNowExamples: buildPayNowIntentExamples(config),
     cashRegister: absoluteUrl(config, "/api/cash-register"),
+    paidUsageProof: buildPaidUsageProof(config, cashRegister),
     settlementProof: buildSettlementProof(config),
     skills: [
       buildAgentSkill(config, {
@@ -3874,6 +3875,7 @@ function buildAgentCard(config) {
       recommendedPaidSequence,
       payNowExamples: buildPayNowIntentExamples(config),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
+      paidUsageProof: buildPaidUsageProof(config, cashRegister),
       settlementProof: buildSettlementProof(config),
       a2aTaskEndpointAvailable: false,
       note: "This public card is a discovery bridge for paid x402 HTTP+JSON routes. Use OpenAPI, x402 manifest, or MCP metadata for exact callable routes."
@@ -3881,7 +3883,7 @@ function buildAgentCard(config) {
   };
 }
 
-function buildAiPluginManifest(config) {
+function buildAiPluginManifest(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
 
@@ -3927,6 +3929,7 @@ function buildAiPluginManifest(config) {
       recommendedPaidSequence,
       payNowExamples: buildPayNowIntentExamples(config),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
+      paidUsageProof: buildPaidUsageProof(config, cashRegister),
       settlementProof: buildSettlementProof(config)
     }
   };
@@ -4368,7 +4371,7 @@ function buildIntentLandingPage(config, page) {
 </html>`;
 }
 
-function buildMcpServerCard(config) {
+function buildMcpServerCard(config, cashRegister = {}) {
   const metadataUrl = absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH);
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
@@ -4412,6 +4415,7 @@ function buildMcpServerCard(config) {
       recommendedPaidSequence,
       payNowExamples: buildPayNowIntentExamples(config),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
+      paidUsageProof: buildPaidUsageProof(config, cashRegister),
       settlementProof: buildSettlementProof(config)
     },
     links: {
@@ -5716,7 +5720,8 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   async function serveAgentCard(_request, response) {
     await recordSignal("agentCardViews");
-    setFreshDiscoveryHeaders(response).json(buildAgentCard(config));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildAgentCard(config, cashRegister));
   }
 
   app.get(WELL_KNOWN_AGENT_CARD_PATH, serveAgentCard);
@@ -5724,7 +5729,8 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get(WELL_KNOWN_AI_PLUGIN_PATH, async (_request, response) => {
     await recordSignal("aiPluginViews");
-    setFreshDiscoveryHeaders(response).json(buildAiPluginManifest(config));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildAiPluginManifest(config, cashRegister));
   });
 
   app.head(WELL_KNOWN_API_CATALOG_PATH, (_request, response) => {
@@ -6063,7 +6069,8 @@ ${copyScript("Copy command")}
 
   app.get(WELL_KNOWN_MCP_SERVER_CARD_PATH, async (_request, response) => {
     await recordSignal("mcpViews");
-    setFreshDiscoveryHeaders(response).json(buildMcpServerCard(config));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildMcpServerCard(config, cashRegister));
   });
 
   app.get([WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH], async (_request, response) => {
@@ -6071,6 +6078,7 @@ ${copyScript("Copy command")}
     const intentRoutes = buildPayNowActions(config);
     const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
     const payNowExamples = buildPayNowIntentExamples(config);
+    const cashRegister = await getCashRegister();
 
     setFreshDiscoveryHeaders(response).json({
       name: config.serviceName,
@@ -6096,6 +6104,7 @@ ${copyScript("Copy command")}
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       payNowExamples,
       cashRegister: absoluteUrl(config, "/api/cash-register"),
+      paidUsageProof: buildPaidUsageProof(config, cashRegister),
       settlementProof: buildSettlementProof(config),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
@@ -6112,6 +6121,7 @@ ${copyScript("Copy command")}
         recommendedPaidSequence,
         payNowExamples,
         cashRegister: absoluteUrl(config, "/api/cash-register"),
+        paidUsageProof: buildPaidUsageProof(config, cashRegister),
         settlementProof: buildSettlementProof(config)
       },
       keywords: DISCOVERY_KEYWORDS,

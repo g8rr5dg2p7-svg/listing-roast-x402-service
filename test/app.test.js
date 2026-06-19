@@ -268,6 +268,9 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.payNowExamples.discoveryAudit.selectedActionKey).toBe("discoveryAuditQuick");
       expect(mcp.json.payNowExamples.fullRoast.maxAmountRequired).toBe("10000");
       expect(mcp.json.cashRegister).toContain("/api/cash-register");
+      expect(mcp.json.paidUsageProof.paidCompletions).toBe(0);
+      expect(mcp.json.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.00");
+      expect(mcp.json.paidUsageProof.noSpend).toBe(true);
       expect(mcp.json.settlementProof.evidenceFields).toContain("receiverWallet.usdcBalance");
       expect(mcp.json.pricing).toContain("/api/pricing");
       expect(mcp.json.find).toContain("/api/find");
@@ -280,6 +283,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.payment.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(mcp.json.payment.payNowExamples.discoveryAudit.route).toContain("/api/x402-discovery-audit");
       expect(mcp.json.payment.settlementProof.cashRegister).toContain("/api/cash-register");
+      expect(mcp.json.payment.paidUsageProof.cashRegister).toContain("/api/cash-register");
       expect(mcp.json.keywords).toContain("marketplace listing score");
       expect(mcp.json.tools[0].description).toContain("marketplace listing score");
       expect(mcp.json.tools[0].command).toContain("/api/listing-roast");
@@ -319,6 +323,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcpServerCard.json.payment.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(mcpServerCard.json.payment.payNowExamples.skipReasons.route).toContain("/api/listing-roast");
       expect(mcpServerCard.json.payment.settlementProof.evidenceFields).toContain("paidCompletions");
+      expect(mcpServerCard.json.payment.paidUsageProof.paidCompletions).toBe(0);
       expect(mcpServerCard.json.links.cashRegister).toContain("/api/cash-register");
       expect(mcpServerCard.json.links.llmsFull).toContain("/llms-full.txt");
 
@@ -550,12 +555,14 @@ describe("Listing Roast x402 service", () => {
       expect(agentCard.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(agentCard.json.payNowExamples.discoveryAudit.selectedActionKey).toBe("discoveryAuditQuick");
       expect(agentCard.json.cashRegister).toContain("/api/cash-register");
+      expect(agentCard.json.paidUsageProof.paidCompletions).toBe(0);
       expect(agentCard.json.metadata.x402Manifest).toContain("/x402.json");
       expect(agentCard.json.metadata.agentSkills).toContain("/.well-known/agent-skills/index.json");
       expect(agentCard.json.metadata.preferredFirstPaidAction.path).toBe("/api/listing-roast");
       expect(agentCard.json.metadata.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(agentCard.json.metadata.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(agentCard.json.metadata.payNowExamples.fullRoast.method).toBe("POST");
+      expect(agentCard.json.metadata.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.00");
       expect(agentCard.json.metadata.settlementProof.evidenceFields).toContain("estimatedGrossRevenueUsd");
       expect(agentCard.json.metadata.a2aTaskEndpointAvailable).toBe(false);
 
@@ -582,6 +589,7 @@ describe("Listing Roast x402 service", () => {
       expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(aiPlugin.json.x_listing_roast.payNowExamples.skipReasons.selectedActionKey).toBe("indexedQuickScore");
       expect(aiPlugin.json.x_listing_roast.cashRegister).toContain("/api/cash-register");
+      expect(aiPlugin.json.x_listing_roast.paidUsageProof.paidCompletions).toBe(0);
       expect(aiPlugin.json.x_listing_roast.settlementProof.evidenceFields).toContain("paidCompletions");
 
       const apiCatalogHead = await fetch(`http://127.0.0.1:${server.address().port}/.well-known/api-catalog`, { method: "HEAD" });
@@ -1423,6 +1431,24 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json["x-listing-roast"].paidUsageProof.paidCompletions).toBe(2);
       expect(openApi.json["x-listing-roast"].paidUsageProof.estimatedGrossRevenueUsd).toBe("0.002");
       expect(openApi.json["x-listing-roast"].paidUsageProof.proofText).toBe("2 paid completions; $0.002 registered");
+
+      const mcp = await fetchJson(server, "/.well-known/mcp.json");
+      expect(mcp.status).toBe(200);
+      expect(mcp.json.paidUsageProof.paidCompletions).toBe(2);
+      expect(mcp.json.payment.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.002");
+
+      const mcpServerCard = await fetchJson(server, "/.well-known/mcp/server-card.json");
+      expect(mcpServerCard.status).toBe(200);
+      expect(mcpServerCard.json.payment.paidUsageProof.proofText).toBe("2 paid completions; $0.002 registered");
+
+      const agentCard = await fetchJson(server, "/.well-known/agent-card.json");
+      expect(agentCard.status).toBe(200);
+      expect(agentCard.json.paidUsageProof.paidCompletions).toBe(2);
+      expect(agentCard.json.metadata.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.002");
+
+      const aiPlugin = await fetchJson(server, "/.well-known/ai-plugin.json");
+      expect(aiPlugin.status).toBe(200);
+      expect(aiPlugin.json.x_listing_roast.paidUsageProof.paidCompletions).toBe(2);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
