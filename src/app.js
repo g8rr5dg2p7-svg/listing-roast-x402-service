@@ -20,6 +20,7 @@ const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
 const BASE_MAINNET_NETWORK = "eip155:8453";
 const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const USDC_DECIMALS = 1_000_000n;
+const API_ENTRY_PATH = "/api";
 const INSTANT_SCORE_PATH = "/api/instant-listing-score";
 const CONVERSION_SCORE_PATH = "/api/x402-marketplace-conversion";
 const AGENT_LISTING_PATH = "/api/agent-listing-conversion";
@@ -62,6 +63,8 @@ const DISCOVERY_KEYWORDS = [
   "x402 site audit",
   "x402 service discoverability audit",
   "x402 route health check",
+  "x402 API entrypoint",
+  "paid API entrypoint",
   "paid API preflight",
   "x402 discovery audit",
   "x402 bazaar discovery audit",
@@ -185,6 +188,13 @@ function buildStructuredData(config) {
       "@type": "OfferCatalog",
       name: "Listing Roast x402 paid routes",
       itemListElement: [
+        {
+          "@type": "Offer",
+          name: "Agent API entrypoint",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, API_ENTRY_PATH)
+        },
         {
           "@type": "Offer",
           name: "x402 paid ping",
@@ -312,6 +322,12 @@ Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}
 
 ## Other Paid Actions
 
+Generic agent API entrypoint:
+
+\`\`\`bash
+${buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT)}
+\`\`\`
+
 Agent listing conversion score and buyer-agent skip reasons:
 
 \`\`\`bash
@@ -411,6 +427,7 @@ Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}
 
 ## Paid Routes
 
+- GET ${absoluteUrl(config, API_ENTRY_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; generic paid API entrypoint and route map for agents that probe /api first.
 - GET ${absoluteUrl(config, ROAST_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; already-indexed quick score.
 - GET ${absoluteUrl(config, AGENT_LISTING_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; buyer-agent skip reasons and listing clarity.
 - GET ${absoluteUrl(config, SITE_AUDIT_PATH)} — ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT}; x402 route and discovery preflight.
@@ -867,6 +884,119 @@ function buildIndexedRoastGetDiscovery(config) {
   };
 }
 
+function buildApiEntryOutput(config) {
+  return {
+    service: config.serviceName,
+    endpoint: "api-entry",
+    price: config.instantScorePrice,
+    ok: true,
+    purpose: "Paid x402 API entrypoint for agents that probe /api before choosing a specific Listing Roast route.",
+    preferredFirstPaidAction: {
+      route: absoluteUrl(config, ROAST_PATH),
+      path: ROAST_PATH,
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      command: buildGetPayCommand(config, ROAST_PATH),
+      reason: "Use the already-indexed listing-roast route first when the buyer wants the cheapest paid score."
+    },
+    paidRoutes: {
+      apiEntry: {
+        route: absoluteUrl(config, API_ENTRY_PATH),
+        path: API_ENTRY_PATH,
+        method: "GET",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT
+      },
+      indexedQuickScore: {
+        route: absoluteUrl(config, ROAST_PATH),
+        path: ROAST_PATH,
+        method: "GET",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT
+      },
+      agentListingConversion: {
+        route: absoluteUrl(config, AGENT_LISTING_PATH),
+        path: AGENT_LISTING_PATH,
+        method: "GET",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT
+      },
+      siteAudit: {
+        route: absoluteUrl(config, SITE_AUDIT_PATH),
+        path: SITE_AUDIT_PATH,
+        method: "GET",
+        price: config.siteAuditPrice,
+        maxAmountRequired: SITE_AUDIT_AMOUNT
+      },
+      listingScore: {
+        route: absoluteUrl(config, "/api/listing-score"),
+        path: "/api/listing-score",
+        method: "POST",
+        price: config.scorePrice,
+        maxAmountRequired: "5000"
+      },
+      discoveryAudit: {
+        route: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
+        path: DISCOVERY_AUDIT_PATH,
+        method: "POST",
+        price: config.discoveryAuditPrice,
+        maxAmountRequired: DISCOVERY_AUDIT_AMOUNT
+      },
+      fullRoast: {
+        route: absoluteUrl(config, ROAST_PATH),
+        path: ROAST_PATH,
+        method: "POST",
+        price: config.price,
+        maxAmountRequired: "10000"
+      }
+    },
+    freeDiscovery: {
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      examples: absoluteUrl(config, "/api/examples"),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      llms: absoluteUrl(config, "/llms.txt")
+    },
+    nextStep: "If the buyer is still deciding, read the free discovery links. If the buyer intends to pay, use the preferredFirstPaidAction route."
+  };
+}
+
+function buildApiEntryDiscovery(config) {
+  return {
+    input: {},
+    inputSchema: {
+      type: "object",
+      properties: {}
+    },
+    output: {
+      example: buildApiEntryOutput(config),
+      schema: {
+        type: "object",
+        required: ["service", "endpoint", "price", "ok", "purpose", "preferredFirstPaidAction", "paidRoutes", "freeDiscovery", "nextStep"],
+        properties: {
+          service: { type: "string" },
+          endpoint: { type: "string" },
+          price: { type: "string" },
+          ok: { type: "boolean" },
+          purpose: { type: "string" },
+          preferredFirstPaidAction: { type: "object" },
+          paidRoutes: { type: "object" },
+          freeDiscovery: { type: "object" },
+          nextStep: { type: "string" }
+        }
+      }
+    },
+    service: {
+      name: config.serviceName,
+      url: config.serviceUrl,
+      route: absoluteUrl(config, API_ENTRY_PATH),
+      price: config.instantScorePrice,
+      network: config.network
+    }
+  };
+}
+
 function buildPingOutput(config, query = {}) {
   const rawMessage = Array.isArray(query.msg) ? query.msg[0] : query.msg;
   const message = typeof rawMessage === "string" && rawMessage.trim() ? rawMessage.trim().slice(0, 180) : "x402 rail verified";
@@ -879,6 +1009,7 @@ function buildPingOutput(config, query = {}) {
     message,
     timestamp: new Date().toISOString(),
     paidRoutes: {
+      apiEntry: API_ENTRY_PATH,
       instantScore: INSTANT_SCORE_PATH,
       conversionScore: CONVERSION_SCORE_PATH,
       agentListingConversion: AGENT_LISTING_PATH,
@@ -1081,6 +1212,14 @@ function buildWebMcpHandoff(config) {
     },
     paidRoutes: [
       {
+        route: absoluteUrl(config, API_ENTRY_PATH),
+        path: API_ENTRY_PATH,
+        method: "GET",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        buyerAction: "Generic paid API entrypoint for agents that probe /api first."
+      },
+      {
         route: absoluteUrl(config, ROAST_PATH),
         path: ROAST_PATH,
         method: "GET",
@@ -1197,6 +1336,35 @@ function buildOpenApiDocument(config) {
     },
     servers: [{ url: config.serviceUrl }],
     paths: {
+      [API_ENTRY_PATH]: {
+        get: {
+          operationId: "getListingRoastApiEntry",
+          tags: ["x402 API entrypoint", "paid API listing", "agent commerce"],
+          summary: "Paid $0.001 x402 API entrypoint and route map",
+          description: "Generic paid GET entrypoint for agents that probe /api before choosing a specific Listing Roast route. Returns the preferred first paid action, full paid route map, and free discovery links after x402 payment.",
+          "x-price": config.instantScorePrice,
+          "x-x402-price": config.instantScorePrice,
+          "x-payment": buildPaymentHint(config, {
+            path: API_ENTRY_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            buyerAction: "Pay $0.001 for the generic API entry route map when an agent starts discovery at /api."
+          }),
+          responses: {
+            200: {
+              description: "Paid API entry route map",
+              content: {
+                "application/json": {
+                  schema: buildApiEntryDiscovery(config).output.schema,
+                  example: buildApiEntryOutput(config)
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        }
+      },
       [INSTANT_SCORE_PATH]: {
         get: {
           operationId: "getInstantListingScoreX402MarketplaceConversion",
@@ -1570,6 +1738,7 @@ function buildOpenApiDocument(config) {
       mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
+      apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
       preferredFirstPaidRoute: absoluteUrl(config, ROAST_PATH),
       recommendedFirstPaidAction: {
         route: absoluteUrl(config, ROAST_PATH),
@@ -1586,6 +1755,7 @@ function buildOpenApiDocument(config) {
       discoveryAuditRoute: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
       scoreRoute: absoluteUrl(config, "/api/listing-score"),
       roastRoute: absoluteUrl(config, ROAST_PATH),
+      apiEntryPrice: config.instantScorePrice,
       instantScorePrice: config.instantScorePrice,
       siteAuditPrice: config.siteAuditPrice,
       scorePrice: config.scorePrice,
@@ -1639,7 +1809,7 @@ function buildX402Manifest(config) {
       }
     },
     capabilities: {
-      tools: 9
+      tools: 10
     },
     recommendedFirstPaidAction: {
       route: absoluteUrl(config, ROAST_PATH),
@@ -1663,6 +1833,21 @@ function buildX402Manifest(config) {
         input: buildInstantScoreDiscovery(config).input,
         outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput(), config),
         schema: absoluteUrl(config, "/api/score-schema")
+      },
+      {
+        id: "api_entry",
+        name: "api_entry",
+        method: "GET",
+        path: API_ENTRY_PATH,
+        url: absoluteUrl(config, API_ENTRY_PATH),
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        description: "One-tenth-cent generic x402 API entrypoint for agents that probe /api before choosing a specific Listing Roast route. Returns the paid route map and preferred first paid action after payment.",
+        keywords: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "GET paid API", "route map"],
+        command: buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
+        input: {},
+        outputExample: buildApiEntryOutput(config),
+        schema: absoluteUrl(config, "/openapi.json")
       },
       {
         id: "instant_listing_score",
@@ -1823,6 +2008,7 @@ function buildAgentSkill(config, options) {
 function buildAgentCard(config) {
   const supportedInterfaces = [
     { url: absoluteUrl(config, ROAST_PATH), transport: "HTTP+JSON" },
+    { url: absoluteUrl(config, API_ENTRY_PATH), transport: "HTTP+JSON" },
     { url: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH), transport: "OPENAPI" },
     { url: absoluteUrl(config, "/x402.json"), transport: "X402" },
     { url: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH), transport: "MCP" },
@@ -1883,6 +2069,17 @@ function buildAgentCard(config) {
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
         preferredFirstPaidAction: true,
         buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
+      }),
+      buildAgentSkill(config, {
+        id: "api-entry-route-map",
+        name: "API entry route map",
+        description: "$0.001 GET generic API entrypoint for agents that start at /api.",
+        tags: ["x402 API entrypoint", "paid API entrypoint", "agent commerce"],
+        method: "GET",
+        path: API_ENTRY_PATH,
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        buyerAction: "Pay $0.001 for the generic API entry route map when an agent starts discovery at /api."
       }),
       buildAgentSkill(config, {
         id: "agent-listing-conversion-score",
@@ -1959,6 +2156,7 @@ function buildAiPluginManifest(config) {
       "Listing Roast x402 is a paid HTTP JSON API for x402, MCP, and agent-service builders.",
       "Use it when a builder needs a paid API listing quality score, buyer-agent skip reasons, x402 marketplace conversion feedback, or x402 service discoverability guidance before promotion.",
       "Protected routes require x402 payment in USDC on Base before JSON output is returned.",
+      `Use GET ${absoluteUrl(config, API_ENTRY_PATH)} for a generic ${config.instantScorePrice} paid API entrypoint when an agent probes /api first.`,
       `Preferred first paid action: GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units.`,
       `Use GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent service listing clarity, agent listing conversion score, and buyer-agent skip reasons.`,
       `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight.`,
@@ -1995,6 +2193,7 @@ function buildAiPluginManifest(config) {
 
 function buildApiCatalog(config) {
   const item = [
+    { href: absoluteUrl(config, API_ENTRY_PATH), type: "application/json", title: "GET $0.001 generic x402 API entrypoint and route map" },
     { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET indexed $0.001 x402 listing quality quick score and POST $0.01 full roast" },
     { href: absoluteUrl(config, INSTANT_SCORE_PATH), type: "application/json", title: "GET $0.001 instant paid API listing quality score" },
     { href: absoluteUrl(config, CONVERSION_SCORE_PATH), type: "application/json", title: "GET $0.001 x402 marketplace conversion score" },
@@ -2084,6 +2283,7 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 
 ## Other Paid Routes
 
+- GET ${absoluteUrl(config, API_ENTRY_PATH)} for a generic paid API entrypoint and route map when an agent probes /api first. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent listing conversion score and buyer-agent skip reasons. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, CONVERSION_SCORE_PATH)} for x402 marketplace conversion score. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for x402 route health, direct 402 metadata, stale price checks, and search visibility. Price: ${config.siteAuditPrice}. Max amount: ${SITE_AUDIT_AMOUNT}.
@@ -2226,6 +2426,18 @@ function createX402Middleware(config) {
 
   return paymentMiddleware(
     {
+      [`GET ${API_ENTRY_PATH}`]: {
+        accepts: {
+          scheme: "exact",
+          price: config.instantScorePrice,
+          network: config.network,
+          payTo: config.payTo,
+          maxTimeoutSeconds: 300
+        },
+        description: "Listing Roast API Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /api first.",
+        mimeType: "application/json",
+        extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config))
+      },
       "POST /api/listing-score": {
         accepts: {
           scheme: "exact",
@@ -2415,6 +2627,10 @@ function isAllowedSignal(value) {
 }
 
 function validUnpaidSignalForPath(pathname) {
+  if (pathname === API_ENTRY_PATH) {
+    return "apiEntryValidUnpaidChallenges";
+  }
+
   if (pathname === INSTANT_SCORE_PATH || pathname === CONVERSION_SCORE_PATH || pathname === AGENT_LISTING_PATH) {
     return "instantScoreValidUnpaidChallenges";
   }
@@ -2447,6 +2663,15 @@ async function recordGetScoreProbe(request, _response, next) {
     await recordSignal("unpaidChallenges");
     await recordSignal("validUnpaidChallenges");
     await recordSignal(pathname === ROAST_PATH ? "indexedRoastGetValidUnpaidChallenges" : "instantScoreValidUnpaidChallenges");
+  }
+  next();
+}
+
+async function recordApiEntryProbe(request, _response, next) {
+  if (!hasPaymentHeader(request)) {
+    await recordSignal("unpaidChallenges");
+    await recordSignal("validUnpaidChallenges");
+    await recordSignal("apiEntryValidUnpaidChallenges");
   }
   next();
 }
@@ -2851,7 +3076,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, "/builder", "/sample", PAY_NOW_PATH, API_ENTRY_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -2892,6 +3117,7 @@ ${webMcpScript(config)}
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
       payNow: buildPayNow(config),
+      apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       conversionScoreRoute: absoluteUrl(config, CONVERSION_SCORE_PATH),
       agentListingConversionRoute: absoluteUrl(config, AGENT_LISTING_PATH),
@@ -2914,6 +3140,13 @@ ${webMcpScript(config)}
         reason: "This is the already-indexed Bazaar route and the lowest-friction paid score."
       },
       paymentHints: {
+        apiEntry: buildPaymentHint(config, {
+          path: API_ENTRY_PATH,
+          method: "GET",
+          price: config.instantScorePrice,
+          maxAmountRequired: INSTANT_SCORE_AMOUNT,
+          buyerAction: "Pay $0.001 for the generic API entry route map when an agent starts discovery at /api."
+        }),
         indexedRoastGet: buildPaymentHint(config, {
           path: ROAST_PATH,
           method: "GET",
@@ -2967,6 +3200,7 @@ ${webMcpScript(config)}
       },
       keywords: DISCOVERY_KEYWORDS,
       request: requestExample,
+      apiEntryCommand: buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
       instantScoreCommand: buildGetPayCommand(config),
       conversionScoreCommand: buildGetPayCommand(config, CONVERSION_SCORE_PATH, INSTANT_SCORE_AMOUNT),
       agentListingConversionCommand: buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT),
@@ -2976,6 +3210,7 @@ ${webMcpScript(config)}
       discoveryAuditCommand: buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample),
       command: buildPayCommand(config),
       scoreCommand: buildPayCommand(config, "/api/listing-score", "5000"),
+      apiEntryOutput: buildApiEntryOutput(config),
       instantScoreOutput: buildInstantListingScore(buildInstantScoreInput(), config),
       conversionScoreOutput: buildConversionScore(buildInstantScoreInput(), config),
       agentListingConversionOutput: buildAgentListingConversionScore(buildInstantScoreInput(), config),
@@ -3051,6 +3286,15 @@ ${indentText(buildGetPayCommand(config, ROAST_PATH))}
   - Use first when a marketplace result points to /api/listing-roast or an agent wants the lowest-friction payable route
 
 Other paid routes:
+
+- GET ${absoluteUrl(config, API_ENTRY_PATH)}
+  - Price: ${config.instantScorePrice}
+  - Network: ${config.network}
+  - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+  - Command:
+${indentText(buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT))}
+  - Output: paid API entry route map with preferred first paid action and free discovery links
+  - Use when an agent probes /api before choosing a specific paid route
 
 - GET ${absoluteUrl(config, INSTANT_SCORE_PATH)}
   - Price: ${config.instantScorePrice}
@@ -3540,6 +3784,25 @@ ${copyScript("Copy command")}
           input: buildInstantScoreDiscovery(config).input
         },
         {
+          name: "api_entry_route_map",
+          method: "GET",
+          path: API_ENTRY_PATH,
+          url: absoluteUrl(config, API_ENTRY_PATH),
+          price: config.instantScorePrice,
+          network: config.network,
+          command: buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
+          description: "one-tenth-cent generic x402 API entrypoint for agents that probe /api before choosing a specific Listing Roast route.",
+          payment: buildPaymentHint(config, {
+            path: API_ENTRY_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            buyerAction: "Pay $0.001 for the generic API entry route map when an agent starts discovery at /api."
+          }),
+          keywords: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "GET paid API"],
+          input: {}
+        },
+        {
           name: "instant_paid_listing_score",
           method: "GET",
           path: INSTANT_SCORE_PATH,
@@ -3717,7 +3980,9 @@ ${copyScript("Copy command")}
     response.status(204).end();
   });
 
+  app.head(API_ENTRY_PATH, rejectHeadPaidRoute);
   app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
+  app.get(API_ENTRY_PATH, recordApiEntryProbe);
   app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH], recordGetScoreProbe);
   app.get(PING_PATH, recordPingProbe);
   app.get(SITE_AUDIT_PATH, recordSiteAuditProbe);
@@ -3737,6 +4002,12 @@ ${copyScript("Copy command")}
     next();
   });
   app.use(createX402Middleware(config));
+
+  app.get(API_ENTRY_PATH, async (_request, response) => {
+    const result = buildApiEntryOutput(config);
+    const cashRegister = await recordPaidCompletion("apiEntry", 0.001);
+    response.json({ ...result, cashRegister });
+  });
 
   app.get(INSTANT_SCORE_PATH, async (request, response) => {
     const result = buildInstantListingScore(buildInstantScoreInput(request.query), config);
