@@ -199,6 +199,9 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   agent_listing_conversion_score: "agentListingConversion",
   x402_ping: "x402Ping",
   x402_site_audit: "x402SiteAudit",
+  paid_api_preflight: "x402SiteAudit",
+  api_v1_paid_api_preflight: "x402SiteAudit",
+  root_paid_api_preflight: "x402SiteAudit",
   x402_discovery_audit_quick: "discoveryAuditQuick",
   x402_discovery_audit: "discoveryAudit",
   listing_score: "listingScore",
@@ -2122,6 +2125,9 @@ const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   agent_listing_conversion_score: "agentListingConversion",
   x402_ping: "x402Ping",
   x402_site_audit: "x402SiteAudit",
+  paid_api_preflight: "x402SiteAudit",
+  api_v1_paid_api_preflight: "x402SiteAudit",
+  root_paid_api_preflight: "x402SiteAudit",
   x402_discovery_audit_quick: "discoveryAuditQuick",
   listing_score: "listingScore",
   listing_roast: "fullRoast",
@@ -3363,6 +3369,30 @@ function buildOpenApiDocument(config, cashRegister = {}) {
     }
   };
 
+  const preflightAliasOperationIds = {
+    "/api/preflight": "getPaidApiPreflight",
+    "/api/v1/preflight": "getApiV1PaidApiPreflight",
+    "/preflight": "getRootPaidApiPreflight"
+  };
+  for (const aliasPath of PREFLIGHT_ALIAS_PATHS) {
+    paymentActionByRoute[`GET ${aliasPath}`] = "x402SiteAudit";
+    document.paths[aliasPath] = {
+      get: {
+        ...document.paths[SITE_AUDIT_PATH].get,
+        operationId: preflightAliasOperationIds[aliasPath],
+        summary: "Paid $0.001 paid API preflight before paying",
+        description: "Direct paid API preflight alias for agents that probe common preflight URLs before paying. Returns the x402 site-audit output for direct 402 metadata, route health, Bazaar pricing, search visibility, OpenAPI, llms.txt, and no-spend next actions.",
+        "x-payment": buildPaymentHint(config, {
+          path: aliasPath,
+          method: "GET",
+          price: config.siteAuditPrice,
+          maxAmountRequired: SITE_AUDIT_AMOUNT,
+          buyerAction: "Pay $0.001 for a paid API preflight before paying more."
+        })
+      }
+    };
+  }
+
   for (const [pathname, pathItem] of Object.entries(document.paths)) {
     for (const method of ["get", "post", "put", "patch", "delete"]) {
       const operation = pathItem[method];
@@ -3406,6 +3436,26 @@ function buildPaidUsageProof(config, cashRegister = {}) {
     walletEvidenceFields: ["receiverWallet.usdcBalance", "receiverWallet.usdcUnits", "receiverWallet.checkedAt"],
     noSpend: true
   };
+}
+
+function buildPreflightAliasManifestResources(config) {
+  const aliasIds = ["paid_api_preflight", "api_v1_paid_api_preflight", "root_paid_api_preflight"];
+  return PREFLIGHT_ALIAS_PATHS.map((path, index) => ({
+    id: aliasIds[index],
+    name: aliasIds[index],
+    method: "GET",
+    path,
+    url: absoluteUrl(config, path),
+    price: config.siteAuditPrice,
+    maxAmountRequired: SITE_AUDIT_AMOUNT,
+    description: "One-tenth-cent GET paid API preflight before paying. This alias returns the x402 site-audit output for direct 402 metadata, route health, Bazaar pricing, search visibility, OpenAPI, llms.txt, and no-spend next actions.",
+    keywords: ["paid API preflight", "api preflight", "endpoint preflight", "before paying", "pre-pay endpoint check", "x402 site audit", "x402 route health check"],
+    command: buildGetPayCommand(config, path, SITE_AUDIT_AMOUNT),
+    input: buildSiteAuditDiscovery(config).input,
+    outputExample: buildSiteAuditExampleOutput(config),
+    schema: absoluteUrl(config, "/api/discovery-audit-schema"),
+    canonicalRoute: SITE_AUDIT_PATH
+  }));
 }
 
 function buildX402Manifest(config, cashRegister = {}) {
@@ -3481,7 +3531,7 @@ function buildX402Manifest(config, cashRegister = {}) {
       }
     },
     capabilities: {
-      tools: 14
+      tools: 17
     },
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
@@ -3637,6 +3687,7 @@ function buildX402Manifest(config, cashRegister = {}) {
         outputExample: buildSiteAuditExampleOutput(config),
         schema: absoluteUrl(config, "/api/discovery-audit-schema")
       },
+      ...buildPreflightAliasManifestResources(config),
       {
         id: "x402_discovery_audit_quick",
         name: "x402_discovery_audit_quick",
@@ -3719,7 +3770,7 @@ function buildAgentToolsManifest(config) {
     name: resource.id,
     title: resource.name,
     description: resource.description,
-    category: resource.id === "x402_site_audit" || resource.id === "x402_discovery_audit" ? "x402-discovery" : "paid-api-listing",
+    category: resource.id === "x402_site_audit" || resource.id === "x402_discovery_audit" || resource.canonicalRoute === SITE_AUDIT_PATH ? "x402-discovery" : "paid-api-listing",
     method: resource.method,
     local_route: resource.path,
     x402_route: resource.path,
