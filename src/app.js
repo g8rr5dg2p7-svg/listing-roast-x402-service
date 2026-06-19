@@ -6544,6 +6544,7 @@ export function createApp(overrides = {}) {
     const mcpUrl = absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH);
     const mcpServerCardUrl = absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH);
     const payNowUrl = absoluteUrl(config, PAY_NOW_PATH);
+    const indexedPreviewUrl = `${payNowUrl}?intent=marketplace%20listing%20score`;
     const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
     const instantCommand = buildGetPayCommand(config);
     const agentListingCommand = buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT);
@@ -6686,6 +6687,7 @@ export function createApp(overrides = {}) {
             <button class="button secondary" type="button" data-copy-target="full-audit-command" data-default-text="Copy full audit command">Copy full audit command</button>
             <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
             <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $0.01 roast command">Copy $0.01 roast command</button>
+            <a class="button" href="${indexedPreviewUrl}">Preview paid output JSON</a>
             <a class="button secondary" href="${builderUrl}">Build your command</a>
             <a class="button secondary" href="${sampleUrl}">View sample score</a>
             <a class="button secondary" href="${examplesUrl}">Open examples JSON</a>

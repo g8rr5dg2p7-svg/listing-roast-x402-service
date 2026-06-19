@@ -173,6 +173,8 @@ describe("Listing Roast x402 service", () => {
       expect(home.text).toContain("Copy full audit command");
       expect(home.text).toContain("Copy $0.005 score command");
       expect(home.text).toContain("Copy $0.01 roast command");
+      expect(home.text).toContain("Preview paid output JSON");
+      expect(home.text).toContain("/api/pay-now?intent=marketplace%20listing%20score");
       expect(home.text).toContain("Build your command");
       expect(home.text).toContain("View sample score");
       expect(home.text).toContain("Open examples JSON");
