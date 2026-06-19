@@ -669,7 +669,6 @@ function buildOpenApiDocument(config) {
             method: "GET",
             price: config.instantScorePrice,
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
-            preferredFirstPaidAction: true,
             buyerAction: "Pay $0.001 for an immediate listing quality score without building a JSON body."
           }),
           parameters: [
@@ -919,6 +918,14 @@ function buildOpenApiDocument(config) {
       builder: absoluteUrl(config, "/builder"),
       sample: absoluteUrl(config, "/sample"),
       x402Manifest: absoluteUrl(config, "/x402.json"),
+      preferredFirstPaidRoute: absoluteUrl(config, ROAST_PATH),
+      recommendedFirstPaidAction: {
+        route: absoluteUrl(config, ROAST_PATH),
+        method: "GET",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        reason: "This is the already-indexed Bazaar route and the lowest-friction paid score."
+      },
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       pingRoute: absoluteUrl(config, PING_PATH),
       siteAuditRoute: absoluteUrl(config, SITE_AUDIT_PATH),
@@ -948,22 +955,14 @@ function buildX402Manifest(config) {
     llms: absoluteUrl(config, "/llms.txt"),
     network: config.network,
     payTo: config.payTo,
+    recommendedFirstPaidAction: {
+      route: absoluteUrl(config, ROAST_PATH),
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "This is the already-indexed Bazaar route and the lowest-friction paid score."
+    },
     resources: [
-      {
-        id: "instant_listing_score",
-        name: "instant_listing_score",
-        method: "GET",
-        path: INSTANT_SCORE_PATH,
-        url: absoluteUrl(config, INSTANT_SCORE_PATH),
-        price: config.instantScorePrice,
-        maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: "One-tenth-cent GET marketplace listing score, paid API listing quality score, agent-service listing score, and x402 marketplace conversion check. Works with optional query params or a default sample.",
-        keywords: ["marketplace listing score", "paid API listing quality score", "agent-service listing score", "x402 marketplace conversion", "GET paid API"],
-        command: buildGetPayCommand(config),
-        input: buildInstantScoreDiscovery(config).input,
-        outputExample: buildInstantListingScore(buildInstantScoreInput()),
-        schema: absoluteUrl(config, "/api/score-schema")
-      },
       {
         id: "indexed_roast_quick_score",
         name: "indexed_roast_quick_score",
@@ -977,6 +976,21 @@ function buildX402Manifest(config) {
         command: buildGetPayCommand(config, ROAST_PATH),
         input: buildInstantScoreDiscovery(config).input,
         outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput()),
+        schema: absoluteUrl(config, "/api/score-schema")
+      },
+      {
+        id: "instant_listing_score",
+        name: "instant_listing_score",
+        method: "GET",
+        path: INSTANT_SCORE_PATH,
+        url: absoluteUrl(config, INSTANT_SCORE_PATH),
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        description: "One-tenth-cent GET marketplace listing score, paid API listing quality score, agent-service listing score, and x402 marketplace conversion check. Works with optional query params or a default sample.",
+        keywords: ["marketplace listing score", "paid API listing quality score", "agent-service listing score", "x402 marketplace conversion", "GET paid API"],
+        command: buildGetPayCommand(config),
+        input: buildInstantScoreDiscovery(config).input,
+        outputExample: buildInstantListingScore(buildInstantScoreInput()),
         schema: absoluteUrl(config, "/api/score-schema")
       },
       {
@@ -1698,14 +1712,6 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
         reason: "This is the already-indexed Bazaar route and the lowest-friction paid score."
       },
       paymentHints: {
-        instantScore: buildPaymentHint(config, {
-          path: INSTANT_SCORE_PATH,
-          method: "GET",
-          price: config.instantScorePrice,
-          maxAmountRequired: INSTANT_SCORE_AMOUNT,
-          preferredFirstPaidAction: true,
-          buyerAction: "Pay $0.001 for an immediate listing quality score without building a JSON body."
-        }),
         indexedRoastGet: buildPaymentHint(config, {
           path: ROAST_PATH,
           method: "GET",
@@ -1713,6 +1719,13 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
           maxAmountRequired: INSTANT_SCORE_AMOUNT,
           preferredFirstPaidAction: true,
           buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
+        }),
+        instantScore: buildPaymentHint(config, {
+          path: INSTANT_SCORE_PATH,
+          method: "GET",
+          price: config.instantScorePrice,
+          maxAmountRequired: INSTANT_SCORE_AMOUNT,
+          buyerAction: "Pay $0.001 for an immediate listing quality score without building a JSON body."
         }),
         siteAudit: buildPaymentHint(config, {
           path: SITE_AUDIT_PATH,
@@ -2144,6 +2157,25 @@ ${copyScript("Copy $0.005 score command")}
       keywords: DISCOVERY_KEYWORDS,
       tools: [
         {
+          name: "indexed_listing_roast_quick_score",
+          method: "GET",
+          path: ROAST_PATH,
+          url: absoluteUrl(config, ROAST_PATH),
+          price: config.instantScorePrice,
+          network: config.network,
+          description: "one-tenth-cent GET marketplace listing score API for marketplace listing quality, paid API discoverability, x402 service clarity, agent-service listing score, and buyer-agent conversion checks on the indexed listing-roast URL.",
+          payment: buildPaymentHint(config, {
+            path: ROAST_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            preferredFirstPaidAction: true,
+            buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
+          }),
+          keywords: ["listing roast", "score API", "marketplace listing quality", "paid API discoverability", "agent-service listing score", "x402 marketplace conversion"],
+          input: buildInstantScoreDiscovery(config).input
+        },
+        {
           name: "instant_paid_listing_score",
           method: "GET",
           path: INSTANT_SCORE_PATH,
@@ -2156,29 +2188,9 @@ ${copyScript("Copy $0.005 score command")}
             method: "GET",
             price: config.instantScorePrice,
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
-            preferredFirstPaidAction: true,
             buyerAction: "Pay $0.001 for an immediate listing quality score without building a JSON body."
           }),
           keywords: ["marketplace listing score", "paid API listing quality score", "agent-service listing score", "x402 marketplace conversion", "GET paid API"],
-          input: buildInstantScoreDiscovery(config).input
-        },
-        {
-          name: "indexed_listing_roast_quick_score",
-          method: "GET",
-          path: ROAST_PATH,
-          url: absoluteUrl(config, ROAST_PATH),
-          price: config.instantScorePrice,
-          network: config.network,
-          description: "one-tenth-cent GET score API for marketplace listing quality, paid API discoverability, x402 service clarity, agent-service listing score, and buyer-agent conversion checks on the indexed listing-roast URL.",
-          payment: buildPaymentHint(config, {
-            path: ROAST_PATH,
-            method: "GET",
-            price: config.instantScorePrice,
-            maxAmountRequired: INSTANT_SCORE_AMOUNT,
-            preferredFirstPaidAction: true,
-            buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
-          }),
-          keywords: ["listing roast", "score API", "marketplace listing quality", "paid API discoverability", "agent-service listing score", "x402 marketplace conversion"],
           input: buildInstantScoreDiscovery(config).input
         },
         {
