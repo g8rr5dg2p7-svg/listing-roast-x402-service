@@ -189,6 +189,9 @@ describe("Listing Roast x402 service", () => {
       expect(home.text).toContain("/agent-listing-conversion");
       expect(home.text).toContain("/x402-discovery-audit");
       expect(home.text).toContain("/x402-site-audit");
+      expect(home.text).toContain("/api/preflight");
+      expect(home.text).toContain("/api/v1/preflight");
+      expect(home.text).toContain("/preflight");
 
       const paidApiListingQuality = await fetchJson(server, "/paid-api-listing-quality");
       expect(paidApiListingQuality.status).toBe(200);
@@ -213,6 +216,9 @@ describe("Listing Roast x402 service", () => {
       expect(x402SiteAudit.status).toBe(200);
       expect(x402SiteAudit.text).toContain("x402 site audit and paid API preflight");
       expect(x402SiteAudit.text).toContain("/api/x402-site-audit");
+      expect(x402SiteAudit.text).toContain("/api/preflight");
+      expect(x402SiteAudit.text).toContain("/api/v1/preflight");
+      expect(x402SiteAudit.text).toContain("/preflight");
       expect(x402SiteAudit.text).toContain("x402 route health check");
 
       const homeMarkdown = await fetchJson(server, "/", {
@@ -305,6 +311,9 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.payment.settlementProof.cashRegister).toContain("/api/cash-register");
       expect(mcp.json.payment.paidUsageProof.cashRegister).toContain("/api/cash-register");
       expect(mcp.json.keywords).toContain("marketplace listing score");
+      expect(mcp.json.preflightAliases).toContain("http://localhost:8787/api/preflight");
+      expect(mcp.json.preflightAliases).toContain("http://localhost:8787/api/v1/preflight");
+      expect(mcp.json.preflightAliases).toContain("http://localhost:8787/preflight");
       expect(mcp.json.tools[0].description).toContain("marketplace listing score");
       expect(mcp.json.tools[0].command).toContain("/api/listing-roast");
       expect(mcp.json.tools[0].command).toContain("--max-amount 1000");
@@ -349,6 +358,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcpServerCard.json.links.llmsFull).toContain("/llms-full.txt");
       expect(mcpServerCard.json.links.llmsAliases[0]).toContain("/.well-known/llms.txt");
       expect(mcpServerCard.json.links.llmsFullAliases[0]).toContain("/.well-known/llms-full.txt");
+      expect(mcpServerCard.json.links.preflightAliases).toContain("http://localhost:8787/api/preflight");
 
       const x402Manifest = await fetchJson(server, "/x402.json");
       expect(x402Manifest.status).toBe(200);
@@ -621,6 +631,9 @@ describe("Listing Roast x402 service", () => {
       expect(agentCard.json.metadata.payNowExamples.fullRoast.method).toBe("POST");
       expect(agentCard.json.metadata.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.00");
       expect(agentCard.json.metadata.settlementProof.evidenceFields).toContain("estimatedGrossRevenueUsd");
+      expect(agentCard.json.metadata.preflightAliases).toContain("http://localhost:8787/api/preflight");
+      expect(agentCard.json.metadata.preflightAliases).toContain("http://localhost:8787/api/v1/preflight");
+      expect(agentCard.json.metadata.preflightAliases).toContain("http://localhost:8787/preflight");
       expect(agentCard.json.metadata.a2aTaskEndpointAvailable).toBe(false);
 
       const agentJson = await fetchJson(server, "/.well-known/agent.json");
@@ -644,6 +657,9 @@ describe("Listing Roast x402 service", () => {
       expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
       expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[1].use).toBe("fullRoast");
       expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
+      expect(aiPlugin.json.x_listing_roast.preflightAliases).toContain("http://localhost:8787/api/preflight");
+      expect(aiPlugin.json.x_listing_roast.preflightAliases).toContain("http://localhost:8787/api/v1/preflight");
+      expect(aiPlugin.json.x_listing_roast.preflightAliases).toContain("http://localhost:8787/preflight");
       expect(aiPlugin.json.x_listing_roast.payNowExamples.skipReasons.selectedActionKey).toBe("indexedQuickScore");
       expect(aiPlugin.json.x_listing_roast.cashRegister).toContain("/api/cash-register");
       expect(aiPlugin.json.x_listing_roast.paidUsageProof.paidCompletions).toBe(0);
@@ -670,6 +686,9 @@ describe("Listing Roast x402 service", () => {
       expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/v1");
       expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/api/listing-roast");
       expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/api/agent-listing-conversion");
+      expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/api/preflight");
+      expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/api/v1/preflight");
+      expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/preflight");
       expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/api/pricing");
       expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/api/find");
       expect(apiCatalog.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/api/route");
@@ -729,6 +748,9 @@ describe("Listing Roast x402 service", () => {
       expect(agentSkill.text).toContain("Full roast command");
       expect(agentSkill.text).toContain("/api/listing-roast");
       expect(agentSkill.text).toContain("/api/agent-listing-conversion");
+      expect(agentSkill.text).toContain("/api/preflight");
+      expect(agentSkill.text).toContain("/api/v1/preflight");
+      expect(agentSkill.text).toContain("/preflight");
       expect(agentSkills.json.skills[0].digest).toBe(`sha256:${createHash("sha256").update(agentSkill.text).digest("hex")}`);
 
       const examples = await fetchJson(server, "/api/examples");
@@ -1095,6 +1117,9 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/api/agent-listing-conversion");
       expect(llms.text).toContain("/api/x402-ping");
       expect(llms.text).toContain("/api/x402-site-audit");
+      expect(llms.text).toContain("/api/preflight");
+      expect(llms.text).toContain("/api/v1/preflight");
+      expect(llms.text).toContain("/preflight");
       expect(llms.text).toContain("/api/x402-discovery-audit");
       expect(llms.text).toContain("Buyer intent landing pages");
       expect(llms.text).toContain("/paid-api-listing-quality");
@@ -1151,6 +1176,9 @@ describe("Listing Roast x402 service", () => {
       expect(llmsFull.text).toContain("Recommended Paid Sequence");
       expect(llmsFull.text).toContain("Full roast command");
       expect(llmsFull.text).toContain("after the indexed quick score for the dedicated agent-listing conversion deep dive");
+      expect(llmsFull.text).toContain("/api/preflight");
+      expect(llmsFull.text).toContain("/api/v1/preflight");
+      expect(llmsFull.text).toContain("/preflight");
       expect(llmsFull.text.indexOf("/api/listing-roast")).toBeLessThan(llmsFull.text.indexOf("/api/v1"));
 
       const wellKnownLlmsFull = await fetchJson(server, "/.well-known/llms-full.txt");
@@ -1166,6 +1194,9 @@ describe("Listing Roast x402 service", () => {
       expect(indexMarkdown.status).toBe(200);
       expect(indexMarkdown.headers.get("content-type")).toContain("text/markdown");
       expect(indexMarkdown.text).toContain("Preferred First Paid Route");
+      expect(indexMarkdown.text).toContain("/api/preflight");
+      expect(indexMarkdown.text).toContain("/api/v1/preflight");
+      expect(indexMarkdown.text).toContain("/preflight");
 
       const authMarkdown = await fetchJson(server, "/auth.md");
       expect(authMarkdown.status).toBe(200);
@@ -1862,6 +1893,9 @@ describe("Listing Roast x402 service", () => {
       expect(agentsMarkdown.text).toContain("Do not call paid routes unless the buyer explicitly intends to pay");
       expect(agentsMarkdown.text).toContain("No OAuth, account registration, API key, agent registration, ACP, UCP, or MPP endpoint is supported");
       expect(agentsMarkdown.text).toContain("/v1");
+      expect(agentsMarkdown.text).toContain("/api/preflight");
+      expect(agentsMarkdown.text).toContain("/api/v1/preflight");
+      expect(agentsMarkdown.text).toContain("/preflight");
 
       const docs = await fetchJson(server, "/docs");
       expect(docs.status).toBe(200);

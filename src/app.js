@@ -272,6 +272,14 @@ function absoluteUrl(config, pathname) {
   return `${config.serviceUrl}${pathname}`;
 }
 
+function preflightAliasUrls(config) {
+  return PREFLIGHT_ALIAS_PATHS.map((pathname) => absoluteUrl(config, pathname));
+}
+
+function formatPreflightAliasUrls(config) {
+  return preflightAliasUrls(config).join(", ");
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -627,6 +635,10 @@ x402 site audit and paid API preflight:
 \`\`\`bash
 ${buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT)}
 \`\`\`
+
+Direct paid API preflight aliases for agents that probe common pre-pay URLs:
+
+${PREFLIGHT_ALIAS_PATHS.map((pathname) => `- GET ${absoluteUrl(config, pathname)} (${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT} USDC units)`).join("\n")}
 
 Full listing roast, rewrite, and stop-or-upgrade guidance:
 
@@ -4543,6 +4555,7 @@ function buildAgentCard(config, cashRegister = {}) {
       mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
       mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+      preflightAliases: preflightAliasUrls(config),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       noSpendDiscovery: true,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
@@ -4573,7 +4586,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
       `Use GET ${absoluteUrl(config, API_ENTRY_PATH)}, GET ${absoluteUrl(config, API_V1_ENTRY_PATH)}, or GET ${absoluteUrl(config, V1_ENTRY_PATH)} for a generic ${config.instantScorePrice} paid x402 navigation route map with fallback quick score when an agent starts at /api, /api/v1, or /v1 first.`,
       `Preferred first paid action: GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units.`,
       `Use GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent service listing clarity, agent listing conversion score, and buyer-agent skip reasons.`,
-      `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight before paying.`,
+      `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight before paying; direct preflight aliases are ${formatPreflightAliasUrls(config)}.`,
       `Use POST ${absoluteUrl(config, ROAST_PATH)} only when the buyer wants the full ${config.price} roast, rewrite, and stop-or-upgrade guidance.`,
       `Use free GET ${absoluteUrl(config, PRICING_PATH)} for the paid route price catalog, free GET ${absoluteUrl(config, FIND_PATH)}?q=<task> to choose one route, and free GET/POST ${absoluteUrl(config, ROUTE_PATH)} to rank local paid routes before spending.`,
       "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, Agent Skills index, MCP metadata, llms.txt, examples, sample score, pricing, route finder, local route router, and pay-now JSON."
@@ -4599,6 +4612,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+      preflightAliases: preflightAliasUrls(config),
       recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
       payNowExamples: buildPayNowIntentExamples(config),
@@ -4618,6 +4632,7 @@ function buildApiCatalog(config) {
     { href: absoluteUrl(config, AGENT_LISTING_PATH), type: "application/json", title: "GET $0.001 buyer-agent skip reasons and agent listing conversion score" },
     { href: absoluteUrl(config, PING_PATH), type: "application/json", title: "GET $0.001 paid x402 ping" },
     { href: absoluteUrl(config, SITE_AUDIT_PATH), type: "application/json", title: "GET $0.001 x402 site audit and paid API preflight" },
+    ...PREFLIGHT_ALIAS_PATHS.map((pathname) => ({ href: absoluteUrl(config, pathname), type: "application/json", title: "GET $0.001 paid API preflight alias for x402 site audit" })),
     { href: absoluteUrl(config, "/api/listing-score"), type: "application/json", title: "POST $0.005 paid API listing quality score" },
     { href: absoluteUrl(config, DISCOVERY_AUDIT_PATH), type: "application/json", title: "GET $0.001 and POST $0.01 x402 discovery audit" },
     { href: absoluteUrl(config, API_ENTRY_PATH), type: "application/json", title: "GET $0.001 generic x402 navigation route map" },
@@ -4749,6 +4764,7 @@ ${buildPayCommand(config)}
 - GET ${absoluteUrl(config, AGENT_LISTING_PATH)} after the indexed quick score for the dedicated agent-listing conversion deep dive. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, CONVERSION_SCORE_PATH)} for x402 marketplace conversion score. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for x402 route health, direct 402 metadata, stale price checks, and search visibility. Price: ${config.siteAuditPrice}. Max amount: ${SITE_AUDIT_AMOUNT}.
+- GET ${formatPreflightAliasUrls(config)} for common paid API preflight aliases that return the same x402 site-audit output. Price: ${config.siteAuditPrice}. Max amount: ${SITE_AUDIT_AMOUNT}.
 - GET ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)} for the exact-path quick x402 discovery audit. Price: ${config.siteAuditPrice}. Max amount: ${DISCOVERY_AUDIT_QUICK_AMOUNT}.
 - POST ${absoluteUrl(config, "/api/listing-score")} for a custom-body listing score. Price: ${config.scorePrice}. Max amount: 5000.
 - POST ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)} for a custom-body x402 discovery audit. Price: ${config.discoveryAuditPrice}. Max amount: ${DISCOVERY_AUDIT_AMOUNT}.
@@ -4792,6 +4808,11 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 
 Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and returns the paid route map after x402 payment.
 
+## Paid API Preflight Aliases
+
+- GET ${absoluteUrl(config, SITE_AUDIT_PATH)} is the canonical paid API preflight and x402 site-audit route.
+- GET ${formatPreflightAliasUrls(config)} are direct aliases for agents that probe common preflight URLs before paying more. Each costs ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT} USDC units, and returns the same site-audit output after x402 payment.
+
 ## Free Discovery
 
 - Docs: ${absoluteUrl(config, DOCS_PATH)}
@@ -4816,6 +4837,7 @@ Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_A
 - GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent listing conversion and buyer-agent skip reasons.
 - GET ${absoluteUrl(config, CONVERSION_SCORE_PATH)} for x402 marketplace conversion.
 - GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a no-spend x402 site audit.
+  - Paid API preflight aliases: GET ${formatPreflightAliasUrls(config)}.
 - GET ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)} for the exact-path quick x402 discovery audit.
 - GET ${absoluteUrl(config, PING_PATH)} for a paid x402 rail ping.
 - POST ${absoluteUrl(config, "/api/listing-score")} for a custom-body listing score.
@@ -4917,7 +4939,7 @@ function buildIntentLandingPages(config) {
       path: X402_SITE_AUDIT_PAGE_PATH,
       title: "x402 site audit | Listing Roast x402",
       heading: "x402 site audit and paid API preflight",
-      summary: "Use this when a buyer wants a quick paid API preflight before paying more: route-health, OpenAPI, llms.txt, pricing, and Bazaar visibility without assembling a request body.",
+      summary: "Use this when a buyer wants a quick paid API preflight before paying more: route-health, OpenAPI, llms.txt, pricing, and Bazaar visibility without assembling a request body. Direct aliases: /api/preflight, /api/v1/preflight, and /preflight.",
       primaryAction: intentRoutes.x402SiteAudit,
       primaryLabel: "Use the $0.001 GET site audit",
       supportingAction: intentRoutes.discoveryAudit,
@@ -5111,6 +5133,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
       llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
       llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
+      preflightAliases: preflightAliasUrls(config),
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH)
     },
     categories: ["x402", "paid-api", "agent-commerce", "api-discovery"],
@@ -5940,7 +5963,7 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div class="card">
           <h3>Discovery</h3>
-          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, paid API listing quality, and buyer-agent skip-reason searches; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, and <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge.</p>
+          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, paid API listing quality, and buyer-agent skip-reason searches; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
           <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
@@ -6225,6 +6248,8 @@ ${webMcpScript(config)}
 Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who need a paid API listing quality score, agent-service listing score, marketplace listing conversion feedback, or x402 service discoverability guidance before promotion.
 
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
+
+Paid API preflight aliases: GET ${formatPreflightAliasUrls(config)}. These aliases cost ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT} USDC units, and return the x402 site-audit output for agents that probe common preflight URLs before paying more.
 
 Homepage: ${absoluteUrl(config, "/")}
 Command builder: ${absoluteUrl(config, "/builder")}
@@ -6835,6 +6860,7 @@ ${copyScript("Copy command")}
         settlementProof: buildSettlementProof(config)
       },
       keywords: DISCOVERY_KEYWORDS,
+      preflightAliases: preflightAliasUrls(config),
       tools: [
         {
           name: "indexed_listing_roast_quick_score",
