@@ -702,7 +702,7 @@ function buildOpenApiDocument(config) {
         get: {
           operationId: "getInstantListingScore",
           tags: ["x402 listing", "paid API listing", "paid API listing quality"],
-          summary: "Paid $0.001 instant marketplace listing score",
+          summary: "Paid $0.001 x402 marketplace conversion listing score",
           description: "Lowest-friction GET route for buyer agents that want an immediate paid API listing quality score, agent-service listing score, or x402 marketplace conversion check without building a JSON body first. Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
@@ -885,7 +885,7 @@ function buildOpenApiDocument(config) {
         get: {
           operationId: "getIndexedListingRoastQuickScore",
           tags: ["x402 listing", "paid API listing", "paid API listing quality"],
-          summary: "Paid $0.001 indexed listing-roast quick score",
+          summary: "Paid $0.001 indexed x402 marketplace conversion quick score",
           description: "Lowest-price GET challenge on the already-indexed /api/listing-roast URL. Returns a $0.001 score API for marketplace listing quality, paid API discoverability, x402 service clarity, and buyer-agent conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,

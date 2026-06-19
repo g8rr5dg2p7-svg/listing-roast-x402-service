@@ -263,6 +263,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/instant-listing-score"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/instant-listing-score"].get["x-x402-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/instant-listing-score"].get.summary).toContain("$0.001");
+      expect(openApi.json.paths["/api/instant-listing-score"].get.summary).toContain("x402 marketplace conversion");
       expect(openApi.json.paths["/api/x402-ping"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/x402-ping"].get["x-x402-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/x402-ping"].get.summary).toContain("$0.001");
@@ -281,6 +282,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].post["x-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/listing-roast"].post["x-x402-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("$0.001");
+      expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("x402 marketplace conversion");
       expect(openApi.json.paths["/api/pay-now"].get.operationId).toBe("getPayNow");
       expect(openApi.json.paths["/api/listing-score"].post.summary).toContain("marketplace listing score");
       expect(openApi.json.paths["/api/listing-score"].post["x-payment"].maxAmountRequired).toBe("5000");
