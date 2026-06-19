@@ -138,6 +138,17 @@ const DISCOVERY_KEYWORDS = [
   "agent service promotion readiness"
 ];
 const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, x402 seller discoverability, listing SEO audit, seller growth checklist, and agent service promotion readiness before promotion.";
+const SERVICE_CATEGORY = "paid-api-listing";
+const SERVICE_TAGS = Object.freeze([
+  "x402",
+  "paid API listing quality",
+  "marketplace listing score",
+  "buyer-agent skip reasons",
+  "agent service clarity",
+  "x402 discovery audit",
+  "paid API preflight",
+  "route health"
+]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
 const INDEXED_QUICK_SCORE_DESCRIPTION = "marketplace listing score, paid API listing quality score, and buyer-agent skip reasons: $0.001 GET Listing Roast Quick Score x402 on the already-indexed /api/listing-roast URL for paid API preflight, x402 site audit starter intent, x402 discovery audit triage, agent service listing clarity, route-health language, Bazaar search visibility intent, stale pricing triage, and x402 service discoverability. Use GET /api/x402-site-audit or GET /api/x402-discovery-audit for live no-spend metadata checks, or POST /api/listing-roast for the $0.01 full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
@@ -2186,6 +2197,11 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       title: config.serviceName,
       version: "0.2.0",
       description: DISCOVERY_DESCRIPTION,
+      contact: { url: config.serviceUrl },
+      "x-provider-url": config.serviceUrl,
+      "x-service-name": config.serviceName,
+      "x-category": SERVICE_CATEGORY,
+      "x-tags": SERVICE_TAGS,
       "x-keywords": DISCOVERY_KEYWORDS
     },
     servers: [{ url: config.serviceUrl }],
@@ -2914,6 +2930,9 @@ function buildX402Manifest(config, cashRegister = {}) {
     service: config.serviceName,
     baseUrl,
     description: DISCOVERY_DESCRIPTION,
+    providerUrl: config.serviceUrl,
+    category: SERVICE_CATEGORY,
+    tags: SERVICE_TAGS,
     keywords: DISCOVERY_KEYWORDS,
     homepage: absoluteUrl(config, "/"),
     builder: absoluteUrl(config, "/builder"),
@@ -3231,6 +3250,10 @@ function buildAgentToolsManifest(config) {
   return {
     name: config.serviceName,
     description: DISCOVERY_DESCRIPTION,
+    serviceName: config.serviceName,
+    provider_url: config.serviceUrl,
+    category: SERVICE_CATEGORY,
+    tags: SERVICE_TAGS,
     base_url: x402Manifest.baseUrl,
     payment,
     catalog: "/x402.json",

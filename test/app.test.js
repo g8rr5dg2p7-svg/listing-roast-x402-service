@@ -338,6 +338,9 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
+      expect(x402Manifest.json.providerUrl).toBe("http://localhost:8787");
+      expect(x402Manifest.json.category).toBe("paid-api-listing");
+      expect(x402Manifest.json.tags).toContain("marketplace listing score");
       expect(x402Manifest.json.payment.primaryNetwork).toBe("base");
       expect(x402Manifest.json.payment.network).toBe("eip155:84532");
       expect(x402Manifest.json.payment.currency).toBe("USDC");
@@ -514,6 +517,10 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.status).toBe(200);
       expectFreshDiscoveryHeaders(agentTools.headers);
       expect(agentTools.json.name).toBe("Listing Roast x402");
+      expect(agentTools.json.serviceName).toBe("Listing Roast x402");
+      expect(agentTools.json.provider_url).toBe("http://localhost:8787");
+      expect(agentTools.json.category).toBe("paid-api-listing");
+      expect(agentTools.json.tags).toContain("marketplace listing score");
       expect(agentTools.json.openapi).toBe("/openapi.json");
       expect(agentTools.json.x402_catalog).toBe("/x402.json");
       expect(agentTools.json.preferred_first_paid_action.path).toBe("/api/listing-roast");
@@ -821,6 +828,10 @@ describe("Listing Roast x402 service", () => {
       expect(wellKnownOpenApi.json.openapi).toBe("3.1.0");
       expect(wellKnownOpenApi.json.info.title).toBe(openApi.json.info.title);
 
+      expect(openApi.json.info["x-provider-url"]).toBe("http://localhost:8787");
+      expect(openApi.json.info["x-service-name"]).toBe("Listing Roast x402");
+      expect(openApi.json.info["x-category"]).toBe("paid-api-listing");
+      expect(openApi.json.info["x-tags"]).toContain("marketplace listing score");
       expect(openApi.json.info["x-keywords"]).toContain("x402 listing");
       expect(openApi.json.components.securitySchemes.x402.type).toBe("apiKey");
       expect(openApi.json.components.securitySchemes.x402.in).toBe("header");
