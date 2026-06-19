@@ -915,6 +915,11 @@ describe("Listing Roast x402 service", () => {
       expect(findDiscovery.json.recommended.path).toBe("/api/x402-site-audit");
       expect(findDiscovery.json.recommended.maxAmountRequired).toBe("1000");
       expect(findDiscovery.json.alternatives.map((route) => route.path)).toContain("/api/x402-discovery-audit");
+      expect(findDiscovery.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(findDiscovery.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(findDiscovery.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(findDiscovery.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(findDiscovery.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(findDiscovery.json.paymentRule).toContain("Do not call");
 
       const findSkipReasons = await fetchJson(server, "/api/find?q=buyer-agent%20skip%20reasons");
@@ -943,6 +948,11 @@ describe("Listing Roast x402 service", () => {
       expect(routeDiscovery.json.scope).toBe("owned-routes-only");
       expect(routeDiscovery.json.results).toHaveLength(3);
       expect(routeDiscovery.json.best.path).toBe("/api/x402-site-audit");
+      expect(routeDiscovery.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(routeDiscovery.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(routeDiscovery.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(routeDiscovery.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(routeDiscovery.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(routeDiscovery.json.paymentRule).toContain("Do not call");
 
       const routeSkipReasons = await fetchJson(server, "/api/route", {

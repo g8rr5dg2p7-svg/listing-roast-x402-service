@@ -2941,6 +2941,7 @@ function scoreCatalogResource(resource, query) {
 function buildFindResult(config, rawQuery = "") {
   const query = String(rawQuery || "").trim().slice(0, 240);
   const routes = buildPaidRouteCatalog(config);
+  const intentRoutes = buildPayNowActions(config);
   const ranked = routes
     .map((route) => ({ ...route, matchScore: query ? scoreCatalogResource(route, query) : (route.preferredFirstPaidAction ? 1 : 0) }))
     .sort((left, right) => {
@@ -2961,6 +2962,8 @@ function buildFindResult(config, rawQuery = "") {
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
     x402Manifest: absoluteUrl(config, "/x402.json"),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     paymentRule: "Do not call the recommended paid route unless the buyer explicitly intends to pay USDC through x402.",
     note: "This endpoint is free. It maps a buyer task to the best existing paid route, price, max amount, schema, and copy-ready command."
   };
@@ -2983,6 +2986,7 @@ function buildRouteResult(config, payload = {}) {
   const top = parseRouteTop(payload.top || payload.k || payload.limit);
   const externalOnly = include === "external";
   const routes = externalOnly ? [] : buildPaidRouteCatalog(config);
+  const intentRoutes = buildPayNowActions(config);
   const ranked = routes
     .map((route) => ({
       slug: route.id,
@@ -3031,6 +3035,8 @@ function buildRouteResult(config, payload = {}) {
       merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])
     },
     payNow: absoluteUrl(config, PAY_NOW_PATH),
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     paymentRule: "This router is free. Do not call a returned paid route unless the buyer explicitly intends to pay USDC through x402.",
     note: externalOnly
       ? "include=external is accepted for Agent402-style clients, but this seller-hosted router only ranks owned Listing Roast routes and does not proxy third-party sellers."
