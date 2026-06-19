@@ -116,6 +116,36 @@ const DISCOVERY_KEYWORDS = [
 ];
 const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, and x402 service discoverability before promotion.";
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Listing Roast Quick Score x402: $0.001 GET marketplace listing score for paid API listing quality, paid API discoverability, agent service listing clarity, agent listing conversion score, buyer-agent skip reasons, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and x402 service discoverability on the indexed /api/listing-roast URL.";
+const LISTING_REQUEST_SCHEMA_PROPERTIES = {
+  agentName: {
+    type: "string",
+    description: "Name of the paid API, MCP tool, agent service, or marketplace listing being evaluated."
+  },
+  listingText: {
+    type: "string",
+    description: "Current buyer-facing listing copy, README excerpt, marketplace description, or route summary to score."
+  },
+  targetBuyer: {
+    type: "string",
+    description: "The buyer or agent persona the listing should convert, such as x402 builders, MCP users, or API buyers."
+  },
+  currentPrice: {
+    type: "string",
+    description: "Advertised price or max x402 amount the buyer will see before paying."
+  },
+  currentCheckoutPath: {
+    type: "string",
+    description: "The endpoint, checkout path, or x402 route the buyer is expected to call."
+  },
+  goal: {
+    type: "string",
+    description: "The conversion goal, such as more paid completions, fewer buyer-agent skips, or better marketplace search fit."
+  },
+  source: {
+    type: "string",
+    description: "Optional caller context used to identify the route, experiment, or upgrade path that requested the score."
+  }
+};
 
 export function getConfig(overrides = {}) {
   const payTo = overrides.payTo || process.env.PAY_TO || (process.env.NODE_ENV === "production" ? "" : DEFAULT_DEV_PAY_TO);
@@ -172,6 +202,15 @@ function jsonScript(value) {
 
 function shellQuote(value) {
   return `'${String(value).replaceAll("'", "'\\''")}'`;
+}
+
+function listingRequestSchemaProperties({ includeSource = true } = {}) {
+  if (includeSource) {
+    return LISTING_REQUEST_SCHEMA_PROPERTIES;
+  }
+
+  const { source, ...properties } = LISTING_REQUEST_SCHEMA_PROPERTIES;
+  return properties;
 }
 
 function buildDiscoveryLinks(config) {
@@ -681,15 +720,7 @@ function buildDiscovery(config, options = {}) {
     inputSchema: {
       type: "object",
       required: ["agentName", "listingText"],
-      properties: {
-        agentName: { type: "string" },
-        listingText: { type: "string" },
-        targetBuyer: { type: "string" },
-        currentPrice: { type: "string" },
-        currentCheckoutPath: { type: "string" },
-        goal: { type: "string" },
-        source: { type: "string" }
-      }
+      properties: listingRequestSchemaProperties()
     },
     output: {
       example: outputExample,
@@ -896,14 +927,7 @@ function buildInstantScoreDiscovery(config) {
     input: queryExample,
     inputSchema: {
       type: "object",
-      properties: {
-        agentName: { type: "string" },
-        listingText: { type: "string" },
-        targetBuyer: { type: "string" },
-        currentPrice: { type: "string" },
-        currentCheckoutPath: { type: "string" },
-        goal: { type: "string" }
-      }
+      properties: listingRequestSchemaProperties({ includeSource: false })
     },
     output: {
       example: buildInstantListingScore(buildInstantScoreInput(), config),

@@ -1388,6 +1388,10 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("paid API preflight buyers");
       expect(challenge.resource.description).toContain("Bazaar search visibility");
       expect(challenge.extensions.bazaar.info.input.queryParams.goal).toBe("Increase first paid conversion");
+      const indexedQuerySchema = challenge.extensions.bazaar.schema.properties.input.properties.queryParams.properties;
+      expect(indexedQuerySchema.agentName.description).toContain("paid API");
+      expect(indexedQuerySchema.listingText.description).toContain("marketplace description");
+      expect(indexedQuerySchema.goal.description).toContain("paid completions");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
       expect(response.json.error).toBe("payment_required");
@@ -1531,6 +1535,10 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.url).toContain("/api/listing-score");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("5000");
+      const scoreBodySchema = challenge.extensions.bazaar.schema.properties.input.properties.body.properties;
+      expect(scoreBodySchema.agentName.description).toContain("agent service");
+      expect(scoreBodySchema.listingText.description).toContain("buyer-facing listing copy");
+      expect(scoreBodySchema.source.description).toContain("upgrade path");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
