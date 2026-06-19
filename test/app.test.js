@@ -264,6 +264,11 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.resources[0].keywords).toContain("listing roast");
       expect(x402Manifest.json.resources[0].keywords).toContain("buyer-agent skip reasons");
       expect(x402Manifest.json.resources[0].keywords).toContain("agent service listing clarity");
+      expect(x402Manifest.json.resources[0].keywords).toContain("x402 discovery audit");
+      expect(x402Manifest.json.resources[0].keywords).toContain("paid API preflight");
+      expect(x402Manifest.json.resources[0].keywords).toContain("x402 route health check");
+      expect(x402Manifest.json.resources[0].keywords).toContain("bazaar search visibility");
+      expect(x402Manifest.json.resources[0].description).toContain("stale pricing triage");
       expect(x402Manifest.json.resources[0].price).toBe("$0.001");
       expect(x402Manifest.json.resources[0].maxAmountRequired).toBe("1000");
       expect(x402Manifest.json.resources[1].price).toBe("$0.001");
@@ -564,6 +569,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("x402 marketplace conversion");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("buyer-agent skip reasons");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent service listing clarity");
+      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("x402 discovery audit triage");
+      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Bazaar search visibility");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.command).toContain("/api/listing-roast");
       expect(openApi.json.paths["/api/pay-now"].get.operationId).toBe("getPayNow");
@@ -1190,6 +1197,10 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("buyer-agent skip reasons");
       expect(challenge.resource.description).toContain("agent service listing clarity");
+      expect(challenge.resource.description).toContain("x402 discovery audit buyers");
+      expect(challenge.resource.description).toContain("paid API preflight buyers");
+      expect(challenge.resource.description).toContain("Bazaar search visibility");
+      expect(challenge.extensions.bazaar.info.input.queryParams.goal).toBe("Increase first paid conversion");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
       expect(response.json.error).toBe("payment_required");
