@@ -1,4 +1,5 @@
 import express from "express";
+import { createHash } from "node:crypto";
 import { getAuthHeaders } from "@coinbase/cdp-sdk/auth";
 import { HTTPFacilitatorClient, x402ResourceServer } from "@x402/core/server";
 import { registerExactEvmScheme } from "@x402/evm/exact/server";
@@ -34,6 +35,9 @@ const WELL_KNOWN_AGENT_CARD_PATH = "/.well-known/agent-card.json";
 const WELL_KNOWN_AGENT_JSON_PATH = "/.well-known/agent.json";
 const WELL_KNOWN_AI_PLUGIN_PATH = "/.well-known/ai-plugin.json";
 const WELL_KNOWN_API_CATALOG_PATH = "/.well-known/api-catalog";
+const WELL_KNOWN_AGENT_SKILLS_INDEX_PATH = "/.well-known/agent-skills/index.json";
+const WELL_KNOWN_AGENT_SKILL_PATH = "/.well-known/agent-skills/listing-roast-x402/SKILL.md";
+const AGENT_SKILLS_SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/schema.json";
 const API_CATALOG_PROFILE = "https://www.rfc-editor.org/info/rfc9727";
 const API_CATALOG_CONTENT_TYPE = `application/linkset+json; profile="${API_CATALOG_PROFILE}"`;
 const INSTANT_SCORE_AMOUNT = "1000";
@@ -139,7 +143,8 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH)}>; rel="service-desc"; type="application/json"`,
-    `<${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}>; rel="api-catalog"; type="application/linkset+json"`
+    `<${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}>; rel="api-catalog"; type="application/linkset+json"`,
+    `<${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}>; rel="agent-skills"; type="application/json"`
   ].join(", ");
 }
 
@@ -244,6 +249,96 @@ function buildGetPayCommand(config, pathname = INSTANT_SCORE_PATH, maxAmount = I
   return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, pathname)} \\
   -X GET \\
   --max-amount ${maxAmount}`;
+}
+
+function sha256Digest(value) {
+  return `sha256:${createHash("sha256").update(value).digest("hex")}`;
+}
+
+function buildAgentSkillMarkdown(config) {
+  return `---
+name: listing-roast-x402
+description: Use Listing Roast x402 when an agent needs a paid API listing quality score, buyer-agent skip reasons, agent-service listing clarity, x402 marketplace conversion feedback, or a discoverability audit before promoting a paid x402/API service. Start with free discovery and only pay when the buyer intends to spend USDC.
+---
+
+# Listing Roast x402
+
+Listing Roast x402 is a paid HTTP JSON API for builders who need to understand why buyer agents skip a paid API or x402 marketplace listing.
+
+## Free Discovery
+
+Fetch these before any payment:
+
+- OpenAPI: ${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}
+- x402 manifest: ${absoluteUrl(config, "/x402.json")}
+- API catalog: ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
+- Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
+- Examples and commands: ${absoluteUrl(config, "/api/examples")}
+- Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}
+- Route guide: ${absoluteUrl(config, "/llms.txt")}
+
+## Payment Rule
+
+Do not call paid routes unless the buyer explicitly intends to pay. Paid calls require x402 payment in USDC on ${config.network}. Use the max amount shown below.
+
+## Preferred First Paid Action
+
+Use this when a buyer wants the cheapest live score for listing quality, paid API discoverability, x402 listing quality, buyer-agent skip reasons, or agent-service listing clarity:
+
+\`\`\`bash
+${buildGetPayCommand(config, ROAST_PATH)}
+\`\`\`
+
+Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT} USDC units.
+
+## Other Paid Actions
+
+Agent listing conversion score and buyer-agent skip reasons:
+
+\`\`\`bash
+${buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT)}
+\`\`\`
+
+x402 marketplace conversion score:
+
+\`\`\`bash
+${buildGetPayCommand(config, CONVERSION_SCORE_PATH, INSTANT_SCORE_AMOUNT)}
+\`\`\`
+
+x402 site audit and paid API preflight:
+
+\`\`\`bash
+${buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT)}
+\`\`\`
+
+Full listing roast, rewrite, and stop-or-upgrade guidance:
+
+\`\`\`bash
+${buildPayCommand(config, ROAST_PATH, "10000")}
+\`\`\`
+
+## When To Use
+
+Use this service for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, marketplace listing conversion, x402 route health, and discoverability checks before promotion.
+
+Do not use it for legal advice, deep market research, or broad business strategy.
+`;
+}
+
+function buildAgentSkillsIndex(config) {
+  const skill = buildAgentSkillMarkdown(config);
+  return {
+    $schema: AGENT_SKILLS_SCHEMA,
+    skills: [
+      {
+        name: "listing-roast-x402",
+        type: "skill-md",
+        description: "Use Listing Roast x402 when an agent needs a paid API listing quality score, buyer-agent skip reasons, agent-service listing clarity, x402 marketplace conversion feedback, or a discoverability audit before promoting a paid x402/API service. Start with free discovery and only pay when the buyer intends to spend USDC.",
+        url: absoluteUrl(config, WELL_KNOWN_AGENT_SKILL_PATH),
+        digest: sha256Digest(skill)
+      }
+    ]
+  };
 }
 
 function copyScript(defaultText = "Copy payment command") {
@@ -1227,6 +1322,7 @@ function buildOpenApiDocument(config) {
       agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
       aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
       apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
+      agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       preferredFirstPaidRoute: absoluteUrl(config, ROAST_PATH),
       recommendedFirstPaidAction: {
@@ -1273,6 +1369,7 @@ function buildX402Manifest(config) {
     agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
     aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
     apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
+    agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     aliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
     network: config.network,
@@ -1586,6 +1683,7 @@ function buildAgentCard(config) {
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
       llms: absoluteUrl(config, "/llms.txt"),
       mcp: absoluteUrl(config, "/.well-known/mcp.json"),
+      agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       noSpendDiscovery: true,
       a2aTaskEndpointAvailable: false,
       note: "This public card is a discovery bridge for paid x402 HTTP+JSON routes. Use OpenAPI, x402 manifest, or MCP metadata for exact callable routes."
@@ -1607,7 +1705,7 @@ function buildAiPluginManifest(config) {
       `Use GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent service listing clarity, agent listing conversion score, and buyer-agent skip reasons.`,
       `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight.`,
       `Use POST ${absoluteUrl(config, ROAST_PATH)} only when the buyer wants the full ${config.price} roast, rewrite, and stop-or-upgrade guidance.`,
-      "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, MCP metadata, llms.txt, examples, sample score, and pay-now JSON."
+      "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, Agent Skills index, MCP metadata, llms.txt, examples, sample score, and pay-now JSON."
     ].join(" "),
     auth: {
       type: "none"
@@ -1625,6 +1723,7 @@ function buildAiPluginManifest(config) {
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
+      agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
       recommendedFirstPaidAction: {
         route: absoluteUrl(config, ROAST_PATH),
@@ -1671,6 +1770,7 @@ function buildApiCatalog(config) {
           { href: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH), type: "application/json", title: "A2A-style agent card" },
           { href: absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH), type: "application/json", title: "Agent card alias" },
           { href: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH), type: "application/json", title: "Fallback AI plugin manifest" },
+          { href: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH), type: "application/json", title: "Agent Skills discovery index" },
           { href: absoluteUrl(config, "/.well-known/mcp.json"), type: "application/json", title: "MCP metadata" },
           { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "Pay-now handoff" },
           { href: absoluteUrl(config, "/api/examples"), type: "application/json", title: "Examples and copy-ready commands" }
@@ -2321,7 +2421,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -2348,6 +2448,8 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
       aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
       apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
+      agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
+      agentSkill: absoluteUrl(config, WELL_KNOWN_AGENT_SKILL_PATH),
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
       payNow: buildPayNow(config),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
@@ -2482,6 +2584,8 @@ Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
 Agent card aliases: ${absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)}
 AI plugin manifest: ${absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH)}
 API catalog: ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
+Agent Skills index: ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
+Agent Skill: ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILL_PATH)}
 MCP metadata: ${absoluteUrl(config, "/.well-known/mcp.json")}
 Pay-now JSON: ${absoluteUrl(config, PAY_NOW_PATH)}
 Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
@@ -2614,6 +2718,37 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
   app.get(WELL_KNOWN_API_CATALOG_PATH, async (_request, response) => {
     await recordSignal("apiCatalogViews");
     response.set("Content-Type", API_CATALOG_CONTENT_TYPE).send(prettyJson(buildApiCatalog(config)));
+  });
+
+  app.head(WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, (_request, response) => {
+    response
+      .set("Access-Control-Allow-Origin", "*")
+      .type("application/json")
+      .status(200)
+      .end();
+  });
+
+  app.get(WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, async (_request, response) => {
+    await recordSignal("agentSkillsViews");
+    response
+      .set("Access-Control-Allow-Origin", "*")
+      .json(buildAgentSkillsIndex(config));
+  });
+
+  app.head(WELL_KNOWN_AGENT_SKILL_PATH, (_request, response) => {
+    response
+      .set("Access-Control-Allow-Origin", "*")
+      .type("text/markdown")
+      .status(200)
+      .end();
+  });
+
+  app.get(WELL_KNOWN_AGENT_SKILL_PATH, async (_request, response) => {
+    await recordSignal("agentSkillViews");
+    response
+      .set("Access-Control-Allow-Origin", "*")
+      .type("text/markdown")
+      .send(buildAgentSkillMarkdown(config));
   });
 
   app.get("/builder", async (_request, response) => {
@@ -2921,6 +3056,8 @@ ${copyScript("Copy command")}
       agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
       aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
       apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
+      agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
+      agentSkill: absoluteUrl(config, WELL_KNOWN_AGENT_SKILL_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       keywords: DISCOVERY_KEYWORDS,
       tools: [
