@@ -13,11 +13,11 @@
     "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
-    "@coinbase/cdp-sdk": "1.51.0",
-    "@x402/core": "2.11.0",
-    "@x402/evm": "2.11.0",
-    "@x402/express": "2.11.0",
-    "@x402/extensions": "2.11.0",
+    "@coinbase/cdp-sdk": "1.51.2",
+    "@x402/core": "2.15.0",
+    "@x402/evm": "2.15.0",
+    "@x402/express": "2.15.0",
+    "@x402/extensions": "2.15.0",
     "dotenv": "^17.4.2",
     "express": "5.2.1",
     "zod": "3.25.76"
