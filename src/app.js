@@ -2267,6 +2267,61 @@ function buildRecommendedPaidSequence(intentRoutes) {
   ];
 }
 
+const SELECTED_FOLLOWUP_ACTION_BY_KEY = {
+  directoryPost: "indexedQuickScore",
+  apiEntry: "indexedQuickScore",
+  apiV1Entry: "indexedQuickScore",
+  v1Entry: "indexedQuickScore",
+  indexedQuickScore: "fullRoast",
+  marketplaceListingScore: "fullRoast",
+  paidApiListingQuality: "fullRoast",
+  buyerAgentSkipReasons: "fullRoast",
+  agentServiceClarity: "fullRoast",
+  instantScore: "fullRoast",
+  conversionScore: "fullRoast",
+  agentListingConversion: "fullRoast",
+  x402Ping: "indexedQuickScore",
+  x402SiteAudit: "discoveryAuditQuick",
+  discoveryAuditQuick: "discoveryAudit",
+  listingScore: "fullRoast"
+};
+
+function buildSelectedPaidSequence(intentRoutes, selectedActionKey = "indexedQuickScore", selectedPaidAction = null) {
+  const firstAction = selectedPaidAction || intentRoutes.indexedQuickScore;
+  const sequence = [
+    {
+      step: 1,
+      use: selectedActionKey,
+      action: firstAction,
+      reason: "Use this first for the selected buyer intent. It is the exact route returned by the no-spend route selector."
+    }
+  ];
+  const followupKey = SELECTED_FOLLOWUP_ACTION_BY_KEY[selectedActionKey];
+  const followupAction = followupKey ? intentRoutes[followupKey] : null;
+
+  if (followupAction && followupKey !== selectedActionKey) {
+    sequence.push({
+      step: 2,
+      use: followupKey,
+      action: followupAction,
+      reason: "Use this only after the first selected route confirms enough fit for a deeper paid action."
+    });
+  }
+
+  return sequence;
+}
+
+function buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, provenFirstPaidAction) {
+  const selected = selectedPaidAction || provenFirstPaidAction;
+  const isProvenRoute = selected.path === provenFirstPaidAction.path && selected.method === provenFirstPaidAction.method;
+
+  if (isProvenRoute) {
+    return `For generic Bazaar or marketplace traffic, start with ${selected.method} ${selected.path} at max ${selected.maxAmountRequired} USDC units; it is the proven first paid route.`;
+  }
+
+  return `For this exact buyer intent, start with ${selected.method} ${selected.path} at max ${selected.maxAmountRequired} USDC units. Use ${provenFirstPaidAction.method} ${provenFirstPaidAction.path} when the buyer came from a generic Bazaar result instead of this specific task.`;
+}
+
 const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   indexed_roast_quick_score: "indexedQuickScore",
   marketplace_listing_score_alias: "marketplaceListingScore",
@@ -2351,6 +2406,7 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
   const selection = selectPayNowAction(config, intent);
   const { intentRoutes, selectedPaidAction } = selection;
   const provenFirstPaidAction = intentRoutes.indexedQuickScore;
+  const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
 
   return {
     service: config.serviceName,
@@ -2373,6 +2429,9 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     preferredFirstPaidAction: provenFirstPaidAction,
     provenFirstPaidAction,
     provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. Exact alias routes remain available for phrase-specific searches.",
+    selectedFirstPaidAction: selectedPaidAction,
+    selectedPaidSequence,
+    buyerInstruction: buildSelectedBuyerInstruction(selection.selectedActionKey, selectedPaidAction, provenFirstPaidAction),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     routeSelector: [
       {
@@ -4639,6 +4698,8 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
   const recommended = ranked[0] || routes[0];
   const selected = selectedPaidActionForRoute(intentRoutes, recommended);
   const provenFirstPaidAction = intentRoutes.indexedQuickScore;
+  const selectedActionKey = selected?.selectedActionKey || "indexedQuickScore";
+  const selectedPaidAction = selected?.selectedPaidAction || provenFirstPaidAction;
 
   return {
     service: config.serviceName,
@@ -4658,6 +4719,9 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     preferredFirstPaidAction: provenFirstPaidAction,
     provenFirstPaidAction,
     provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. The recommended route may still point to a phrase-specific alias.",
+    selectedFirstPaidAction: selectedPaidAction,
+    selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
+    buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, provenFirstPaidAction),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     paymentRule: "Do not call the recommended paid route unless the buyer explicitly intends to pay USDC through x402.",
     note: "This endpoint is free. It maps a buyer task to the best existing paid route, price, max amount, schema, and copy-ready command."
@@ -4708,6 +4772,8 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     .slice(0, top);
   const selected = selectedPaidActionForRoute(intentRoutes, ranked[0]);
   const provenFirstPaidAction = intentRoutes.indexedQuickScore;
+  const selectedActionKey = selected?.selectedActionKey || "indexedQuickScore";
+  const selectedPaidAction = selected?.selectedPaidAction || provenFirstPaidAction;
 
   return {
     service: config.serviceName,
@@ -4739,6 +4805,9 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     preferredFirstPaidAction: provenFirstPaidAction,
     provenFirstPaidAction,
     provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. The best match may still point to a phrase-specific alias.",
+    selectedFirstPaidAction: selectedPaidAction,
+    selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
+    buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, provenFirstPaidAction),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     paymentRule: "This router is free. Do not call a returned paid route unless the buyer explicitly intends to pay USDC through x402.",
     note: externalOnly

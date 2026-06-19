@@ -1570,6 +1570,18 @@ describe("Listing Roast x402 service", () => {
       expect(payNowFullRoast.json.maxAmountRequired).toBe("10000");
       expect(payNowFullRoast.json.expectedChallenge.amount).toBe("10000");
 
+      const payNowDiscovery = await fetchJson(server, "/api/pay-now?intent=x402%20discovery%20audit");
+      expect(payNowDiscovery.status).toBe(200);
+      expect(payNowDiscovery.json.selectedActionKey).toBe("discoveryAuditQuick");
+      expect(payNowDiscovery.json.selectedFirstPaidAction.path).toBe("/api/x402-discovery-audit");
+      expect(payNowDiscovery.json.selectedPaidSequence[0].use).toBe("discoveryAuditQuick");
+      expect(payNowDiscovery.json.selectedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(payNowDiscovery.json.selectedPaidSequence[1].use).toBe("discoveryAudit");
+      expect(payNowDiscovery.json.selectedPaidSequence[1].action.maxAmountRequired).toBe("10000");
+      expect(payNowDiscovery.json.buyerInstruction).toContain("For this exact buyer intent");
+      expect(payNowDiscovery.json.buyerInstruction).toContain("/api/x402-discovery-audit");
+      expect(payNowDiscovery.json.provenFirstPaidAction.path).toBe("/api/listing-roast");
+
       const pricing = await fetchJson(server, "/api/pricing");
       expect(pricing.status).toBe(200);
       expect(pricing.headers.get("payment-required")).toBeNull();
@@ -1598,6 +1610,12 @@ describe("Listing Roast x402 service", () => {
       expect(findDiscovery.json.selectedActionKey).toBe("discoveryAuditQuick");
       expect(findDiscovery.json.selectedPaidAction.path).toBe("/api/x402-discovery-audit");
       expect(findDiscovery.json.selectedPaidAction.maxAmountRequired).toBe("1000");
+      expect(findDiscovery.json.selectedFirstPaidAction.path).toBe("/api/x402-discovery-audit");
+      expect(findDiscovery.json.selectedPaidSequence[0].use).toBe("discoveryAuditQuick");
+      expect(findDiscovery.json.selectedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(findDiscovery.json.selectedPaidSequence[1].use).toBe("discoveryAudit");
+      expect(findDiscovery.json.buyerInstruction).toContain("For this exact buyer intent");
+      expect(findDiscovery.json.buyerInstruction).toContain("/api/x402-discovery-audit");
       expect(findDiscovery.json.alternatives.map((route) => route.path)).toContain("/api/x402-site-audit");
       expect(findDiscovery.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
       expect(findDiscovery.json.provenFirstPaidAction.path).toBe("/api/listing-roast");
@@ -1650,6 +1668,12 @@ describe("Listing Roast x402 service", () => {
       expect(routeDiscovery.json.selectedActionKey).toBe("discoveryAuditQuick");
       expect(routeDiscovery.json.selectedPaidAction.path).toBe("/api/x402-discovery-audit");
       expect(routeDiscovery.json.selectedPaidAction.maxAmountRequired).toBe("1000");
+      expect(routeDiscovery.json.selectedFirstPaidAction.path).toBe("/api/x402-discovery-audit");
+      expect(routeDiscovery.json.selectedPaidSequence[0].use).toBe("discoveryAuditQuick");
+      expect(routeDiscovery.json.selectedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(routeDiscovery.json.selectedPaidSequence[1].use).toBe("discoveryAudit");
+      expect(routeDiscovery.json.buyerInstruction).toContain("For this exact buyer intent");
+      expect(routeDiscovery.json.buyerInstruction).toContain("/api/x402-discovery-audit");
       expect(routeDiscovery.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
       expect(routeDiscovery.json.provenFirstPaidAction.path).toBe("/api/listing-roast");
       expect(routeDiscovery.json.provenFirstPaidReason).toContain("wallet-backed paid-use proof");
@@ -1850,7 +1874,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.sampleViews).toBe(2);
       expect(cashRegister.json.signals.schemaViews).toBe(2);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
-      expect(cashRegister.json.signals.payNowViews).toBe(14);
+      expect(cashRegister.json.signals.payNowViews).toBe(15);
       expect(cashRegister.json.signals.pricingViews).toBe(1);
       expect(cashRegister.json.signals.findViews).toBe(6);
       expect(cashRegister.json.signals.routeViews).toBe(11);
