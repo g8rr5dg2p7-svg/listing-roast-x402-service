@@ -156,6 +156,7 @@ describe("Listing Roast x402 service", () => {
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
       expect(home.headers.get("link")).toContain("/.well-known/x402.json");
+      expect(home.text).toContain("Score API marketplace listing quality and discoverability before promotion");
       expect(home.text).toContain("first step for marketplace listing quality, paid API listing quality, and buyer-agent skip-reason searches");
       expect(home.text).toContain("Recommended paid sequence");
       expect(home.text).toContain("GET /api/listing-roast");
@@ -2312,6 +2313,8 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.url).toContain("/api/instant-listing-score");
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.extensions.bazaar.info.input.queryParams.agentName).toBe("Listing Roast x402");
+      expect(challenge.extensions.bazaar.info.input.queryParams.listingText).toMatch(/^Score API marketplace listing quality and discoverability/);
+      expect(challenge.extensions.bazaar.info.input.queryParams.listingText).toContain("$0.001 GET /api/listing-roast");
       expect(challenge.extensions.bazaar.info.input.queryParams.currentPrice).toBe("$0.001 GET; $0.01 POST upgrade");
       expect(challenge.extensions.bazaar.info.input.queryParams.currentPrice).not.toBe("$1.00");
       expect(challenge.extensions.bazaar.info.output.example.agentName).toBeUndefined();
@@ -2456,6 +2459,8 @@ describe("Listing Roast x402 service", () => {
         "route health"
       ]);
       expect(challenge.extensions.bazaar.info.input.queryParams.agentName).toBe("Listing Roast x402");
+      expect(challenge.extensions.bazaar.info.input.queryParams.listingText).toMatch(/^Score API marketplace listing quality and discoverability/);
+      expect(challenge.extensions.bazaar.info.input.queryParams.listingText).toContain("$0.001 GET /api/listing-roast");
       expect(challenge.extensions.bazaar.info.input.queryParams.currentPrice).toBe("$0.001 GET; $0.01 POST upgrade");
       expect(challenge.extensions.bazaar.info.input.queryParams.currentPrice).not.toBe("$1.00");
       expect(challenge.extensions.bazaar.info.input.queryParams.goal).toContain("stale Bazaar listing");

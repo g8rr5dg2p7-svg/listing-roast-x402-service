@@ -224,7 +224,7 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
 });
 const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
   agentName: "Listing Roast x402",
-  listingText: "A paid x402 score API for marketplace listing quality, paid API preflight, stale Bazaar price/search visibility, buyer-agent skip reasons, and agent-service clarity before promotion. Start with the already-indexed quick score route, use the $0.001 site audit when a buyer wants pre-pay route checks, then use the $0.001 discovery audit when a seller needs to fix stale x402 Bazaar listing metadata.",
+  listingText: "Score API marketplace listing quality and discoverability for paid API listing quality, paid API preflight, stale Bazaar price/search, buyer-agent skip reasons, and agent-service clarity. Start with $0.001 GET /api/listing-roast; use $0.001 site audit for route checks and $0.001 discovery audit for stale Bazaar metadata.",
   targetBuyer: "x402 and MCP builders",
   currentPrice: "$0.001 GET; $0.01 POST upgrade",
   currentCheckoutPath: "/api/listing-roast",
@@ -5999,7 +5999,7 @@ export function createApp(overrides = {}) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="A paid x402 score API for marketplace listing quality and discoverability. Start with GET /api/listing-roast at $0.001, then upgrade to POST /api/listing-roast at $0.01." />
+  <meta name="description" content="Score API marketplace listing quality and discoverability before promotion. Start with GET /api/listing-roast at $0.001, then upgrade to POST /api/listing-roast at $0.01." />
   <meta property="og:title" content="${escapeHtml(config.serviceName)}" />
   <meta property="og:description" content="Score paid API listing quality and discoverability before buyer agents skip the listing." />
   <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
