@@ -2383,6 +2383,7 @@ function buildOpenApiPaymentRequiredResponse(config, intentRouteKey = "indexedQu
 
 function buildOpenApiDocument(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
+  const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const paymentActionByRoute = {
     [`GET ${API_ENTRY_PATH}`]: "apiEntry",
     [`GET ${API_V1_ENTRY_PATH}`]: "apiV1Entry",
@@ -2410,9 +2411,32 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       "x-icon-url": absoluteUrl(config, ICON_SVG_PATH),
       "x-category": SERVICE_CATEGORY,
       "x-tags": SERVICE_TAGS,
-      "x-keywords": DISCOVERY_KEYWORDS
+      "x-keywords": DISCOVERY_KEYWORDS,
+      "x402": {
+        network: config.network,
+        asset: "USDC",
+        payTo: config.payTo,
+        manifest: absoluteUrl(config, "/x402.json"),
+        payNow: absoluteUrl(config, PAY_NOW_PATH),
+        preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+        recommendedPaidSequence
+      },
+      "x-recommended-first-paid-action": intentRoutes.indexedQuickScore,
+      "x-pay-now": absoluteUrl(config, PAY_NOW_PATH)
     },
     servers: [{ url: config.serviceUrl }],
+    "x402": {
+      network: config.network,
+      asset: "USDC",
+      payTo: config.payTo,
+      manifest: absoluteUrl(config, "/x402.json"),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+      recommendedPaidSequence,
+      buyerInstruction: "If the buyer intends to spend USDC, start with GET /api/listing-roast at $0.001 / max 1000 USDC units; read the 402 Payment-Required header, complete x402 payment, then retry with X-PAYMENT."
+    },
+    "x-recommended-first-paid-action": intentRoutes.indexedQuickScore,
+    "x-pay-now": absoluteUrl(config, PAY_NOW_PATH),
     paths: {
       [ROAST_PATH]: {
         get: {
@@ -3080,7 +3104,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       v1EntryRoute: absoluteUrl(config, V1_ENTRY_PATH),
       preferredFirstPaidRoute: absoluteUrl(config, ROAST_PATH),
       recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
-      recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
+      recommendedPaidSequence,
       intentLandingPages: buildIntentLandingHandoffs(config),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       conversionScoreRoute: absoluteUrl(config, CONVERSION_SCORE_PATH),

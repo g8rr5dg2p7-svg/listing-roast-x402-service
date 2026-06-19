@@ -863,6 +863,16 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.info["x-category"]).toBe("paid-api-listing");
       expect(openApi.json.info["x-tags"]).toContain("marketplace listing score");
       expect(openApi.json.info["x-keywords"]).toContain("x402 listing");
+      expect(openApi.json.info.x402.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(openApi.json.info.x402.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
+      expect(openApi.json.info["x-recommended-first-paid-action"].path).toBe("/api/listing-roast");
+      expect(openApi.json.info["x-pay-now"]).toContain("/api/pay-now");
+      expect(openApi.json.x402.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(openApi.json.x402.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
+      expect(openApi.json.x402.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(openApi.json.x402.buyerInstruction).toContain("GET /api/listing-roast");
+      expect(openApi.json["x-recommended-first-paid-action"].path).toBe("/api/listing-roast");
+      expect(openApi.json["x-pay-now"]).toContain("/api/pay-now");
       expect(openApi.json.components.securitySchemes.x402.type).toBe("apiKey");
       expect(openApi.json.components.securitySchemes.x402.in).toBe("header");
       expect(openApi.json.components.securitySchemes.x402.name).toBe("X-PAYMENT");
