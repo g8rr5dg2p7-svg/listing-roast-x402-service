@@ -582,6 +582,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/agent-listing-conversion"].get["x-payment"].maxAmountRequired).toBe("1000");
       expect(openApi.json.paths["/api/agent-listing-conversion"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/agent-listing-conversion"].get.summary).toContain("Listing Roast");
+      expect(openApi.json.paths["/api/agent-listing-conversion"].get.summary).toContain("agent service listing clarity");
       expect(openApi.json.paths["/api/agent-listing-conversion"].get.summary).toContain("agent listing conversion");
       expect(openApi.json.paths["/api/agent-listing-conversion"].get.description).toContain("agent service listing clarity");
       expect(openApi.json.paths["/api/agent-listing-conversion"].get.description).toContain("buyer-agent skip reasons");
@@ -1325,6 +1326,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.url).toContain("/api/agent-listing-conversion");
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("Agent Listing Conversion");
+      expect(challenge.resource.description).toContain("Agent Service Listing Clarity");
       expect(challenge.resource.description).toContain("Listing Roast");
       expect(challenge.resource.description).toContain("buyer-agent skip reasons");
       expect(challenge.accepts[0].network).toBe("eip155:84532");

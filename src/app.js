@@ -1828,7 +1828,7 @@ function buildOpenApiDocument(config) {
         get: {
           operationId: "getAgentListingConversionScore",
           tags: ["agent listing conversion", "agent service listing clarity", "buyer-agent skip reasons", "x402 listing", "paid API listing", "paid API listing quality"],
-          summary: "Listing Roast $0.001 agent listing conversion score and buyer-agent skip reasons",
+          summary: "Listing Roast $0.001 agent service listing clarity score, agent listing conversion, and buyer-agent skip reasons",
           description: "Lowest-friction GET route for buyer agents searching agent service listing clarity, agent listing conversion score, buyer-agent skip reasons, buyer intent, paid API listing quality, or marketplace conversion. Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
@@ -2486,8 +2486,8 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, AGENT_LISTING_PATH),
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: "Listing Roast one-tenth-cent GET agent listing conversion score for agent service listing clarity, buyer-agent skip reasons, buyer intent, paid API listing quality, and marketplace conversion. Optimized for agents searching agent-service listing clarity or buyer-agent skip reasons.",
-        keywords: ["agent listing conversion score", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "marketplace listing conversion", "GET paid API"],
+        description: "Listing Roast one-tenth-cent GET agent service listing clarity score and agent listing conversion score for buyer-agent skip reasons, buyer intent, paid API listing quality, and marketplace conversion. Optimized for agents searching agent service listing clarity x402, agent-service listing clarity, or buyer-agent skip reasons.",
+        keywords: ["agent service listing clarity", "agent service listing clarity x402", "agent listing conversion score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "marketplace listing conversion", "GET paid API"],
         command: buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT),
         input: buildInstantScoreDiscovery(config).input,
         outputExample: buildAgentListingConversionScore(buildInstantScoreInput(), config),
@@ -3184,7 +3184,7 @@ function buildApiCatalog(config) {
     { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET indexed $0.001 x402 listing quality quick score and POST $0.01 full roast" },
     { href: absoluteUrl(config, INSTANT_SCORE_PATH), type: "application/json", title: "GET $0.001 instant paid API listing quality score" },
     { href: absoluteUrl(config, CONVERSION_SCORE_PATH), type: "application/json", title: "GET $0.001 x402 marketplace conversion score" },
-    { href: absoluteUrl(config, AGENT_LISTING_PATH), type: "application/json", title: "GET $0.001 agent listing conversion score and buyer-agent skip reasons" },
+    { href: absoluteUrl(config, AGENT_LISTING_PATH), type: "application/json", title: "GET $0.001 agent service listing clarity score, agent listing conversion, and buyer-agent skip reasons" },
     { href: absoluteUrl(config, PING_PATH), type: "application/json", title: "GET $0.001 paid x402 ping" },
     { href: absoluteUrl(config, SITE_AUDIT_PATH), type: "application/json", title: "GET $0.001 x402 site audit and paid API preflight" },
     { href: absoluteUrl(config, "/api/listing-score"), type: "application/json", title: "POST $0.005 paid API listing quality score" },
@@ -3599,7 +3599,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast Agent Listing Conversion Score: $0.001 GET score for agent service listing clarity, buyer-agent skip reasons, agent listing conversion, paid API listing quality, buyer intent, and x402 marketplace conversion.",
+        description: "Listing Roast Agent Service Listing Clarity / Agent Listing Conversion Score: $0.001 GET score for agent service listing clarity, buyer-agent skip reasons, agent listing conversion, paid API listing quality, buyer intent, and x402 marketplace conversion.",
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "agentListingConversion"),
         unpaidResponseBody: unpaidPaymentPreview(config, "agentListingConversion"),
@@ -5102,7 +5102,7 @@ ${copyScript("Copy command")}
           price: config.instantScorePrice,
           network: config.network,
           command: buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT),
-          description: "Listing Roast one-tenth-cent GET agent listing conversion score for agent service listing clarity, buyer-agent skip reasons, buyer intent, paid API listing quality, and marketplace conversion.",
+          description: "Listing Roast one-tenth-cent GET agent service listing clarity score and agent listing conversion score for buyer-agent skip reasons, buyer intent, paid API listing quality, and marketplace conversion.",
           payment: buildPaymentHint(config, {
             path: AGENT_LISTING_PATH,
             method: "GET",
@@ -5110,7 +5110,7 @@ ${copyScript("Copy command")}
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
             buyerAction: "Pay $0.001 for an agent listing conversion score without building a JSON body."
           }),
-          keywords: ["agent listing conversion score", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "GET paid API"],
+          keywords: ["agent service listing clarity", "agent service listing clarity x402", "agent listing conversion score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "GET paid API"],
           input: buildInstantScoreDiscovery(config).input
         },
         {
