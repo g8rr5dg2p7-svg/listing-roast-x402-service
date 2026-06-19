@@ -5,6 +5,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../src/app.js";
+import { getCashRegister, recordPaidCompletion } from "../src/cashRegister.js";
 import { requestExample } from "../src/roast.js";
 
 let testDataDir;
@@ -375,6 +376,30 @@ describe("Listing Roast x402 service", () => {
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
+  });
+
+  it("keeps route-level paid counters alongside aggregate revenue", async () => {
+    await recordPaidCompletion("instantScore", 0.001);
+    await recordPaidCompletion("indexedRoastGet", 0.001);
+    await recordPaidCompletion("listingScorePost", 0.005);
+    await recordPaidCompletion("x402SiteAudit", 0.001);
+    await recordPaidCompletion("x402DiscoveryAudit", 0.01);
+    await recordPaidCompletion("x402Ping", 0.001);
+    await recordPaidCompletion("listingRoast", 0.01);
+
+    const cashRegister = await getCashRegister();
+    expect(cashRegister.paidCompletions).toBe(7);
+    expect(cashRegister.estimatedGrossRevenueUsd).toBe("0.029");
+    expect(cashRegister.listingScoreCompletions).toBe(3);
+    expect(cashRegister.listingScoreEstimatedRevenueUsd).toBe("$0.007");
+    expect(cashRegister.instantScoreCompletions).toBe(1);
+    expect(cashRegister.indexedRoastGetCompletions).toBe(1);
+    expect(cashRegister.listingScorePostCompletions).toBe(1);
+    expect(cashRegister.x402SiteAuditCompletions).toBe(1);
+    expect(cashRegister.x402DiscoveryAuditCompletions).toBe(2);
+    expect(cashRegister.x402DiscoveryAuditEstimatedRevenueUsd).toBe("$0.011");
+    expect(cashRegister.x402PingCompletions).toBe(1);
+    expect(cashRegister.listingRoastCompletions).toBe(1);
   });
 
   it("protects the instant GET score route with a one-tenth-cent x402 challenge", async () => {

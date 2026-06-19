@@ -44,6 +44,7 @@ const DISCOVERY_KEYWORDS = [
   "x402 service discoverability"
 ];
 const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing score, marketplace listing conversion, and x402 service discoverability before promotion.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Listing Roast Quick Score x402: $0.001 GET score API for marketplace listing quality, paid API discoverability, x402 service clarity, and buyer-agent conversion checks on the indexed /api/listing-roast URL.";
 
 export function getConfig(overrides = {}) {
   const payTo = overrides.payTo || process.env.PAY_TO || (process.env.NODE_ENV === "production" ? "" : DEFAULT_DEV_PAY_TO);
@@ -779,7 +780,7 @@ function buildOpenApiDocument(config) {
         get: {
           tags: ["x402 listing", "paid API listing", "paid API listing quality"],
           summary: "Paid $0.001 indexed listing-roast quick score",
-          description: "Lowest-price GET challenge on the already-indexed /api/listing-roast URL. Returns an instant paid API listing quality score, agent-service listing score, and x402 marketplace conversion check after payment. Use POST on the same URL for the full $0.01 roast.",
+          description: "Lowest-price GET challenge on the already-indexed /api/listing-roast URL. Returns a $0.001 score API for marketplace listing quality, paid API discoverability, x402 service clarity, and buyer-agent conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
           parameters: [
             { name: "agentName", in: "query", required: false, schema: { type: "string" } },
             { name: "listingText", in: "query", required: false, schema: { type: "string" } },
@@ -897,8 +898,8 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, ROAST_PATH),
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: "One-tenth-cent GET marketplace listing score on the already-indexed listing-roast URL for paid API listing quality, agent-service listing score, and x402 marketplace conversion. POST the same URL for the full one-cent roast.",
-        keywords: ["listing roast", "marketplace listing score", "paid API listing quality score", "agent-service listing score", "x402 marketplace conversion", "GET paid API"],
+        description: "One-tenth-cent GET score API for marketplace listing quality, paid API discoverability, x402 service clarity, agent-service listing score, and buyer-agent conversion checks on the already-indexed listing-roast URL. POST the same URL for the full one-cent roast.",
+        keywords: ["listing roast", "score API", "marketplace listing quality", "paid API discoverability", "agent-service listing score", "x402 marketplace conversion", "GET paid API"],
         command: buildGetPayCommand(config, ROAST_PATH),
         input: buildInstantScoreDiscovery(config).input,
         outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput()),
@@ -1038,7 +1039,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast Quick Score x402: $0.001 GET marketplace listing score, paid API listing quality score, and x402 marketplace conversion check on the indexed /api/listing-roast URL. POST the same URL for the $0.01 full roast.",
+        description: INDEXED_QUICK_SCORE_DESCRIPTION,
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildIndexedRoastGetDiscovery(config))
       },
@@ -2038,8 +2039,8 @@ ${copyScript("Copy $0.005 score command")}
           url: absoluteUrl(config, ROAST_PATH),
           price: config.instantScorePrice,
           network: config.network,
-          description: "one-tenth-cent GET marketplace listing score on the indexed listing-roast URL for paid API listing quality, agent-service listing score, and x402 marketplace conversion. POST the same URL for the full roast.",
-          keywords: ["listing roast", "marketplace listing score", "paid API listing quality score", "agent-service listing score", "x402 marketplace conversion"],
+          description: "one-tenth-cent GET score API for marketplace listing quality, paid API discoverability, x402 service clarity, agent-service listing score, and buyer-agent conversion checks on the indexed listing-roast URL.",
+          keywords: ["listing roast", "score API", "marketplace listing quality", "paid API discoverability", "agent-service listing score", "x402 marketplace conversion"],
           input: buildInstantScoreDiscovery(config).input
         },
         {
@@ -2141,13 +2142,13 @@ ${copyScript("Copy $0.005 score command")}
 
   app.get(INSTANT_SCORE_PATH, async (request, response) => {
     const result = buildInstantListingScore(buildInstantScoreInput(request.query));
-    const cashRegister = await recordPaidCompletion("listingScore", 0.001);
+    const cashRegister = await recordPaidCompletion("instantScore", 0.001);
     response.json({ ...result, cashRegister });
   });
 
   app.get(ROAST_PATH, async (request, response) => {
     const result = buildIndexedRoastQuickScore(buildInstantScoreInput(request.query));
-    const cashRegister = await recordPaidCompletion("listingScore", 0.001);
+    const cashRegister = await recordPaidCompletion("indexedRoastGet", 0.001);
     response.json({ ...result, cashRegister });
   });
 
@@ -2165,7 +2166,7 @@ ${copyScript("Copy $0.005 score command")}
     }
 
     const result = buildSiteAuditOutput(config, await buildX402DiscoveryAudit(parsed.data));
-    const cashRegister = await recordPaidCompletion("x402DiscoveryAudit", 0.001);
+    const cashRegister = await recordPaidCompletion("x402SiteAudit", 0.001);
     response.json({ ...result, cashRegister });
   });
 
@@ -2189,7 +2190,7 @@ ${copyScript("Copy $0.005 score command")}
     }
 
     const result = buildListingScore(parsed.data);
-    const cashRegister = await recordPaidCompletion("listingScore", 0.005);
+    const cashRegister = await recordPaidCompletion("listingScorePost", 0.005);
     response.json({ ...result, cashRegister });
   });
 
