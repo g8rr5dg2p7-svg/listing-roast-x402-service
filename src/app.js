@@ -2059,10 +2059,23 @@ function buildPaymentHint(config, options) {
 }
 
 function buildPaidUseProofLinks(config) {
+  const latestWalletSettlement = buildLatestWalletSettlementProof(config);
+  const walletConfirmedPaidRoute = latestWalletSettlement ? {
+    method: latestWalletSettlement.route.method,
+    path: latestWalletSettlement.route.path,
+    url: latestWalletSettlement.route.url,
+    maxAmountRequired: latestWalletSettlement.route.maxAmountRequired,
+    estimatedRevenueUsd: latestWalletSettlement.usdc || null,
+    source: "public_wallet_settlement",
+    payerDetails: latestWalletSettlement.payerDetails,
+    note: "This is the public wallet-confirmed paid route known from baseline settlement proof. The paidUsageProof URL is the source of truth for newer events."
+  } : null;
+
   return {
     paidUsageProof: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     cashRegister: absoluteUrl(config, "/api/cash-register"),
+    ...(walletConfirmedPaidRoute ? { walletConfirmedPaidRoute } : {}),
     note: "Free public proof surfaces expose paidUsageProof and wallet-backed paid completion evidence before payment."
   };
 }

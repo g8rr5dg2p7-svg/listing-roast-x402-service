@@ -2246,6 +2246,7 @@ describe("Listing Roast x402 service", () => {
   });
 
   it("shows wallet-derived paid completion proof on the cash register for imported baselines", async () => {
+    mockFacilitatorSupportedKinds();
     process.env.BASELINE_PAID_COMPLETIONS = "2";
     process.env.BASELINE_ESTIMATED_GROSS_REVENUE_USD = "0.002";
     process.env.BASELINE_LISTING_SCORE_COMPLETIONS = "2";
@@ -2289,6 +2290,13 @@ describe("Listing Roast x402 service", () => {
       expect(home.status).toBe(200);
       expect(home.text).toContain("GET /api/listing-roast settled");
       expect(home.text).toContain("0.001 wallet proof is exposed in the cash register");
+
+      const unpaidIndexedRoast = await fetchJson(server, "/api/listing-roast");
+      expect(unpaidIndexedRoast.status).toBe(402);
+      expect(unpaidIndexedRoast.json.paidUseProof.walletConfirmedPaidRoute.source).toBe("public_wallet_settlement");
+      expect(unpaidIndexedRoast.json.paidUseProof.walletConfirmedPaidRoute.path).toBe("/api/listing-roast");
+      expect(unpaidIndexedRoast.json.paidUseProof.walletConfirmedPaidRoute.estimatedRevenueUsd).toBe("0.001");
+      expect(unpaidIndexedRoast.json.paidUseProof.walletConfirmedPaidRoute.payerDetails).toBe("omitted");
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
