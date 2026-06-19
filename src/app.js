@@ -4036,15 +4036,27 @@ function validUnpaidSignalForPath(pathname) {
     return "apiEntryValidUnpaidChallenges";
   }
 
-  if (pathname === INSTANT_SCORE_PATH || pathname === CONVERSION_SCORE_PATH || pathname === AGENT_LISTING_PATH) {
+  if (pathname === INSTANT_SCORE_PATH) {
     return "instantScoreValidUnpaidChallenges";
+  }
+
+  if (pathname === CONVERSION_SCORE_PATH) {
+    return "conversionScoreValidUnpaidChallenges";
+  }
+
+  if (pathname === AGENT_LISTING_PATH) {
+    return "agentListingConversionValidUnpaidChallenges";
   }
 
   if (pathname === PING_PATH) {
     return "pingValidUnpaidChallenges";
   }
 
-  if (pathname === SITE_AUDIT_PATH || pathname === DISCOVERY_AUDIT_PATH) {
+  if (pathname === SITE_AUDIT_PATH) {
+    return "siteAuditValidUnpaidChallenges";
+  }
+
+  if (pathname === DISCOVERY_AUDIT_PATH) {
     return "discoveryAuditValidUnpaidChallenges";
   }
 
@@ -4067,7 +4079,7 @@ async function recordGetScoreProbe(request, _response, next) {
     const pathname = new URL(request.originalUrl, "http://local").pathname;
     await recordSignal("unpaidChallenges");
     await recordSignal("validUnpaidChallenges");
-    await recordSignal(pathname === ROAST_PATH ? "indexedRoastGetValidUnpaidChallenges" : "instantScoreValidUnpaidChallenges");
+    await recordSignal(pathname === ROAST_PATH ? "indexedRoastGetValidUnpaidChallenges" : validUnpaidSignalForPath(pathname));
   }
   next();
 }
@@ -4094,7 +4106,7 @@ async function recordSiteAuditProbe(request, _response, next) {
   if (!hasPaymentHeader(request)) {
     await recordSignal("unpaidChallenges");
     await recordSignal("validUnpaidChallenges");
-    await recordSignal("discoveryAuditValidUnpaidChallenges");
+    await recordSignal(validUnpaidSignalForPath(SITE_AUDIT_PATH));
   }
   next();
 }
