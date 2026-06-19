@@ -382,14 +382,20 @@ describe("Listing Roast x402 service", () => {
         "x402",
         "paid API listing quality",
         "marketplace listing score",
+        "x402 site audit",
+        "x402 discovery audit",
+        "paid API preflight",
         "buyer-agent skip reasons",
-        "agent service clarity"
+        "agent service clarity",
+        "route health"
       ]);
-      expect(x402Manifest.json.resources[0].description).toContain("Paid API listing quality score");
-      expect(x402Manifest.json.resources[0].description).toContain("agent listing conversion score");
+      expect(x402Manifest.json.resources[0].description).toContain("x402 site audit starter");
+      expect(x402Manifest.json.resources[0].description).toContain("paid API preflight");
+      expect(x402Manifest.json.resources[0].description).toContain("marketplace listing score");
       expect(x402Manifest.json.resources[0].keywords).toContain("listing roast");
       expect(x402Manifest.json.resources[0].keywords).toContain("buyer-agent skip reasons");
       expect(x402Manifest.json.resources[0].keywords).toContain("agent service listing clarity");
+      expect(x402Manifest.json.resources[0].keywords).toContain("x402 site audit");
       expect(x402Manifest.json.resources[0].keywords).toContain("x402 discovery audit");
       expect(x402Manifest.json.resources[0].keywords).toContain("paid API preflight");
       expect(x402Manifest.json.resources[0].keywords).toContain("x402 route health check");
@@ -1281,8 +1287,12 @@ describe("Listing Roast x402 service", () => {
         "x402",
         "paid API listing quality",
         "marketplace listing score",
+        "x402 site audit",
+        "x402 discovery audit",
+        "paid API preflight",
         "buyer-agent skip reasons",
-        "agent service clarity"
+        "agent service clarity",
+        "route health"
       ]);
       expect(localDiscovery.json.items[0].metadata.serviceTags).toContain("paid API listing quality");
       expect(localDiscovery.json.items[0].metadata.keywords).toContain("buyer-agent skip reasons");
@@ -1846,20 +1856,25 @@ describe("Listing Roast x402 service", () => {
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
-      expect(challenge.resource.description).toMatch(/^Paid API listing quality score, agent listing conversion score, and x402 discovery audit triage/);
+      expect(challenge.resource.description).toMatch(/^Listing Roast Quick Score x402/);
       expect(challenge.resource.description).toContain("$0.001");
+      expect(challenge.resource.description).toContain("x402 site audit starter");
       expect(challenge.resource.description).toContain("buyer-agent skip reasons");
       expect(challenge.resource.description).toContain("agent service listing clarity");
-      expect(challenge.resource.description).toContain("x402 discovery audit buyers");
-      expect(challenge.resource.description).toContain("paid API preflight buyers");
+      expect(challenge.resource.description).toContain("x402 discovery audit triage");
+      expect(challenge.resource.description).toContain("paid API preflight");
       expect(challenge.resource.description).toContain("Bazaar search visibility");
       expect(challenge.resource.serviceName).toBe("Listing Roast x402");
       expect(challenge.resource.tags).toEqual([
         "x402",
         "paid API listing quality",
         "marketplace listing score",
+        "x402 site audit",
+        "x402 discovery audit",
+        "paid API preflight",
         "buyer-agent skip reasons",
-        "agent service clarity"
+        "agent service clarity",
+        "route health"
       ]);
       expect(challenge.extensions.bazaar.info.input.queryParams.goal).toBe("Increase first paid conversion");
       const indexedQuerySchema = challenge.extensions.bazaar.schema.properties.input.properties.queryParams.properties;

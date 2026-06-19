@@ -9,7 +9,7 @@ Live production service:
 - OpenAPI: https://listing-roast-x402-service-production.up.railway.app/openapi.json
 - llms.txt: https://listing-roast-x402-service-production.up.railway.app/llms.txt
 - Instant score route: https://listing-roast-x402-service-production.up.railway.app/api/instant-listing-score
-- Indexed quick-score route: GET https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
+- Indexed quick-score route: GET https://listing-roast-x402-service-production.up.railway.app/api/listing-roast for marketplace listing quality, x402 site-audit starter intent, discovery-audit triage, and paid API preflight
 - Paid x402 ping route: https://listing-roast-x402-service-production.up.railway.app/api/x402-ping
 - x402 site audit route: GET https://listing-roast-x402-service-production.up.railway.app/api/x402-site-audit
 - x402 discovery audit quick route: GET https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
