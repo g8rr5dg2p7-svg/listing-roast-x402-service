@@ -1621,6 +1621,14 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("x402 discovery audit buyers");
       expect(challenge.resource.description).toContain("paid API preflight buyers");
       expect(challenge.resource.description).toContain("Bazaar search visibility");
+      expect(challenge.resource.serviceName).toBe("Listing Roast x402");
+      expect(challenge.resource.tags).toEqual([
+        "x402",
+        "paid API listing quality",
+        "marketplace listing score",
+        "buyer-agent skip reasons",
+        "agent service clarity"
+      ]);
       expect(challenge.extensions.bazaar.info.input.queryParams.goal).toBe("Increase first paid conversion");
       const indexedQuerySchema = challenge.extensions.bazaar.schema.properties.input.properties.queryParams.properties;
       expect(indexedQuerySchema.agentName.description).toContain("paid API");
@@ -1695,6 +1703,14 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("Site Audit");
       expect(challenge.resource.description).toContain("paid API preflight");
       expect(challenge.resource.description).toContain("route health check");
+      expect(challenge.resource.serviceName).toBe("Listing Roast x402");
+      expect(challenge.resource.tags).toEqual([
+        "x402",
+        "discovery audit",
+        "paid API preflight",
+        "route health",
+        "Bazaar visibility"
+      ]);
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
       expect(response.json.error).toBe("payment_required");

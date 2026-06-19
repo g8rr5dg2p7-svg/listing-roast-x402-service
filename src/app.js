@@ -118,6 +118,19 @@ const DISCOVERY_KEYWORDS = [
 const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, and x402 service discoverability before promotion.";
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Buyer-agent skip reasons, agent service listing clarity, marketplace listing score, and paid API listing quality score: $0.001 GET Listing Roast x402 quick score for agent listing conversion score, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and x402 service discoverability on the indexed /api/listing-roast URL. POST the same URL for the $0.01 full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
+const X402_SERVICE_NAME = "Listing Roast x402";
+const ROUTE_SERVICE_TAGS = Object.freeze({
+  apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
+  listingScore: ["x402", "paid API listing quality", "agent service clarity", "marketplace conversion", "discoverability"],
+  instantScore: ["x402", "paid API listing quality", "marketplace listing score", "agent service clarity", "discoverability"],
+  conversionScore: ["x402", "marketplace conversion", "paid API listing quality", "buyer-agent", "listing quality"],
+  agentListingConversion: ["x402", "buyer-agent skip reasons", "agent service clarity", "listing conversion", "paid API"],
+  indexedQuickScore: ["x402", "paid API listing quality", "marketplace listing score", "buyer-agent skip reasons", "agent service clarity"],
+  x402Ping: ["x402", "payment rail", "paid API", "route health", "Base USDC"],
+  x402SiteAudit: ["x402", "discovery audit", "paid API preflight", "route health", "Bazaar visibility"],
+  discoveryAudit: ["x402", "Bazaar visibility", "discovery audit", "stale pricing", "paid API preflight"],
+  fullRoast: ["x402", "listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons"]
+});
 const LISTING_REQUEST_SCHEMA_PROPERTIES = {
   agentName: {
     type: "string",
@@ -3839,6 +3852,13 @@ function buildMcpServerCard(config) {
   };
 }
 
+function routeServiceMetadata(routeKey) {
+  return {
+    serviceName: X402_SERVICE_NAME,
+    tags: ROUTE_SERVICE_TAGS[routeKey]
+  };
+}
+
 function createX402Middleware(config) {
   const facilitator = new HTTPFacilitatorClient({
     url: config.facilitatorUrl,
@@ -3866,6 +3886,7 @@ function createX402Middleware(config) {
     {
       [`GET ${API_ENTRY_PATH}`]: {
         resource: resourceUrl(API_ENTRY_PATH),
+        ...routeServiceMetadata("apiEntry"),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3881,6 +3902,7 @@ function createX402Middleware(config) {
       },
       [`GET ${API_V1_ENTRY_PATH}`]: {
         resource: resourceUrl(API_V1_ENTRY_PATH),
+        ...routeServiceMetadata("apiEntry"),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3896,6 +3918,7 @@ function createX402Middleware(config) {
       },
       [`GET ${V1_ENTRY_PATH}`]: {
         resource: resourceUrl(V1_ENTRY_PATH),
+        ...routeServiceMetadata("apiEntry"),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3911,6 +3934,7 @@ function createX402Middleware(config) {
       },
       "POST /api/listing-score": {
         resource: resourceUrl(SCORE_PATH),
+        ...routeServiceMetadata("listingScore"),
         accepts: {
           scheme: "exact",
           price: config.scorePrice,
@@ -3926,6 +3950,7 @@ function createX402Middleware(config) {
       },
       [`GET ${INSTANT_SCORE_PATH}`]: {
         resource: resourceUrl(INSTANT_SCORE_PATH),
+        ...routeServiceMetadata("instantScore"),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3941,6 +3966,7 @@ function createX402Middleware(config) {
       },
       [`GET ${CONVERSION_SCORE_PATH}`]: {
         resource: resourceUrl(CONVERSION_SCORE_PATH),
+        ...routeServiceMetadata("conversionScore"),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3956,6 +3982,7 @@ function createX402Middleware(config) {
       },
       [`GET ${AGENT_LISTING_PATH}`]: {
         resource: resourceUrl(AGENT_LISTING_PATH),
+        ...routeServiceMetadata("agentListingConversion"),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3971,6 +3998,7 @@ function createX402Middleware(config) {
       },
       [`GET ${ROAST_PATH}`]: {
         resource: resourceUrl(ROAST_PATH),
+        ...routeServiceMetadata("indexedQuickScore"),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -3986,6 +4014,7 @@ function createX402Middleware(config) {
       },
       [`GET ${PING_PATH}`]: {
         resource: resourceUrl(PING_PATH),
+        ...routeServiceMetadata("x402Ping"),
         accepts: {
           scheme: "exact",
           price: config.instantScorePrice,
@@ -4001,6 +4030,7 @@ function createX402Middleware(config) {
       },
       [`GET ${SITE_AUDIT_PATH}`]: {
         resource: resourceUrl(SITE_AUDIT_PATH),
+        ...routeServiceMetadata("x402SiteAudit"),
         accepts: {
           scheme: "exact",
           price: config.siteAuditPrice,
@@ -4016,6 +4046,7 @@ function createX402Middleware(config) {
       },
       [`POST ${DISCOVERY_AUDIT_PATH}`]: {
         resource: resourceUrl(DISCOVERY_AUDIT_PATH),
+        ...routeServiceMetadata("discoveryAudit"),
         accepts: {
           scheme: "exact",
           price: config.discoveryAuditPrice,
@@ -4031,6 +4062,7 @@ function createX402Middleware(config) {
       },
       [`POST ${ROAST_PATH}`]: {
         resource: resourceUrl(ROAST_PATH),
+        ...routeServiceMetadata("fullRoast"),
         accepts: {
           scheme: "exact",
           price: config.price,
