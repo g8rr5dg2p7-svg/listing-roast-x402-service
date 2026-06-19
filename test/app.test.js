@@ -2439,6 +2439,36 @@ describe("Listing Roast x402 service", () => {
     }
   }, 15000);
 
+  it("keeps quick-score alias 402 bodies aligned with their challenged route", async () => {
+    mockFacilitatorSupportedKinds();
+    const expectedByPath = {
+      "/api/marketplace-listing-score": "marketplaceListingScore",
+      "/api/paid-api-listing-quality": "paidApiListingQuality",
+      "/api/buyer-agent-skip-reasons": "buyerAgentSkipReasons",
+      "/api/agent-service-clarity": "agentServiceClarity"
+    };
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      for (const routePath of QUICK_SCORE_ALIAS_PATHS) {
+        const response = await fetchJson(server, routePath);
+
+        expect(response.status).toBe(402);
+        const challenge = readPaymentRequiredHeader(response.headers);
+        expect(challenge.resource.url).toContain(routePath);
+        expect(challenge.accepts[0].network).toBe("eip155:84532");
+        expect(challenge.accepts[0].amount).toBe("1000");
+        expect(response.json.error).toBe("payment_required");
+        expect(response.json.selectedPaidAction.path).toBe(routePath);
+        expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
+        expect(response.json.selectedPaidAction.command).toContain(routePath);
+        expect(response.json.intentRoutes[expectedByPath[routePath]].path).toBe(routePath);
+      }
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  }, 15000);
+
   it("protects the x402 ping route with a one-tenth-cent x402 challenge", async () => {
     mockFacilitatorSupportedKinds();
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });

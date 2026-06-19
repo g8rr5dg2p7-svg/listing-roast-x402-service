@@ -5487,6 +5487,7 @@ function createX402Middleware(config) {
       },
       ...Object.fromEntries(QUICK_SCORE_ALIAS_PATHS.map((routePath) => {
         const metadata = QUICK_SCORE_ALIAS_METADATA[routePath];
+        const intentRouteKey = PAY_NOW_ACTION_BY_RESOURCE_ID[metadata.id] || "indexedQuickScore";
         return [`GET ${routePath}`, {
           resource: resourceUrl(routePath),
           ...routeServiceMetadata("indexedQuickScore"),
@@ -5499,8 +5500,8 @@ function createX402Middleware(config) {
           },
           description: withPaidUseProofDescription(config, metadata.description),
           mimeType: "application/json",
-          customPaywallHtml: buildCustomPaywallHtml(config, "indexedQuickScore"),
-          unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
+          customPaywallHtml: buildCustomPaywallHtml(config, intentRouteKey),
+          unpaidResponseBody: unpaidPaymentPreview(config, intentRouteKey),
           extensions: declareChallengeDiscoveryExtension(buildIndexedRoastGetDiscovery(config))
         }];
       })),
