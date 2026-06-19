@@ -226,8 +226,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-proven-route-handoffs-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T23:30:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-start-here-handoff-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T23:45:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -4341,6 +4341,49 @@ function buildPrimaryEndpointHandoff(config, intentRoutes = buildPayNowActions(c
   };
 }
 
+function buildStartHereHandoff(config, cashRegister = {}, intentRoutes = buildPayNowActions(config)) {
+  const firstAction = intentRoutes.indexedQuickScore;
+  const upgradeAction = intentRoutes.fullRoast;
+  const proof = buildPaidUsageProof(config, cashRegister);
+
+  return {
+    use: "indexedQuickScore",
+    route: firstAction.route,
+    path: firstAction.path,
+    method: firstAction.method,
+    price: firstAction.price,
+    maxAmountRequired: firstAction.maxAmountRequired,
+    network: config.network,
+    payTo: config.payTo,
+    command: firstAction.command,
+    buyerInstruction: `If the buyer intends to pay, start with ${firstAction.method} ${firstAction.path} at max ${firstAction.maxAmountRequired} USDC units.`,
+    whyThisRoute: "This is the already-indexed, wallet-backed first paid route and the lowest-friction path to a real paid completion.",
+    paidUseProof: {
+      paidCompletions: proof.paidCompletions,
+      estimatedGrossRevenueUsd: proof.estimatedGrossRevenueUsd,
+      routeCompletions: proof.preferredConvertedRoute.completions,
+      hasConfirmedPaidUse: proof.preferredConvertedRoute.hasConfirmedPaidUse,
+      lastPaidAt: proof.lastPaidAt
+    },
+    expectedChallenge: {
+      status: 402,
+      amount: firstAction.maxAmountRequired,
+      network: config.network,
+      route: firstAction.route
+    },
+    upgradeAfterFit: {
+      use: "fullRoast",
+      route: upgradeAction.route,
+      path: upgradeAction.path,
+      method: upgradeAction.method,
+      price: upgradeAction.price,
+      maxAmountRequired: upgradeAction.maxAmountRequired,
+      command: upgradeAction.command
+    },
+    noSpendNote: "Fetching this handoff is free. Payment happens only when a buyer calls the x402 paid route with a valid payment header."
+  };
+}
+
 function buildPrimaryResourceSample(primaryEndpoint) {
   return {
     id: primaryEndpoint.id,
@@ -4368,6 +4411,7 @@ function buildX402Manifest(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const primaryEndpoint = buildPrimaryEndpointHandoff(config, intentRoutes);
   const primaryResourceSample = buildPrimaryResourceSample(primaryEndpoint);
+  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
   const baseUrl = absoluteUrl(config, "/").replace(/\/$/, "");
   const resources = [
       {
@@ -4622,6 +4666,7 @@ function buildX402Manifest(config, cashRegister = {}) {
     mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
     mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
+    startHere,
     payNowExamples: buildPayNowIntentExamples(config),
     intentLandingPages: buildIntentLandingHandoffs(config),
     paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
@@ -4835,6 +4880,7 @@ function buildPaidRouteCatalog(config) {
 function buildPricingCatalog(config, cashRegister = {}) {
   const routes = buildPaidRouteCatalog(config);
   const intentRoutes = buildPayNowActions(config);
+  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
 
   return {
     service: config.serviceName,
@@ -4854,6 +4900,7 @@ function buildPricingCatalog(config, cashRegister = {}) {
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
     x402Manifest: absoluteUrl(config, "/x402.json"),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
+    startHere,
     count: routes.length,
     preferredFirstPaidAction: routes[0],
     preferredFirstPaidResponsePreview: buildPaidResponsePreview(config, "indexedQuickScore", intentRoutes.indexedQuickScore),
@@ -4939,6 +4986,7 @@ function buildLocalDiscoveryItems(config) {
 function buildLocalDiscoveryResources(config, query = {}, cashRegister = {}) {
   const allItems = buildLocalDiscoveryItems(config);
   const intentRoutes = buildPayNowActions(config);
+  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
   const limit = parseDiscoveryLimit(query.limit);
   const offset = parseDiscoveryOffset(query.offset);
   const items = allItems.slice(offset, offset + limit);
@@ -4953,6 +5001,7 @@ function buildLocalDiscoveryResources(config, query = {}, cashRegister = {}) {
     canonicalBazaar: "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources",
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
+    startHere,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     preferredFirstPaidResponsePreview: buildPaidResponsePreview(config, "indexedQuickScore", intentRoutes.indexedQuickScore),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
@@ -4972,6 +5021,7 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
   const rawQuery = String(query.query || query.q || "").trim().slice(0, 400);
   const maxUsdPrice = query.maxUsdPrice == null ? null : Number(query.maxUsdPrice);
   const intentRoutes = buildPayNowActions(config);
+  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
   const resources = buildLocalDiscoveryItems(config)
     .filter((item) => !query.network || item.accepts.some((accept) => accept.network === query.network))
     .filter((item) => !query.payTo || item.accepts.some((accept) => String(accept.payTo).toLowerCase() === String(query.payTo).toLowerCase()))
@@ -5011,6 +5061,7 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
+    startHere,
     ...(selected || {}),
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     selectedFirstPaidAction,
@@ -5037,6 +5088,7 @@ function buildLocalDiscoveryMerchant(config, query = {}, cashRegister = {}) {
   const payTo = String(query.payTo || "").toLowerCase();
   const matchesMerchant = !payTo || payTo === config.payTo.toLowerCase();
   const intentRoutes = buildPayNowActions(config);
+  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
   const items = matchesMerchant ? buildLocalDiscoveryItems(config) : [];
 
   return {
@@ -5049,6 +5101,7 @@ function buildLocalDiscoveryMerchant(config, query = {}, cashRegister = {}) {
     paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
+    startHere,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     preferredFirstPaidResponsePreview: buildPaidResponsePreview(config, "indexedQuickScore", intentRoutes.indexedQuickScore),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
@@ -5230,6 +5283,7 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
   const query = String(rawQuery || "").trim().slice(0, 240);
   const routes = buildPaidRouteCatalog(config);
   const intentRoutes = buildPayNowActions(config);
+  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
   const ranked = routes
     .map((route) => ({ ...route, matchScore: query ? scoreCatalogResource(route, query) : (route.preferredFirstPaidAction ? 1 : 0) }))
     .sort((left, right) => {
@@ -5260,6 +5314,7 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
     x402Manifest: absoluteUrl(config, "/x402.json"),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
+    startHere,
     preferredFirstPaidAction: provenFirstPaidAction,
     provenFirstPaidAction,
     provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. The recommended route may still point to a phrase-specific alias.",
@@ -5296,6 +5351,7 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
   const externalOnly = include === "external";
   const routes = externalOnly ? [] : buildPaidRouteCatalog(config);
   const intentRoutes = buildPayNowActions(config);
+  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
   const ranked = routes
     .map((route) => ({
       slug: route.id,
@@ -5355,6 +5411,7 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
       searchExamples: buildLocalDiscoverySearchExamples(config)
     },
     payNow: absoluteUrl(config, PAY_NOW_PATH),
+    startHere,
     preferredFirstPaidAction: provenFirstPaidAction,
     provenFirstPaidAction,
     provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. The best match may still point to a phrase-specific alias.",
