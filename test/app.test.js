@@ -838,6 +838,10 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.command).toContain("/api/listing-roast");
       expect(payNow.json.command).toContain("--max-amount 1000");
       expect(payNow.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(payNow.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(payNow.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(payNow.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(payNow.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(payNow.json.intentRoutes.instantScore.path).toBe("/api/instant-listing-score");
       expect(payNow.json.intentRoutes.conversionScore.path).toBe("/api/x402-marketplace-conversion");
       expect(payNow.json.intentRoutes.agentListingConversion.path).toBe("/api/agent-listing-conversion");
@@ -1044,6 +1048,8 @@ describe("Listing Roast x402 service", () => {
       expect(apiClient.status).toBe(402);
       expect(apiClient.headers.get("content-type")).toContain("application/json");
       expect(apiClient.json.selectedPaidAction.path).toBe("/api/x402-site-audit");
+      expect(apiClient.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(apiClient.json.recommendedPaidSequence[1].use).toBe("fullRoast");
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }

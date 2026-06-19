@@ -1397,6 +1397,20 @@ function buildPayNow(config) {
     command: intentRoutes.indexedQuickScore.command,
     reason: "Already-indexed Bazaar route and lowest-friction paid score.",
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence: [
+      {
+        step: 1,
+        use: "indexedQuickScore",
+        action: intentRoutes.indexedQuickScore,
+        reason: "Start with the already-indexed $0.001 quick score so Bazaar-visible buyers can confirm fit with the lowest-friction paid action."
+      },
+      {
+        step: 2,
+        use: "fullRoast",
+        action: intentRoutes.fullRoast,
+        reason: "Upgrade to the $0.01 full roast when the quick score is promising and the buyer wants rewritten copy, top fixes, and launch guidance."
+      }
+    ],
     routeSelector: [
       {
         when: "Marketplace or Bazaar discovered Listing Roast on /api/listing-roast",
@@ -1450,6 +1464,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore")
     noSpendPreview: true,
     selectedPaidAction: selected,
     preferredFirstPaidAction: payNow.preferredFirstPaidAction,
+    recommendedPaidSequence: payNow.recommendedPaidSequence,
     routeSelector: payNow.routeSelector,
     intentRoutes: payNow.intentRoutes,
     freeHandoff: absoluteUrl(config, PAY_NOW_PATH),
