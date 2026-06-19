@@ -1527,8 +1527,22 @@ function buildPaymentHint(config, options) {
     method: options.method,
     route: absoluteUrl(config, options.path),
     preferredFirstPaidAction: Boolean(options.preferredFirstPaidAction),
-    buyerAction: options.buyerAction
+    buyerAction: options.buyerAction,
+    paidUseProof: buildPaidUseProofLinks(config)
   };
+}
+
+function buildPaidUseProofLinks(config) {
+  return {
+    paidUsageProof: absoluteUrl(config, PAY_NOW_PATH),
+    cashRegister: absoluteUrl(config, "/api/cash-register"),
+    note: "Free public proof surfaces expose paidUsageProof and wallet-backed paid completion evidence before payment."
+  };
+}
+
+function withPaidUseProofDescription(config, description) {
+  const proof = buildPaidUseProofLinks(config);
+  return `${description} Public paid-use proof before payment: ${proof.paidUsageProof} exposes paidUsageProof and ${proof.cashRegister} exposes wallet-backed paid completion evidence.`;
 }
 
 function buildRoutePaymentAction(config, options) {
@@ -1857,6 +1871,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore")
     routeSelector: payNow.routeSelector,
     intentRoutes: payNow.intentRoutes,
     freeHandoff: absoluteUrl(config, PAY_NOW_PATH),
+    paidUseProof: buildPaidUseProofLinks(config),
     x402Manifest: absoluteUrl(config, "/x402.json"),
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
     note: "The x402 payment challenge is in the Payment-Required response header. This body is a free buyer handoff so agents can choose the right paid route without guessing."
@@ -4503,7 +4518,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast API Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /api first.",
+        description: withPaidUseProofDescription(config, "Listing Roast API Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /api first."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
@@ -4519,7 +4534,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast API v1 Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /api/v1 first.",
+        description: withPaidUseProofDescription(config, "Listing Roast API v1 Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /api/v1 first."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
@@ -4535,7 +4550,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast v1 Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /v1 first.",
+        description: withPaidUseProofDescription(config, "Listing Roast v1 Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /v1 first."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
@@ -4551,7 +4566,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Score x402: $0.005 paid API listing quality score for agent-service listing clarity, marketplace conversion, x402 service discoverability, first missing signal, and upgrade guidance.",
+        description: withPaidUseProofDescription(config, "Listing Score x402: $0.005 paid API listing quality score for agent-service listing clarity, marketplace conversion, x402 service discoverability, first missing signal, and upgrade guidance."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "listingScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "listingScore"),
@@ -4567,7 +4582,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Instant Listing Score x402: $0.001 GET marketplace listing score and paid API listing quality score for agent-service listing clarity, marketplace conversion, and x402 service discoverability.",
+        description: withPaidUseProofDescription(config, "Instant Listing Score x402: $0.001 GET marketplace listing score and paid API listing quality score for agent-service listing clarity, marketplace conversion, and x402 service discoverability."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "instantScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "instantScore"),
@@ -4583,7 +4598,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "x402 Marketplace Conversion Score: $0.001 GET marketplace conversion score for paid API listing quality, agent-service listing clarity, and buyer-agent conversion checks.",
+        description: withPaidUseProofDescription(config, "x402 Marketplace Conversion Score: $0.001 GET marketplace conversion score for paid API listing quality, agent-service listing clarity, and buyer-agent conversion checks."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "conversionScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "conversionScore"),
@@ -4599,7 +4614,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: AGENT_LISTING_CONVERSION_DESCRIPTION,
+        description: withPaidUseProofDescription(config, AGENT_LISTING_CONVERSION_DESCRIPTION),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "agentListingConversion"),
         unpaidResponseBody: unpaidPaymentPreview(config, "agentListingConversion"),
@@ -4615,7 +4630,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: INDEXED_QUICK_SCORE_DESCRIPTION,
+        description: withPaidUseProofDescription(config, INDEXED_QUICK_SCORE_DESCRIPTION),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "indexedQuickScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
@@ -4631,7 +4646,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast x402 Ping: $0.001 paid GET ping to verify the Base x402 rail before buying a score or roast.",
+        description: withPaidUseProofDescription(config, "Listing Roast x402 Ping: $0.001 paid GET ping to verify the Base x402 rail before buying a score or roast."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "x402Ping"),
         unpaidResponseBody: unpaidPaymentPreview(config, "x402Ping"),
@@ -4647,7 +4662,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast x402 Site Audit: $0.001 GET listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, paid API preflight, route health check, direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps.",
+        description: withPaidUseProofDescription(config, "Listing Roast x402 Site Audit: $0.001 GET listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, paid API preflight, route health check, direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "x402SiteAudit"),
         unpaidResponseBody: unpaidPaymentPreview(config, "x402SiteAudit"),
@@ -4663,7 +4678,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast x402 Discovery Audit Quick: $0.001 GET x402 discovery audit on the exact audit path for stale Bazaar pricing, search visibility, route health, paid API preflight, and direct 402 metadata.",
+        description: withPaidUseProofDescription(config, "Listing Roast x402 Discovery Audit Quick: $0.001 GET x402 discovery audit on the exact audit path for stale Bazaar pricing, search visibility, route health, paid API preflight, and direct 402 metadata."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAuditQuick"),
         unpaidResponseBody: unpaidPaymentPreview(config, "discoveryAuditQuick"),
@@ -4679,7 +4694,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast x402 Discovery Audit: $0.01 Bazaar visibility audit for stale indexed pricing, direct 402 metadata, search position, and no-spend fix steps.",
+        description: withPaidUseProofDescription(config, "Listing Roast x402 Discovery Audit: $0.01 Bazaar visibility audit for stale indexed pricing, direct 402 metadata, search position, and no-spend fix steps."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAudit"),
         unpaidResponseBody: unpaidPaymentPreview(config, "discoveryAudit"),
@@ -4695,7 +4710,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast x402: $0.01 marketplace listing conversion roast for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance.",
+        description: withPaidUseProofDescription(config, "Listing Roast x402: $0.01 marketplace listing conversion roast for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "fullRoast"),
         unpaidResponseBody: unpaidPaymentPreview(config, "fullRoast"),

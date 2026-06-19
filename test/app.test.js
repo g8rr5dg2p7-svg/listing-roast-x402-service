@@ -902,6 +902,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].maxAmountRequired).toBe("1000");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].preferredFirstPaidAction).toBe(true);
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].buyerAction).toContain("buyer-agent skip reasons");
+      expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].paidUseProof.paidUsageProof).toContain("/api/pay-now");
+      expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].paidUseProof.cashRegister).toContain("/api/cash-register");
       expect(openApi.json.paths["/api/listing-roast"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/listing-roast"].get["x-x402-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/listing-roast"].post.security).toEqual([{ x402: [] }]);
@@ -921,6 +923,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get.responses[402].headers.Link.description).toContain("pay-now");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[402].content["application/json"].example.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[402].content["application/json"].example.selectedPaidAction.maxAmountRequired).toBe("1000");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[402].content["application/json"].example.paidUseProof.paidUsageProof).toContain("/api/pay-now");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[402].content["application/json"].example.note).toContain("Payment-Required");
       expect(openApi.json.paths["/api/listing-roast"].post.responses[402].content["application/json"].example.selectedPaidAction.method).toBe("POST");
       expect(openApi.json.paths["/api/listing-roast"].post.responses[402].content["application/json"].example.selectedPaidAction.maxAmountRequired).toBe("10000");
@@ -1975,6 +1978,9 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("x402 discovery audit triage");
       expect(challenge.resource.description).toContain("paid API preflight");
       expect(challenge.resource.description).toContain("Bazaar search visibility");
+      expect(challenge.resource.description).toContain("Public paid-use proof before payment");
+      expect(challenge.resource.description).toContain("/api/pay-now");
+      expect(challenge.resource.description).toContain("/api/cash-register");
       expect(challenge.resource.serviceName).toBe("Listing Roast x402");
       expect(challenge.resource.tags).toEqual([
         "x402",
