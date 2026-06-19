@@ -1286,11 +1286,12 @@ function rejectHeadPaidRoute(request, response, next) {
   response.set("Allow", allow).status(405).end();
 }
 
-async function recordInstantScoreProbe(request, _response, next) {
+async function recordGetScoreProbe(request, _response, next) {
   if (!hasPaymentHeader(request)) {
+    const pathname = new URL(request.originalUrl, "http://local").pathname;
     await recordSignal("unpaidChallenges");
     await recordSignal("validUnpaidChallenges");
-    await recordSignal("instantScoreValidUnpaidChallenges");
+    await recordSignal(pathname === ROAST_PATH ? "indexedRoastGetValidUnpaidChallenges" : "instantScoreValidUnpaidChallenges");
   }
   next();
 }
@@ -1671,7 +1672,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", INSTANT_SCORE_PATH, ROAST_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", "/.well-known/x402.json", "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", ROAST_PATH, INSTANT_SCORE_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", "/.well-known/x402.json", "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -2039,11 +2040,14 @@ ${copyScript("Copy command")}
 
   app.get("/sample", async (_request, response) => {
     await recordSignal("sampleViews");
+    const indexedCommand = buildGetPayCommand(config, ROAST_PATH);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const roastCommand = buildPayCommand(config);
     const scoreOutput = buildListingScore(requestExample);
+    const indexedOutput = buildIndexedRoastQuickScore(buildInstantScoreInput());
     const builderUrl = absoluteUrl(config, "/builder");
     const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
+    const indexedRoute = absoluteUrl(config, ROAST_PATH);
     const paidRoute = absoluteUrl(config, "/api/listing-score");
     const roastRoute = absoluteUrl(config, "/api/listing-roast");
 
@@ -2052,7 +2056,7 @@ ${copyScript("Copy command")}
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Sample Listing Roast x402 score output before paying $0.005." />
+  <meta name="description" content="Sample Listing Roast x402 score output before paying. Start with the indexed $0.001 GET score route." />
   <link rel="canonical" href="${escapeHtml(absoluteUrl(config, "/sample"))}" />
   <title>Sample score | ${escapeHtml(config.serviceName)}</title>
   <style>
@@ -2092,15 +2096,19 @@ ${copyScript("Copy command")}
   </header>
   <main>
     <div class="wrap">
-      <h1>Sample the $0.005 listing score before paying.</h1>
-      <p class="lead">This is the exact response shape from the paid score route. If it matches what your agent or API listing needs, use the x402 command below.</p>
+      <h1>Sample the score, then start with the $0.001 indexed route.</h1>
+      <p class="lead">This shows the score shape before payment. If it matches what your agent or API listing needs, start with the already-indexed GET route, then upgrade to the custom score or full roast only when you need a body-specific review.</p>
       <div class="actions">
-        <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
+        <button class="button" type="button" data-copy-target="indexed-command" data-default-text="Copy $0.001 indexed GET command">Copy $0.001 indexed GET command</button>
+        <button class="button secondary" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
         <a class="button secondary" href="${builderUrl}">Build your command</a>
         <a class="button secondary" href="${sampleScoreApi}">Open sample JSON</a>
       </div>
       <div class="grid">
         <div class="card">
+          <h2>Preferred indexed score route</h2>
+          <p><code>GET ${escapeHtml(indexedRoute)}</code></p>
+          <p class="muted">Price: <span class="metric">${config.instantScorePrice}</span> on ${escapeHtml(config.network)}.</p>
           <h2>Paid score route</h2>
           <p><code>POST ${escapeHtml(paidRoute)}</code></p>
           <p class="muted">Price: <span class="metric">${config.scorePrice}</span> on ${escapeHtml(config.network)}.</p>
@@ -2111,6 +2119,12 @@ ${copyScript("Copy command")}
         <pre>${escapeHtml(prettyJson(scoreOutput))}</pre>
       </div>
       <div class="grid">
+        <div class="card">
+          <h2>Indexed GET command</h2>
+          <pre id="indexed-command">${escapeHtml(indexedCommand)}</pre>
+          <h2>Indexed score sample</h2>
+          <pre>${escapeHtml(prettyJson(indexedOutput))}</pre>
+        </div>
         <div class="card">
           <h2>Score command</h2>
           <pre id="score-command">${escapeHtml(scoreCommand)}</pre>
@@ -2123,7 +2137,7 @@ ${copyScript("Copy command")}
     </div>
   </main>
   <script>
-${copyScript("Copy $0.005 score command")}
+${copyScript("Copy command")}
   </script>
 </body>
 </html>`);
@@ -2305,7 +2319,7 @@ ${copyScript("Copy $0.005 score command")}
   });
 
   app.use([INSTANT_SCORE_PATH, ROAST_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
-  app.get([INSTANT_SCORE_PATH, ROAST_PATH], recordInstantScoreProbe);
+  app.get([INSTANT_SCORE_PATH, ROAST_PATH], recordGetScoreProbe);
   app.get(PING_PATH, recordPingProbe);
   app.get(SITE_AUDIT_PATH, recordSiteAuditProbe);
   app.post(ROAST_PATH, validateListingRoastRequest);

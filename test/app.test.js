@@ -121,7 +121,10 @@ describe("Listing Roast x402 service", () => {
 
       const sample = await fetchJson(server, "/sample");
       expect(sample.status).toBe(200);
-      expect(sample.text).toContain("Sample the $0.005 listing score before paying.");
+      expect(sample.text).toContain("Sample the score, then start with the $0.001 indexed route.");
+      expect(sample.text).toContain("Copy $0.001 indexed GET command");
+      expect(sample.text).toContain("Indexed GET command");
+      expect(sample.text).toContain("/api/listing-roast");
       expect(sample.text).toContain("/api/listing-score");
       expect(sample.text).toContain("Build your command");
 
@@ -311,6 +314,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.commandCopyClicks).toBe(1);
       expect(cashRegister.json.signals.validUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.instantScoreValidUnpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.indexedRoastGetValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.pingValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.roastValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.scoreValidUnpaidChallenges).toBe(0);
@@ -344,6 +348,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.validUnpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.roastValidUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.indexedRoastGetValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.scoreValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
     } finally {
@@ -445,6 +450,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.validUnpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.instantScoreValidUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.indexedRoastGetValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.roastValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.scoreValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
@@ -471,7 +477,8 @@ describe("Listing Roast x402 service", () => {
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.validUnpaidChallenges).toBe(1);
-      expect(cashRegister.json.signals.instantScoreValidUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.instantScoreValidUnpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.indexedRoastGetValidUnpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.roastValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.scoreValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
@@ -499,6 +506,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.validUnpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.instantScoreValidUnpaidChallenges).toBe(0);
+      expect(cashRegister.json.signals.indexedRoastGetValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.pingValidUnpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.roastValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.scoreValidUnpaidChallenges).toBe(0);
