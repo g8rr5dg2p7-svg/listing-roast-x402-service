@@ -32,6 +32,7 @@ const WELL_KNOWN_X402_JSON_PATH = "/.well-known/x402.json";
 const WELL_KNOWN_OPENAPI_JSON_PATH = "/.well-known/openapi.json";
 const WELL_KNOWN_AGENT_CARD_PATH = "/.well-known/agent-card.json";
 const WELL_KNOWN_AGENT_JSON_PATH = "/.well-known/agent.json";
+const WELL_KNOWN_AI_PLUGIN_PATH = "/.well-known/ai-plugin.json";
 const INSTANT_SCORE_AMOUNT = "1000";
 const PING_AMOUNT = "1000";
 const SITE_AUDIT_AMOUNT = "1000";
@@ -133,7 +134,8 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, "/llms.txt")}>; rel="describedby"; type="text/plain"`,
     `<${absoluteUrl(config, "/.well-known/mcp.json")}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}>; rel="service-desc"; type="application/json"`,
-    `<${absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)}>; rel="service-desc"; type="application/json"`
+    `<${absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
+    `<${absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH)}>; rel="service-desc"; type="application/json"`
   ].join(", ");
 }
 
@@ -1219,6 +1221,7 @@ function buildOpenApiDocument(config) {
       x402ManifestAliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
+      aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       preferredFirstPaidRoute: absoluteUrl(config, ROAST_PATH),
       recommendedFirstPaidAction: {
@@ -1263,6 +1266,7 @@ function buildX402Manifest(config) {
     llms: absoluteUrl(config, "/llms.txt"),
     agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
     agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
+    aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     aliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
     network: config.network,
@@ -1579,6 +1583,49 @@ function buildAgentCard(config) {
       noSpendDiscovery: true,
       a2aTaskEndpointAvailable: false,
       note: "This public card is a discovery bridge for paid x402 HTTP+JSON routes. Use OpenAPI, x402 manifest, or MCP metadata for exact callable routes."
+    }
+  };
+}
+
+function buildAiPluginManifest(config) {
+  return {
+    schema_version: "v1",
+    name_for_human: "Listing Roast x402",
+    name_for_model: "listing_roast_x402",
+    description_for_human: "Paid x402 API for listing quality scoring, buyer-agent skip reasons, and x402 discoverability checks.",
+    description_for_model: [
+      "Listing Roast x402 is a paid HTTP JSON API for x402, MCP, and agent-service builders.",
+      "Use it when a builder needs a paid API listing quality score, buyer-agent skip reasons, x402 marketplace conversion feedback, or x402 service discoverability guidance before promotion.",
+      "Protected routes require x402 payment in USDC on Base before JSON output is returned.",
+      `Preferred first paid action: GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units.`,
+      `Use GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent service listing clarity, agent listing conversion score, and buyer-agent skip reasons.`,
+      `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight.`,
+      `Use POST ${absoluteUrl(config, ROAST_PATH)} only when the buyer wants the full ${config.price} roast, rewrite, and stop-or-upgrade guidance.`,
+      "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, MCP metadata, llms.txt, examples, sample score, and pay-now JSON."
+    ].join(" "),
+    auth: {
+      type: "none"
+    },
+    api: {
+      type: "openapi",
+      url: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+      is_user_authenticated: false
+    },
+    legal_info_url: absoluteUrl(config, "/"),
+    x_listing_roast: {
+      paymentProtocol: "x402",
+      network: config.network,
+      asset: "USDC",
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+      recommendedFirstPaidAction: {
+        route: absoluteUrl(config, ROAST_PATH),
+        method: "GET",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT
+      }
     }
   };
 }
@@ -2221,7 +2268,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -2246,6 +2293,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       x402ManifestAliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
+      aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
       payNow: buildPayNow(config),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
@@ -2378,6 +2426,7 @@ x402 manifest: ${absoluteUrl(config, "/x402.json")}
 x402 manifest aliases: ${absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH)}, ${absoluteUrl(config, WELL_KNOWN_X402_PATH)}
 Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
 Agent card aliases: ${absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)}
+AI plugin manifest: ${absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH)}
 MCP metadata: ${absoluteUrl(config, "/.well-known/mcp.json")}
 Pay-now JSON: ${absoluteUrl(config, PAY_NOW_PATH)}
 Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
@@ -2497,6 +2546,11 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get(WELL_KNOWN_AGENT_CARD_PATH, serveAgentCard);
   app.get(WELL_KNOWN_AGENT_JSON_PATH, serveAgentCard);
+
+  app.get(WELL_KNOWN_AI_PLUGIN_PATH, async (_request, response) => {
+    await recordSignal("aiPluginViews");
+    response.json(buildAiPluginManifest(config));
+  });
 
   app.get("/builder", async (_request, response) => {
     await recordSignal("builderViews");
@@ -2801,6 +2855,7 @@ ${copyScript("Copy command")}
       x402ManifestAliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
+      aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       keywords: DISCOVERY_KEYWORDS,
       tools: [
