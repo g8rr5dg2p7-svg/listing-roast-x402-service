@@ -229,6 +229,23 @@ const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
 const quickScoreRequestExample = Object.freeze({
   ...LISTING_QUERY_PARAMETER_EXAMPLES
 });
+function quickScoreAliasInputDefaults(routePath) {
+  const metadata = QUICK_SCORE_ALIAS_METADATA[routePath];
+  if (!metadata) {
+    return quickScoreRequestExample;
+  }
+
+  const primaryIntent = metadata.keywords[0] || metadata.name.replaceAll("_", " ");
+  const supportingIntents = metadata.keywords.slice(1, 4).join(", ");
+
+  return {
+    ...quickScoreRequestExample,
+    listingText: `A $0.001 x402 quick score for ${primaryIntent}${supportingIntents ? `, ${supportingIntents}` : ""}. Use exact GET ${routePath} when a buyer agent searches that phrase, then upgrade to POST ${ROAST_PATH} for the $0.01 full roast when the score shows enough fit.`,
+    targetBuyer: `buyer agents searching ${primaryIntent}`,
+    currentCheckoutPath: routePath,
+    goal: `Convert buyer agents searching "${primaryIntent}" through exact GET ${routePath}; keep the first paid action at $0.001 and hand off to the $0.01 full roast only after fit is proven.`
+  };
+}
 const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   indexed_roast_quick_score: "indexedQuickScore",
   directory_root_post: "directoryPost",
@@ -398,18 +415,19 @@ function listingRequestSchemaProperties({ includeSource = true } = {}) {
   return properties;
 }
 
-function listingQuerySchemaProperties() {
+function listingQuerySchemaProperties(defaults = LISTING_QUERY_PARAMETER_EXAMPLES) {
   return Object.fromEntries(Object.entries(listingRequestSchemaProperties({ includeSource: false })).map(([name, schema]) => [
     name,
     {
       ...schema,
-      default: LISTING_QUERY_PARAMETER_EXAMPLES[name]
+      example: defaults[name] || LISTING_QUERY_PARAMETER_EXAMPLES[name],
+      default: defaults[name] || LISTING_QUERY_PARAMETER_EXAMPLES[name]
     }
   ]));
 }
 
-function listingQueryOpenApiParameters() {
-  return Object.entries(listingQuerySchemaProperties()).map(([name, schema]) => ({
+function listingQueryOpenApiParameters(defaults = LISTING_QUERY_PARAMETER_EXAMPLES) {
+  return Object.entries(listingQuerySchemaProperties(defaults)).map(([name, schema]) => ({
     name,
     in: "query",
     required: false,
@@ -1438,24 +1456,24 @@ function buildIndexedRoastQuickScoreDiscoveryExample(input, config) {
   };
 }
 
-function buildInstantScoreDiscovery(config) {
+function buildInstantScoreDiscovery(config, inputDefaults = quickScoreRequestExample) {
   const queryExample = {
-    agentName: quickScoreRequestExample.agentName,
-    listingText: quickScoreRequestExample.listingText,
-    targetBuyer: quickScoreRequestExample.targetBuyer,
-    currentPrice: quickScoreRequestExample.currentPrice,
-    currentCheckoutPath: quickScoreRequestExample.currentCheckoutPath,
-    goal: quickScoreRequestExample.goal
+    agentName: inputDefaults.agentName,
+    listingText: inputDefaults.listingText,
+    targetBuyer: inputDefaults.targetBuyer,
+    currentPrice: inputDefaults.currentPrice,
+    currentCheckoutPath: inputDefaults.currentCheckoutPath,
+    goal: inputDefaults.goal
   };
 
   return {
     input: queryExample,
     inputSchema: {
       type: "object",
-      properties: listingQuerySchemaProperties()
+      properties: listingQuerySchemaProperties(queryExample)
     },
     output: {
-      example: buildInstantListingScore(buildInstantScoreInput(), config),
+      example: buildInstantListingScore(buildInstantScoreInput(queryExample), config),
       schema: buildScoreDiscovery(config).output.schema
     },
     service: {
@@ -1500,18 +1518,20 @@ function buildAgentListingConversionDiscovery(config) {
   };
 }
 
-function buildIndexedRoastGetDiscovery(config) {
-  const discovery = buildInstantScoreDiscovery(config);
+function buildIndexedRoastGetDiscovery(config, options = {}) {
+  const routePath = options.routePath || ROAST_PATH;
+  const inputDefaults = options.inputDefaults || quickScoreRequestExample;
+  const discovery = buildInstantScoreDiscovery(config, inputDefaults);
 
   return {
     ...discovery,
     output: {
       ...discovery.output,
-      example: buildIndexedRoastQuickScoreDiscoveryExample(buildInstantScoreInput(), config)
+      example: buildIndexedRoastQuickScoreDiscoveryExample(buildInstantScoreInput(inputDefaults), config)
     },
     service: {
       ...discovery.service,
-      route: absoluteUrl(config, ROAST_PATH)
+      route: absoluteUrl(config, routePath)
     }
   };
 }
@@ -3488,6 +3508,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
 
   for (const aliasPath of QUICK_SCORE_ALIAS_PATHS) {
     const metadata = QUICK_SCORE_ALIAS_METADATA[aliasPath];
+    const aliasInputDefaults = quickScoreAliasInputDefaults(aliasPath);
     paymentActionByRoute[`GET ${aliasPath}`] = "indexedQuickScore";
     document.paths[aliasPath] = {
       get: {
@@ -3495,6 +3516,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
         operationId: metadata.operationId,
         summary: metadata.summary,
         description: `${metadata.description} Canonical route: GET ${ROAST_PATH}.`,
+        parameters: listingQueryOpenApiParameters(aliasInputDefaults),
         "x-payment": buildPaymentHint(config, {
           path: aliasPath,
           method: "GET",
@@ -3578,6 +3600,7 @@ function buildPaidUsageProof(config, cashRegister = {}) {
 function buildQuickScoreAliasManifestResources(config) {
   return QUICK_SCORE_ALIAS_PATHS.map((path) => {
     const metadata = QUICK_SCORE_ALIAS_METADATA[path];
+    const aliasInputDefaults = quickScoreAliasInputDefaults(path);
     return {
       id: metadata.id,
       name: metadata.name,
@@ -3589,8 +3612,8 @@ function buildQuickScoreAliasManifestResources(config) {
       description: metadata.description,
       keywords: uniqueTerms([...metadata.keywords, "listing roast", "GET paid API", "x402 quick score", "paid API discoverability"]),
       command: buildGetPayCommand(config, path, INSTANT_SCORE_AMOUNT),
-      input: buildInstantScoreDiscovery(config).input,
-      outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput(), config),
+      input: buildInstantScoreDiscovery(config, aliasInputDefaults).input,
+      outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput(aliasInputDefaults), config),
       schema: absoluteUrl(config, "/api/score-schema"),
       canonicalRoute: ROAST_PATH
     };
@@ -5518,7 +5541,10 @@ function createX402Middleware(config) {
           mimeType: "application/json",
           customPaywallHtml: buildCustomPaywallHtml(config, intentRouteKey),
           unpaidResponseBody: unpaidPaymentPreview(config, intentRouteKey),
-          extensions: declareChallengeDiscoveryExtension(buildIndexedRoastGetDiscovery(config))
+          extensions: declareChallengeDiscoveryExtension(buildIndexedRoastGetDiscovery(config, {
+            routePath,
+            inputDefaults: quickScoreAliasInputDefaults(routePath)
+          }))
         }];
       })),
       [`GET ${PING_PATH}`]: {
