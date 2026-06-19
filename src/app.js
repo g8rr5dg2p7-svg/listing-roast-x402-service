@@ -22,6 +22,7 @@ const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const USDC_DECIMALS = 1_000_000n;
 const API_ENTRY_PATH = "/api";
 const API_V1_ENTRY_PATH = "/api/v1";
+const V1_ENTRY_PATH = "/v1";
 const INSTANT_SCORE_PATH = "/api/instant-listing-score";
 const CONVERSION_SCORE_PATH = "/api/x402-marketplace-conversion";
 const AGENT_LISTING_PATH = "/api/agent-listing-conversion";
@@ -48,6 +49,12 @@ const INDEX_MARKDOWN_PATH = "/index.md";
 const AUTH_MARKDOWN_PATH = "/auth.md";
 const WELL_KNOWN_AUTH_MARKDOWN_PATH = "/.well-known/auth.md";
 const AGENT_SKILLS_SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/schema.json";
+const AGENTS_MARKDOWN_PATH = "/AGENTS.md";
+const DOCS_PATH = "/docs";
+const API_DOCS_PATH = "/api-docs";
+const API_V1_OPENAPI_JSON_PATH = "/api/v1/openapi.json";
+const SWAGGER_JSON_PATH = "/swagger.json";
+const OPENAPI_YAML_PATH = "/openapi.yaml";
 const API_CATALOG_PROFILE = "https://www.rfc-editor.org/info/rfc9727";
 const API_CATALOG_CONTENT_TYPE = `application/linkset+json; profile="${API_CATALOG_PROFILE}"`;
 const INSTANT_SCORE_AMOUNT = "1000";
@@ -150,9 +157,13 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
     `<${absoluteUrl(config, "/openapi.json")}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
     `<${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
+    `<${absoluteUrl(config, API_V1_OPENAPI_JSON_PATH)}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
+    `<${absoluteUrl(config, SWAGGER_JSON_PATH)}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
     `<${absoluteUrl(config, "/llms.txt")}>; rel="describedby"; type="text/plain"`,
     `<${absoluteUrl(config, LLMS_FULL_PATH)}>; rel="describedby"; type="text/markdown"`,
     `<${absoluteUrl(config, INDEX_MARKDOWN_PATH)}>; rel="describedby"; type="text/markdown"`,
+    `<${absoluteUrl(config, AGENTS_MARKDOWN_PATH)}>; rel="describedby"; type="text/markdown"`,
+    `<${absoluteUrl(config, DOCS_PATH)}>; rel="describedby"; type="text/markdown"`,
     `<${absoluteUrl(config, AUTH_MARKDOWN_PATH)}>; rel="describedby"; type="text/markdown"`,
     `<${absoluteUrl(config, WELL_KNOWN_AUTH_MARKDOWN_PATH)}>; rel="describedby"; type="text/markdown"`,
     `<${absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
@@ -202,6 +213,13 @@ function buildStructuredData(config) {
           price: "0.001",
           priceCurrency: "USD",
           url: absoluteUrl(config, API_V1_ENTRY_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "Versioned agent API entrypoint",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, V1_ENTRY_PATH)
         },
         {
           "@type": "Offer",
@@ -342,6 +360,12 @@ Versioned generic agent API entrypoint:
 ${buildGetPayCommand(config, API_V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT)}
 \`\`\`
 
+Short versioned agent API entrypoint:
+
+\`\`\`bash
+${buildGetPayCommand(config, V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT)}
+\`\`\`
+
 Agent listing conversion score and buyer-agent skip reasons:
 
 \`\`\`bash
@@ -443,6 +467,7 @@ Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}
 
 - GET ${absoluteUrl(config, API_ENTRY_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; generic paid API entrypoint and route map for agents that probe /api first.
 - GET ${absoluteUrl(config, API_V1_ENTRY_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; versioned paid API entrypoint and route map for agents that probe /api/v1 first.
+- GET ${absoluteUrl(config, V1_ENTRY_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; short versioned paid API entrypoint and route map for agents that probe /v1 first.
 - GET ${absoluteUrl(config, ROAST_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; already-indexed quick score.
 - GET ${absoluteUrl(config, AGENT_LISTING_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; buyer-agent skip reasons and listing clarity.
 - GET ${absoluteUrl(config, SITE_AUDIT_PATH)} — ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT}; x402 route and discovery preflight.
@@ -930,6 +955,13 @@ function buildApiEntryOutput(config) {
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT
       },
+      v1Entry: {
+        route: absoluteUrl(config, V1_ENTRY_PATH),
+        path: V1_ENTRY_PATH,
+        method: "GET",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT
+      },
       indexedQuickScore: {
         route: absoluteUrl(config, ROAST_PATH),
         path: ROAST_PATH,
@@ -1033,6 +1065,7 @@ function buildPingOutput(config, query = {}) {
     paidRoutes: {
       apiEntry: API_ENTRY_PATH,
       apiV1Entry: API_V1_ENTRY_PATH,
+      v1Entry: V1_ENTRY_PATH,
       instantScore: INSTANT_SCORE_PATH,
       conversionScore: CONVERSION_SCORE_PATH,
       agentListingConversion: AGENT_LISTING_PATH,
@@ -1251,6 +1284,14 @@ function buildWebMcpHandoff(config) {
         buyerAction: "Versioned paid API entrypoint for agents that probe /api/v1 first."
       },
       {
+        route: absoluteUrl(config, V1_ENTRY_PATH),
+        path: V1_ENTRY_PATH,
+        method: "GET",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        buyerAction: "Short versioned paid API entrypoint for agents that probe /v1 first."
+      },
+      {
         route: absoluteUrl(config, ROAST_PATH),
         path: ROAST_PATH,
         method: "GET",
@@ -1414,6 +1455,35 @@ function buildOpenApiDocument(config) {
           responses: {
             200: {
               description: "Paid API v1 entry route map",
+              content: {
+                "application/json": {
+                  schema: buildApiEntryDiscovery(config).output.schema,
+                  example: buildApiEntryOutput(config)
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        }
+      },
+      [V1_ENTRY_PATH]: {
+        get: {
+          operationId: "getListingRoastV1Entry",
+          tags: ["x402 API entrypoint", "paid API listing", "agent commerce"],
+          summary: "Paid $0.001 x402 short v1 entrypoint and route map",
+          description: "Short versioned paid GET entrypoint for agents that probe /v1 before choosing a specific Listing Roast route. Returns the preferred first paid action, full paid route map, and free discovery links after x402 payment.",
+          "x-price": config.instantScorePrice,
+          "x-x402-price": config.instantScorePrice,
+          "x-payment": buildPaymentHint(config, {
+            path: V1_ENTRY_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            buyerAction: "Pay $0.001 for the v1 entry route map when an agent starts discovery at /v1."
+          }),
+          responses: {
+            200: {
+              description: "Paid short v1 entry route map",
               content: {
                 "application/json": {
                   schema: buildApiEntryDiscovery(config).output.schema,
@@ -1800,6 +1870,7 @@ function buildOpenApiDocument(config) {
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
       apiV1EntryRoute: absoluteUrl(config, API_V1_ENTRY_PATH),
+      v1EntryRoute: absoluteUrl(config, V1_ENTRY_PATH),
       preferredFirstPaidRoute: absoluteUrl(config, ROAST_PATH),
       recommendedFirstPaidAction: {
         route: absoluteUrl(config, ROAST_PATH),
@@ -1870,7 +1941,7 @@ function buildX402Manifest(config) {
       }
     },
     capabilities: {
-      tools: 11
+      tools: 12
     },
     recommendedFirstPaidAction: {
       route: absoluteUrl(config, ROAST_PATH),
@@ -1921,6 +1992,21 @@ function buildX402Manifest(config) {
         description: "One-tenth-cent versioned x402 API entrypoint for agents that probe /api/v1 before choosing a specific Listing Roast route. Returns the paid route map and preferred first paid action after payment.",
         keywords: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "GET paid API", "route map", "api v1"],
         command: buildGetPayCommand(config, API_V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
+        input: {},
+        outputExample: buildApiEntryOutput(config),
+        schema: absoluteUrl(config, "/openapi.json")
+      },
+      {
+        id: "v1_entry",
+        name: "v1_entry",
+        method: "GET",
+        path: V1_ENTRY_PATH,
+        url: absoluteUrl(config, V1_ENTRY_PATH),
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        description: "One-tenth-cent short versioned x402 API entrypoint for agents that probe /v1 before choosing a specific Listing Roast route. Returns the paid route map and preferred first paid action after payment.",
+        keywords: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "GET paid API", "route map", "v1"],
+        command: buildGetPayCommand(config, V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
         input: {},
         outputExample: buildApiEntryOutput(config),
         schema: absoluteUrl(config, "/openapi.json")
@@ -2086,6 +2172,7 @@ function buildAgentCard(config) {
     { url: absoluteUrl(config, ROAST_PATH), transport: "HTTP+JSON" },
     { url: absoluteUrl(config, API_ENTRY_PATH), transport: "HTTP+JSON" },
     { url: absoluteUrl(config, API_V1_ENTRY_PATH), transport: "HTTP+JSON" },
+    { url: absoluteUrl(config, V1_ENTRY_PATH), transport: "HTTP+JSON" },
     { url: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH), transport: "OPENAPI" },
     { url: absoluteUrl(config, "/x402.json"), transport: "X402" },
     { url: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH), transport: "MCP" },
@@ -2170,6 +2257,17 @@ function buildAgentCard(config) {
         buyerAction: "Pay $0.001 for the API v1 entry route map when an agent starts discovery at /api/v1."
       }),
       buildAgentSkill(config, {
+        id: "v1-entry-route-map",
+        name: "Short v1 entry route map",
+        description: "$0.001 GET short versioned API entrypoint for agents that start at /v1.",
+        tags: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "v1"],
+        method: "GET",
+        path: V1_ENTRY_PATH,
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        buyerAction: "Pay $0.001 for the short v1 entry route map when an agent starts discovery at /v1."
+      }),
+      buildAgentSkill(config, {
         id: "agent-listing-conversion-score",
         name: "Agent listing conversion score",
         description: "$0.001 GET score for agent service listing clarity and buyer-agent skip reasons.",
@@ -2244,7 +2342,7 @@ function buildAiPluginManifest(config) {
       "Listing Roast x402 is a paid HTTP JSON API for x402, MCP, and agent-service builders.",
       "Use it when a builder needs a paid API listing quality score, buyer-agent skip reasons, x402 marketplace conversion feedback, or x402 service discoverability guidance before promotion.",
       "Protected routes require x402 payment in USDC on Base before JSON output is returned.",
-      `Use GET ${absoluteUrl(config, API_ENTRY_PATH)} or GET ${absoluteUrl(config, API_V1_ENTRY_PATH)} for a generic ${config.instantScorePrice} paid API entrypoint when an agent probes /api or /api/v1 first.`,
+      `Use GET ${absoluteUrl(config, API_ENTRY_PATH)}, GET ${absoluteUrl(config, API_V1_ENTRY_PATH)}, or GET ${absoluteUrl(config, V1_ENTRY_PATH)} for a generic ${config.instantScorePrice} paid API entrypoint when an agent probes /api, /api/v1, or /v1 first.`,
       `Preferred first paid action: GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units.`,
       `Use GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent service listing clarity, agent listing conversion score, and buyer-agent skip reasons.`,
       `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight.`,
@@ -2283,6 +2381,7 @@ function buildApiCatalog(config) {
   const item = [
     { href: absoluteUrl(config, API_ENTRY_PATH), type: "application/json", title: "GET $0.001 generic x402 API entrypoint and route map" },
     { href: absoluteUrl(config, API_V1_ENTRY_PATH), type: "application/json", title: "GET $0.001 versioned x402 API entrypoint and route map" },
+    { href: absoluteUrl(config, V1_ENTRY_PATH), type: "application/json", title: "GET $0.001 short versioned x402 API entrypoint and route map" },
     { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET indexed $0.001 x402 listing quality quick score and POST $0.01 full roast" },
     { href: absoluteUrl(config, INSTANT_SCORE_PATH), type: "application/json", title: "GET $0.001 instant paid API listing quality score" },
     { href: absoluteUrl(config, CONVERSION_SCORE_PATH), type: "application/json", title: "GET $0.001 x402 marketplace conversion score" },
@@ -2303,10 +2402,15 @@ function buildApiCatalog(config) {
         item,
         "service-desc": [
           { href: absoluteUrl(config, "/openapi.json"), type: "application/vnd.oai.openapi+json", title: "OpenAPI 3.1 contract" },
-          { href: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH), type: "application/vnd.oai.openapi+json", title: "Well-known OpenAPI alias" }
+          { href: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH), type: "application/vnd.oai.openapi+json", title: "Well-known OpenAPI alias" },
+          { href: absoluteUrl(config, API_V1_OPENAPI_JSON_PATH), type: "application/vnd.oai.openapi+json", title: "Versioned OpenAPI alias" },
+          { href: absoluteUrl(config, SWAGGER_JSON_PATH), type: "application/vnd.oai.openapi+json", title: "Swagger JSON alias" }
         ],
         "service-doc": [
           { href: absoluteUrl(config, "/"), type: "text/html", title: "Human homepage" },
+          { href: absoluteUrl(config, DOCS_PATH), type: "text/markdown", title: "Agent-readable docs" },
+          { href: absoluteUrl(config, API_DOCS_PATH), type: "text/markdown", title: "API docs alias" },
+          { href: absoluteUrl(config, AGENTS_MARKDOWN_PATH), type: "text/markdown", title: "AGENTS.md safety and route guide" },
           { href: absoluteUrl(config, "/llms.txt"), type: "text/plain", title: "Agent-readable route guide" }
         ],
         "service-meta": [
@@ -2342,7 +2446,11 @@ Listing Roast x402 is a paid HTTP JSON API for builders who need a quick read on
 ## Free Discovery
 
 - Homepage: ${absoluteUrl(config, "/")}
+- Docs: ${absoluteUrl(config, DOCS_PATH)}
+- API docs: ${absoluteUrl(config, API_DOCS_PATH)}
+- AGENTS.md: ${absoluteUrl(config, AGENTS_MARKDOWN_PATH)}
 - OpenAPI: ${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}
+- OpenAPI aliases: ${absoluteUrl(config, "/openapi.json")}, ${absoluteUrl(config, API_V1_OPENAPI_JSON_PATH)}, ${absoluteUrl(config, SWAGGER_JSON_PATH)}
 - x402 manifest: ${absoluteUrl(config, "/x402.json")}
 - API catalog: ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
 - Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
@@ -2374,6 +2482,7 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 
 - GET ${absoluteUrl(config, API_ENTRY_PATH)} for a generic paid API entrypoint and route map when an agent probes /api first. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, API_V1_ENTRY_PATH)} for a versioned paid API entrypoint and route map when an agent probes /api/v1 first. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
+- GET ${absoluteUrl(config, V1_ENTRY_PATH)} for a short versioned paid API entrypoint and route map when an agent probes /v1 first. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent listing conversion score and buyer-agent skip reasons. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, CONVERSION_SCORE_PATH)} for x402 marketplace conversion score. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for x402 route health, direct 402 metadata, stale price checks, and search visibility. Price: ${config.siteAuditPrice}. Max amount: ${SITE_AUDIT_AMOUNT}.
@@ -2384,6 +2493,67 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 ## Keywords
 
 ${DISCOVERY_KEYWORDS.join(", ")}
+`;
+}
+
+function buildAgentsMarkdown(config) {
+  return `# AGENTS.md
+
+Listing Roast x402 is a paid API for agents and builders who need a quick x402 listing-quality score, buyer-agent skip-reason check, or service-discovery audit.
+
+## Safety
+
+- Free discovery routes may be fetched without payment.
+- Do not call paid routes unless the buyer explicitly intends to pay USDC through x402.
+- No OAuth, account registration, API key, agent registration, ACP, UCP, or MPP endpoint is supported.
+- Use the HTTP 402 challenge and x402 payment header flow for paid routes.
+
+## Best First Paid Route
+
+- Method: GET
+- URL: ${absoluteUrl(config, ROAST_PATH)}
+- Price: ${config.instantScorePrice}
+- Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+- Use it for the fastest paid score from the already-indexed listing-roast URL.
+
+\`\`\`bash
+${buildGetPayCommand(config, ROAST_PATH)}
+\`\`\`
+
+## Generic Paid Entry Points
+
+- GET ${absoluteUrl(config, API_ENTRY_PATH)} for agents that probe /api first.
+- GET ${absoluteUrl(config, API_V1_ENTRY_PATH)} for agents that probe /api/v1 first.
+- GET ${absoluteUrl(config, V1_ENTRY_PATH)} for agents that probe /v1 first.
+
+Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and returns the paid route map after x402 payment.
+
+## Free Discovery
+
+- Docs: ${absoluteUrl(config, DOCS_PATH)}
+- API docs: ${absoluteUrl(config, API_DOCS_PATH)}
+- OpenAPI: ${absoluteUrl(config, "/openapi.json")}
+- Versioned OpenAPI alias: ${absoluteUrl(config, API_V1_OPENAPI_JSON_PATH)}
+- Swagger JSON alias: ${absoluteUrl(config, SWAGGER_JSON_PATH)}
+- x402 manifest: ${absoluteUrl(config, "/x402.json")}
+- llms.txt: ${absoluteUrl(config, "/llms.txt")}
+- Full guide: ${absoluteUrl(config, LLMS_FULL_PATH)}
+- Examples: ${absoluteUrl(config, "/api/examples")}
+- API catalog: ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
+- Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
+- Agent Skills: ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
+- MCP metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH)}
+
+## Other Paid Routes
+
+- GET ${absoluteUrl(config, INSTANT_SCORE_PATH)} for an instant listing score.
+- GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent listing conversion and buyer-agent skip reasons.
+- GET ${absoluteUrl(config, CONVERSION_SCORE_PATH)} for x402 marketplace conversion.
+- GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a no-spend x402 site audit.
+- GET ${absoluteUrl(config, PING_PATH)} for a paid x402 rail ping.
+- POST ${absoluteUrl(config, "/api/listing-score")} for a custom-body listing score.
+- POST ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)} for a custom-body x402 discovery audit.
+- POST ${absoluteUrl(config, ROAST_PATH)} for the full listing roast.
 `;
 }
 
@@ -2539,6 +2709,18 @@ function createX402Middleware(config) {
         description: "Listing Roast API v1 Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /api/v1 first.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config, API_V1_ENTRY_PATH))
+      },
+      [`GET ${V1_ENTRY_PATH}`]: {
+        accepts: {
+          scheme: "exact",
+          price: config.instantScorePrice,
+          network: config.network,
+          payTo: config.payTo,
+          maxTimeoutSeconds: 300
+        },
+        description: "Listing Roast v1 Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /v1 first.",
+        mimeType: "application/json",
+        extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config, V1_ENTRY_PATH))
       },
       "POST /api/listing-score": {
         accepts: {
@@ -2729,7 +2911,7 @@ function isAllowedSignal(value) {
 }
 
 function validUnpaidSignalForPath(pathname) {
-  if (pathname === API_ENTRY_PATH || pathname === API_V1_ENTRY_PATH) {
+  if (pathname === API_ENTRY_PATH || pathname === API_V1_ENTRY_PATH || pathname === V1_ENTRY_PATH) {
     return "apiEntryValidUnpaidChallenges";
   }
 
@@ -3178,7 +3360,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, "/builder", "/sample", PAY_NOW_PATH, API_ENTRY_PATH, API_V1_ENTRY_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -3193,6 +3375,11 @@ ${webMcpScript(config)}
     response.type("text/markdown").send(buildAuthMarkdown(config));
   });
 
+  app.get(AGENTS_MARKDOWN_PATH, async (_request, response) => {
+    await recordSignal("llmsViews");
+    response.type("text/markdown").send(buildAgentsMarkdown(config));
+  });
+
   app.get("/api/examples", async (_request, response) => {
     await recordSignal("examplesViews");
     response.json({
@@ -3202,7 +3389,11 @@ ${webMcpScript(config)}
       samplePage: absoluteUrl(config, "/sample"),
       sampleScore: absoluteUrl(config, "/api/sample-score"),
       openApi: absoluteUrl(config, "/openapi.json"),
-      openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)],
+      openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH), absoluteUrl(config, API_V1_OPENAPI_JSON_PATH), absoluteUrl(config, SWAGGER_JSON_PATH)],
+      openApiYaml: absoluteUrl(config, OPENAPI_YAML_PATH),
+      docs: absoluteUrl(config, DOCS_PATH),
+      apiDocs: absoluteUrl(config, API_DOCS_PATH),
+      agentsMarkdown: absoluteUrl(config, AGENTS_MARKDOWN_PATH),
       llms: absoluteUrl(config, "/llms.txt"),
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH),
@@ -3221,6 +3412,7 @@ ${webMcpScript(config)}
       payNow: buildPayNow(config),
       apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
       apiV1EntryRoute: absoluteUrl(config, API_V1_ENTRY_PATH),
+      v1EntryRoute: absoluteUrl(config, V1_ENTRY_PATH),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       conversionScoreRoute: absoluteUrl(config, CONVERSION_SCORE_PATH),
       agentListingConversionRoute: absoluteUrl(config, AGENT_LISTING_PATH),
@@ -3256,6 +3448,13 @@ ${webMcpScript(config)}
           price: config.instantScorePrice,
           maxAmountRequired: INSTANT_SCORE_AMOUNT,
           buyerAction: "Pay $0.001 for the API v1 entry route map when an agent starts discovery at /api/v1."
+        }),
+        v1Entry: buildPaymentHint(config, {
+          path: V1_ENTRY_PATH,
+          method: "GET",
+          price: config.instantScorePrice,
+          maxAmountRequired: INSTANT_SCORE_AMOUNT,
+          buyerAction: "Pay $0.001 for the short v1 entry route map when an agent starts discovery at /v1."
         }),
         indexedRoastGet: buildPaymentHint(config, {
           path: ROAST_PATH,
@@ -3312,6 +3511,7 @@ ${webMcpScript(config)}
       request: requestExample,
       apiEntryCommand: buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
       apiV1EntryCommand: buildGetPayCommand(config, API_V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
+      v1EntryCommand: buildGetPayCommand(config, V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
       instantScoreCommand: buildGetPayCommand(config),
       conversionScoreCommand: buildGetPayCommand(config, CONVERSION_SCORE_PATH, INSTANT_SCORE_AMOUNT),
       agentListingConversionCommand: buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT),
@@ -3368,7 +3568,8 @@ Command builder: ${absoluteUrl(config, "/builder")}
 Sample score page: ${absoluteUrl(config, "/sample")}
 Sample score JSON: ${absoluteUrl(config, "/api/sample-score")}
 OpenAPI: ${absoluteUrl(config, "/openapi.json")}
-OpenAPI aliases: ${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}
+OpenAPI aliases: ${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}, ${absoluteUrl(config, API_V1_OPENAPI_JSON_PATH)}, ${absoluteUrl(config, SWAGGER_JSON_PATH)}
+Docs: ${absoluteUrl(config, DOCS_PATH)}, ${absoluteUrl(config, API_DOCS_PATH)}, ${absoluteUrl(config, AGENTS_MARKDOWN_PATH)}
 x402 manifest: ${absoluteUrl(config, "/x402.json")}
 x402 manifest aliases: ${absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH)}, ${absoluteUrl(config, WELL_KNOWN_X402_PATH)}
 Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
@@ -3415,6 +3616,15 @@ ${indentText(buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT))}
 ${indentText(buildGetPayCommand(config, API_V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT))}
   - Output: paid API v1 entry route map with preferred first paid action and free discovery links
   - Use when an agent probes /api/v1 before choosing a specific paid route
+
+- GET ${absoluteUrl(config, V1_ENTRY_PATH)}
+  - Price: ${config.instantScorePrice}
+  - Network: ${config.network}
+  - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+  - Command:
+${indentText(buildGetPayCommand(config, V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT))}
+  - Output: paid short v1 entry route map with preferred first paid action and free discovery links
+  - Use when an agent probes /v1 before choosing a specific paid route
 
 - GET ${absoluteUrl(config, INSTANT_SCORE_PATH)}
   - Price: ${config.instantScorePrice}
@@ -3501,6 +3711,16 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get("/openapi.json", serveOpenApiDocument);
   app.get(WELL_KNOWN_OPENAPI_JSON_PATH, serveOpenApiDocument);
+  app.get(API_V1_OPENAPI_JSON_PATH, serveOpenApiDocument);
+  app.get(SWAGGER_JSON_PATH, serveOpenApiDocument);
+  app.get(OPENAPI_YAML_PATH, (_request, response) => {
+    response.redirect(302, absoluteUrl(config, "/openapi.json"));
+  });
+
+  app.get([DOCS_PATH, API_DOCS_PATH], async (_request, response) => {
+    await recordSignal("llmsViews");
+    response.type("text/markdown").send(buildAgentMarkdownGuide(config));
+  });
 
   async function serveX402Manifest(_request, response) {
     await recordSignal("x402ManifestViews");
@@ -3942,6 +4162,25 @@ ${copyScript("Copy command")}
           input: {}
         },
         {
+          name: "v1_entry_route_map",
+          method: "GET",
+          path: V1_ENTRY_PATH,
+          url: absoluteUrl(config, V1_ENTRY_PATH),
+          price: config.instantScorePrice,
+          network: config.network,
+          command: buildGetPayCommand(config, V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
+          description: "one-tenth-cent short versioned x402 API entrypoint for agents that probe /v1 before choosing a specific Listing Roast route.",
+          payment: buildPaymentHint(config, {
+            path: V1_ENTRY_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            buyerAction: "Pay $0.001 for the short v1 entry route map when an agent starts discovery at /v1."
+          }),
+          keywords: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "GET paid API", "v1"],
+          input: {}
+        },
+        {
           name: "instant_paid_listing_score",
           method: "GET",
           path: INSTANT_SCORE_PATH,
@@ -4119,9 +4358,9 @@ ${copyScript("Copy command")}
     response.status(204).end();
   });
 
-  app.head([API_ENTRY_PATH, API_V1_ENTRY_PATH], rejectHeadPaidRoute);
+  app.head([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], rejectHeadPaidRoute);
   app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
-  app.get([API_ENTRY_PATH, API_V1_ENTRY_PATH], recordApiEntryProbe);
+  app.get([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], recordApiEntryProbe);
   app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH], recordGetScoreProbe);
   app.get(PING_PATH, recordPingProbe);
   app.get(SITE_AUDIT_PATH, recordSiteAuditProbe);
@@ -4142,7 +4381,7 @@ ${copyScript("Copy command")}
   });
   app.use(createX402Middleware(config));
 
-  app.get([API_ENTRY_PATH, API_V1_ENTRY_PATH], async (_request, response) => {
+  app.get([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], async (_request, response) => {
     const result = buildApiEntryOutput(config);
     const cashRegister = await recordPaidCompletion("apiEntry", 0.001);
     response.json({ ...result, cashRegister });
