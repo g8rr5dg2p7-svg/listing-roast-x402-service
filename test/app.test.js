@@ -730,6 +730,11 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.maxAmountRequired).toBe("1000");
       expect(payNow.json.command).toContain("/api/listing-roast");
       expect(payNow.json.command).toContain("--max-amount 1000");
+      expect(payNow.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(payNow.json.intentRoutes.agentListingConversion.path).toBe("/api/agent-listing-conversion");
+      expect(payNow.json.intentRoutes.x402SiteAudit.path).toBe("/api/x402-site-audit");
+      expect(payNow.json.intentRoutes.discoveryAudit.maxAmountRequired).toBe("10000");
+      expect(payNow.json.routeSelector.map((route) => route.use)).toContain("fullRoast");
       expect(payNow.json.expectedChallenge.status).toBe(402);
       expect(payNow.json.noSpendNote).toContain("Fetching this endpoint is free");
 
@@ -1118,6 +1123,11 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("buyer-agent skip reasons");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
+      expect(response.json.error).toBe("payment_required");
+      expect(response.json.noSpendPreview).toBe(true);
+      expect(response.json.selectedPaidAction.path).toBe("/api/agent-listing-conversion");
+      expect(response.json.intentRoutes.fullRoast.maxAmountRequired).toBe("10000");
+      expect(response.json.freeHandoff).toContain("/api/pay-now");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
@@ -1148,6 +1158,10 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("agent service listing clarity");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
+      expect(response.json.error).toBe("payment_required");
+      expect(response.json.selectedPaidAction.path).toBe("/api/listing-roast");
+      expect(response.json.selectedPaidAction.command).toContain("--max-amount 1000");
+      expect(response.json.intentRoutes.agentListingConversion.path).toBe("/api/agent-listing-conversion");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
@@ -1208,6 +1222,10 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("route health check");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
+      expect(response.json.error).toBe("payment_required");
+      expect(response.json.selectedPaidAction.path).toBe("/api/x402-site-audit");
+      expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
+      expect(response.json.routeSelector.map((route) => route.use)).toContain("x402SiteAudit");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
@@ -1245,6 +1263,10 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("Discovery Audit");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("10000");
+      expect(response.json.error).toBe("payment_required");
+      expect(response.json.selectedPaidAction.path).toBe("/api/x402-discovery-audit");
+      expect(response.json.selectedPaidAction.maxAmountRequired).toBe("10000");
+      expect(response.json.selectedPaidAction.command).toContain("/api/x402-discovery-audit");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);

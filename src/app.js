@@ -1201,39 +1201,163 @@ function buildPaymentHint(config, options) {
   };
 }
 
+function buildRoutePaymentAction(config, options) {
+  const method = options.method || "GET";
+  const body = options.body;
+  const command = method === "GET"
+    ? buildGetPayCommand(config, options.path, options.maxAmountRequired)
+    : buildPayCommand(config, options.path, options.maxAmountRequired, body);
+
+  return {
+    route: absoluteUrl(config, options.path),
+    path: options.path,
+    method,
+    price: options.price,
+    maxAmountRequired: options.maxAmountRequired,
+    command,
+    reason: options.reason,
+    ...(body ? { body } : {})
+  };
+}
+
+function buildPayNowActions(config) {
+  return {
+    indexedQuickScore: buildRoutePaymentAction(config, {
+      path: ROAST_PATH,
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this first when a marketplace or Bazaar result points to Listing Roast; it is the already-indexed URL and the lowest-friction paid score."
+    }),
+    agentListingConversion: buildRoutePaymentAction(config, {
+      path: AGENT_LISTING_PATH,
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer is searching for agent listing conversion, agent-service listing clarity, or buyer-agent skip reasons."
+    }),
+    x402SiteAudit: buildRoutePaymentAction(config, {
+      path: SITE_AUDIT_PATH,
+      method: "GET",
+      price: config.siteAuditPrice,
+      maxAmountRequired: SITE_AUDIT_AMOUNT,
+      reason: "Use this when the buyer wants a quick x402 route health, Bazaar visibility, or paid API preflight check."
+    }),
+    apiEntry: buildRoutePaymentAction(config, {
+      path: API_ENTRY_PATH,
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when an agent starts at /api and needs the paid route map."
+    }),
+    listingScore: buildRoutePaymentAction(config, {
+      path: "/api/listing-score",
+      method: "POST",
+      price: config.scorePrice,
+      maxAmountRequired: "5000",
+      body: requestExample,
+      reason: "Use this when the buyer has a custom listing body and wants the structured score without the full rewrite."
+    }),
+    fullRoast: buildRoutePaymentAction(config, {
+      path: ROAST_PATH,
+      method: "POST",
+      price: config.price,
+      maxAmountRequired: "10000",
+      body: requestExample,
+      reason: "Use this when the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance."
+    }),
+    discoveryAudit: buildRoutePaymentAction(config, {
+      path: DISCOVERY_AUDIT_PATH,
+      method: "POST",
+      price: config.discoveryAuditPrice,
+      maxAmountRequired: DISCOVERY_AUDIT_AMOUNT,
+      body: discoveryAuditRequestExample,
+      reason: "Use this when the buyer wants the full x402 discovery audit with a custom request body."
+    })
+  };
+}
+
 function buildPayNow(config) {
+  const intentRoutes = buildPayNowActions(config);
+
   return {
     service: config.serviceName,
-    route: absoluteUrl(config, ROAST_PATH),
-    method: "GET",
-    price: config.instantScorePrice,
-    maxAmountRequired: INSTANT_SCORE_AMOUNT,
+    route: intentRoutes.indexedQuickScore.route,
+    method: intentRoutes.indexedQuickScore.method,
+    price: intentRoutes.indexedQuickScore.price,
+    maxAmountRequired: intentRoutes.indexedQuickScore.maxAmountRequired,
     network: config.network,
     payTo: config.payTo,
-    command: buildGetPayCommand(config, ROAST_PATH),
+    command: intentRoutes.indexedQuickScore.command,
     reason: "Already-indexed Bazaar route and lowest-friction paid score.",
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    routeSelector: [
+      {
+        when: "Marketplace or Bazaar discovered Listing Roast on /api/listing-roast",
+        use: "indexedQuickScore"
+      },
+      {
+        when: "Buyer asks for agent listing conversion, agent-service clarity, or skip reasons",
+        use: "agentListingConversion"
+      },
+      {
+        when: "Buyer asks for x402 route health, stale Bazaar pricing, or paid API preflight",
+        use: "x402SiteAudit"
+      },
+      {
+        when: "Buyer needs a custom body score",
+        use: "listingScore"
+      },
+      {
+        when: "Buyer wants the full rewrite and launch recommendation",
+        use: "fullRoast"
+      },
+      {
+        when: "Buyer wants a custom full x402 discovery audit",
+        use: "discoveryAudit"
+      }
+    ],
+    intentRoutes,
     expectedChallenge: {
       status: 402,
       amount: INSTANT_SCORE_AMOUNT,
       network: config.network,
-      route: absoluteUrl(config, ROAST_PATH)
+      route: intentRoutes.indexedQuickScore.route
     },
     upgradeRoutes: {
-      score: {
-        route: absoluteUrl(config, "/api/listing-score"),
-        method: "POST",
-        price: config.scorePrice,
-        maxAmountRequired: "5000"
-      },
-      roast: {
-        route: absoluteUrl(config, ROAST_PATH),
-        method: "POST",
-        price: config.price,
-        maxAmountRequired: "10000"
-      }
+      score: intentRoutes.listingScore,
+      roast: intentRoutes.fullRoast,
+      discoveryAudit: intentRoutes.discoveryAudit
     },
+    marketplaceNote: "CDP Bazaar updates indexed descriptions after a real settled payment; this free handoff reflects the current live route map without spending.",
     noSpendNote: "Fetching this endpoint is free. Payment happens only when a buyer calls the x402 paid route."
   };
+}
+
+function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore") {
+  const payNow = buildPayNow(config);
+  const selected = payNow.intentRoutes[intentRouteKey] || payNow.preferredFirstPaidAction;
+
+  return {
+    error: "payment_required",
+    service: config.serviceName,
+    noSpendPreview: true,
+    selectedPaidAction: selected,
+    preferredFirstPaidAction: payNow.preferredFirstPaidAction,
+    routeSelector: payNow.routeSelector,
+    intentRoutes: payNow.intentRoutes,
+    freeHandoff: absoluteUrl(config, PAY_NOW_PATH),
+    x402Manifest: absoluteUrl(config, "/x402.json"),
+    openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+    note: "The x402 payment challenge is in the Payment-Required response header. This body is a free buyer handoff so agents can choose the right paid route without guessing."
+  };
+}
+
+function unpaidPaymentPreview(config, intentRouteKey) {
+  return () => ({
+    contentType: "application/json",
+    body: buildUnpaidPaymentPreview(config, intentRouteKey)
+  });
 }
 
 function buildWebMcpHandoff(config) {
@@ -2696,6 +2820,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast API Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /api first.",
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
         extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config))
       },
       [`GET ${API_V1_ENTRY_PATH}`]: {
@@ -2708,6 +2833,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast API v1 Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /api/v1 first.",
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
         extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config, API_V1_ENTRY_PATH))
       },
       [`GET ${V1_ENTRY_PATH}`]: {
@@ -2720,6 +2846,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast v1 Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /v1 first.",
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
         extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config, V1_ENTRY_PATH))
       },
       "POST /api/listing-score": {
@@ -2732,6 +2859,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Score x402: $0.005 paid API listing quality score for agent-service listing clarity, marketplace conversion, x402 service discoverability, first missing signal, and upgrade guidance.",
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "listingScore"),
         extensions: declareDiscoveryExtension(buildScoreDiscovery(config))
       },
       [`GET ${INSTANT_SCORE_PATH}`]: {
@@ -2744,6 +2872,7 @@ function createX402Middleware(config) {
         },
         description: "Instant Listing Score x402: $0.001 GET marketplace listing score and paid API listing quality score for agent-service listing clarity, marketplace conversion, and x402 service discoverability.",
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
         extensions: declareDiscoveryExtension(buildInstantScoreDiscovery(config))
       },
       [`GET ${CONVERSION_SCORE_PATH}`]: {
@@ -2756,6 +2885,7 @@ function createX402Middleware(config) {
         },
         description: "x402 Marketplace Conversion Score: $0.001 GET marketplace conversion score for paid API listing quality, agent-service listing clarity, and buyer-agent conversion checks.",
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "agentListingConversion"),
         extensions: declareDiscoveryExtension(buildConversionScoreDiscovery(config))
       },
       [`GET ${AGENT_LISTING_PATH}`]: {
@@ -2768,6 +2898,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast Agent Listing Conversion Score: $0.001 GET score for agent service listing clarity, buyer-agent skip reasons, agent listing conversion, paid API listing quality, buyer intent, and x402 marketplace conversion.",
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "agentListingConversion"),
         extensions: declareDiscoveryExtension(buildAgentListingConversionDiscovery(config))
       },
       [`GET ${ROAST_PATH}`]: {
@@ -2780,6 +2911,7 @@ function createX402Middleware(config) {
         },
         description: INDEXED_QUICK_SCORE_DESCRIPTION,
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
         extensions: declareDiscoveryExtension(buildIndexedRoastGetDiscovery(config))
       },
       [`GET ${PING_PATH}`]: {
@@ -2792,6 +2924,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast x402 Ping: $0.001 paid GET ping to verify the Base x402 rail before buying a score or roast.",
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
         extensions: declareDiscoveryExtension(buildPingDiscovery(config))
       },
       [`GET ${SITE_AUDIT_PATH}`]: {
@@ -2804,6 +2937,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast x402 Site Audit: $0.001 GET service discoverability audit, paid API preflight, route health check, direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps.",
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "x402SiteAudit"),
         extensions: declareDiscoveryExtension(buildSiteAuditDiscovery(config))
       },
       [`POST ${DISCOVERY_AUDIT_PATH}`]: {
@@ -2816,6 +2950,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast x402 Discovery Audit: $0.01 Bazaar visibility audit for stale indexed pricing, direct 402 metadata, search position, and no-spend fix steps.",
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "discoveryAudit"),
         extensions: declareDiscoveryExtension(buildDiscoveryAuditDiscovery(config))
       },
       [`POST ${ROAST_PATH}`]: {
@@ -2828,6 +2963,7 @@ function createX402Middleware(config) {
         },
         description: "Listing Roast x402: $0.01 marketplace listing conversion roast for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance.",
         mimeType: "application/json",
+        unpaidResponseBody: unpaidPaymentPreview(config, "fullRoast"),
         extensions: declareDiscoveryExtension(buildDiscovery(config))
       }
     },
