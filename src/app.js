@@ -1283,9 +1283,20 @@ function buildIndexedRoastQuickScore(input, config) {
 
 function buildIndexedRoastQuickScoreDiscoveryExample(input, config) {
   const output = buildIndexedRoastQuickScore(input, config);
+  const compactNextPaidAction = output.nextPaidAction ? {
+    route: output.nextPaidAction.route,
+    path: output.nextPaidAction.path,
+    method: output.nextPaidAction.method,
+    price: output.nextPaidAction.price,
+    maxAmountRequired: output.nextPaidAction.maxAmountRequired,
+    reason: output.nextPaidAction.reason
+  } : null;
 
   return {
     ...output,
+    checkedSignals: undefined,
+    buyerIntentHandoffs: undefined,
+    nextPaidAction: compactNextPaidAction,
     nextPaidActions: output.buyerIntentHandoffs
   };
 }

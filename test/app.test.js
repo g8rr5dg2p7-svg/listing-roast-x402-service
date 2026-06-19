@@ -2097,12 +2097,16 @@ describe("Listing Roast x402 service", () => {
 
   it("protects the indexed listing-roast GET route with a one-tenth-cent x402 challenge", async () => {
     mockFacilitatorSupportedKinds();
-    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const app = createApp({
+      payTo: "0x000000000000000000000000000000000000dEaD",
+      serviceUrl: "https://listing-roast-x402-service-production.up.railway.app"
+    });
     const server = await listen(app);
     try {
       const response = await fetchJson(server, "/api/listing-roast");
 
       expect(response.status).toBe(402);
+      expect(response.headers.get("payment-required").length).toBeLessThan(12000);
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
@@ -2140,7 +2144,8 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.extensions.bazaar.info.output.example.matchedBuyerIntent).toContain("stale price");
       expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.path).toBe("/api/x402-discovery-audit");
       expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.maxAmountRequired).toBe("1000");
-      expect(challenge.extensions.bazaar.info.output.example.buyerIntentHandoffs.find((handoff) => handoff.path === "/api/listing-roast").maxAmountRequired).toBe("10000");
+      expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.command).toBeUndefined();
+      expect(challenge.extensions.bazaar.info.output.example.buyerIntentHandoffs).toBeUndefined();
       expect(challenge.extensions.bazaar.info.output.example.nextPaidActions.find((action) => action.path === "/api/listing-roast").maxAmountRequired).toBe("10000");
       expect(challenge.extensions.bazaar.info.output.example.nextPaidActions.find((action) => action.path === "/api/listing-roast").command).toBeUndefined();
       const indexedQuerySchema = challenge.extensions.bazaar.schema.properties.input.properties.queryParams.properties;
