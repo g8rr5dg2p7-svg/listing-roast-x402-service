@@ -1873,6 +1873,9 @@ function buildDiscoveryAuditQuickDiscovery(config) {
 }
 
 function buildPaymentHint(config, options) {
+  const paidUseProof = buildPaidUseProofLinks(config);
+  const route = absoluteUrl(config, options.path);
+
   return {
     protocol: "x402",
     network: config.network,
@@ -1881,10 +1884,20 @@ function buildPaymentHint(config, options) {
     maxAmountRequired: options.maxAmountRequired,
     payTo: config.payTo,
     method: options.method,
-    route: absoluteUrl(config, options.path),
+    route,
     preferredFirstPaidAction: Boolean(options.preferredFirstPaidAction),
     buyerAction: options.buyerAction,
-    paidUseProof: buildPaidUseProofLinks(config)
+    paidUsageProof: paidUseProof.paidUsageProof,
+    cashRegister: paidUseProof.cashRegister,
+    paidUseProof,
+    x402Retry: {
+      paymentRequiredHeader: "Payment-Required",
+      paymentHeader: "X-PAYMENT",
+      route,
+      method: options.method,
+      maxAmountRequired: options.maxAmountRequired,
+      instruction: "Parse the Payment-Required header, complete the exact x402 payment, then retry this same route with the X-PAYMENT header."
+    }
   };
 }
 
