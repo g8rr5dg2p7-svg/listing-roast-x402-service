@@ -380,7 +380,8 @@ describe("Listing Roast x402 service", () => {
         "buyer-agent skip reasons",
         "agent service clarity"
       ]);
-      expect(x402Manifest.json.resources[0].description).toContain("Buyer-agent skip reasons");
+      expect(x402Manifest.json.resources[0].description).toContain("Paid API listing quality score");
+      expect(x402Manifest.json.resources[0].description).toContain("agent listing conversion score");
       expect(x402Manifest.json.resources[0].keywords).toContain("listing roast");
       expect(x402Manifest.json.resources[0].keywords).toContain("buyer-agent skip reasons");
       expect(x402Manifest.json.resources[0].keywords).toContain("agent service listing clarity");
@@ -859,7 +860,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("$0.001");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("buyer-agent skip reasons");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("listing quality");
-      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Buyer-agent skip reasons");
+      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Paid API listing quality score");
+      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent listing conversion score");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent service listing clarity");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("x402 discovery audit triage");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Bazaar search visibility");
@@ -1823,9 +1825,9 @@ describe("Listing Roast x402 service", () => {
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
-      expect(challenge.resource.description).toMatch(/^Buyer-agent skip reasons, agent service listing clarity, marketplace listing score/);
+      expect(challenge.resource.description).toMatch(/^Paid API listing quality score, agent listing conversion score, and x402 discovery audit triage/);
       expect(challenge.resource.description).toContain("$0.001");
-      expect(challenge.resource.description).toContain("Buyer-agent skip reasons");
+      expect(challenge.resource.description).toContain("buyer-agent skip reasons");
       expect(challenge.resource.description).toContain("agent service listing clarity");
       expect(challenge.resource.description).toContain("x402 discovery audit buyers");
       expect(challenge.resource.description).toContain("paid API preflight buyers");

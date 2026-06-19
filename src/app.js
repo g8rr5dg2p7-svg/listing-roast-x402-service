@@ -138,7 +138,7 @@ const DISCOVERY_KEYWORDS = [
 ];
 const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, x402 seller discoverability, listing SEO audit, seller growth checklist, and agent service promotion readiness before promotion.";
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Buyer-agent skip reasons, agent service listing clarity, marketplace listing score, and paid API listing quality score: $0.001 GET Listing Roast x402 quick score for agent listing conversion score, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and x402 service discoverability on the indexed /api/listing-roast URL. POST the same URL for the $0.01 full roast.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, agent listing conversion score, and x402 discovery audit triage: $0.001 GET Listing Roast x402 quick score for marketplace listing quality, marketplace listing score, buyer-agent skip reasons, agent service listing clarity, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and x402 service discoverability on the indexed /api/listing-roast URL. POST the same URL for the $0.01 full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
 const ROUTE_SERVICE_TAGS = Object.freeze({
@@ -2367,8 +2367,8 @@ function buildOpenApiDocument(config) {
         get: {
           operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
           tags: ["paid API listing quality", "buyer-agent skip reasons", "agent service listing clarity", "x402 listing", "paid API listing"],
-          summary: "Paid $0.001 buyer-agent skip reasons and listing quality quick score",
-          description: "Buyer-agent skip reasons, agent service listing clarity, marketplace listing score, and paid API listing quality from the already-indexed /api/listing-roast URL. Returns a $0.001 score API for paid API discoverability, x402 listing quality, agent listing conversion, x402 discovery audit triage, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
+          summary: "Paid $0.001 paid API listing quality, agent conversion, and buyer-agent skip reasons quick score",
+          description: "Paid API listing quality score, agent listing conversion score, x402 discovery audit triage, buyer-agent skip reasons, and agent service listing clarity from the already-indexed /api/listing-roast URL. Returns a $0.001 score API for paid API discoverability, x402 listing quality, marketplace listing quality, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
@@ -2785,7 +2785,7 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, ROAST_PATH),
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: "Buyer-agent skip reasons, agent service listing clarity, marketplace listing score, and score API marketplace listing quality in a one-tenth-cent GET check for paid API listings, x402 listing quality, agent listing conversion score, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and conversion checks on the already-indexed listing-roast URL. POST the same URL for the full one-cent roast.",
+        description: "Paid API listing quality score, agent listing conversion score, and x402 discovery audit triage in a one-tenth-cent GET check for paid API listings, marketplace listing quality, buyer-agent skip reasons, agent service listing clarity, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and conversion checks on the already-indexed listing-roast URL. POST the same URL for the full one-cent roast.",
         keywords: ["listing roast", "score API", "marketplace listing quality", "paid API listing quality", "paid API discoverability", "x402 listing quality", "agent listing conversion score", "agent listing conversion", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "x402 marketplace conversion", "x402 site audit", "x402 service discoverability audit", "x402 discovery audit", "x402 bazaar discovery audit", "paid API preflight", "x402 route health check", "bazaar search visibility", "x402 listing stale price", "GET paid API"],
         command: buildGetPayCommand(config, ROAST_PATH),
         input: buildInstantScoreDiscovery(config).input,
@@ -5858,7 +5858,7 @@ ${copyScript("Copy command")}
           price: config.instantScorePrice,
           network: config.network,
           command: buildGetPayCommand(config, ROAST_PATH),
-          description: "one-tenth-cent GET marketplace listing score API for marketplace listing quality and discoverability, paid API listing quality, paid API discoverability, x402 listing quality, agent service listing clarity, agent listing conversion score, buyer-agent skip reasons, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and conversion checks on the indexed listing-roast URL.",
+          description: "one-tenth-cent GET paid API listing quality score, agent listing conversion score, x402 discovery audit triage, marketplace listing score, marketplace listing quality, paid API discoverability, x402 listing quality, agent service listing clarity, buyer-agent skip reasons, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and conversion checks on the indexed listing-roast URL.",
           payment: buildPaymentHint(config, {
             path: ROAST_PATH,
             method: "GET",
