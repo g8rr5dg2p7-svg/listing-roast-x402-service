@@ -116,7 +116,7 @@ const DISCOVERY_KEYWORDS = [
 ];
 const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, and x402 service discoverability before promotion.";
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Marketplace listing score, paid API listing quality score, and buyer-agent skip reasons: $0.001 GET Listing Roast x402 quick score for agent service listing clarity, agent listing conversion score, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and x402 service discoverability on the indexed /api/listing-roast URL. POST the same URL for the $0.01 full roast.";
-const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, Agent Service Listing Clarity, and Agent Listing Conversion Score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
+const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const LISTING_REQUEST_SCHEMA_PROPERTIES = {
   agentName: {
     type: "string",
@@ -335,7 +335,7 @@ function buildStructuredData(config) {
         },
         {
           "@type": "Offer",
-          name: "Agent listing conversion score",
+          name: "buyer-agent skip reasons and agent listing conversion score",
           price: "0.001",
           priceCurrency: "USD",
           url: absoluteUrl(config, AGENT_LISTING_PATH)
@@ -2021,8 +2021,8 @@ function buildOpenApiDocument(config) {
         get: {
           operationId: "getAgentListingConversionScore",
           tags: ["agent listing conversion", "agent service listing clarity", "buyer-agent skip reasons", "x402 listing", "paid API listing", "paid API listing quality"],
-          summary: "Listing Roast $0.001 agent service listing clarity score, agent listing conversion, and buyer-agent skip reasons",
-          description: "Lowest-friction GET route for buyer agents searching agent service listing clarity, agent listing conversion score, buyer-agent skip reasons, buyer intent, paid API listing quality, or marketplace conversion. Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.",
+          summary: "buyer-agent skip reasons, agent service listing clarity, and agent listing conversion score by Listing Roast",
+          description: `${AGENT_LISTING_CONVERSION_DESCRIPTION} Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.`,
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
@@ -3315,8 +3315,8 @@ function buildAgentCard(config) {
       }),
       buildAgentSkill(config, {
         id: "agent-listing-conversion-score",
-        name: "Agent listing conversion score",
-        description: "$0.001 GET score for agent service listing clarity and buyer-agent skip reasons.",
+        name: "buyer-agent skip reasons and agent listing conversion score",
+        description: AGENT_LISTING_CONVERSION_DESCRIPTION,
         tags: ["agent listing conversion", "agent service listing clarity", "buyer-agent skip reasons"],
         method: "GET",
         path: AGENT_LISTING_PATH,
@@ -3445,7 +3445,7 @@ function buildApiCatalog(config) {
     { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET indexed $0.001 x402 listing quality quick score and POST $0.01 full roast" },
     { href: absoluteUrl(config, INSTANT_SCORE_PATH), type: "application/json", title: "GET $0.001 instant paid API listing quality score" },
     { href: absoluteUrl(config, CONVERSION_SCORE_PATH), type: "application/json", title: "GET $0.001 x402 marketplace conversion score" },
-    { href: absoluteUrl(config, AGENT_LISTING_PATH), type: "application/json", title: "GET $0.001 agent service listing clarity score, agent listing conversion, and buyer-agent skip reasons" },
+    { href: absoluteUrl(config, AGENT_LISTING_PATH), type: "application/json", title: "GET $0.001 buyer-agent skip reasons and agent listing conversion score" },
     { href: absoluteUrl(config, PING_PATH), type: "application/json", title: "GET $0.001 paid x402 ping" },
     { href: absoluteUrl(config, SITE_AUDIT_PATH), type: "application/json", title: "GET $0.001 x402 site audit and paid API preflight" },
     { href: absoluteUrl(config, "/api/listing-score"), type: "application/json", title: "POST $0.005 paid API listing quality score" },
