@@ -29,6 +29,7 @@ const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
 const PAY_NOW_PATH = "/api/pay-now";
 const WELL_KNOWN_X402_PATH = "/.well-known/x402";
 const WELL_KNOWN_X402_JSON_PATH = "/.well-known/x402.json";
+const WELL_KNOWN_OPENAPI_JSON_PATH = "/.well-known/openapi.json";
 const INSTANT_SCORE_AMOUNT = "1000";
 const PING_AMOUNT = "1000";
 const SITE_AUDIT_AMOUNT = "1000";
@@ -126,6 +127,7 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, WELL_KNOWN_X402_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
     `<${absoluteUrl(config, "/openapi.json")}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
+    `<${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
     `<${absoluteUrl(config, "/llms.txt")}>; rel="describedby"; type="text/plain"`,
     `<${absoluteUrl(config, "/.well-known/mcp.json")}>; rel="service-desc"; type="application/json"`
   ].join(", ");
@@ -1251,6 +1253,7 @@ function buildX402Manifest(config) {
     builder: absoluteUrl(config, "/builder"),
     sample: absoluteUrl(config, "/sample"),
     openApi: absoluteUrl(config, "/openapi.json"),
+    openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)],
     llms: absoluteUrl(config, "/llms.txt"),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     aliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
@@ -2057,7 +2060,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -2076,6 +2079,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       samplePage: absoluteUrl(config, "/sample"),
       sampleScore: absoluteUrl(config, "/api/sample-score"),
       openApi: absoluteUrl(config, "/openapi.json"),
+      openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)],
       llms: absoluteUrl(config, "/llms.txt"),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       x402ManifestAliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
@@ -2206,6 +2210,7 @@ Command builder: ${absoluteUrl(config, "/builder")}
 Sample score page: ${absoluteUrl(config, "/sample")}
 Sample score JSON: ${absoluteUrl(config, "/api/sample-score")}
 OpenAPI: ${absoluteUrl(config, "/openapi.json")}
+OpenAPI aliases: ${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}
 x402 manifest: ${absoluteUrl(config, "/x402.json")}
 x402 manifest aliases: ${absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH)}, ${absoluteUrl(config, WELL_KNOWN_X402_PATH)}
 MCP metadata: ${absoluteUrl(config, "/.well-known/mcp.json")}
@@ -2303,10 +2308,13 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 `);
   });
 
-  app.get("/openapi.json", async (_request, response) => {
+  async function serveOpenApiDocument(_request, response) {
     await recordSignal("openApiViews");
     response.json(buildOpenApiDocument(config));
-  });
+  }
+
+  app.get("/openapi.json", serveOpenApiDocument);
+  app.get(WELL_KNOWN_OPENAPI_JSON_PATH, serveOpenApiDocument);
 
   async function serveX402Manifest(_request, response) {
     await recordSignal("x402ManifestViews");
@@ -2614,6 +2622,7 @@ ${copyScript("Copy command")}
       builder: absoluteUrl(config, "/builder"),
       sample: absoluteUrl(config, "/sample"),
       openApi: absoluteUrl(config, "/openapi.json"),
+      openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)],
       llms: absoluteUrl(config, "/llms.txt"),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       x402ManifestAliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],

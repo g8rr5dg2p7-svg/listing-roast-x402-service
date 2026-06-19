@@ -14,7 +14,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /builder` - browser-side command builder for custom listing payloads.
 - `GET /sample` - buyer-facing sample score page.
 - `GET /api/sample-score` - free sample request, command, and score output.
-- `GET /openapi.json` - machine-readable API description.
+- `GET /openapi.json` and `GET /.well-known/openapi.json` - machine-readable API description.
 - `GET /llms.txt` - agent-readable service summary and route guide.
 - `GET /x402.json` and `GET /.well-known/x402.json` - current owned x402 route manifest.
 - `GET /api/schema` - full-roast request/response shape.
@@ -81,7 +81,7 @@ CDP_API_KEY_SECRET=...
 
 ## Launch Checklist
 
-1. Open `/builder`, `/sample`, `/api/sample-score`, `/api/instant-listing-score`, `/api/x402-marketplace-conversion`, `/api/agent-listing-conversion`, `GET /api/listing-roast`, `/api/x402-ping`, `/api/x402-site-audit`, `/api/x402-discovery-audit`, `/openapi.json`, `/llms.txt`, `/x402.json`, `/.well-known/x402.json`, `/api/schema`, `/api/score-schema`, `/api/discovery-audit-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
+1. Open `/builder`, `/sample`, `/api/sample-score`, `/api/instant-listing-score`, `/api/x402-marketplace-conversion`, `/api/agent-listing-conversion`, `GET /api/listing-roast`, `/api/x402-ping`, `/api/x402-site-audit`, `/api/x402-discovery-audit`, `/openapi.json`, `/.well-known/openapi.json`, `/llms.txt`, `/x402.json`, `/.well-known/x402.json`, `/api/schema`, `/api/score-schema`, `/api/discovery-audit-schema`, `/api/examples`, and `/.well-known/mcp.json` on the live URL.
 2. Send one unpaid request and confirm the live route returns HTTP `402`.
 3. Confirm the live instant score, marketplace-conversion, agent-listing-conversion, indexed GET, paid ping, and site-audit challenges use `X402_NETWORK=eip155:8453` and amount `1000`; confirm the live score challenge uses amount `5000`; confirm the full-roast and full discovery-audit challenges use amount `10000`.
 4. Monitor `/api/cash-register`; use `signals.builderViews`, `signals.builderCommandBuilds`, `signals.sampleViews`, `signals.validUnpaidChallenges`, and `signals.commandCopyClicks` for buyer interest, route-level paid counters for conversion source, `signals.emptyDiscoveryProbes` for bot/discovery noise, and `receiverWallet.usdcBalance` as the durable revenue check across deploys.

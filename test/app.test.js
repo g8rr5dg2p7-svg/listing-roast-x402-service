@@ -93,6 +93,7 @@ describe("Listing Roast x402 service", () => {
       expect(health.headers.get("link")).toContain("/x402.json");
       expect(health.headers.get("link")).toContain("/api/pay-now");
       expect(health.headers.get("link")).toContain("/openapi.json");
+      expect(health.headers.get("link")).toContain("/.well-known/openapi.json");
 
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
@@ -154,6 +155,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.status).toBe(200);
       expect(mcp.json.builder).toContain("/builder");
       expect(mcp.json.openApi).toContain("/openapi.json");
+      expect(mcp.json.openApiAliases[0]).toContain("/.well-known/openapi.json");
       expect(mcp.json.llms).toContain("/llms.txt");
       expect(mcp.json.x402Manifest).toContain("/x402.json");
       expect(mcp.json.payNow).toContain("/api/pay-now");
@@ -186,6 +188,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.capabilities.tools).toBe(9);
       expect(x402Manifest.json.keywords).toContain("paid API listing");
       expect(x402Manifest.json.keywords).toContain("x402 bazaar discovery audit");
+      expect(x402Manifest.json.openApiAliases[0]).toContain("/.well-known/openapi.json");
       expect(x402Manifest.json.payNow).toContain("/api/pay-now");
       expect(x402Manifest.json.aliases.some((url) => url.endsWith("/.well-known/x402"))).toBe(true);
       expect(x402Manifest.json.recommendedFirstPaidAction.route).toContain("/api/listing-roast");
@@ -244,6 +247,7 @@ describe("Listing Roast x402 service", () => {
       expect(examples.status).toBe(200);
       expect(examples.json.builder).toContain("/builder");
       expect(examples.json.openApi).toContain("/openapi.json");
+      expect(examples.json.openApiAliases[0]).toContain("/.well-known/openapi.json");
       expect(examples.json.llms).toContain("/llms.txt");
       expect(examples.json.x402Manifest).toContain("/x402.json");
       expect(examples.json.x402ManifestAliases.some((url) => url.endsWith("/.well-known/x402"))).toBe(true);
@@ -299,6 +303,12 @@ describe("Listing Roast x402 service", () => {
       const openApi = await fetchJson(server, "/openapi.json");
       expect(openApi.status).toBe(200);
       expect(openApi.json.openapi).toBe("3.1.0");
+
+      const wellKnownOpenApi = await fetchJson(server, "/.well-known/openapi.json");
+      expect(wellKnownOpenApi.status).toBe(200);
+      expect(wellKnownOpenApi.json.openapi).toBe("3.1.0");
+      expect(wellKnownOpenApi.json.info.title).toBe(openApi.json.info.title);
+
       expect(openApi.json.info["x-keywords"]).toContain("x402 listing");
       expect(openApi.json.paths["/api/instant-listing-score"].get.operationId).toBe("getInstantListingScoreX402MarketplaceConversion");
       expect(openApi.json.paths["/api/instant-listing-score"].get["x-payment"].maxAmountRequired).toBe("1000");
@@ -367,6 +377,7 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/api/x402-discovery-audit");
       expect(llms.text).toContain("/api/listing-score");
       expect(llms.text).toContain("/api/pay-now");
+      expect(llms.text).toContain("/.well-known/openapi.json");
       expect(llms.text).toContain("/.well-known/x402");
       expect(llms.text).toContain("npx awal@2.8.0 x402 pay");
       expect(llms.text).toContain("x402 pay http://localhost:8787/api/listing-roast");
@@ -394,6 +405,7 @@ describe("Listing Roast x402 service", () => {
       expect(sitemap.text).toContain("/api/x402-discovery-audit");
       expect(sitemap.text).toContain("/api/sample-score");
       expect(sitemap.text).toContain("/openapi.json");
+      expect(sitemap.text).toContain("/.well-known/openapi.json");
       expect(sitemap.text).toContain("/llms.txt");
       expect(sitemap.text).toContain("/x402.json");
       expect(sitemap.text).toContain("/.well-known/x402.json");
@@ -435,7 +447,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.builderViews).toBe(1);
       expect(cashRegister.json.signals.builderCommandBuilds).toBe(1);
       expect(cashRegister.json.signals.llmsViews).toBe(1);
-      expect(cashRegister.json.signals.openApiViews).toBe(1);
+      expect(cashRegister.json.signals.openApiViews).toBe(2);
       expect(cashRegister.json.signals.sampleViews).toBe(2);
       expect(cashRegister.json.signals.schemaViews).toBe(2);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
