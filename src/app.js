@@ -3038,6 +3038,8 @@ function buildAgentSkill(config, options) {
 }
 
 function buildAgentCard(config) {
+  const intentRoutes = buildPayNowActions(config);
+  const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const supportedInterfaces = [
     { url: absoluteUrl(config, ROAST_PATH), transport: "HTTP+JSON" },
     { url: absoluteUrl(config, API_ENTRY_PATH), transport: "HTTP+JSON" },
@@ -3091,6 +3093,8 @@ function buildAgentCard(config) {
     security: [{ x402: [] }],
     defaultInputModes: ["application/json", "text/plain"],
     defaultOutputModes: ["application/json"],
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence,
     skills: [
       buildAgentSkill(config, {
         id: "indexed-listing-roast-quick-score",
@@ -3199,6 +3203,8 @@ function buildAgentCard(config) {
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       noSpendDiscovery: true,
+      preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+      recommendedPaidSequence,
       a2aTaskEndpointAvailable: false,
       note: "This public card is a discovery bridge for paid x402 HTTP+JSON routes. Use OpenAPI, x402 manifest, or MCP metadata for exact callable routes."
     }
@@ -3206,6 +3212,9 @@ function buildAgentCard(config) {
 }
 
 function buildAiPluginManifest(config) {
+  const intentRoutes = buildPayNowActions(config);
+  const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+
   return {
     schema_version: "v1",
     name_for_human: "Listing Roast x402",
@@ -3244,12 +3253,8 @@ function buildAiPluginManifest(config) {
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
-      recommendedFirstPaidAction: {
-        route: absoluteUrl(config, ROAST_PATH),
-        method: "GET",
-        price: config.instantScorePrice,
-        maxAmountRequired: INSTANT_SCORE_AMOUNT
-      }
+      recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
+      recommendedPaidSequence
     }
   };
 }

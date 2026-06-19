@@ -373,8 +373,16 @@ describe("Listing Roast x402 service", () => {
       expect(agentCard.json.skills[0].metadata.maxAmountRequired).toBe("1000");
       expect(agentCard.json.skills[6].examples[0]).toContain("/api/x402-discovery-audit");
       expect(agentCard.json.skills[6].metadata.maxAmountRequired).toBe("10000");
+      expect(agentCard.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(agentCard.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(agentCard.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(agentCard.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(agentCard.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(agentCard.json.metadata.x402Manifest).toContain("/x402.json");
       expect(agentCard.json.metadata.agentSkills).toContain("/.well-known/agent-skills/index.json");
+      expect(agentCard.json.metadata.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(agentCard.json.metadata.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(agentCard.json.metadata.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(agentCard.json.metadata.a2aTaskEndpointAvailable).toBe(false);
 
       const agentJson = await fetchJson(server, "/.well-known/agent.json");
@@ -394,6 +402,10 @@ describe("Listing Roast x402 service", () => {
       expect(aiPlugin.json.api.url).toContain("/.well-known/openapi.json");
       expect(aiPlugin.json.x_listing_roast.agentSkills).toContain("/.well-known/agent-skills/index.json");
       expect(aiPlugin.json.x_listing_roast.recommendedFirstPaidAction.maxAmountRequired).toBe("1000");
+      expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
 
       const apiCatalogHead = await fetch(`http://127.0.0.1:${server.address().port}/.well-known/api-catalog`, { method: "HEAD" });
       expect(apiCatalogHead.status).toBe(200);
