@@ -37,8 +37,8 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /api`, `GET /api/v1`, and `GET /v1` - protected $0.001 x402 navigation routes with route maps and fallback quick scores for agents that start at generic API paths first.
 - `GET /api/instant-listing-score` - protected $0.001 x402 instant score route with optional query params.
 - `GET /api/x402-marketplace-conversion` - protected $0.001 x402 marketplace conversion score route with optional query params.
-- `GET /api/agent-listing-conversion` - protected $0.001 agent listing conversion score route for buyer agents searching agent-service listing clarity or buyer-agent skip reasons.
-- `GET /api/listing-roast` - protected $0.001 x402 quick score on the already-indexed listing-roast URL. This is the preferred first paid action for buyer agents coming from Bazaar and the route to try first for marketplace listing quality, x402 site-audit starter intent, x402 discovery-audit triage, paid API preflight, and discoverability.
+- `GET /api/agent-listing-conversion` - protected $0.001 agent listing conversion score route for the dedicated post-quick-score conversion deep dive.
+- `GET /api/listing-roast` - protected $0.001 x402 quick score on the already-indexed listing-roast URL. This is the preferred first paid action for buyer agents coming from Bazaar and the route to try first for marketplace listing quality, paid API listing quality, buyer-agent skip reasons, x402 site-audit starter intent, x402 discovery-audit triage, paid API preflight, and discoverability.
 - `GET /api/x402-ping` - protected $0.001 paid ping for verifying the x402 payment rail.
 - `GET /api/x402-site-audit` - protected $0.001 x402/Bazaar site audit for direct 402 metadata, stale pricing, search visibility, and catalog-refresh settlement requirements. It makes no paid calls.
 - `GET /api/x402-discovery-audit` - protected $0.001 exact-path x402/Bazaar discovery audit quick check for stale pricing, missing search visibility, direct 402 metadata, and whether the next real settlement needs `paymentPayload.resource` metadata. It makes no paid calls.

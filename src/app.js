@@ -5116,7 +5116,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Agent listing conversion route</h3>
           <p><code>GET ${escapeHtml(agentListingRoute)}</code></p>
-          <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. This is the search-winning route for buyer-agent skip reasons and agent service listing clarity.</p>
+          <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. Use this after the indexed quick score when the buyer wants the dedicated agent-listing conversion deep dive.</p>
         </div>
         <div class="card">
           <h3>x402 ping route</h3>
@@ -5216,7 +5216,7 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div class="card">
           <h3>Discovery</h3>
-          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path returns a $0.001 score API marketplace listing quality and discoverability challenge, <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> targets buyer-agent skip-reason searches, and <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge.</p>
+          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, paid API listing quality, and buyer-agent skip-reason searches; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, and <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge.</p>
           <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
@@ -5600,7 +5600,7 @@ ${indentText(buildGetPayCommand(config, CONVERSION_SCORE_PATH, INSTANT_SCORE_AMO
   - Command:
 ${indentText(buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT))}
   - Output: agent listing conversion score, agent service listing clarity score, buyer-agent skip reasons, buyer intent checks, first fix, next step
-  - Use when an agent searches for agent service listing clarity, agent listing conversion score, buyer-agent skip reasons, or buyer intent clarity
+  - Use after the indexed quick score when the buyer wants the dedicated agent-listing conversion deep dive
 
 - GET ${absoluteUrl(config, PING_PATH)}
   - Price: ${config.instantScorePrice}
