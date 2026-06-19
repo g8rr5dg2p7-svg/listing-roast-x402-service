@@ -873,6 +873,12 @@ describe("Listing Roast x402 service", () => {
       expect(findFullRewrite.json.recommended.id).toBe("listing_roast");
       expect(findFullRewrite.json.recommended.method).toBe("POST");
 
+      const findCustomScore = await fetchJson(server, "/api/find?q=score%20my%20paid%20API%20listing%20with%20a%20custom%20body");
+      expect(findCustomScore.status).toBe(200);
+      expect(findCustomScore.json.recommended.id).toBe("listing_score");
+      expect(findCustomScore.json.recommended.method).toBe("POST");
+      expect(findCustomScore.json.recommended.maxAmountRequired).toBe("5000");
+
       const routeDiscovery = await fetchJson(server, "/api/route?query=x402%20discovery%20audit&top=3");
       expect(routeDiscovery.status).toBe(200);
       expect(routeDiscovery.headers.get("payment-required")).toBeNull();
@@ -899,6 +905,13 @@ describe("Listing Roast x402 service", () => {
       });
       expect(routeMixedSkipReasons.status).toBe(200);
       expect(routeMixedSkipReasons.json.best.path).toBe("/api/agent-listing-conversion");
+
+      const routeCustomScore = await fetchJson(server, "/api/route?query=I%20want%20to%20score%20my%20paid%20API%20listing%20with%20a%20custom%20body&top=3");
+      expect(routeCustomScore.status).toBe(200);
+      expect(routeCustomScore.json.best.id).toBe("listing_score");
+      expect(routeCustomScore.json.best.method).toBe("POST");
+      expect(routeCustomScore.json.best.maxAmountRequired).toBe("5000");
+      expect(routeCustomScore.json.results[0].path).toBe("/api/listing-score");
 
       const localDiscovery = await fetchJson(server, "/v2/x402/discovery/resources?limit=2");
       expect(localDiscovery.status).toBe(200);
@@ -940,8 +953,8 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.examplesViews).toBe(1);
       expect(cashRegister.json.signals.payNowViews).toBe(1);
       expect(cashRegister.json.signals.pricingViews).toBe(1);
-      expect(cashRegister.json.signals.findViews).toBe(4);
-      expect(cashRegister.json.signals.routeViews).toBe(3);
+      expect(cashRegister.json.signals.findViews).toBe(5);
+      expect(cashRegister.json.signals.routeViews).toBe(4);
       expect(cashRegister.json.signals.localDiscoveryViews).toBe(4);
       expect(cashRegister.json.signals.mcpViews).toBe(4);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(3);

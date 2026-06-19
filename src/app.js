@@ -2807,6 +2807,24 @@ function includesAny(text, values) {
 
 function scoreCatalogResource(resource, query) {
   const normalizedQuery = query.toLowerCase();
+  const wantsCustomScore = includesAny(normalizedQuery, [
+    "custom body",
+    "body-specific",
+    "json body",
+    "submitted copy",
+    "provided copy",
+    "current listing copy",
+    "score my listing",
+    "score my paid api listing",
+    "score our paid api listing"
+  ]);
+  const wantsFullRoast = includesAny(normalizedQuery, [
+    "full roast",
+    "rewrite",
+    "top fixes",
+    "launch guidance",
+    "launch recommendation"
+  ]);
   const searchable = [
     resource.id,
     resource.name,
@@ -2844,6 +2862,15 @@ function scoreCatalogResource(resource, query) {
     if (resource.id === "listing_roast") score += 125;
     if (resource.id === "listing_score") score += 55;
     if (resource.id === "indexed_roast_quick_score") score += 20;
+  }
+
+  if (wantsCustomScore) {
+    if (resource.id === "listing_score") score += 170;
+    if (resource.path === INSTANT_SCORE_PATH) score += 15;
+  }
+
+  if (wantsFullRoast) {
+    if (resource.id === "listing_roast") score += 70;
   }
 
   if (includesAny(normalizedQuery, ["score", "listing quality", "marketplace conversion", "paid api listing", "discoverability", "conversion"])) {
