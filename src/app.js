@@ -226,8 +226,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-start-here-handoff-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T23:45:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-indexed-route-first-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T00:40:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -2118,17 +2118,20 @@ function buildLocalDiscoverySearchExamples(config) {
   const examples = [
     {
       query: "paid API listing quality",
-      expectedFirstPath: "/api/paid-api-listing-quality",
+      expectedFirstPath: ROAST_PATH,
+      exactIntentPath: "/api/paid-api-listing-quality",
       expectedAmount: INSTANT_SCORE_AMOUNT
     },
     {
       query: "buyer-agent skip reasons",
-      expectedFirstPath: "/api/buyer-agent-skip-reasons",
+      expectedFirstPath: ROAST_PATH,
+      exactIntentPath: "/api/buyer-agent-skip-reasons",
       expectedAmount: INSTANT_SCORE_AMOUNT
     },
     {
       query: "agent service clarity",
-      expectedFirstPath: "/api/agent-service-clarity",
+      expectedFirstPath: ROAST_PATH,
+      exactIntentPath: "/api/agent-service-clarity",
       expectedAmount: INSTANT_SCORE_AMOUNT
     },
     {
@@ -2157,7 +2160,7 @@ function buildLocalDiscoverySearchExamples(config) {
     ...example,
     searchUrl: `${absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0])}?query=${encodeURIComponent(example.query)}&limit=3`,
     noSpend: true,
-    reason: "Use seller-hosted discovery search when external marketplace search is stale, incomplete, or misses this buyer intent."
+    reason: "Use seller-hosted discovery search when external marketplace search is stale, incomplete, or misses this buyer intent. Listing-quality intents lead with the already-indexed /api/listing-roast route; phrase-specific aliases remain available as exact-intent alternates."
   }));
 }
 
@@ -2703,7 +2706,7 @@ function selectPayNowAction(config, intent = "") {
       return Number(left.maxAmountRequired || 0) - Number(right.maxAmountRequired || 0);
     });
   const selectedRoute = ranked[0];
-  const selectedActionKey = PAY_NOW_ACTION_BY_RESOURCE_ID[selectedRoute?.id] || "indexedQuickScore";
+  const selectedActionKey = quickScoreAliasActionKeyForQuery(rawIntent) || PAY_NOW_ACTION_BY_RESOURCE_ID[selectedRoute?.id] || "indexedQuickScore";
 
   return {
     intent: rawIntent,
@@ -5046,10 +5049,11 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     .slice(0, parseDiscoveryLimit(query.limit, 20))
     .map((entry) => entry.item);
   const selected = selectedPaidActionForRoute(intentRoutes, resources[0]);
-  const selectedActionKey = selected?.selectedActionKey || "indexedQuickScore";
+  const selectedActionKey = quickScoreAliasActionKeyForQuery(rawQuery) || selected?.selectedActionKey || "indexedQuickScore";
   const selectedPaidAction = selected?.selectedPaidAction || intentRoutes.indexedQuickScore;
-  const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
-  const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
+  const selectedIntentPaidAction = intentRoutes[selectedActionKey] || selectedPaidAction;
+  const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedIntentPaidAction);
+  const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedIntentPaidAction);
 
   return {
     x402Version: 2,
@@ -5063,13 +5067,15 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     pricing: absoluteUrl(config, PRICING_PATH),
     startHere,
     ...(selected || {}),
+    selectedActionKey,
+    selectedPaidAction: selectedIntentPaidAction,
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     selectedFirstPaidAction,
-    selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
-    buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, intentRoutes.indexedQuickScore),
+    selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedIntentPaidAction),
+    buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedIntentPaidAction, intentRoutes.indexedQuickScore),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     provenFirstPaidAction: intentRoutes.indexedQuickScore,
-    paidResponsePreview: buildPaidResponsePreview(config, selectedActionKey, selectedPaidAction),
+    paidResponsePreview: buildPaidResponsePreview(config, selectedActionKey, selectedIntentPaidAction),
     selectedFirstPaidResponsePreview: buildPaidResponsePreview(
       config,
       isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
@@ -5141,11 +5147,8 @@ function wantsBazaarDiscoveryFix(query) {
   ]);
 }
 
-function scoreCatalogResource(resource, query) {
-  const normalizedQuery = query.toLowerCase();
-  const wantsPreflight = wantsPaidApiPreflight(normalizedQuery);
-  const wantsDiscoveryFix = wantsBazaarDiscoveryFix(normalizedQuery);
-  const wantsCustomScore = includesAny(normalizedQuery, [
+function wantsCustomBodyScore(query) {
+  return includesAny(query, [
     "custom body",
     "body-specific",
     "json body",
@@ -5156,13 +5159,56 @@ function scoreCatalogResource(resource, query) {
     "score my paid api listing",
     "score our paid api listing"
   ]);
-  const wantsFullRoast = includesAny(normalizedQuery, [
+}
+
+function wantsFullRoastOutput(query) {
+  return includesAny(query, [
     "full roast",
     "rewrite",
     "top fixes",
     "launch guidance",
     "launch recommendation"
   ]);
+}
+
+function quickScoreAliasActionKeyForQuery(query) {
+  const normalizedQuery = String(query || "").toLowerCase();
+
+  if (
+    !normalizedQuery ||
+    wantsPaidApiPreflight(normalizedQuery) ||
+    wantsBazaarDiscoveryFix(normalizedQuery) ||
+    wantsCustomBodyScore(normalizedQuery) ||
+    wantsFullRoastOutput(normalizedQuery)
+  ) {
+    return null;
+  }
+
+  if (includesAny(normalizedQuery, ["buyer-agent skip reason", "buyer-agent skip reasons", "buyer agent skip reason", "buyer agent skip reasons", "skip reasons"])) {
+    return "buyerAgentSkipReasons";
+  }
+
+  if (includesAny(normalizedQuery, ["agent service clarity", "agent-service clarity", "agent service listing clarity", "agent-service listing score", "agent service listing score", "listing clarity"])) {
+    return "agentServiceClarity";
+  }
+
+  if (includesAny(normalizedQuery, ["paid api listing quality", "paid api listing quality score", "paid api listing"])) {
+    return "paidApiListingQuality";
+  }
+
+  if (includesAny(normalizedQuery, ["marketplace listing score", "marketplace listing quality"])) {
+    return "marketplaceListingScore";
+  }
+
+  return null;
+}
+
+function scoreCatalogResource(resource, query) {
+  const normalizedQuery = query.toLowerCase();
+  const wantsPreflight = wantsPaidApiPreflight(normalizedQuery);
+  const wantsDiscoveryFix = wantsBazaarDiscoveryFix(normalizedQuery);
+  const wantsCustomScore = wantsCustomBodyScore(normalizedQuery);
+  const wantsFullRoast = wantsFullRoastOutput(normalizedQuery);
   const searchable = [
     resource.id,
     resource.name,
@@ -5174,6 +5220,10 @@ function scoreCatalogResource(resource, query) {
   const tokens = normalizedQuery.split(/[^a-z0-9]+/).filter((token) => token.length > 2);
   let score = resource.preferredFirstPaidAction ? 5 : 0;
   const isIndexedRoastGet = resource.id === "indexed_roast_quick_score" || (String(resource.method || "").toUpperCase() === "GET" && resource.path === ROAST_PATH);
+
+  if (quickScoreAliasActionKeyForQuery(normalizedQuery) && isIndexedRoastGet) {
+    score += 500;
+  }
 
   if (normalizedQuery && searchable.includes(normalizedQuery)) {
     score += 25;
@@ -5293,8 +5343,8 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
   const recommended = ranked[0] || routes[0];
   const selected = selectedPaidActionForRoute(intentRoutes, recommended);
   const provenFirstPaidAction = intentRoutes.indexedQuickScore;
-  const selectedActionKey = selected?.selectedActionKey || "indexedQuickScore";
-  const selectedPaidAction = selected?.selectedPaidAction || provenFirstPaidAction;
+  const selectedActionKey = quickScoreAliasActionKeyForQuery(query) || selected?.selectedActionKey || "indexedQuickScore";
+  const selectedPaidAction = intentRoutes[selectedActionKey] || selected?.selectedPaidAction || provenFirstPaidAction;
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
 
@@ -5306,6 +5356,8 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     recommended,
     ...(selected || {}),
+    selectedActionKey,
+    selectedPaidAction,
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     alternatives: ranked.filter((route) => route.id !== recommended.id).slice(0, 4),
     pricing: absoluteUrl(config, PRICING_PATH),
@@ -5378,8 +5430,8 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     .slice(0, top);
   const selected = selectedPaidActionForRoute(intentRoutes, ranked[0]);
   const provenFirstPaidAction = intentRoutes.indexedQuickScore;
-  const selectedActionKey = selected?.selectedActionKey || "indexedQuickScore";
-  const selectedPaidAction = selected?.selectedPaidAction || provenFirstPaidAction;
+  const selectedActionKey = quickScoreAliasActionKeyForQuery(query) || selected?.selectedActionKey || "indexedQuickScore";
+  const selectedPaidAction = intentRoutes[selectedActionKey] || selected?.selectedPaidAction || provenFirstPaidAction;
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
 
@@ -5396,6 +5448,8 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     results: ranked,
     best: ranked[0] || null,
     ...(selected || {}),
+    selectedActionKey,
+    selectedPaidAction,
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     count: ranked.length,
     totalLocalRoutes: buildPaidRouteCatalog(config).length,
