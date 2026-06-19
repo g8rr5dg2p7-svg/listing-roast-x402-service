@@ -1710,6 +1710,8 @@ function webMcpScript(config) {
 }
 
 function buildOpenApiDocument(config) {
+  const intentRoutes = buildPayNowActions(config);
+
   return {
     openapi: "3.1.0",
     info: {
@@ -2353,13 +2355,8 @@ function buildOpenApiDocument(config) {
       apiV1EntryRoute: absoluteUrl(config, API_V1_ENTRY_PATH),
       v1EntryRoute: absoluteUrl(config, V1_ENTRY_PATH),
       preferredFirstPaidRoute: absoluteUrl(config, ROAST_PATH),
-      recommendedFirstPaidAction: {
-        route: absoluteUrl(config, ROAST_PATH),
-        method: "GET",
-        price: config.instantScorePrice,
-        maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        reason: "This is the already-indexed Bazaar route and the lowest-friction paid score."
-      },
+      recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
+      recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
       conversionScoreRoute: absoluteUrl(config, CONVERSION_SCORE_PATH),
       agentListingConversionRoute: absoluteUrl(config, AGENT_LISTING_PATH),

@@ -675,6 +675,10 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json["x-listing-roast"].llmsFull).toContain("/llms-full.txt");
       expect(openApi.json["x-listing-roast"].mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(openApi.json["x-listing-roast"].recommendedFirstPaidAction.route).toContain("/api/listing-roast");
+      expect(openApi.json["x-listing-roast"].recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(openApi.json["x-listing-roast"].recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
+      expect(openApi.json["x-listing-roast"].recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(openApi.json["x-listing-roast"].recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(openApi.json["x-listing-roast"].x402Manifest).toContain("/x402.json");
       expect(openApi.json["x-listing-roast"].keywords).toContain("paid API listing");
 
