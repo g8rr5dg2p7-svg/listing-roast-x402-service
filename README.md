@@ -1,6 +1,6 @@
 # Listing Roast x402 Service
 
-Standalone x402 paid API for paid API listing quality scoring, critiquing agent-service listing copy, and auditing stale x402/Bazaar discovery state. It has $0.001 instant GET score and site-audit endpoints, a $0.005 score endpoint, a $0.01 full-roast endpoint, and a $0.01 discovery audit endpoint.
+Standalone x402 paid API for paid API listing quality scoring, critiquing agent-service listing copy, and auditing stale x402/Bazaar discovery state. It leads with the already-indexed $0.001 GET `/api/listing-roast` quick score, and also has a $0.001 instant GET score, a $0.001 site-audit endpoint, a $0.005 score endpoint, a $0.01 full-roast endpoint, and a $0.01 discovery audit endpoint.
 
 This is intentionally separate from ApexScout and any other active project. It has a public homepage, a command-builder page, a shareable sample page, seven protected JSON API routes, MCP-visible metadata, OpenAPI with explicit x402 payment hints, llms.txt, x402 discovery link headers, and a local aggregate cash register.
 

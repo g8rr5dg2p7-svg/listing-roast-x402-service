@@ -96,7 +96,9 @@ describe("Listing Roast x402 service", () => {
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
       expect(home.headers.get("link")).toContain("/.well-known/x402.json");
-      expect(home.text).toContain("Copy $0.001 instant command");
+      expect(home.text).toContain("Copy $0.001 indexed GET command");
+      expect(home.text).toContain("Copy instant score command");
+      expect(home.text).toContain("Preferred indexed listing-roast GET command");
       expect(home.text).toContain("Copy x402 ping command");
       expect(home.text).toContain("Copy $0.001 site audit command");
       expect(home.text).toContain("Copy discovery audit command");
@@ -111,6 +113,7 @@ describe("Listing Roast x402 service", () => {
       const builder = await fetchJson(server, "/builder");
       expect(builder.status).toBe(200);
       expect(builder.text).toContain("Build a paid score command from your listing.");
+      expect(builder.text).toContain("Preferred indexed GET command");
       expect(builder.text).toContain("/api/listing-score");
       expect(builder.text).toContain("/api/x402-ping");
       expect(builder.text).toContain("/api/x402-site-audit");

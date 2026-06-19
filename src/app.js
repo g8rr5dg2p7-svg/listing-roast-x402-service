@@ -1463,10 +1463,10 @@ export function createApp(overrides = {}) {
       <div class="wrap heroGrid">
         <div>
           <h1>Find out why buyer agents skip your paid API listing.</h1>
-          <p class="lead">Start with a ${config.instantScorePrice} instant GET score, run a ${config.siteAuditPrice} GET site audit when x402 discovery looks stale, or pay ${config.price} for the full roast. Get buyer-agent skip reasons before you promote.</p>
+          <p class="lead">Start with the already-indexed ${config.instantScorePrice} GET quick score on <code>${ROAST_PATH}</code>. Use the instant route when you want a dedicated score URL, run a ${config.siteAuditPrice} GET site audit when x402 discovery looks stale, or pay ${config.price} for the full roast.</p>
           <div class="actions">
-            <button class="button" type="button" data-copy-target="instant-command" data-default-text="Copy $0.001 instant command">Copy $0.001 instant command</button>
-            <button class="button secondary" type="button" data-copy-target="indexed-command" data-default-text="Copy indexed GET command">Copy indexed GET command</button>
+            <button class="button" type="button" data-copy-target="indexed-command" data-default-text="Copy $0.001 indexed GET command">Copy $0.001 indexed GET command</button>
+            <button class="button secondary" type="button" data-copy-target="instant-command" data-default-text="Copy instant score command">Copy instant score command</button>
             <button class="button secondary" type="button" data-copy-target="ping-command" data-default-text="Copy x402 ping command">Copy x402 ping command</button>
             <button class="button secondary" type="button" data-copy-target="site-audit-command" data-default-text="Copy $0.001 site audit command">Copy $0.001 site audit command</button>
             <button class="button secondary" type="button" data-copy-target="audit-command" data-default-text="Copy discovery audit command">Copy discovery audit command</button>
@@ -1479,18 +1479,18 @@ export function createApp(overrides = {}) {
           </div>
           <div class="proof" aria-label="Proof points">
             <div><strong class="metric">Live</strong><span class="muted">Production x402 route</span></div>
-            <div><strong>${config.instantScorePrice} / ${config.scorePrice} / ${config.price}</strong><span class="muted">Instant, indexed GET, score, audit, or roast</span></div>
+            <div><strong>${config.instantScorePrice} / ${config.scorePrice} / ${config.price}</strong><span class="muted">Indexed GET, instant, score, audit, or roast</span></div>
             <div><strong class="metric">Discovery audit</strong><span class="muted">Checks stale Bazaar listings</span></div>
           </div>
         </div>
         <div class="device" aria-label="Terminal preview">
           <div class="deviceTop"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-          <div class="terminal">$ x402 pay ${INSTANT_SCORE_PATH}
+          <div class="terminal">$ x402 pay ${ROAST_PATH}
 <span class="warn">402 Payment Required</span>
 payTo: ${escapeHtml(config.payTo)}
 network: ${escapeHtml(config.network)}
-instant amount: ${INSTANT_SCORE_AMOUNT} USDC units
-indexed GET amount: ${INSTANT_SCORE_AMOUNT} USDC units
+preferred indexed GET amount: ${INSTANT_SCORE_AMOUNT} USDC units
+instant score amount: ${INSTANT_SCORE_AMOUNT} USDC units
 score amount: 5000 USDC units
 site audit amount: ${SITE_AUDIT_AMOUNT} USDC units
 roast amount: 10000 USDC units
@@ -1522,8 +1522,8 @@ score: 4/5</div>
     <section class="band" id="pay">
       <div class="wrap grid2">
         <div>
-          <h2>Pay ${config.instantScorePrice} first, audit discovery when needed.</h2>
-          <p>All paid endpoints are protected by x402. The instant GET route is the fastest first paid action; the GET site audit is the lowest-friction discovery audit for agents that do not want to assemble a body first.</p>
+          <h2>Pay the indexed ${config.instantScorePrice} route first, audit discovery when needed.</h2>
+          <p>All paid endpoints are protected by x402. The already-indexed <code>${ROAST_PATH}</code> GET route is the preferred first paid action for Bazaar traffic; the GET site audit is the lowest-friction discovery audit for agents that do not want to assemble a body first.</p>
           <p>
             <span class="tag">Base mainnet</span>
             <span class="tag">USDC</span>
@@ -1532,14 +1532,14 @@ score: 4/5</div>
           </p>
         </div>
         <div class="card">
+          <h3>Preferred indexed quick score route</h3>
+          <p><code>GET ${escapeHtml(paidRoute)}</code></p>
+          <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. This keeps the already-indexed listing-roast URL payable at the lowest price.</p>
+        </div>
+        <div class="card">
           <h3>Instant score route</h3>
           <p><code>GET ${escapeHtml(instantRoute)}</code></p>
           <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units.</p>
-        </div>
-        <div class="card">
-          <h3>Indexed quick score route</h3>
-          <p><code>GET ${escapeHtml(paidRoute)}</code></p>
-          <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. This keeps the already-indexed listing-roast URL payable at the lowest price.</p>
         </div>
         <div class="card">
           <h3>x402 ping route</h3>
@@ -1568,12 +1568,12 @@ score: 4/5</div>
         </div>
       </div>
       <div class="wrap" style="margin-top: 18px;">
-        <h3>Instant GET command</h3>
-        <pre id="instant-command">${escapeHtml(instantCommand)}</pre>
+        <h3>Preferred indexed listing-roast GET command</h3>
+        <pre id="indexed-command">${escapeHtml(indexedRoastGetCommand)}</pre>
       </div>
       <div class="wrap" style="margin-top: 18px;">
-        <h3>Indexed listing-roast GET command</h3>
-        <pre id="indexed-command">${escapeHtml(indexedRoastGetCommand)}</pre>
+        <h3>Instant GET command</h3>
+        <pre id="instant-command">${escapeHtml(instantCommand)}</pre>
       </div>
       <div class="wrap" style="margin-top: 18px;">
         <h3>x402 ping command</h3>
@@ -1788,21 +1788,23 @@ x402 manifest: ${absoluteUrl(config, "/x402.json")}
 MCP metadata: ${absoluteUrl(config, "/.well-known/mcp.json")}
 Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
 
-Paid routes:
-
-- GET ${absoluteUrl(config, INSTANT_SCORE_PATH)}
-  - Price: ${config.instantScorePrice}
-  - Network: ${config.network}
-  - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
-  - Output: paid API listing quality score, checked signals, first fix, next step
-  - Use when an agent wants to pay without first assembling a JSON body
+Preferred first paid route:
 
 - GET ${absoluteUrl(config, ROAST_PATH)}
   - Price: ${config.instantScorePrice}
   - Network: ${config.network}
   - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
   - Output: quick paid API listing quality score from the already-indexed listing-roast URL
-  - Use when a marketplace result points to /api/listing-roast without method metadata
+  - Use first when a marketplace result points to /api/listing-roast or an agent wants the lowest-friction payable route
+
+Other paid routes:
+
+- GET ${absoluteUrl(config, INSTANT_SCORE_PATH)}
+  - Price: ${config.instantScorePrice}
+  - Network: ${config.network}
+  - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+  - Output: paid API listing quality score, checked signals, first fix, next step
+  - Use when an agent wants a dedicated instant-score URL without first assembling a JSON body
 
 - GET ${absoluteUrl(config, PING_PATH)}
   - Price: ${config.instantScorePrice}
@@ -1841,7 +1843,7 @@ Request body JSON:
 
 ${prettyJson(requestExample)}
 
-Use the $0.001 instant GET score first when a buyer agent wants the fastest paid test without a JSON body.
+Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wants the fastest paid test from a Bazaar-visible URL.
 `);
   });
 
@@ -1924,7 +1926,7 @@ Use the $0.001 instant GET score first when a buyer agent wants the fastest paid
   <main>
     <div class="wrap">
       <h1>Build a paid score command from your listing.</h1>
-      <p class="lead">Paste the offer you are trying to sell. This page gives you the ${config.instantScorePrice} instant GET commands and site audit, then builds the exact x402 command for the ${config.scorePrice} score route and the optional ${config.price} full roast route.</p>
+      <p class="lead">Paste the offer you are trying to sell. This page leads with the already-indexed ${config.instantScorePrice} GET command, then gives the instant-score URL, site audit, ${config.scorePrice} score route, and optional ${config.price} full roast route.</p>
       <div class="grid">
         <form class="card" id="builder-form">
           <label for="agentName">Service name</label>
@@ -1947,13 +1949,13 @@ Use the $0.001 instant GET score first when a buyer agent wants the fastest paid
         </form>
         <div>
           <div class="card" style="margin-top: 18px;">
-            <h2>Instant GET commands <span class="metric">${config.instantScorePrice}</span></h2>
-            <p class="muted"><code>GET ${escapeHtml(instantRoute)}</code></p>
-            <pre id="instant-command">${escapeHtml(instantCommand)}</pre>
-            <button class="button" type="button" data-copy-target="instant-command" data-default-text="Copy instant command">Copy instant command</button>
-            <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(indexedRoute)}</code></p>
+            <h2>Preferred indexed GET command <span class="metric">${config.instantScorePrice}</span></h2>
+            <p class="muted"><code>GET ${escapeHtml(indexedRoute)}</code></p>
             <pre id="indexed-command">${escapeHtml(indexedCommand)}</pre>
-            <button class="button secondary" type="button" data-copy-target="indexed-command" data-default-text="Copy indexed GET command">Copy indexed GET command</button>
+            <button class="button" type="button" data-copy-target="indexed-command" data-default-text="Copy indexed GET command">Copy indexed GET command</button>
+            <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(instantRoute)}</code></p>
+            <pre id="instant-command">${escapeHtml(instantCommand)}</pre>
+            <button class="button secondary" type="button" data-copy-target="instant-command" data-default-text="Copy instant command">Copy instant command</button>
             <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(pingRoute)}</code></p>
             <pre id="ping-command">${escapeHtml(pingCommand)}</pre>
             <button class="button secondary" type="button" data-copy-target="ping-command" data-default-text="Copy x402 ping command">Copy x402 ping command</button>
