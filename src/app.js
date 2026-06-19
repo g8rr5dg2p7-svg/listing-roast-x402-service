@@ -304,8 +304,18 @@ function listingRequestSchemaProperties({ includeSource = true } = {}) {
   return properties;
 }
 
+function listingQuerySchemaProperties() {
+  return Object.fromEntries(Object.entries(listingRequestSchemaProperties({ includeSource: false })).map(([name, schema]) => [
+    name,
+    {
+      ...schema,
+      default: LISTING_QUERY_PARAMETER_EXAMPLES[name]
+    }
+  ]));
+}
+
 function listingQueryOpenApiParameters() {
-  return Object.entries(listingRequestSchemaProperties({ includeSource: false })).map(([name, schema]) => ({
+  return Object.entries(listingQuerySchemaProperties()).map(([name, schema]) => ({
     name,
     in: "query",
     required: false,
@@ -1152,7 +1162,7 @@ function buildInstantScoreDiscovery(config) {
     input: queryExample,
     inputSchema: {
       type: "object",
-      properties: listingRequestSchemaProperties({ includeSource: false })
+      properties: listingQuerySchemaProperties()
     },
     output: {
       example: buildInstantListingScore(buildInstantScoreInput(), config),
