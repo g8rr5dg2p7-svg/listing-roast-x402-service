@@ -216,8 +216,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent clarity, agent service clarity, paid API preflight, x402 audit, x402 discovery audit, Bazaar visibility, stale price. $0.001 GET /api/listing-roast; /api/x402-site-audit, /api/x402-discovery-audit, POST /api/listing-roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-api-discovery-aliases-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T22:28:49.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-buyer-skip-alias-first-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T22:35:24.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -2482,12 +2482,20 @@ const QUICK_SCORE_EXACT_ALIAS_ACTION_KEYS = new Set([
   "agentServiceClarity"
 ]);
 
+const EXACT_ALIAS_FIRST_ACTION_KEYS = new Set([
+  "buyerAgentSkipReasons"
+]);
+
 function isQuickScoreExactAliasActionKey(selectedActionKey) {
   return QUICK_SCORE_EXACT_ALIAS_ACTION_KEYS.has(selectedActionKey);
 }
 
+function shouldUseExactAliasFirst(selectedActionKey) {
+  return EXACT_ALIAS_FIRST_ACTION_KEYS.has(selectedActionKey);
+}
+
 function firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey = "indexedQuickScore", selectedPaidAction = null) {
-  if (isQuickScoreExactAliasActionKey(selectedActionKey)) {
+  if (isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey)) {
     return intentRoutes.indexedQuickScore;
   }
 
@@ -2511,13 +2519,15 @@ function exactIntentPaidActionForSelection(intentRoutes, selectedActionKey = "in
 
 function buildSelectedPaidSequence(intentRoutes, selectedActionKey = "indexedQuickScore", selectedPaidAction = null) {
   const firstAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
-  const firstUse = isQuickScoreExactAliasActionKey(selectedActionKey) ? "indexedQuickScore" : selectedActionKey;
+  const firstUse = isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey)
+    ? "indexedQuickScore"
+    : selectedActionKey;
   const sequence = [
     {
       step: 1,
       use: firstUse,
       action: firstAction,
-      reason: isQuickScoreExactAliasActionKey(selectedActionKey)
+      reason: isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey)
         ? "Start with the already-indexed, wallet-backed route for this quick-score intent. The phrase-specific alias remains available when an agent needs that exact URL."
         : "Use this first for the selected buyer intent. It is the exact route returned by the no-spend route selector."
     }
@@ -2542,6 +2552,10 @@ function buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, pr
   const isProvenRoute = selected.path === provenFirstPaidAction.path && selected.method === provenFirstPaidAction.method;
 
   if (isQuickScoreExactAliasActionKey(selectedActionKey) && !isProvenRoute) {
+    if (shouldUseExactAliasFirst(selectedActionKey)) {
+      return `For this exact buyer intent, start with ${selected.method} ${selected.path} at max ${selected.maxAmountRequired} USDC units so the paid URL matches the buyer phrase. Use ${provenFirstPaidAction.method} ${provenFirstPaidAction.path} when the buyer came from a generic Bazaar result and wants the already-indexed route with wallet-backed paid-use proof.`;
+    }
+
     return `For this quick-score buyer intent, start with ${provenFirstPaidAction.method} ${provenFirstPaidAction.path} at max ${provenFirstPaidAction.maxAmountRequired} USDC units because it is the already-indexed route with wallet-backed paid-use proof. Use ${selected.method} ${selected.path} only when the buyer explicitly needs the phrase-specific URL; both routes return the same $0.001 quick score.`;
   }
 
@@ -2666,7 +2680,11 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. Exact alias routes remain available for phrase-specific searches.",
     selectedFirstPaidAction,
     paidResponsePreview: buildPaidResponsePreview(config, selection.selectedActionKey, selectedPaidAction),
-    selectedFirstPaidResponsePreview: buildPaidResponsePreview(config, isQuickScoreExactAliasActionKey(selection.selectedActionKey) ? "indexedQuickScore" : selection.selectedActionKey, selectedFirstPaidAction),
+    selectedFirstPaidResponsePreview: buildPaidResponsePreview(
+      config,
+      isQuickScoreExactAliasActionKey(selection.selectedActionKey) && !shouldUseExactAliasFirst(selection.selectedActionKey) ? "indexedQuickScore" : selection.selectedActionKey,
+      selectedFirstPaidAction
+    ),
     selectedPaidSequence,
     buyerInstruction: buildSelectedBuyerInstruction(selection.selectedActionKey, selectedPaidAction, provenFirstPaidAction),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
@@ -2762,7 +2780,11 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
     preferredFirstPaidAction: provenFirstPaidAction,
     provenFirstPaidAction,
     paidResponsePreview: buildPaidResponsePreview(config, selectedActionKey, selectedPaidAction),
-    selectedFirstPaidResponsePreview: buildPaidResponsePreview(config, isQuickScoreExactAliasActionKey(selectedActionKey) ? "indexedQuickScore" : selectedActionKey, selectedFirstPaidAction),
+    selectedFirstPaidResponsePreview: buildPaidResponsePreview(
+      config,
+      isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
+      selectedFirstPaidAction
+    ),
     buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, provenFirstPaidAction),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes)
   };
@@ -4848,7 +4870,11 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     provenFirstPaidAction: intentRoutes.indexedQuickScore,
     paidResponsePreview: buildPaidResponsePreview(config, selectedActionKey, selectedPaidAction),
-    selectedFirstPaidResponsePreview: buildPaidResponsePreview(config, isQuickScoreExactAliasActionKey(selectedActionKey) ? "indexedQuickScore" : selectedActionKey, selectedFirstPaidAction),
+    selectedFirstPaidResponsePreview: buildPaidResponsePreview(
+      config,
+      isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
+      selectedFirstPaidAction
+    ),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     resources,
     partialResults: false,
@@ -5090,7 +5116,11 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. The recommended route may still point to a phrase-specific alias.",
     selectedFirstPaidAction,
     paidResponsePreview: buildPaidResponsePreview(config, selectedActionKey, selectedPaidAction),
-    selectedFirstPaidResponsePreview: buildPaidResponsePreview(config, isQuickScoreExactAliasActionKey(selectedActionKey) ? "indexedQuickScore" : selectedActionKey, selectedFirstPaidAction),
+    selectedFirstPaidResponsePreview: buildPaidResponsePreview(
+      config,
+      isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
+      selectedFirstPaidAction
+    ),
     selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
     buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, provenFirstPaidAction),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
@@ -5181,7 +5211,11 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. The best match may still point to a phrase-specific alias.",
     selectedFirstPaidAction,
     paidResponsePreview: buildPaidResponsePreview(config, selectedActionKey, selectedPaidAction),
-    selectedFirstPaidResponsePreview: buildPaidResponsePreview(config, isQuickScoreExactAliasActionKey(selectedActionKey) ? "indexedQuickScore" : selectedActionKey, selectedFirstPaidAction),
+    selectedFirstPaidResponsePreview: buildPaidResponsePreview(
+      config,
+      isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
+      selectedFirstPaidAction
+    ),
     selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
     buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, provenFirstPaidAction),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
