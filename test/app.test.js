@@ -457,6 +457,7 @@ describe("Listing Roast x402 service", () => {
       const resourcesById = Object.fromEntries(x402Manifest.json.resources.map((resource) => [resource.id, resource]));
       expect(x402Manifest.json.resources[0].name).toBe("marketplace_listing_score_paid_api_listing_quality_score");
       expect(x402Manifest.json.resources[0].serviceName).toBe("Listing Roast x402");
+      expect(x402Manifest.json.resources[0].description).toMatch(/^Score API marketplace listing quality and discoverability/);
       expect(x402Manifest.json.resources[0].tags).toEqual([
         "x402",
         "paid API listing quality score",
@@ -1104,6 +1105,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("buyer-agent skip reasons");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("listing quality");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Paid API listing quality score");
+      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Score API marketplace listing quality and discoverability");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent listing conversion score");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent service listing clarity");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("x402 discovery audit triage");
@@ -2427,7 +2429,7 @@ describe("Listing Roast x402 service", () => {
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
-      expect(challenge.resource.description).toMatch(/^marketplace listing score/);
+      expect(challenge.resource.description).toMatch(/^Score API marketplace listing quality and discoverability/);
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("x402 site audit starter");
       expect(challenge.resource.description).toContain("buyer-agent skip reasons");
