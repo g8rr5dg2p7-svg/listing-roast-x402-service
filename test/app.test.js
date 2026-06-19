@@ -2277,6 +2277,18 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.derivedPaidCompletion.routeKey).toBe("indexedRoastGet");
       expect(cashRegister.json.latestWalletSettlement.payerDetails).toBe("omitted");
       expect(cashRegister.json.latestWalletSettlement.route.maxAmountRequired).toBe("1000");
+
+      const proof = await fetchJson(server, "/api/paid-usage-proof");
+      expect(proof.status).toBe(200);
+      expect(proof.json.paidUsageProof.latestPaidCompletion.source).toBe("public_wallet_settlement");
+      expect(proof.json.paidUsageProof.latestPaidCompletion.routeKey).toBe("indexedRoastGet");
+      expect(proof.json.paidUsageProof.latestPaidCompletion.path).toBe("/api/listing-roast");
+      expect(proof.json.paidUsageProof.latestPaidCompletion.estimatedRevenueUsd).toBe("0.001");
+
+      const home = await fetchJson(server, "/");
+      expect(home.status).toBe(200);
+      expect(home.text).toContain("GET /api/listing-roast settled");
+      expect(home.text).toContain("0.001 wallet proof is exposed in the cash register");
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }

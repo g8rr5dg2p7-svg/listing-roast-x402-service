@@ -4168,12 +4168,16 @@ function buildPaidUsageProof(config, cashRegister = {}) {
   const indexedRoastGetCompletions = Number(cashRegister.indexedRoastGetCompletions || 0);
   const indexedRoastGetEstimatedRevenueUsd = String(cashRegister.indexedRoastGetEstimatedRevenueUsd || "$0.00");
   const latestWalletSettlement = buildLatestWalletSettlementProof(config);
+  const recentPaidCompletions = Array.isArray(cashRegister.recentPaidCompletions) ? cashRegister.recentPaidCompletions : [];
+  const derivedPaidCompletion = buildDerivedPaidCompletionFromSettlement(cashRegister, latestWalletSettlement);
+  const latestPaidCompletion = cashRegister.lastPaidCompletion || (derivedPaidCompletion && recentPaidCompletions.length === 0 ? derivedPaidCompletion : null);
 
   return {
     paidCompletions,
     estimatedGrossRevenueUsd,
     proofText: `${paidCompletions} paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered`,
     lastPaidAt: cashRegister.lastPaidAt || null,
+    ...(latestPaidCompletion ? { latestPaidCompletion } : {}),
     preferredConvertedRoute: {
       path: ROAST_PATH,
       method: "GET",
@@ -6731,12 +6735,17 @@ export function createApp(overrides = {}) {
       ? `${indexedPaidCount} indexed GET paid use${indexedPaidCount === 1 ? "" : "s"}`
       : "Indexed GET route";
     const latestWalletSettlement = buildLatestWalletSettlementProof(config);
-    const settlementLabel = latestWalletSettlement
-      ? `${latestWalletSettlement.usdc || `${latestWalletSettlement.usdcUnits || INSTANT_SCORE_AMOUNT} units`} wallet-settled`
-      : "Wallet snapshot";
-    const settlementText = latestWalletSettlement
-      ? "Latest settlement proof is exposed in discovery JSON"
-      : "Receiver balance is checked in the public cash register";
+    const latestPaidCompletion = buildPaidUsageProof(config, cashRegister).latestPaidCompletion;
+    const settlementLabel = latestPaidCompletion
+      ? `${latestPaidCompletion.method} ${latestPaidCompletion.path} settled`
+      : latestWalletSettlement
+        ? `${latestWalletSettlement.usdc || `${latestWalletSettlement.usdcUnits || INSTANT_SCORE_AMOUNT} units`} wallet-settled`
+        : "Wallet snapshot";
+    const settlementText = latestPaidCompletion
+      ? `${latestPaidCompletion.estimatedRevenueUsd || latestWalletSettlement?.usdc || "$0.001"} wallet proof is exposed in the cash register`
+      : latestWalletSettlement
+        ? "Latest settlement proof is exposed in discovery JSON"
+        : "Receiver balance is checked in the public cash register";
 
     response.type("html").send(`<!doctype html>
 <html lang="en">
