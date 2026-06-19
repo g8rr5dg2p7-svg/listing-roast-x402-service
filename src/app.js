@@ -20,6 +20,7 @@ const BASE_MAINNET_NETWORK = "eip155:8453";
 const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const USDC_DECIMALS = 1_000_000n;
 const INSTANT_SCORE_PATH = "/api/instant-listing-score";
+const CONVERSION_SCORE_PATH = "/api/x402-marketplace-conversion";
 const ROAST_PATH = "/api/listing-roast";
 const PING_PATH = "/api/x402-ping";
 const SITE_AUDIT_PATH = "/api/x402-site-audit";
@@ -159,6 +160,13 @@ function buildStructuredData(config) {
           price: "0.001",
           priceCurrency: "USD",
           url: absoluteUrl(config, INSTANT_SCORE_PATH)
+        },
+        {
+          "@type": "Offer",
+          name: "x402 marketplace conversion score",
+          price: "0.001",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, CONVERSION_SCORE_PATH)
         },
         {
           "@type": "Offer",
@@ -445,6 +453,15 @@ function buildInstantListingScore(input) {
   };
 }
 
+function buildConversionScore(input) {
+  return {
+    ...buildInstantListingScore(input),
+    endpoint: "x402-marketplace-conversion-score",
+    nextStep: "This route is optimized for x402 marketplace conversion buyers. Use GET /api/listing-roast when a marketplace result points to the already-indexed URL, or POST /api/listing-roast for the full rewrite.",
+    upgradeEndpoint: ROAST_PATH
+  };
+}
+
 function buildIndexedRoastQuickScore(input) {
   return {
     ...buildInstantListingScore(input),
@@ -491,6 +508,22 @@ function buildInstantScoreDiscovery(config) {
   };
 }
 
+function buildConversionScoreDiscovery(config) {
+  const discovery = buildInstantScoreDiscovery(config);
+
+  return {
+    ...discovery,
+    output: {
+      ...discovery.output,
+      example: buildConversionScore(buildInstantScoreInput())
+    },
+    service: {
+      ...discovery.service,
+      route: absoluteUrl(config, CONVERSION_SCORE_PATH)
+    }
+  };
+}
+
 function buildIndexedRoastGetDiscovery(config) {
   const discovery = buildInstantScoreDiscovery(config);
 
@@ -520,6 +553,7 @@ function buildPingOutput(config, query = {}) {
     timestamp: new Date().toISOString(),
     paidRoutes: {
       instantScore: INSTANT_SCORE_PATH,
+      conversionScore: CONVERSION_SCORE_PATH,
       indexedQuickScore: ROAST_PATH,
       siteAudit: SITE_AUDIT_PATH,
       discoveryAudit: DISCOVERY_AUDIT_PATH,
@@ -728,6 +762,43 @@ function buildOpenApiDocument(config) {
                 "application/json": {
                   schema: buildScoreDiscovery(config).output.schema,
                   example: buildInstantListingScore(buildInstantScoreInput())
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        }
+      },
+      [CONVERSION_SCORE_PATH]: {
+        get: {
+          operationId: "getX402MarketplaceConversionScore",
+          tags: ["x402 marketplace conversion", "x402 listing", "paid API listing", "paid API listing quality"],
+          summary: "Paid $0.001 x402 marketplace conversion score",
+          description: "Lowest-friction GET route for buyer agents searching specifically for x402 marketplace conversion, marketplace listing score, paid API listing quality, or agent-service listing score. Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.",
+          "x-price": config.instantScorePrice,
+          "x-x402-price": config.instantScorePrice,
+          "x-payment": buildPaymentHint(config, {
+            path: CONVERSION_SCORE_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            buyerAction: "Pay $0.001 for an x402 marketplace conversion score without building a JSON body."
+          }),
+          parameters: [
+            { name: "agentName", in: "query", required: false, schema: { type: "string" } },
+            { name: "listingText", in: "query", required: false, schema: { type: "string" } },
+            { name: "targetBuyer", in: "query", required: false, schema: { type: "string" } },
+            { name: "currentPrice", in: "query", required: false, schema: { type: "string" } },
+            { name: "currentCheckoutPath", in: "query", required: false, schema: { type: "string" } },
+            { name: "goal", in: "query", required: false, schema: { type: "string" } }
+          ],
+          responses: {
+            200: {
+              description: "Paid x402 marketplace conversion score response",
+              content: {
+                "application/json": {
+                  schema: buildScoreDiscovery(config).output.schema,
+                  example: buildConversionScore(buildInstantScoreInput())
                 }
               }
             },
@@ -995,6 +1066,7 @@ function buildOpenApiDocument(config) {
         reason: "This is the already-indexed Bazaar route and the lowest-friction paid score."
       },
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
+      conversionScoreRoute: absoluteUrl(config, CONVERSION_SCORE_PATH),
       pingRoute: absoluteUrl(config, PING_PATH),
       siteAuditRoute: absoluteUrl(config, SITE_AUDIT_PATH),
       discoveryAuditRoute: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
@@ -1042,7 +1114,7 @@ function buildX402Manifest(config) {
       }
     },
     capabilities: {
-      tools: 7
+      tools: 8
     },
     recommendedFirstPaidAction: {
       route: absoluteUrl(config, ROAST_PATH),
@@ -1080,6 +1152,21 @@ function buildX402Manifest(config) {
         command: buildGetPayCommand(config),
         input: buildInstantScoreDiscovery(config).input,
         outputExample: buildInstantListingScore(buildInstantScoreInput()),
+        schema: absoluteUrl(config, "/api/score-schema")
+      },
+      {
+        id: "x402_marketplace_conversion_score",
+        name: "x402_marketplace_conversion_score",
+        method: "GET",
+        path: CONVERSION_SCORE_PATH,
+        url: absoluteUrl(config, CONVERSION_SCORE_PATH),
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        description: "One-tenth-cent GET score API for buyer agents searching x402 marketplace conversion, marketplace listing score, paid API listing quality, and agent-service listing score.",
+        keywords: ["x402 marketplace conversion", "marketplace listing score", "paid API listing quality score", "agent-service listing score", "GET paid API"],
+        command: buildGetPayCommand(config, CONVERSION_SCORE_PATH, INSTANT_SCORE_AMOUNT),
+        input: buildInstantScoreDiscovery(config).input,
+        outputExample: buildConversionScore(buildInstantScoreInput()),
         schema: absoluteUrl(config, "/api/score-schema")
       },
       {
@@ -1207,6 +1294,18 @@ function createX402Middleware(config) {
         description: "Instant Listing Score x402: $0.001 GET marketplace listing score and paid API listing quality score for agent-service listing clarity, marketplace conversion, and x402 service discoverability.",
         mimeType: "application/json",
         extensions: declareDiscoveryExtension(buildInstantScoreDiscovery(config))
+      },
+      [`GET ${CONVERSION_SCORE_PATH}`]: {
+        accepts: {
+          scheme: "exact",
+          price: config.instantScorePrice,
+          network: config.network,
+          payTo: config.payTo,
+          maxTimeoutSeconds: 300
+        },
+        description: "x402 Marketplace Conversion Score: $0.001 GET marketplace conversion score for paid API listing quality, agent-service listing clarity, and buyer-agent conversion checks.",
+        mimeType: "application/json",
+        extensions: declareDiscoveryExtension(buildConversionScoreDiscovery(config))
       },
       [`GET ${ROAST_PATH}`]: {
         accepts: {
@@ -1349,7 +1448,7 @@ function isAllowedSignal(value) {
 }
 
 function validUnpaidSignalForPath(pathname) {
-  if (pathname === INSTANT_SCORE_PATH) {
+  if (pathname === INSTANT_SCORE_PATH || pathname === CONVERSION_SCORE_PATH) {
     return "instantScoreValidUnpaidChallenges";
   }
 
@@ -1762,7 +1861,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -1787,6 +1886,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
       payNow: buildPayNow(config),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
+      conversionScoreRoute: absoluteUrl(config, CONVERSION_SCORE_PATH),
       indexedRoastGetRoute: absoluteUrl(config, ROAST_PATH),
       pingRoute: absoluteUrl(config, PING_PATH),
       siteAuditRoute: absoluteUrl(config, SITE_AUDIT_PATH),
@@ -1821,6 +1921,13 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
           maxAmountRequired: INSTANT_SCORE_AMOUNT,
           buyerAction: "Pay $0.001 for an immediate listing quality score without building a JSON body."
         }),
+        conversionScore: buildPaymentHint(config, {
+          path: CONVERSION_SCORE_PATH,
+          method: "GET",
+          price: config.instantScorePrice,
+          maxAmountRequired: INSTANT_SCORE_AMOUNT,
+          buyerAction: "Pay $0.001 for an x402 marketplace conversion score without building a JSON body."
+        }),
         siteAudit: buildPaymentHint(config, {
           path: SITE_AUDIT_PATH,
           method: "GET",
@@ -1846,6 +1953,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       keywords: DISCOVERY_KEYWORDS,
       request: requestExample,
       instantScoreCommand: buildGetPayCommand(config),
+      conversionScoreCommand: buildGetPayCommand(config, CONVERSION_SCORE_PATH, INSTANT_SCORE_AMOUNT),
       indexedRoastGetCommand: buildGetPayCommand(config, ROAST_PATH),
       pingCommand: buildGetPayCommand(config, PING_PATH, PING_AMOUNT),
       siteAuditCommand: buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT),
@@ -1853,6 +1961,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       command: buildPayCommand(config),
       scoreCommand: buildPayCommand(config, "/api/listing-score", "5000"),
       instantScoreOutput: buildInstantListingScore(buildInstantScoreInput()),
+      conversionScoreOutput: buildConversionScore(buildInstantScoreInput()),
       indexedRoastGetOutput: buildIndexedRoastQuickScore(buildInstantScoreInput()),
       pingOutput: buildPingOutput(config, { msg: "hello from x402" }),
       siteAuditRequest: buildDiscoveryAuditInputFromQuery(),
@@ -1914,6 +2023,13 @@ Other paid routes:
   - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
   - Output: paid API listing quality score, checked signals, first fix, next step
   - Use when an agent wants a dedicated instant-score URL without first assembling a JSON body
+
+- GET ${absoluteUrl(config, CONVERSION_SCORE_PATH)}
+  - Price: ${config.instantScorePrice}
+  - Network: ${config.network}
+  - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+  - Output: x402 marketplace conversion score, paid API listing quality score, checked signals, first fix, next step
+  - Use when an agent searches for x402 marketplace conversion or wants the route path to match that buyer intent
 
 - GET ${absoluteUrl(config, PING_PATH)}
   - Price: ${config.instantScorePrice}
@@ -2306,6 +2422,24 @@ ${copyScript("Copy command")}
           input: buildInstantScoreDiscovery(config).input
         },
         {
+          name: "x402_marketplace_conversion_score",
+          method: "GET",
+          path: CONVERSION_SCORE_PATH,
+          url: absoluteUrl(config, CONVERSION_SCORE_PATH),
+          price: config.instantScorePrice,
+          network: config.network,
+          description: "one-tenth-cent GET x402 marketplace conversion score for paid API listing quality, agent-service listing clarity, and buyer-agent conversion checks.",
+          payment: buildPaymentHint(config, {
+            path: CONVERSION_SCORE_PATH,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            buyerAction: "Pay $0.001 for an x402 marketplace conversion score without building a JSON body."
+          }),
+          keywords: ["x402 marketplace conversion", "marketplace listing score", "paid API listing quality score", "agent-service listing score", "GET paid API"],
+          input: buildInstantScoreDiscovery(config).input
+        },
+        {
           name: "paid_x402_ping",
           method: "GET",
           path: PING_PATH,
@@ -2421,8 +2555,8 @@ ${copyScript("Copy command")}
     response.status(204).end();
   });
 
-  app.use([INSTANT_SCORE_PATH, ROAST_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
-  app.get([INSTANT_SCORE_PATH, ROAST_PATH], recordGetScoreProbe);
+  app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ROAST_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
+  app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ROAST_PATH], recordGetScoreProbe);
   app.get(PING_PATH, recordPingProbe);
   app.get(SITE_AUDIT_PATH, recordSiteAuditProbe);
   app.post(ROAST_PATH, validateListingRoastRequest);
@@ -2444,6 +2578,12 @@ ${copyScript("Copy command")}
 
   app.get(INSTANT_SCORE_PATH, async (request, response) => {
     const result = buildInstantListingScore(buildInstantScoreInput(request.query));
+    const cashRegister = await recordPaidCompletion("instantScore", 0.001);
+    response.json({ ...result, cashRegister });
+  });
+
+  app.get(CONVERSION_SCORE_PATH, async (request, response) => {
+    const result = buildConversionScore(buildInstantScoreInput(request.query));
     const cashRegister = await recordPaidCompletion("instantScore", 0.001);
     response.json({ ...result, cashRegister });
   });
