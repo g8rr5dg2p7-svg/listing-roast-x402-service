@@ -127,8 +127,8 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   agentListingConversion: ["x402", "buyer-agent skip reasons", "agent service clarity", "listing conversion", "paid API"],
   indexedQuickScore: ["x402", "paid API listing quality", "marketplace listing score", "buyer-agent skip reasons", "agent service clarity"],
   x402Ping: ["x402", "payment rail", "paid API", "route health", "Base USDC"],
-  x402SiteAudit: ["x402", "discovery audit", "paid API preflight", "route health", "Bazaar visibility"],
-  discoveryAudit: ["x402", "Bazaar visibility", "discovery audit", "stale pricing", "paid API preflight"],
+  x402SiteAudit: ["x402", "discovery audit", "paid API preflight", "route health", "Bazaar visibility", "stale Bazaar price"],
+  discoveryAudit: ["x402", "Bazaar visibility", "discovery audit", "stale Bazaar price", "paid API preflight"],
   fullRoast: ["x402", "listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons"]
 });
 const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({

@@ -382,7 +382,8 @@ describe("Listing Roast x402 service", () => {
         "discovery audit",
         "paid API preflight",
         "route health",
-        "Bazaar visibility"
+        "Bazaar visibility",
+        "stale Bazaar price"
       ]);
       expect(x402Manifest.json.resources[8].keywords).toContain("x402 site audit");
       expect(x402Manifest.json.resources[8].keywords).toContain("paid API preflight");
@@ -1147,7 +1148,8 @@ describe("Listing Roast x402 service", () => {
         "discovery audit",
         "paid API preflight",
         "route health",
-        "Bazaar visibility"
+        "Bazaar visibility",
+        "stale Bazaar price"
       ]);
       expect(localDiscoverySearch.json.resources[0].metadata.serviceTags).toContain("paid API preflight");
       expect(localDiscoverySearch.json.resources.map((resource) => resource.metadata.path)).toContain("/api/x402-discovery-audit");
@@ -1741,7 +1743,8 @@ describe("Listing Roast x402 service", () => {
         "discovery audit",
         "paid API preflight",
         "route health",
-        "Bazaar visibility"
+        "Bazaar visibility",
+        "stale Bazaar price"
       ]);
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
