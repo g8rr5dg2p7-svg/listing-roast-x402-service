@@ -139,7 +139,7 @@ const DISCOVERY_KEYWORDS = [
 ];
 const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, x402 seller discoverability, listing SEO audit, seller growth checklist, and agent service promotion readiness before promotion.";
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Listing Roast Quick Score x402: $0.001 GET x402 site audit starter, x402 discovery audit triage, paid API preflight, marketplace listing score, buyer-agent skip reasons, agent service listing clarity, route-health language, Bazaar search visibility intent, stale pricing triage, and x402 service discoverability on the already-indexed /api/listing-roast URL. Use GET /api/x402-site-audit or GET /api/x402-discovery-audit for live no-spend metadata checks, or POST /api/listing-roast for the $0.01 full roast.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "marketplace listing score, paid API listing quality score, and buyer-agent skip reasons: $0.001 GET Listing Roast Quick Score x402 on the already-indexed /api/listing-roast URL for paid API preflight, x402 site audit starter intent, x402 discovery audit triage, agent service listing clarity, route-health language, Bazaar search visibility intent, stale pricing triage, and x402 service discoverability. Use GET /api/x402-site-audit or GET /api/x402-discovery-audit for live no-spend metadata checks, or POST /api/listing-roast for the $0.01 full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
 const ROUTE_SERVICE_TAGS = Object.freeze({
@@ -1588,7 +1588,7 @@ function buildPayNowActions(config) {
       method: "GET",
       price: config.instantScorePrice,
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
-      reason: "Use this when the buyer is searching for agent listing conversion, agent-service listing clarity, or buyer-agent skip reasons."
+      reason: "Use this after the indexed quick score when the buyer specifically wants the agent-listing conversion deep dive."
     }),
     x402Ping: buildRoutePaymentAction(config, {
       path: PING_PATH,
@@ -1753,11 +1753,11 @@ function buildPayNow(config, intent = "") {
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     routeSelector: [
       {
-        when: "Marketplace or Bazaar discovered Listing Roast on /api/listing-roast",
+        when: "Marketplace, Bazaar, paid API listing quality, or buyer-agent skip-reason searches",
         use: "indexedQuickScore"
       },
       {
-        when: "Buyer asks for agent listing conversion, agent-service clarity, or skip reasons",
+        when: "Buyer asks for the dedicated agent-listing conversion deep dive",
         use: "agentListingConversion"
       },
       {
@@ -1823,7 +1823,7 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
 
 function buildPayNowIntentExamples(config) {
   return {
-    skipReasons: buildPayNowIntentExample(config, "buyer-agent skip reasons", "agentListingConversion"),
+    skipReasons: buildPayNowIntentExample(config, "buyer-agent skip reasons", "indexedQuickScore"),
     discoveryAudit: buildPayNowIntentExample(config, "x402 discovery audit", "discoveryAuditQuick"),
     fullRoast: buildPayNowIntentExample(config, "full roast rewrite top fixes", "fullRoast")
   };
@@ -2941,13 +2941,13 @@ function buildX402Manifest(config) {
     resources: [
       {
         id: "indexed_roast_quick_score",
-        name: "buyer_agent_skip_reasons_listing_roast_score",
+        name: "marketplace_listing_score_paid_api_listing_quality_score",
         method: "GET",
         path: ROAST_PATH,
         url: absoluteUrl(config, ROAST_PATH),
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: "Listing Roast Quick Score x402: one-tenth-cent GET x402 site audit starter, x402 discovery audit triage, paid API preflight, marketplace listing score, buyer-agent skip reasons, agent service listing clarity, route-health language, Bazaar search visibility intent, stale pricing triage, and conversion check on the already-indexed listing-roast URL. Use the dedicated audit routes for live no-spend metadata checks, or POST the same URL for the full one-cent roast.",
+        description: INDEXED_QUICK_SCORE_DESCRIPTION,
         keywords: ["listing roast", "score API", "marketplace listing quality", "paid API listing quality", "paid API discoverability", "x402 listing quality", "agent listing conversion score", "agent listing conversion", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "x402 marketplace conversion", "x402 site audit", "x402 service discoverability audit", "x402 discovery audit", "x402 bazaar discovery audit", "paid API preflight", "x402 route health check", "bazaar search visibility", "x402 listing stale price", "x402 metadata audit", "x402 buyer-readiness signals", "GET paid API"],
         command: buildGetPayCommand(config, ROAST_PATH),
         input: buildInstantScoreDiscovery(config).input,
@@ -3495,8 +3495,8 @@ function scoreCatalogResource(resource, query) {
   }
 
   if (includesAny(normalizedQuery, ["skip reason", "skip reasons", "agent listing", "listing clarity", "agent service clarity", "agent-service", "buyer intent"])) {
-    if (resource.path === AGENT_LISTING_PATH) score += 145;
-    if (resource.id === "indexed_roast_quick_score") score += 45;
+    if (resource.id === "indexed_roast_quick_score") score += 155;
+    if (resource.path === AGENT_LISTING_PATH) score += 90;
     if (resource.id === "listing_roast") score += 30;
   }
 
@@ -6099,7 +6099,7 @@ ${copyScript("Copy command")}
           price: config.instantScorePrice,
           network: config.network,
           command: buildGetPayCommand(config, ROAST_PATH),
-          description: "one-tenth-cent GET x402 site audit starter, x402 discovery audit triage, paid API preflight, marketplace listing score, paid API listing quality, agent service listing clarity, buyer-agent skip reasons, route-health language, Bazaar search visibility intent, stale pricing triage, and conversion checks on the already-indexed listing-roast URL.",
+          description: "marketplace listing score, paid API listing quality score, and buyer-agent skip reasons on the already-indexed Listing Roast URL; one-tenth-cent GET paid API preflight, x402 site audit starter, discovery audit triage, agent service listing clarity, route-health language, Bazaar search visibility intent, stale pricing triage, and conversion checks.",
           payment: buildPaymentHint(config, {
             path: ROAST_PATH,
             method: "GET",

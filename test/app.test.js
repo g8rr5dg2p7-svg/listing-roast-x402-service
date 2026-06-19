@@ -264,7 +264,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.mcpAliases[0]).toContain("/.well-known/mcp");
       expect(mcp.json.mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(mcp.json.payNow).toContain("/api/pay-now");
-      expect(mcp.json.payNowExamples.skipReasons.selectedActionKey).toBe("agentListingConversion");
+      expect(mcp.json.payNowExamples.skipReasons.selectedActionKey).toBe("indexedQuickScore");
       expect(mcp.json.payNowExamples.discoveryAudit.selectedActionKey).toBe("discoveryAuditQuick");
       expect(mcp.json.payNowExamples.fullRoast.maxAmountRequired).toBe("10000");
       expect(mcp.json.cashRegister).toContain("/api/cash-register");
@@ -317,7 +317,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcpServerCard.json.payment.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
       expect(mcpServerCard.json.payment.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(mcpServerCard.json.payment.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
-      expect(mcpServerCard.json.payment.payNowExamples.skipReasons.route).toContain("/api/agent-listing-conversion");
+      expect(mcpServerCard.json.payment.payNowExamples.skipReasons.route).toContain("/api/listing-roast");
       expect(mcpServerCard.json.payment.settlementProof.evidenceFields).toContain("paidCompletions");
       expect(mcpServerCard.json.links.cashRegister).toContain("/api/cash-register");
       expect(mcpServerCard.json.links.llmsFull).toContain("/llms-full.txt");
@@ -347,7 +347,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
       expect(x402Manifest.json.payNow).toContain("/api/pay-now");
-      expect(x402Manifest.json.payNowExamples.skipReasons.selectedActionKey).toBe("agentListingConversion");
+      expect(x402Manifest.json.payNowExamples.skipReasons.selectedActionKey).toBe("indexedQuickScore");
       expect(x402Manifest.json.payNowExamples.discoveryAudit.selectedActionKey).toBe("discoveryAuditQuick");
       expect(x402Manifest.json.payNowExamples.fullRoast.maxAmountRequired).toBe("10000");
       expect(x402Manifest.json.cashRegister).toContain("/api/cash-register");
@@ -376,7 +376,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.resources.map((resource) => resource.id)).toEqual(["indexed_roast_quick_score", "directory_root_post", "api_entry", "api_v1_entry", "v1_entry", "instant_listing_score", "x402_marketplace_conversion_score", "agent_listing_conversion_score", "x402_ping", "x402_site_audit", "x402_discovery_audit_quick", "x402_discovery_audit", "listing_score", "listing_roast"]);
       expect(x402Manifest.json.resources.map((resource) => resource.path)).toEqual(["/api/listing-roast", "/", "/api", "/api/v1", "/v1", "/api/instant-listing-score", "/api/x402-marketplace-conversion", "/api/agent-listing-conversion", "/api/x402-ping", "/api/x402-site-audit", "/api/x402-discovery-audit", "/api/x402-discovery-audit", "/api/listing-score", "/api/listing-roast"]);
       const resourcesById = Object.fromEntries(x402Manifest.json.resources.map((resource) => [resource.id, resource]));
-      expect(x402Manifest.json.resources[0].name).toBe("buyer_agent_skip_reasons_listing_roast_score");
+      expect(x402Manifest.json.resources[0].name).toBe("marketplace_listing_score_paid_api_listing_quality_score");
       expect(x402Manifest.json.resources[0].serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.resources[0].tags).toEqual([
         "x402",
@@ -575,7 +575,7 @@ describe("Listing Roast x402 service", () => {
       expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
       expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[1].use).toBe("fullRoast");
       expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
-      expect(aiPlugin.json.x_listing_roast.payNowExamples.skipReasons.selectedActionKey).toBe("agentListingConversion");
+      expect(aiPlugin.json.x_listing_roast.payNowExamples.skipReasons.selectedActionKey).toBe("indexedQuickScore");
       expect(aiPlugin.json.x_listing_roast.cashRegister).toContain("/api/cash-register");
       expect(aiPlugin.json.x_listing_roast.settlementProof.evidenceFields).toContain("paidCompletions");
 
@@ -684,8 +684,8 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.mcpAliases[1]).toContain("/.well-known/mcp-server");
       expect(examples.json.mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(examples.json.payNowUrl).toContain("/api/pay-now");
-      expect(examples.json.payNowExamples.skipReasons.selectedActionKey).toBe("agentListingConversion");
-      expect(examples.json.payNowExamples.skipReasons.route).toContain("/api/agent-listing-conversion");
+      expect(examples.json.payNowExamples.skipReasons.selectedActionKey).toBe("indexedQuickScore");
+      expect(examples.json.payNowExamples.skipReasons.route).toContain("/api/listing-roast");
       expect(examples.json.payNowExamples.discoveryAudit.selectedActionKey).toBe("discoveryAuditQuick");
       expect(examples.json.payNowExamples.discoveryAudit.route).toContain("/api/x402-discovery-audit");
       expect(examples.json.payNowExamples.fullRoast.selectedActionKey).toBe("fullRoast");
@@ -703,12 +703,14 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.pricingCatalog.count).toBe(14);
       expect(examples.json.pricingCatalog.routes[0].path).toBe("/api/listing-roast");
       expect(examples.json.findExamples.discoveryAudit.recommended.path).toBe("/api/x402-discovery-audit");
-      expect(examples.json.findExamples.skipReasons.recommended.path).toBe("/api/agent-listing-conversion");
+      expect(examples.json.findExamples.skipReasons.recommended.path).toBe("/api/listing-roast");
+      expect(examples.json.findExamples.skipReasons.alternatives.map((route) => route.path)).toContain("/api/agent-listing-conversion");
       expect(examples.json.findExamples.customScore.recommended.id).toBe("listing_score");
       expect(examples.json.findExamples.customScore.recommended.method).toBe("POST");
       expect(examples.json.findExamples.fullRewrite.recommended.id).toBe("listing_roast");
       expect(examples.json.routeExamples.discoveryAudit.results[0].path).toBe("/api/x402-discovery-audit");
-      expect(examples.json.routeExamples.skipReasons.results[0].path).toBe("/api/agent-listing-conversion");
+      expect(examples.json.routeExamples.skipReasons.results[0].path).toBe("/api/listing-roast");
+      expect(examples.json.routeExamples.skipReasons.results.map((route) => route.path)).toContain("/api/agent-listing-conversion");
       expect(examples.json.routeExamples.customScore.results[0].id).toBe("listing_score");
       expect(examples.json.routeExamples.customScore.results[0].method).toBe("POST");
       expect(examples.json.routeExamples.fullRewrite.results[0].path).toBe("/api/listing-roast");
@@ -1158,15 +1160,16 @@ describe("Listing Roast x402 service", () => {
       expect(payNowSkipReasons.status).toBe(200);
       expect(payNowSkipReasons.headers.get("payment-required")).toBeNull();
       expect(payNowSkipReasons.json.intent).toBe("buyer-agent skip reasons");
-      expect(payNowSkipReasons.json.selectedActionKey).toBe("agentListingConversion");
-      expect(payNowSkipReasons.json.route).toContain("/api/agent-listing-conversion");
+      expect(payNowSkipReasons.json.selectedActionKey).toBe("indexedQuickScore");
+      expect(payNowSkipReasons.json.route).toContain("/api/listing-roast");
       expect(payNowSkipReasons.json.method).toBe("GET");
       expect(payNowSkipReasons.json.price).toBe("$0.001");
       expect(payNowSkipReasons.json.maxAmountRequired).toBe("1000");
-      expect(payNowSkipReasons.json.command).toContain("/api/agent-listing-conversion");
+      expect(payNowSkipReasons.json.command).toContain("/api/listing-roast");
       expect(payNowSkipReasons.json.expectedChallenge.amount).toBe("1000");
       expect(payNowSkipReasons.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
-      expect(payNowSkipReasons.json.rankedPaidRoutes[0].id).toBe("agent_listing_conversion_score");
+      expect(payNowSkipReasons.json.rankedPaidRoutes[0].id).toBe("indexed_roast_quick_score");
+      expect(payNowSkipReasons.json.rankedPaidRoutes.map((route) => route.id)).toContain("agent_listing_conversion_score");
 
       const payNowDiscoveryAudit = await fetchJson(server, "/api/pay-now?intent=x402%20discovery%20audit");
       expect(payNowDiscoveryAudit.status).toBe(200);
@@ -1211,11 +1214,13 @@ describe("Listing Roast x402 service", () => {
 
       const findSkipReasons = await fetchJson(server, "/api/find?q=buyer-agent%20skip%20reasons");
       expect(findSkipReasons.status).toBe(200);
-      expect(findSkipReasons.json.recommended.path).toBe("/api/agent-listing-conversion");
+      expect(findSkipReasons.json.recommended.path).toBe("/api/listing-roast");
+      expect(findSkipReasons.json.alternatives.map((route) => route.path)).toContain("/api/agent-listing-conversion");
 
       const findMixedSkipReasons = await fetchJson(server, "/api/find?q=buyer-agent%20skip%20reasons%20paid%20API%20listing%20clarity");
       expect(findMixedSkipReasons.status).toBe(200);
-      expect(findMixedSkipReasons.json.recommended.path).toBe("/api/agent-listing-conversion");
+      expect(findMixedSkipReasons.json.recommended.path).toBe("/api/listing-roast");
+      expect(findMixedSkipReasons.json.alternatives.map((route) => route.path)).toContain("/api/agent-listing-conversion");
 
       const findFullRewrite = await fetchJson(server, "/api/find?q=listing%20roast%20full%20rewrite");
       expect(findFullRewrite.status).toBe(200);
@@ -1260,8 +1265,9 @@ describe("Listing Roast x402 service", () => {
       });
       expect(routeSkipReasons.status).toBe(200);
       expect(routeSkipReasons.headers.get("payment-required")).toBeNull();
-      expect(routeSkipReasons.json.best.path).toBe("/api/agent-listing-conversion");
+      expect(routeSkipReasons.json.best.path).toBe("/api/listing-roast");
       expect(routeSkipReasons.json.results).toHaveLength(2);
+      expect(routeSkipReasons.json.results.map((route) => route.path)).toContain("/api/agent-listing-conversion");
 
       const routeMixedSkipReasons = await fetchJson(server, "/api/route", {
         method: "POST",
@@ -1269,7 +1275,8 @@ describe("Listing Roast x402 service", () => {
         body: JSON.stringify({ query: "buyer-agent skip reasons paid API listing clarity", top: 2, include: "local" })
       });
       expect(routeMixedSkipReasons.status).toBe(200);
-      expect(routeMixedSkipReasons.json.best.path).toBe("/api/agent-listing-conversion");
+      expect(routeMixedSkipReasons.json.best.path).toBe("/api/listing-roast");
+      expect(routeMixedSkipReasons.json.results.map((route) => route.path)).toContain("/api/agent-listing-conversion");
 
       const routeCustomScore = await fetchJson(server, "/api/route?query=I%20want%20to%20score%20my%20paid%20API%20listing%20with%20a%20custom%20body&top=3");
       expect(routeCustomScore.status).toBe(200);
@@ -1866,7 +1873,7 @@ describe("Listing Roast x402 service", () => {
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
-      expect(challenge.resource.description).toMatch(/^Listing Roast Quick Score x402/);
+      expect(challenge.resource.description).toMatch(/^marketplace listing score/);
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("x402 site audit starter");
       expect(challenge.resource.description).toContain("buyer-agent skip reasons");
