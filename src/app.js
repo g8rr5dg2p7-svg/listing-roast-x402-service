@@ -95,8 +95,9 @@ const DISCOVERY_KEYWORDS = [
   "x402 site audit",
   "x402 service discoverability audit",
   "x402 route health check",
-  "x402 API entrypoint",
-  "paid API entrypoint",
+  "x402 navigation",
+  "API entrypoint",
+  "route map",
   "paid API preflight",
   "x402 discovery audit",
   "x402 bazaar discovery audit",
@@ -380,19 +381,19 @@ Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}
 
 ## Other Paid Actions
 
-Generic agent API entrypoint:
+Generic x402 navigation route:
 
 \`\`\`bash
 ${buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT)}
 \`\`\`
 
-Versioned generic agent API entrypoint:
+Versioned x402 navigation route:
 
 \`\`\`bash
 ${buildGetPayCommand(config, API_V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT)}
 \`\`\`
 
-Short versioned agent API entrypoint:
+Short versioned x402 navigation route:
 
 \`\`\`bash
 ${buildGetPayCommand(config, V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT)}
@@ -500,9 +501,9 @@ Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}
 
 ## Paid Routes
 
-- GET ${absoluteUrl(config, API_ENTRY_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; generic paid API entrypoint and route map for agents that probe /api first.
-- GET ${absoluteUrl(config, API_V1_ENTRY_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; versioned paid API entrypoint and route map for agents that probe /api/v1 first.
-- GET ${absoluteUrl(config, V1_ENTRY_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; short versioned paid API entrypoint and route map for agents that probe /v1 first.
+- GET ${absoluteUrl(config, API_ENTRY_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; generic paid x402 navigation route map for agents that start at /api first.
+- GET ${absoluteUrl(config, API_V1_ENTRY_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; versioned paid x402 navigation route map for agents that start at /api/v1 first.
+- GET ${absoluteUrl(config, V1_ENTRY_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; short versioned paid x402 navigation route map for agents that start at /v1 first.
 - GET ${absoluteUrl(config, ROAST_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; already-indexed quick score.
 - GET ${absoluteUrl(config, AGENT_LISTING_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; buyer-agent skip reasons and listing clarity.
 - GET ${absoluteUrl(config, SITE_AUDIT_PATH)} — ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT}; x402 route and discovery preflight.
@@ -965,7 +966,7 @@ function buildApiEntryOutput(config) {
     endpoint: "api-entry",
     price: config.instantScorePrice,
     ok: true,
-    purpose: "Paid x402 API entrypoint for agents that probe /api before choosing a specific Listing Roast route.",
+    purpose: "Paid x402 navigation endpoint for agents that start at /api before choosing a specific Listing Roast route.",
     preferredFirstPaidAction: {
       route: absoluteUrl(config, ROAST_PATH),
       path: ROAST_PATH,
@@ -1495,7 +1496,7 @@ function buildWebMcpHandoff(config) {
         method: "GET",
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        buyerAction: "Generic paid API entrypoint for agents that probe /api first."
+        buyerAction: "Generic paid x402 navigation route map for agents that start at /api first."
       },
       {
         route: absoluteUrl(config, API_V1_ENTRY_PATH),
@@ -1503,7 +1504,7 @@ function buildWebMcpHandoff(config) {
         method: "GET",
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        buyerAction: "Versioned paid API entrypoint for agents that probe /api/v1 first."
+        buyerAction: "Versioned paid x402 navigation route map for agents that start at /api/v1 first."
       },
       {
         route: absoluteUrl(config, V1_ENTRY_PATH),
@@ -1511,7 +1512,7 @@ function buildWebMcpHandoff(config) {
         method: "GET",
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        buyerAction: "Short versioned paid API entrypoint for agents that probe /v1 first."
+        buyerAction: "Short versioned paid x402 navigation route map for agents that start at /v1 first."
       },
       {
         route: absoluteUrl(config, ROAST_PATH),
@@ -1633,9 +1634,9 @@ function buildOpenApiDocument(config) {
       [API_ENTRY_PATH]: {
         get: {
           operationId: "getListingRoastApiEntry",
-          tags: ["x402 API entrypoint", "paid API listing", "agent commerce"],
-          summary: "Paid $0.001 x402 API entrypoint and route map",
-          description: "Generic paid GET entrypoint for agents that probe /api before choosing a specific Listing Roast route. Returns the preferred first paid action, full paid route map, and free discovery links after x402 payment.",
+          tags: ["x402 navigation", "API entrypoint", "agent commerce"],
+          summary: "Paid $0.001 x402 navigation entrypoint",
+          description: "Generic paid GET navigation endpoint for agents that start at /api. Returns the preferred paid route, full route map, and free discovery links after x402 payment.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
@@ -1662,9 +1663,9 @@ function buildOpenApiDocument(config) {
       [API_V1_ENTRY_PATH]: {
         get: {
           operationId: "getListingRoastApiV1Entry",
-          tags: ["x402 API entrypoint", "paid API listing", "agent commerce"],
-          summary: "Paid $0.001 x402 API v1 entrypoint and route map",
-          description: "Versioned paid GET entrypoint for agents that probe /api/v1 before choosing a specific Listing Roast route. Returns the preferred first paid action, full paid route map, and free discovery links after x402 payment.",
+          tags: ["x402 navigation", "API v1 entrypoint", "agent commerce"],
+          summary: "Paid $0.001 x402 API v1 navigation entrypoint",
+          description: "Versioned paid GET navigation endpoint for agents that start at /api/v1. Returns the preferred paid route, full route map, and free discovery links after x402 payment.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
@@ -1691,9 +1692,9 @@ function buildOpenApiDocument(config) {
       [V1_ENTRY_PATH]: {
         get: {
           operationId: "getListingRoastV1Entry",
-          tags: ["x402 API entrypoint", "paid API listing", "agent commerce"],
-          summary: "Paid $0.001 x402 short v1 entrypoint and route map",
-          description: "Short versioned paid GET entrypoint for agents that probe /v1 before choosing a specific Listing Roast route. Returns the preferred first paid action, full paid route map, and free discovery links after x402 payment.",
+          tags: ["x402 navigation", "v1 entrypoint", "agent commerce"],
+          summary: "Paid $0.001 x402 short v1 navigation entrypoint",
+          description: "Short versioned paid GET navigation endpoint for agents that start at /v1. Returns the preferred paid route, full route map, and free discovery links after x402 payment.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
@@ -2378,8 +2379,8 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, API_ENTRY_PATH),
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: "One-tenth-cent generic x402 API entrypoint for agents that probe /api before choosing a specific Listing Roast route. Returns the paid route map and preferred first paid action after payment.",
-        keywords: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "GET paid API", "route map"],
+        description: "One-tenth-cent generic x402 navigation endpoint for agents that start at /api. Returns the paid route map and preferred first paid action after payment.",
+        keywords: ["x402 navigation", "API entrypoint", "agent commerce", "route map", "/api"],
         command: buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
         input: {},
         outputExample: buildApiEntryOutput(config),
@@ -2393,8 +2394,8 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, API_V1_ENTRY_PATH),
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: "One-tenth-cent versioned x402 API entrypoint for agents that probe /api/v1 before choosing a specific Listing Roast route. Returns the paid route map and preferred first paid action after payment.",
-        keywords: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "GET paid API", "route map", "api v1"],
+        description: "One-tenth-cent versioned x402 navigation endpoint for agents that start at /api/v1. Returns the paid route map and preferred first paid action after payment.",
+        keywords: ["x402 navigation", "API v1 entrypoint", "agent commerce", "route map", "api v1"],
         command: buildGetPayCommand(config, API_V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
         input: {},
         outputExample: buildApiEntryOutput(config),
@@ -2408,8 +2409,8 @@ function buildX402Manifest(config) {
         url: absoluteUrl(config, V1_ENTRY_PATH),
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: "One-tenth-cent short versioned x402 API entrypoint for agents that probe /v1 before choosing a specific Listing Roast route. Returns the paid route map and preferred first paid action after payment.",
-        keywords: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "GET paid API", "route map", "v1"],
+        description: "One-tenth-cent short versioned x402 navigation endpoint for agents that start at /v1. Returns the paid route map and preferred first paid action after payment.",
+        keywords: ["x402 navigation", "v1 entrypoint", "agent commerce", "route map", "v1"],
         command: buildGetPayCommand(config, V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
         input: {},
         outputExample: buildApiEntryOutput(config),
@@ -2996,8 +2997,8 @@ function buildAgentCard(config) {
       buildAgentSkill(config, {
         id: "api-entry-route-map",
         name: "API entry route map",
-        description: "$0.001 GET generic API entrypoint for agents that start at /api.",
-        tags: ["x402 API entrypoint", "paid API entrypoint", "agent commerce"],
+        description: "$0.001 GET generic x402 navigation endpoint for agents that start at /api.",
+        tags: ["x402 navigation", "API entrypoint", "agent commerce", "route map"],
         method: "GET",
         path: API_ENTRY_PATH,
         price: config.instantScorePrice,
@@ -3007,8 +3008,8 @@ function buildAgentCard(config) {
       buildAgentSkill(config, {
         id: "api-v1-entry-route-map",
         name: "API v1 entry route map",
-        description: "$0.001 GET versioned API entrypoint for agents that start at /api/v1.",
-        tags: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "api v1"],
+        description: "$0.001 GET versioned x402 navigation endpoint for agents that start at /api/v1.",
+        tags: ["x402 navigation", "API v1 entrypoint", "agent commerce", "route map", "api v1"],
         method: "GET",
         path: API_V1_ENTRY_PATH,
         price: config.instantScorePrice,
@@ -3018,8 +3019,8 @@ function buildAgentCard(config) {
       buildAgentSkill(config, {
         id: "v1-entry-route-map",
         name: "Short v1 entry route map",
-        description: "$0.001 GET short versioned API entrypoint for agents that start at /v1.",
-        tags: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "v1"],
+        description: "$0.001 GET short versioned x402 navigation endpoint for agents that start at /v1.",
+        tags: ["x402 navigation", "v1 entrypoint", "agent commerce", "route map", "v1"],
         method: "GET",
         path: V1_ENTRY_PATH,
         price: config.instantScorePrice,
@@ -3104,7 +3105,7 @@ function buildAiPluginManifest(config) {
       "Listing Roast x402 is a paid HTTP JSON API for x402, MCP, and agent-service builders.",
       "Use it when a builder needs a paid API listing quality score, buyer-agent skip reasons, x402 marketplace conversion feedback, or x402 service discoverability guidance before promotion.",
       "Protected routes require x402 payment in USDC on Base before JSON output is returned.",
-      `Use GET ${absoluteUrl(config, API_ENTRY_PATH)}, GET ${absoluteUrl(config, API_V1_ENTRY_PATH)}, or GET ${absoluteUrl(config, V1_ENTRY_PATH)} for a generic ${config.instantScorePrice} paid API entrypoint when an agent probes /api, /api/v1, or /v1 first.`,
+      `Use GET ${absoluteUrl(config, API_ENTRY_PATH)}, GET ${absoluteUrl(config, API_V1_ENTRY_PATH)}, or GET ${absoluteUrl(config, V1_ENTRY_PATH)} for a generic ${config.instantScorePrice} paid x402 navigation route map when an agent starts at /api, /api/v1, or /v1 first.`,
       `Preferred first paid action: GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units.`,
       `Use GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent service listing clarity, agent listing conversion score, and buyer-agent skip reasons.`,
       `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight.`,
@@ -3145,9 +3146,9 @@ function buildAiPluginManifest(config) {
 
 function buildApiCatalog(config) {
   const item = [
-    { href: absoluteUrl(config, API_ENTRY_PATH), type: "application/json", title: "GET $0.001 generic x402 API entrypoint and route map" },
-    { href: absoluteUrl(config, API_V1_ENTRY_PATH), type: "application/json", title: "GET $0.001 versioned x402 API entrypoint and route map" },
-    { href: absoluteUrl(config, V1_ENTRY_PATH), type: "application/json", title: "GET $0.001 short versioned x402 API entrypoint and route map" },
+    { href: absoluteUrl(config, API_ENTRY_PATH), type: "application/json", title: "GET $0.001 generic x402 navigation route map" },
+    { href: absoluteUrl(config, API_V1_ENTRY_PATH), type: "application/json", title: "GET $0.001 versioned x402 navigation route map" },
+    { href: absoluteUrl(config, V1_ENTRY_PATH), type: "application/json", title: "GET $0.001 short versioned x402 navigation route map" },
     { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET indexed $0.001 x402 listing quality quick score and POST $0.01 full roast" },
     { href: absoluteUrl(config, INSTANT_SCORE_PATH), type: "application/json", title: "GET $0.001 instant paid API listing quality score" },
     { href: absoluteUrl(config, CONVERSION_SCORE_PATH), type: "application/json", title: "GET $0.001 x402 marketplace conversion score" },
@@ -3260,9 +3261,9 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 
 ## Other Paid Routes
 
-- GET ${absoluteUrl(config, API_ENTRY_PATH)} for a generic paid API entrypoint and route map when an agent probes /api first. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
-- GET ${absoluteUrl(config, API_V1_ENTRY_PATH)} for a versioned paid API entrypoint and route map when an agent probes /api/v1 first. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
-- GET ${absoluteUrl(config, V1_ENTRY_PATH)} for a short versioned paid API entrypoint and route map when an agent probes /v1 first. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
+- GET ${absoluteUrl(config, API_ENTRY_PATH)} for a generic paid x402 navigation route map when an agent starts at /api first. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
+- GET ${absoluteUrl(config, API_V1_ENTRY_PATH)} for a versioned paid x402 navigation route map when an agent starts at /api/v1 first. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
+- GET ${absoluteUrl(config, V1_ENTRY_PATH)} for a short versioned paid x402 navigation route map when an agent starts at /v1 first. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, AGENT_LISTING_PATH)} for agent listing conversion score and buyer-agent skip reasons. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, CONVERSION_SCORE_PATH)} for x402 marketplace conversion score. Price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}.
 - GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for x402 route health, direct 402 metadata, stale price checks, and search visibility. Price: ${config.siteAuditPrice}. Max amount: ${SITE_AUDIT_AMOUNT}.
@@ -3302,9 +3303,9 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 
 ## Generic Paid Entry Points
 
-- GET ${absoluteUrl(config, API_ENTRY_PATH)} for agents that probe /api first.
-- GET ${absoluteUrl(config, API_V1_ENTRY_PATH)} for agents that probe /api/v1 first.
-- GET ${absoluteUrl(config, V1_ENTRY_PATH)} for agents that probe /v1 first.
+- GET ${absoluteUrl(config, API_ENTRY_PATH)} for agents that start at /api first.
+- GET ${absoluteUrl(config, API_V1_ENTRY_PATH)} for agents that start at /api/v1 first.
+- GET ${absoluteUrl(config, V1_ENTRY_PATH)} for agents that start at /v1 first.
 
 Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and returns the paid route map after x402 payment.
 
@@ -3482,7 +3483,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast API Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /api first.",
+        description: "Listing Roast API Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /api first.",
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
@@ -3496,7 +3497,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast API v1 Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /api/v1 first.",
+        description: "Listing Roast API v1 Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /api/v1 first.",
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
@@ -3510,7 +3511,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: "Listing Roast v1 Entry: $0.001 paid GET x402 API entrypoint and route map for agents that probe /v1 first.",
+        description: "Listing Roast v1 Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /v1 first.",
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
@@ -4446,7 +4447,7 @@ Other paid routes:
   - Command:
 ${indentText(buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT))}
   - Output: paid API entry route map with preferred first paid action and free discovery links
-  - Use when an agent probes /api before choosing a specific paid route
+  - Use when an agent starts at /api before choosing a specific paid route
 
 - GET ${absoluteUrl(config, API_V1_ENTRY_PATH)}
   - Price: ${config.instantScorePrice}
@@ -4455,7 +4456,7 @@ ${indentText(buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT))}
   - Command:
 ${indentText(buildGetPayCommand(config, API_V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT))}
   - Output: paid API v1 entry route map with preferred first paid action and free discovery links
-  - Use when an agent probes /api/v1 before choosing a specific paid route
+  - Use when an agent starts at /api/v1 before choosing a specific paid route
 
 - GET ${absoluteUrl(config, V1_ENTRY_PATH)}
   - Price: ${config.instantScorePrice}
@@ -4974,7 +4975,7 @@ ${copyScript("Copy command")}
           price: config.instantScorePrice,
           network: config.network,
           command: buildGetPayCommand(config, API_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
-          description: "one-tenth-cent generic x402 API entrypoint for agents that probe /api before choosing a specific Listing Roast route.",
+          description: "one-tenth-cent generic x402 navigation endpoint for agents that start at /api.",
           payment: buildPaymentHint(config, {
             path: API_ENTRY_PATH,
             method: "GET",
@@ -4982,7 +4983,7 @@ ${copyScript("Copy command")}
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
             buyerAction: "Pay $0.001 for the generic API entry route map when an agent starts discovery at /api."
           }),
-          keywords: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "GET paid API"],
+          keywords: ["x402 navigation", "API entrypoint", "agent commerce", "route map"],
           input: {}
         },
         {
@@ -4993,7 +4994,7 @@ ${copyScript("Copy command")}
           price: config.instantScorePrice,
           network: config.network,
           command: buildGetPayCommand(config, API_V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
-          description: "one-tenth-cent versioned x402 API entrypoint for agents that probe /api/v1 before choosing a specific Listing Roast route.",
+          description: "one-tenth-cent versioned x402 navigation endpoint for agents that start at /api/v1.",
           payment: buildPaymentHint(config, {
             path: API_V1_ENTRY_PATH,
             method: "GET",
@@ -5001,7 +5002,7 @@ ${copyScript("Copy command")}
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
             buyerAction: "Pay $0.001 for the API v1 entry route map when an agent starts discovery at /api/v1."
           }),
-          keywords: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "GET paid API", "api v1"],
+          keywords: ["x402 navigation", "API v1 entrypoint", "agent commerce", "route map", "api v1"],
           input: {}
         },
         {
@@ -5012,7 +5013,7 @@ ${copyScript("Copy command")}
           price: config.instantScorePrice,
           network: config.network,
           command: buildGetPayCommand(config, V1_ENTRY_PATH, INSTANT_SCORE_AMOUNT),
-          description: "one-tenth-cent short versioned x402 API entrypoint for agents that probe /v1 before choosing a specific Listing Roast route.",
+          description: "one-tenth-cent short versioned x402 navigation endpoint for agents that start at /v1.",
           payment: buildPaymentHint(config, {
             path: V1_ENTRY_PATH,
             method: "GET",
@@ -5020,7 +5021,7 @@ ${copyScript("Copy command")}
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
             buyerAction: "Pay $0.001 for the short v1 entry route map when an agent starts discovery at /v1."
           }),
-          keywords: ["x402 API entrypoint", "paid API entrypoint", "agent commerce", "GET paid API", "v1"],
+          keywords: ["x402 navigation", "v1 entrypoint", "agent commerce", "route map", "v1"],
           input: {}
         },
         {

@@ -1,6 +1,6 @@
 # Listing Roast x402 Service
 
-Standalone x402 paid API for paid API listing quality scoring, critiquing agent-service listing copy, and auditing stale x402/Bazaar discovery state. It leads with the already-indexed $0.001 GET `/api/listing-roast` quick score, also supports $0.001 generic entrypoints at `/api`, `/api/v1`, and `/v1`, and has $0.001 instant, marketplace-conversion, agent-listing-conversion, ping, and site-audit GET endpoints, a $0.005 score endpoint, a $0.01 full-roast endpoint, and a $0.01 discovery audit endpoint.
+Standalone x402 paid API for paid API listing quality scoring, critiquing agent-service listing copy, and auditing stale x402/Bazaar discovery state. It leads with the already-indexed $0.001 GET `/api/listing-roast` quick score, also supports $0.001 generic navigation routes at `/api`, `/api/v1`, and `/v1`, and has $0.001 instant, marketplace-conversion, agent-listing-conversion, ping, and site-audit GET endpoints, a $0.005 score endpoint, a $0.01 full-roast endpoint, and a $0.01 discovery audit endpoint.
 
 This is intentionally separate from ApexScout and any other active project. It has a public homepage with Markdown negotiation, a command-builder page, a shareable sample page, protected JSON API routes, MCP-visible metadata and aliases, OpenAPI with explicit x402 payment hints and common aliases, AGENTS.md, docs aliases, llms.txt, llms-full.txt, x402 discovery link headers, an agent-card discovery bridge, a fallback AI plugin manifest, an RFC 9727 API catalog, Agent Skills discovery, and a local aggregate cash register.
 
@@ -32,7 +32,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /robots.txt` - public crawl hints with AI/search agent access, content-signal preferences, and direct discovery links.
 - `GET /sitemap.xml` - public discovery URLs.
 - `GET /.well-known/mcp.json`, `GET /.well-known/mcp`, `GET /.well-known/mcp-server`, and `GET /.well-known/mcp/server-card.json` - MCP-style discovery metadata and server-card aliases for agent-readiness scanners and MCP-aware clients.
-- `GET /api`, `GET /api/v1`, and `GET /v1` - protected $0.001 x402 entrypoints and route maps for agents that probe generic API paths first.
+- `GET /api`, `GET /api/v1`, and `GET /v1` - protected $0.001 x402 navigation routes and route maps for agents that start at generic API paths first.
 - `GET /api/instant-listing-score` - protected $0.001 x402 instant score route with optional query params.
 - `GET /api/x402-marketplace-conversion` - protected $0.001 x402 marketplace conversion score route with optional query params.
 - `GET /api/agent-listing-conversion` - protected $0.001 agent listing conversion score route for buyer agents searching agent-service listing clarity or buyer-agent skip reasons.
