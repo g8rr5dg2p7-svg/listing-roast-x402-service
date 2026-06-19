@@ -101,6 +101,8 @@ describe("Listing Roast x402 service", () => {
       expect(health.headers.get("link")).toContain("/.well-known/agent-skills/index.json");
       expect(health.headers.get("link")).toContain("/llms-full.txt");
       expect(health.headers.get("link")).toContain("/index.md");
+      expect(health.headers.get("link")).toContain("/auth.md");
+      expect(health.headers.get("link")).toContain("/.well-known/auth.md");
       expect(health.headers.get("link")).toContain("/.well-known/mcp");
       expect(health.headers.get("link")).toContain("/.well-known/mcp-server");
       expect(health.headers.get("link")).toContain("/.well-known/mcp/server-card.json");
@@ -125,6 +127,7 @@ describe("Listing Roast x402 service", () => {
       expect(home.text).toContain("application/ld+json");
       expect(home.text).toContain("Listing Roast x402 paid routes");
       expect(home.text).toContain("/llms-full.txt");
+      expect(home.text).toContain("/auth.md");
       expect(home.text).toContain("/.well-known/mcp/server-card.json");
       expect(home.text).toContain("navigator.modelContext");
       expect(home.text).toContain("registerTool");
@@ -567,6 +570,20 @@ describe("Listing Roast x402 service", () => {
       expect(indexMarkdown.headers.get("content-type")).toContain("text/markdown");
       expect(indexMarkdown.text).toContain("Preferred First Paid Route");
 
+      const authMarkdown = await fetchJson(server, "/auth.md");
+      expect(authMarkdown.status).toBe(200);
+      expect(authMarkdown.headers.get("content-type")).toContain("text/markdown");
+      expect(authMarkdown.text).toContain("# Listing Roast x402 Auth");
+      expect(authMarkdown.text).toContain("does not use accounts, API keys, OAuth login");
+      expect(authMarkdown.text).toContain("Type: x402 payment");
+      expect(authMarkdown.text).toContain("OAuth/OIDC: not supported");
+      expect(authMarkdown.text).toContain("Do not make a paid call unless the buyer explicitly intends to spend USDC");
+
+      const wellKnownAuthMarkdown = await fetchJson(server, "/.well-known/auth.md");
+      expect(wellKnownAuthMarkdown.status).toBe(200);
+      expect(wellKnownAuthMarkdown.headers.get("content-type")).toContain("text/markdown");
+      expect(wellKnownAuthMarkdown.text).toContain("x402 payment");
+
       const robots = await fetchJson(server, "/robots.txt");
       expect(robots.status).toBe(200);
       expect(robots.headers.get("cache-control")).toContain("no-store");
@@ -597,6 +614,8 @@ describe("Listing Roast x402 service", () => {
       expect(sitemap.text).toContain("/llms.txt");
       expect(sitemap.text).toContain("/llms-full.txt");
       expect(sitemap.text).toContain("/index.md");
+      expect(sitemap.text).toContain("/auth.md");
+      expect(sitemap.text).toContain("/.well-known/auth.md");
       expect(sitemap.text).toContain("/x402.json");
       expect(sitemap.text).toContain("/.well-known/x402.json");
       expect(sitemap.text).toContain("/.well-known/x402</loc>");

@@ -43,6 +43,8 @@ const WELL_KNOWN_MCP_SERVER_PATH = "/.well-known/mcp-server";
 const WELL_KNOWN_MCP_SERVER_CARD_PATH = "/.well-known/mcp/server-card.json";
 const LLMS_FULL_PATH = "/llms-full.txt";
 const INDEX_MARKDOWN_PATH = "/index.md";
+const AUTH_MARKDOWN_PATH = "/auth.md";
+const WELL_KNOWN_AUTH_MARKDOWN_PATH = "/.well-known/auth.md";
 const AGENT_SKILLS_SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/schema.json";
 const API_CATALOG_PROFILE = "https://www.rfc-editor.org/info/rfc9727";
 const API_CATALOG_CONTENT_TYPE = `application/linkset+json; profile="${API_CATALOG_PROFILE}"`;
@@ -147,6 +149,8 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, "/llms.txt")}>; rel="describedby"; type="text/plain"`,
     `<${absoluteUrl(config, LLMS_FULL_PATH)}>; rel="describedby"; type="text/markdown"`,
     `<${absoluteUrl(config, INDEX_MARKDOWN_PATH)}>; rel="describedby"; type="text/markdown"`,
+    `<${absoluteUrl(config, AUTH_MARKDOWN_PATH)}>; rel="describedby"; type="text/markdown"`,
+    `<${absoluteUrl(config, WELL_KNOWN_AUTH_MARKDOWN_PATH)}>; rel="describedby"; type="text/markdown"`,
     `<${absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_MCP_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)}>; rel="service-desc"; type="application/json"`,
@@ -337,6 +341,74 @@ ${buildPayCommand(config, ROAST_PATH, "10000")}
 Use this service for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, marketplace listing conversion, x402 route health, and discoverability checks before promotion.
 
 Do not use it for legal advice, deep market research, or broad business strategy.
+`;
+}
+
+function buildAuthMarkdown(config) {
+  return `# Listing Roast x402 Auth
+
+Listing Roast x402 does not use accounts, API keys, OAuth login, browser sign-up, or agent registration.
+
+Access is HTTP-native:
+
+1. Fetch free discovery documents.
+2. Choose a route.
+3. If the buyer explicitly intends to pay, call the paid route with x402.
+4. The server returns HTTP 402 with payment requirements until a valid x402 payment is provided.
+5. After payment, retry the same route with the payment header and read the JSON response.
+
+## Supported Auth Method
+
+- Type: x402 payment
+- Network: ${config.network}
+- Asset: USDC
+- Receiver: available in the HTTP 402 payment challenge
+- API keys: not required
+- OAuth/OIDC: not supported
+- Agent registration: not supported
+- User account: not required
+
+## Free Discovery
+
+- Homepage: ${absoluteUrl(config, "/")}
+- x402 manifest: ${absoluteUrl(config, "/x402.json")}
+- OpenAPI: ${absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)}
+- API catalog: ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
+- Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
+- Agent Skills: ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
+- MCP metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH)}
+- MCP server card: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
+- llms.txt: ${absoluteUrl(config, "/llms.txt")}
+- Full Markdown guide: ${absoluteUrl(config, LLMS_FULL_PATH)}
+- Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}
+- WebMCP handoff: load ${absoluteUrl(config, "/")} in a WebMCP-capable browser and call \`listing_roast_x402_handoff\`.
+
+## Preferred First Paid Action
+
+Use the already-indexed GET route first when the buyer wants a quick listing quality score:
+
+\`\`\`bash
+${buildGetPayCommand(config, ROAST_PATH)}
+\`\`\`
+
+Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT} USDC units.
+
+## Paid Routes
+
+- GET ${absoluteUrl(config, ROAST_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; already-indexed quick score.
+- GET ${absoluteUrl(config, AGENT_LISTING_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; buyer-agent skip reasons and listing clarity.
+- GET ${absoluteUrl(config, SITE_AUDIT_PATH)} — ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT}; x402 route and discovery preflight.
+- POST ${absoluteUrl(config, "/api/listing-score")} — ${config.scorePrice}, max 5000; structured listing quality score.
+- POST ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)} — ${config.discoveryAuditPrice}, max ${DISCOVERY_AUDIT_AMOUNT}; full x402 discovery audit.
+- POST ${absoluteUrl(config, ROAST_PATH)} — ${config.price}, max 10000; full listing roast and rewrite.
+
+## Guardrails For Agents
+
+- Do not make a paid call unless the buyer explicitly intends to spend USDC.
+- Do not use this document as an OAuth promise. OAuth is not available for this service.
+- Do not ask the buyer for an API key or login. There is no account setup.
+- Use the 402 payment challenge as the source of truth for the receiver, network, and amount.
+- Use live wallet/register evidence before claiming revenue has settled.
 `;
 }
 
@@ -2483,6 +2555,7 @@ export function createApp(overrides = {}) {
   <link rel="alternate" type="text/plain" title="Listing Roast llms.txt" href="${escapeHtml(absoluteUrl(config, "/llms.txt"))}" />
   <link rel="alternate" type="text/markdown" title="Listing Roast full agent guide" href="${escapeHtml(llmsFullUrl)}" />
   <link rel="alternate" type="text/markdown" title="Listing Roast Markdown homepage" href="${escapeHtml(absoluteUrl(config, INDEX_MARKDOWN_PATH))}" />
+  <link rel="alternate" type="text/markdown" title="Listing Roast auth guide" href="${escapeHtml(absoluteUrl(config, AUTH_MARKDOWN_PATH))}" />
   <script type="application/ld+json">${jsonScript(buildStructuredData(config))}</script>
   <title>${escapeHtml(config.serviceName)}</title>
   <style>
@@ -2733,7 +2806,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Discovery</h3>
           <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path returns a $0.001 quick score challenge, <code>GET /api/agent-listing-conversion</code> targets buyer-agent skip-reason searches, and <code>GET /api/x402-site-audit</code> returns a $0.001 discovery audit challenge.</p>
-          <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a></p>
+          <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
         <div class="card">
           <h3>When not to buy</h3>
@@ -2762,7 +2835,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", INDEX_MARKDOWN_PATH, "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -2771,6 +2844,10 @@ ${webMcpScript(config)}
       .type("application/xml")
       .send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
+  });
+
+  app.get([AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH], (_request, response) => {
+    response.type("text/markdown").send(buildAuthMarkdown(config));
   });
 
   app.get("/api/examples", async (_request, response) => {
