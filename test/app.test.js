@@ -1038,6 +1038,7 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("already-indexed listing-roast URL");
       expect(llms.text).toContain("/x402.json");
       expect(llms.text).toContain("marketplace listing score");
+      expect(llms.text.indexOf("/api/listing-roast")).toBeLessThan(llms.text.indexOf("/api/v1"));
 
       const llmsFull = await fetchJson(server, "/llms-full.txt");
       expect(llmsFull.status).toBe(200);
@@ -1047,6 +1048,7 @@ describe("Listing Roast x402 service", () => {
       expect(llmsFull.text).toContain("Recommended Paid Sequence");
       expect(llmsFull.text).toContain("Full roast command");
       expect(llmsFull.text).toContain("after the indexed quick score for the dedicated agent-listing conversion deep dive");
+      expect(llmsFull.text.indexOf("/api/listing-roast")).toBeLessThan(llmsFull.text.indexOf("/api/v1"));
 
       const indexMarkdown = await fetchJson(server, "/index.md");
       expect(indexMarkdown.status).toBe(200);

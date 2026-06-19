@@ -4039,6 +4039,8 @@ function buildAgentMarkdownGuide(config) {
 
 Listing Roast x402 is a paid HTTP JSON API for builders who need a quick read on why buyer agents skip a paid API or x402 marketplace listing.
 
+Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
+
 ## Free Discovery
 
 - Homepage: ${absoluteUrl(config, "/")}
@@ -5541,6 +5543,8 @@ ${webMcpScript(config)}
       .send(`# Listing Roast x402
 
 Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who need a paid API listing quality score, agent-service listing score, marketplace listing conversion feedback, or x402 service discoverability guidance before promotion.
+
+Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
 
 Homepage: ${absoluteUrl(config, "/")}
 Command builder: ${absoluteUrl(config, "/builder")}
