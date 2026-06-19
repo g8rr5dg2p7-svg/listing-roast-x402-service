@@ -391,6 +391,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.localDiscovery.resources).toContain("/v2/x402/discovery/resources");
       expect(x402Manifest.json.localDiscovery.search).toContain("/v2/x402/discovery/search");
       expect(x402Manifest.json.localDiscovery.merchant).toContain("/v2/x402/discovery/merchant");
+      expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "paid API listing quality").expectedFirstPath).toBe("/api/listing-roast");
       expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "buyer-agent skip reasons").expectedFirstPath).toBe("/api/listing-roast");
       expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "x402 discovery audit").expectedFirstPath).toBe("/api/x402-discovery-audit");
       expect(x402Manifest.json.localDiscovery.searchExamples.find((example) => example.query === "paid API preflight").searchUrl).toContain("/v2/x402/discovery/search?query=paid%20API%20preflight");
@@ -1501,6 +1502,18 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoveryListingScoreSearch.json.resources[0].metadata.path).toBe("/api/listing-roast");
       expect(localDiscoveryListingScoreSearch.json.resources[0].metadata.maxAmountRequired).toBe("1000");
 
+      const localDiscoveryListingQualitySearch = await fetchJson(server, "/v2/x402/discovery/search?query=paid%20API%20listing%20quality&limit=2");
+      expect(localDiscoveryListingQualitySearch.status).toBe(200);
+      expect(localDiscoveryListingQualitySearch.headers.get("payment-required")).toBeNull();
+      expect(localDiscoveryListingQualitySearch.json.resources[0].metadata.path).toBe("/api/listing-roast");
+      expect(localDiscoveryListingQualitySearch.json.resources[0].metadata.maxAmountRequired).toBe("1000");
+
+      const localDiscoveryMarketplaceQualitySearch = await fetchJson(server, "/v2/x402/discovery/search?query=marketplace%20listing%20quality&limit=2");
+      expect(localDiscoveryMarketplaceQualitySearch.status).toBe(200);
+      expect(localDiscoveryMarketplaceQualitySearch.headers.get("payment-required")).toBeNull();
+      expect(localDiscoveryMarketplaceQualitySearch.json.resources[0].metadata.path).toBe("/api/listing-roast");
+      expect(localDiscoveryMarketplaceQualitySearch.json.resources[0].metadata.maxAmountRequired).toBe("1000");
+
       const localDiscoverySkipReasonsSearch = await fetchJson(server, "/v2/x402/discovery/search?query=buyer-agent%20skip%20reasons&limit=2");
       expect(localDiscoverySkipReasonsSearch.status).toBe(200);
       expect(localDiscoverySkipReasonsSearch.headers.get("payment-required")).toBeNull();
@@ -1544,7 +1557,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.pricingViews).toBe(1);
       expect(cashRegister.json.signals.findViews).toBe(5);
       expect(cashRegister.json.signals.routeViews).toBe(10);
-      expect(cashRegister.json.signals.localDiscoveryViews).toBe(8);
+      expect(cashRegister.json.signals.localDiscoveryViews).toBe(10);
       expect(cashRegister.json.signals.mcpViews).toBe(4);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(3);
       expect(cashRegister.json.signals.agentCardViews).toBe(2);

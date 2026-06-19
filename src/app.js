@@ -1791,7 +1791,7 @@ function buildLocalDiscoverySearchExamples(config) {
   const examples = [
     {
       query: "paid API listing quality",
-      expectedFirstPath: CONVERSION_SCORE_PATH,
+      expectedFirstPath: ROAST_PATH,
       expectedAmount: INSTANT_SCORE_AMOUNT
     },
     {
@@ -3991,7 +3991,7 @@ function scoreCatalogResource(resource, query) {
     if (resource.id === "listing_roast") score += 30;
   }
 
-  if (includesAny(normalizedQuery, ["marketplace listing score", "paid api listing quality score", "agent-service listing score", "agent service listing score"])) {
+  if (includesAny(normalizedQuery, ["marketplace listing score", "marketplace listing quality", "paid api listing quality", "paid api listing quality score", "listing quality score", "x402 listing quality", "agent-service listing score", "agent service listing score"])) {
     if (isIndexedRoastGet) score += 260;
     if (resource.path === INSTANT_SCORE_PATH) score += 10;
   }
