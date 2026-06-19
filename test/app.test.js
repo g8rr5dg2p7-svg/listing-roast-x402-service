@@ -835,6 +835,10 @@ describe("Listing Roast x402 service", () => {
       expect(findSkipReasons.status).toBe(200);
       expect(findSkipReasons.json.recommended.path).toBe("/api/agent-listing-conversion");
 
+      const findMixedSkipReasons = await fetchJson(server, "/api/find?q=buyer-agent%20skip%20reasons%20paid%20API%20listing%20clarity");
+      expect(findMixedSkipReasons.status).toBe(200);
+      expect(findMixedSkipReasons.json.recommended.path).toBe("/api/agent-listing-conversion");
+
       const findFullRewrite = await fetchJson(server, "/api/find?q=listing%20roast%20full%20rewrite");
       expect(findFullRewrite.status).toBe(200);
       expect(findFullRewrite.json.recommended.id).toBe("listing_roast");
@@ -858,6 +862,14 @@ describe("Listing Roast x402 service", () => {
       expect(routeSkipReasons.headers.get("payment-required")).toBeNull();
       expect(routeSkipReasons.json.best.path).toBe("/api/agent-listing-conversion");
       expect(routeSkipReasons.json.results).toHaveLength(2);
+
+      const routeMixedSkipReasons = await fetchJson(server, "/api/route", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ query: "buyer-agent skip reasons paid API listing clarity", top: 2, include: "local" })
+      });
+      expect(routeMixedSkipReasons.status).toBe(200);
+      expect(routeMixedSkipReasons.json.best.path).toBe("/api/agent-listing-conversion");
 
       const localDiscovery = await fetchJson(server, "/v2/x402/discovery/resources?limit=2");
       expect(localDiscovery.status).toBe(200);
@@ -899,8 +911,8 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.examplesViews).toBe(1);
       expect(cashRegister.json.signals.payNowViews).toBe(1);
       expect(cashRegister.json.signals.pricingViews).toBe(1);
-      expect(cashRegister.json.signals.findViews).toBe(3);
-      expect(cashRegister.json.signals.routeViews).toBe(2);
+      expect(cashRegister.json.signals.findViews).toBe(4);
+      expect(cashRegister.json.signals.routeViews).toBe(3);
       expect(cashRegister.json.signals.localDiscoveryViews).toBe(4);
       expect(cashRegister.json.signals.mcpViews).toBe(4);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(3);

@@ -2776,7 +2776,7 @@ function scoreCatalogResource(resource, query) {
   }
 
   if (includesAny(normalizedQuery, ["skip reason", "skip reasons", "agent listing", "listing clarity", "agent service clarity", "agent-service", "buyer intent"])) {
-    if (resource.path === AGENT_LISTING_PATH) score += 120;
+    if (resource.path === AGENT_LISTING_PATH) score += 145;
     if (resource.id === "indexed_roast_quick_score") score += 45;
     if (resource.id === "listing_roast") score += 30;
   }
