@@ -20,6 +20,7 @@ const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
 const BASE_MAINNET_NETWORK = "eip155:8453";
 const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const USDC_DECIMALS = 1_000_000n;
+const ROOT_DIRECTORY_POST_PATH = "/";
 const API_ENTRY_PATH = "/api";
 const API_V1_ENTRY_PATH = "/api/v1";
 const V1_ENTRY_PATH = "/v1";
@@ -126,10 +127,12 @@ const DISCOVERY_KEYWORDS = [
   "agent service promotion readiness"
 ];
 const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, x402 seller discoverability, listing SEO audit, seller growth checklist, and agent service promotion readiness before promotion.";
+const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Buyer-agent skip reasons, agent service listing clarity, marketplace listing score, and paid API listing quality score: $0.001 GET Listing Roast x402 quick score for agent listing conversion score, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and x402 service discoverability on the indexed /api/listing-roast URL. POST the same URL for the $0.01 full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
 const ROUTE_SERVICE_TAGS = Object.freeze({
+  directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
   listingScore: ["x402", "paid API listing quality", "agent service clarity", "marketplace conversion", "discoverability"],
   instantScore: ["x402", "paid API listing quality", "marketplace listing score", "agent service clarity", "discoverability"],
@@ -143,6 +146,7 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
 });
 const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   indexed_roast_quick_score: "indexedQuickScore",
+  directory_root_post: "directoryPost",
   api_entry: "apiEntry",
   api_v1_entry: "apiEntry",
   v1_entry: "apiEntry",
@@ -427,6 +431,12 @@ function buildPayCommand(config, pathname = ROAST_PATH, maxAmount = "10000", bod
   return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, pathname)} \\
   -X POST \\
   -d ${shellQuote(JSON.stringify(body))} \\
+  --max-amount ${maxAmount}`;
+}
+
+function buildPostPayCommand(config, pathname = ROOT_DIRECTORY_POST_PATH, maxAmount = INSTANT_SCORE_AMOUNT) {
+  return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, pathname)} \\
+  -X POST \\
   --max-amount ${maxAmount}`;
 }
 
@@ -1115,6 +1125,13 @@ function buildApiEntryOutput(config, query = {}) {
       reason: "Use the already-indexed listing-roast route first when the buyer wants the cheapest paid score."
     },
     paidRoutes: {
+      directoryPost: {
+        route: absoluteUrl(config, ROOT_DIRECTORY_POST_PATH),
+        path: ROOT_DIRECTORY_POST_PATH,
+        method: "POST",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT
+      },
       apiEntry: {
         route: absoluteUrl(config, API_ENTRY_PATH),
         path: API_ENTRY_PATH,
@@ -1187,6 +1204,21 @@ function buildApiEntryOutput(config, query = {}) {
       llms: absoluteUrl(config, "/llms.txt")
     },
     nextStep: "This paid entrypoint includes a quick score so generic /api buyers get immediate value. Use the preferredFirstPaidAction route directly next time, or use POST /api/listing-roast for the full rewrite."
+  };
+}
+
+function buildDirectoryPostOutput(config) {
+  const output = buildApiEntryOutput(config, {
+    source: "agent-tools-directory-root-post",
+    goal: "Find the correct paid Listing Roast route"
+  });
+
+  return {
+    ...output,
+    endpoint: "directory-root-post",
+    purpose: "Paid x402 handoff for buyer agents following generic directory snippets that POST to the service root.",
+    directorySource: "root-post",
+    nextStep: "Use the indexed /api/listing-roast GET quick score first; upgrade to POST /api/listing-roast only when a full roast is needed."
   };
 }
 
@@ -1380,7 +1412,9 @@ function buildRoutePaymentAction(config, options) {
   const body = options.body;
   const command = method === "GET"
     ? buildGetPayCommand(config, options.path, options.maxAmountRequired)
-    : buildPayCommand(config, options.path, options.maxAmountRequired, body);
+    : body === null
+      ? buildPostPayCommand(config, options.path, options.maxAmountRequired)
+      : buildPayCommand(config, options.path, options.maxAmountRequired, body);
 
   return {
     route: absoluteUrl(config, options.path),
@@ -1396,6 +1430,14 @@ function buildRoutePaymentAction(config, options) {
 
 function buildPayNowActions(config) {
   return {
+    directoryPost: buildRoutePaymentAction(config, {
+      path: ROOT_DIRECTORY_POST_PATH,
+      method: "POST",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      body: null,
+      reason: "Use this when a public directory or agent-tools listing shows a generic POST to the service root."
+    }),
     indexedQuickScore: buildRoutePaymentAction(config, {
       path: ROAST_PATH,
       method: "GET",
@@ -1505,6 +1547,7 @@ function buildRecommendedPaidSequence(intentRoutes) {
 
 const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   indexed_roast_quick_score: "indexedQuickScore",
+  directory_root_post: "directoryPost",
   instant_listing_score: "instantScore",
   x402_marketplace_conversion_score: "conversionScore",
   agent_listing_conversion_score: "agentListingConversion",
@@ -2716,7 +2759,7 @@ function buildX402Manifest(config) {
       }
     },
     capabilities: {
-      tools: 12
+      tools: 13
     },
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
@@ -2736,6 +2779,21 @@ function buildX402Manifest(config) {
         input: buildInstantScoreDiscovery(config).input,
         outputExample: buildIndexedRoastQuickScore(buildInstantScoreInput(), config),
         schema: absoluteUrl(config, "/api/score-schema")
+      },
+      {
+        id: "directory_root_post",
+        name: "directory_root_post",
+        method: "POST",
+        path: ROOT_DIRECTORY_POST_PATH,
+        url: absoluteUrl(config, ROOT_DIRECTORY_POST_PATH),
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        description: DIRECTORY_POST_DESCRIPTION,
+        keywords: ["agent-tools", "directory handoff", "generic POST", "root POST", "x402 route map", "paid API directory"],
+        command: buildPostPayCommand(config, ROOT_DIRECTORY_POST_PATH, INSTANT_SCORE_AMOUNT),
+        input: {},
+        outputExample: buildDirectoryPostOutput(config),
+        schema: absoluteUrl(config, "/openapi.json")
       },
       {
         id: "api_entry",
@@ -4007,6 +4065,21 @@ function createX402Middleware(config) {
 
   return paymentMiddleware(
     {
+      [`POST ${ROOT_DIRECTORY_POST_PATH}`]: {
+        resource: resourceUrl(ROOT_DIRECTORY_POST_PATH),
+        ...routeServiceMetadata("directoryPost"),
+        accepts: {
+          scheme: "exact",
+          price: config.instantScorePrice,
+          network: config.network,
+          payTo: config.payTo,
+          maxTimeoutSeconds: 300
+        },
+        description: DIRECTORY_POST_DESCRIPTION,
+        mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "directoryPost"),
+        unpaidResponseBody: unpaidPaymentPreview(config, "directoryPost")
+      },
       [`GET ${API_ENTRY_PATH}`]: {
         resource: resourceUrl(API_ENTRY_PATH),
         ...routeServiceMetadata("apiEntry"),
@@ -4280,6 +4353,10 @@ function isAllowedSignal(value) {
 }
 
 function validUnpaidSignalForPath(pathname) {
+  if (pathname === ROOT_DIRECTORY_POST_PATH) {
+    return "directoryPostValidUnpaidChallenges";
+  }
+
   if (pathname === API_ENTRY_PATH || pathname === API_V1_ENTRY_PATH || pathname === V1_ENTRY_PATH) {
     return "apiEntryValidUnpaidChallenges";
   }
@@ -4329,6 +4406,16 @@ async function recordGetScoreProbe(request, _response, next) {
     await recordSignal("validUnpaidChallenges");
     await recordSignal(pathname === ROAST_PATH ? "indexedRoastGetValidUnpaidChallenges" : validUnpaidSignalForPath(pathname));
   }
+  next();
+}
+
+async function recordDirectoryPostProbe(request, _response, next) {
+  if (!hasPaymentHeader(request)) {
+    await recordSignal("unpaidChallenges");
+    await recordSignal("validUnpaidChallenges");
+    await recordSignal("directoryPostValidUnpaidChallenges");
+  }
+
   next();
 }
 
@@ -5852,6 +5939,7 @@ ${copyScript("Copy command")}
 
   app.head([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], rejectHeadPaidRoute);
   app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
+  app.post(ROOT_DIRECTORY_POST_PATH, recordDirectoryPostProbe);
   app.get([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], recordApiEntryProbe);
   app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ROAST_PATH], recordGetScoreProbe);
   app.get(PING_PATH, recordPingProbe);
@@ -5872,6 +5960,12 @@ ${copyScript("Copy command")}
     next();
   });
   app.use(createX402Middleware(config));
+
+  app.post(ROOT_DIRECTORY_POST_PATH, async (_request, response) => {
+    const result = buildDirectoryPostOutput(config);
+    const cashRegister = await recordPaidCompletion("directoryPost", 0.001);
+    response.json({ ...result, cashRegister });
+  });
 
   app.get([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], async (request, response) => {
     const result = buildApiEntryOutput(config, request.query);

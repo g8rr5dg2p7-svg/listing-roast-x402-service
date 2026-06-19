@@ -26,6 +26,7 @@ const SIGNAL_KEYS = new Set([
   "commandCopyClicks",
   "unpaidChallenges",
   "validUnpaidChallenges",
+  "directoryPostValidUnpaidChallenges",
   "apiEntryValidUnpaidChallenges",
   "instantScoreValidUnpaidChallenges",
   "conversionScoreValidUnpaidChallenges",
@@ -41,6 +42,7 @@ const SIGNAL_KEYS = new Set([
 ]);
 
 const PAID_COMPLETION_ROUTE_META = {
+  directoryPost: { routeKey: "directoryPost", method: "POST", path: "/" },
   apiEntry: { routeKey: "apiEntry", method: "GET", path: "/api" },
   instantScore: { routeKey: "instantScore", method: "GET", path: "/api/instant-listing-score" },
   conversionScore: { routeKey: "conversionScore", method: "GET", path: "/api/x402-marketplace-conversion" },
@@ -83,6 +85,7 @@ function initialCash() {
   const baselineGrossRevenue = baselineUsd("BASELINE_ESTIMATED_GROSS_REVENUE_USD");
   const baselineListingRoastCompletions = baselineNumber("BASELINE_LISTING_ROAST_COMPLETIONS");
   const baselineListingScoreCompletions = baselineNumber("BASELINE_LISTING_SCORE_COMPLETIONS");
+  const baselineDirectoryPostCompletions = baselineNumber("BASELINE_DIRECTORY_POST_COMPLETIONS");
   const baselineApiEntryCompletions = baselineNumber("BASELINE_API_ENTRY_COMPLETIONS");
   const baselineInstantScoreCompletions = baselineNumber("BASELINE_INSTANT_SCORE_COMPLETIONS");
   const baselineIndexedRoastGetCompletions = baselineNumber("BASELINE_INDEXED_ROAST_GET_COMPLETIONS");
@@ -99,6 +102,8 @@ function initialCash() {
     listingRoastEstimatedRevenueUsd: baselineMoney("BASELINE_LISTING_ROAST_REVENUE_USD"),
     listingScoreCompletions: baselineListingScoreCompletions,
     listingScoreEstimatedRevenueUsd: baselineMoney("BASELINE_LISTING_SCORE_REVENUE_USD"),
+    directoryPostCompletions: baselineDirectoryPostCompletions,
+    directoryPostEstimatedRevenueUsd: baselineMoney("BASELINE_DIRECTORY_POST_REVENUE_USD"),
     apiEntryCompletions: baselineApiEntryCompletions,
     apiEntryEstimatedRevenueUsd: baselineMoney("BASELINE_API_ENTRY_REVENUE_USD"),
     instantScoreCompletions: baselineInstantScoreCompletions,
@@ -149,6 +154,7 @@ function initialCash() {
       commandCopyClicks: 0,
       unpaidChallenges: 0,
       validUnpaidChallenges: 0,
+      directoryPostValidUnpaidChallenges: 0,
       apiEntryValidUnpaidChallenges: 0,
       instantScoreValidUnpaidChallenges: 0,
       conversionScoreValidUnpaidChallenges: 0,
@@ -179,6 +185,7 @@ function normalizeCash(cash = {}) {
   const estimatedGrossRevenueUsd = Math.max(Number(base.estimatedGrossRevenueUsd || 0), Number(cash.estimatedGrossRevenueUsd || 0));
   const listingRoastRevenue = Math.max(Number(String(base.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
   const listingScoreRevenue = Math.max(Number(String(base.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
+  const directoryPostRevenue = Math.max(Number(String(base.directoryPostEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.directoryPostEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
   const apiEntryRevenue = Math.max(Number(String(base.apiEntryEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.apiEntryEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
   const instantScoreRevenue = Math.max(Number(String(base.instantScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.instantScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
   const indexedRoastGetRevenue = Math.max(Number(String(base.indexedRoastGetEstimatedRevenueUsd || "$0").replace(/^\$/, "")), Number(String(cash.indexedRoastGetEstimatedRevenueUsd || "$0").replace(/^\$/, "")));
@@ -197,6 +204,8 @@ function normalizeCash(cash = {}) {
     listingRoastEstimatedRevenueUsd: `$${formatEstimatedUsd(listingRoastRevenue)}`,
     listingScoreCompletions: Math.max(Number(base.listingScoreCompletions || 0), Number(cash.listingScoreCompletions || 0)),
     listingScoreEstimatedRevenueUsd: `$${formatEstimatedUsd(listingScoreRevenue)}`,
+    directoryPostCompletions: Math.max(Number(base.directoryPostCompletions || 0), Number(cash.directoryPostCompletions || 0)),
+    directoryPostEstimatedRevenueUsd: `$${formatEstimatedUsd(directoryPostRevenue)}`,
     apiEntryCompletions: Math.max(Number(base.apiEntryCompletions || 0), Number(cash.apiEntryCompletions || 0)),
     apiEntryEstimatedRevenueUsd: `$${formatEstimatedUsd(apiEntryRevenue)}`,
     instantScoreCompletions: Math.max(Number(base.instantScoreCompletions || 0), Number(cash.instantScoreCompletions || 0)),
@@ -287,6 +296,7 @@ export async function recordSignal(signalKey) {
 export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) {
   return updateCash((cash) => {
     const isInstantScore = ["instantScore", "conversionScore", "agentListingConversion"].includes(kind);
+    const isDirectoryPost = kind === "directoryPost";
     const isApiEntry = kind === "apiEntry";
     const isIndexedRoastGet = kind === "indexedRoastGet";
     const isListingScorePost = kind === "listingScorePost";
@@ -295,9 +305,10 @@ export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) 
     const isSiteAudit = kind === "x402SiteAudit";
     const isDiscoveryAudit = kind === "x402DiscoveryAudit";
     const isDiscoveryAuditGroup = isSiteAudit || isDiscoveryAudit;
-    const isRoast = !isApiEntry && !isScore && !isPing && !isDiscoveryAuditGroup;
+    const isRoast = !isDirectoryPost && !isApiEntry && !isScore && !isPing && !isDiscoveryAuditGroup;
     const listingRoastCompletions = Number(cash.listingRoastCompletions || 0) + (isRoast ? 1 : 0);
     const listingScoreCompletions = Number(cash.listingScoreCompletions || 0) + (isScore ? 1 : 0);
+    const directoryPostCompletions = Number(cash.directoryPostCompletions || 0) + (isDirectoryPost ? 1 : 0);
     const apiEntryCompletions = Number(cash.apiEntryCompletions || 0) + (isApiEntry ? 1 : 0);
     const instantScoreCompletions = Number(cash.instantScoreCompletions || 0) + (isInstantScore ? 1 : 0);
     const indexedRoastGetCompletions = Number(cash.indexedRoastGetCompletions || 0) + (isIndexedRoastGet ? 1 : 0);
@@ -307,8 +318,9 @@ export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) 
     const x402DiscoveryAuditCompletions = Number(cash.x402DiscoveryAuditCompletions || 0) + (isDiscoveryAuditGroup ? 1 : 0);
     const paidCompletions = Number(cash.paidCompletions || 0) + 1;
     const estimatedGrossRevenueUsd = Number(cash.estimatedGrossRevenueUsd || 0) + priceUsd;
-    const roastRevenue = Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isApiEntry || isScore || isPing || isDiscoveryAuditGroup ? 0 : priceUsd);
+    const roastRevenue = Number(String(cash.listingRoastEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isDirectoryPost || isApiEntry || isScore || isPing || isDiscoveryAuditGroup ? 0 : priceUsd);
     const scoreRevenue = Number(String(cash.listingScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isScore ? priceUsd : 0);
+    const directoryPostRevenue = Number(String(cash.directoryPostEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isDirectoryPost ? priceUsd : 0);
     const apiEntryRevenue = Number(String(cash.apiEntryEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isApiEntry ? priceUsd : 0);
     const instantScoreRevenue = Number(String(cash.instantScoreEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isInstantScore ? priceUsd : 0);
     const indexedRoastGetRevenue = Number(String(cash.indexedRoastGetEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isIndexedRoastGet ? priceUsd : 0);
@@ -326,6 +338,8 @@ export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) 
       listingRoastEstimatedRevenueUsd: `$${formatEstimatedUsd(roastRevenue)}`,
       listingScoreCompletions,
       listingScoreEstimatedRevenueUsd: `$${formatEstimatedUsd(scoreRevenue)}`,
+      directoryPostCompletions,
+      directoryPostEstimatedRevenueUsd: `$${formatEstimatedUsd(directoryPostRevenue)}`,
       apiEntryCompletions,
       apiEntryEstimatedRevenueUsd: `$${formatEstimatedUsd(apiEntryRevenue)}`,
       instantScoreCompletions,

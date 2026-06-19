@@ -2,8 +2,9 @@ const baseUrl = process.env.SMOKE_BASE_URL || "http://localhost:8787";
 const expectedNetwork = process.env.EXPECTED_X402_NETWORK || "eip155:84532";
 const smokePath = process.env.SMOKE_PATH || "/api/listing-roast";
 const defaultGetPaths = new Set(["/api", "/api/v1", "/v1", "/api/listing-roast", "/api/instant-listing-score", "/api/x402-marketplace-conversion", "/api/agent-listing-conversion", "/api/x402-ping", "/api/x402-site-audit"]);
+const thousandUnitPaths = new Set([...defaultGetPaths, "/"]);
 const smokeMethod = process.env.SMOKE_METHOD || (defaultGetPaths.has(smokePath) ? "GET" : "POST");
-const expectedAmount = process.env.EXPECTED_X402_AMOUNT || (defaultGetPaths.has(smokePath) ? "1000" : smokePath === "/api/listing-score" ? "5000" : "10000");
+const expectedAmount = process.env.EXPECTED_X402_AMOUNT || (thousandUnitPaths.has(smokePath) ? "1000" : smokePath === "/api/listing-score" ? "5000" : "10000");
 const discoveryAuditBody = {
   endpointUrl: process.env.SMOKE_AUDIT_ENDPOINT_URL || "https://listing-roast-x402-service-production.up.railway.app/api/listing-roast",
   method: "GET",
@@ -22,7 +23,7 @@ const listingBody = {
 const requestOptions = {
   method: smokeMethod,
   headers: { "Content-Type": "application/json" },
-  body: smokeMethod === "GET" ? undefined : JSON.stringify(smokePath === "/api/x402-discovery-audit" ? discoveryAuditBody : listingBody)
+  body: smokeMethod === "GET" || smokePath === "/" ? undefined : JSON.stringify(smokePath === "/api/x402-discovery-audit" ? discoveryAuditBody : listingBody)
 };
 
 const response = await fetch(`${baseUrl}${smokePath}`, requestOptions);
