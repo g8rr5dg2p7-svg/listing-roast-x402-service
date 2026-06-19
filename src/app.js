@@ -5619,13 +5619,13 @@ ${copyScript("Copy command")}
 
   app.get(CONVERSION_SCORE_PATH, async (request, response) => {
     const result = buildConversionScore(buildInstantScoreInput(request.query), config);
-    const cashRegister = await recordPaidCompletion("instantScore", 0.001);
+    const cashRegister = await recordPaidCompletion("conversionScore", 0.001);
     response.json({ ...result, cashRegister });
   });
 
   app.get(AGENT_LISTING_PATH, async (request, response) => {
     const result = buildAgentListingConversionScore(buildInstantScoreInput(request.query), config);
-    const cashRegister = await recordPaidCompletion("instantScore", 0.001);
+    const cashRegister = await recordPaidCompletion("agentListingConversion", 0.001);
     response.json({ ...result, cashRegister });
   });
 

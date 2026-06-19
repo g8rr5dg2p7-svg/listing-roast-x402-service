@@ -1313,6 +1313,8 @@ describe("Listing Roast x402 service", () => {
   it("keeps route-level paid counters alongside aggregate revenue", async () => {
     await recordPaidCompletion("apiEntry", 0.001);
     await recordPaidCompletion("instantScore", 0.001);
+    await recordPaidCompletion("conversionScore", 0.001);
+    await recordPaidCompletion("agentListingConversion", 0.001);
     await recordPaidCompletion("indexedRoastGet", 0.001);
     await recordPaidCompletion("listingScorePost", 0.005);
     await recordPaidCompletion("x402SiteAudit", 0.001);
@@ -1321,13 +1323,13 @@ describe("Listing Roast x402 service", () => {
     await recordPaidCompletion("listingRoast", 0.01);
 
     const cashRegister = await getCashRegister();
-    expect(cashRegister.paidCompletions).toBe(8);
-    expect(cashRegister.estimatedGrossRevenueUsd).toBe("0.03");
-    expect(cashRegister.listingScoreCompletions).toBe(3);
-    expect(cashRegister.listingScoreEstimatedRevenueUsd).toBe("$0.007");
+    expect(cashRegister.paidCompletions).toBe(10);
+    expect(cashRegister.estimatedGrossRevenueUsd).toBe("0.032");
+    expect(cashRegister.listingScoreCompletions).toBe(5);
+    expect(cashRegister.listingScoreEstimatedRevenueUsd).toBe("$0.009");
     expect(cashRegister.apiEntryCompletions).toBe(1);
     expect(cashRegister.apiEntryEstimatedRevenueUsd).toBe("$0.001");
-    expect(cashRegister.instantScoreCompletions).toBe(1);
+    expect(cashRegister.instantScoreCompletions).toBe(3);
     expect(cashRegister.indexedRoastGetCompletions).toBe(1);
     expect(cashRegister.listingScorePostCompletions).toBe(1);
     expect(cashRegister.x402SiteAuditCompletions).toBe(1);
@@ -1335,6 +1337,13 @@ describe("Listing Roast x402 service", () => {
     expect(cashRegister.x402DiscoveryAuditEstimatedRevenueUsd).toBe("$0.011");
     expect(cashRegister.x402PingCompletions).toBe(1);
     expect(cashRegister.listingRoastCompletions).toBe(1);
+    expect(cashRegister.lastPaidCompletion.routeKey).toBe("listingRoast");
+    expect(cashRegister.lastPaidCompletion.path).toBe("/api/listing-roast");
+    expect(cashRegister.lastPaidCompletion.method).toBe("POST");
+    expect(cashRegister.recentPaidCompletions).toHaveLength(10);
+    expect(cashRegister.recentPaidCompletions.map((event) => event.routeKey)).toContain("conversionScore");
+    expect(cashRegister.recentPaidCompletions.map((event) => event.routeKey)).toContain("agentListingConversion");
+    expect(cashRegister.recentPaidCompletions.find((event) => event.routeKey === "agentListingConversion").path).toBe("/api/agent-listing-conversion");
   });
 
   it("protects the generic API entrypoint with a one-tenth-cent x402 challenge", async () => {

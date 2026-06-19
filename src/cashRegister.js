@@ -36,6 +36,19 @@ const SIGNAL_KEYS = new Set([
   "invalidRequests"
 ]);
 
+const PAID_COMPLETION_ROUTE_META = {
+  apiEntry: { routeKey: "apiEntry", method: "GET", path: "/api" },
+  instantScore: { routeKey: "instantScore", method: "GET", path: "/api/instant-listing-score" },
+  conversionScore: { routeKey: "conversionScore", method: "GET", path: "/api/x402-marketplace-conversion" },
+  agentListingConversion: { routeKey: "agentListingConversion", method: "GET", path: "/api/agent-listing-conversion" },
+  indexedRoastGet: { routeKey: "indexedRoastGet", method: "GET", path: "/api/listing-roast" },
+  listingScorePost: { routeKey: "listingScorePost", method: "POST", path: "/api/listing-score" },
+  x402Ping: { routeKey: "x402Ping", method: "GET", path: "/api/x402-ping" },
+  x402SiteAudit: { routeKey: "x402SiteAudit", method: "GET", path: "/api/x402-site-audit" },
+  x402DiscoveryAudit: { routeKey: "x402DiscoveryAudit", method: "POST", path: "/api/x402-discovery-audit" },
+  listingRoast: { routeKey: "listingRoast", method: "POST", path: "/api/listing-roast" }
+};
+
 function getCashPath() {
   const dataDir = process.env.DATA_DIR || path.join(process.cwd(), "data");
   return path.join(dataDir, "cash-register.json");
@@ -103,6 +116,8 @@ function initialCash() {
       source: "env",
       lastPaidAt: baselineLastPaidAt
     } : null,
+    lastPaidCompletion: null,
+    recentPaidCompletions: [],
     firstSignalAt: null,
     lastSignalAt: null,
     signals: {
@@ -166,6 +181,8 @@ function normalizeCash(cash = {}) {
 
   return {
     ...merged,
+    lastPaidCompletion: cash.lastPaidCompletion || base.lastPaidCompletion,
+    recentPaidCompletions: Array.isArray(cash.recentPaidCompletions) ? cash.recentPaidCompletions.slice(0, 20) : [],
     paidCompletions: Math.max(Number(base.paidCompletions || 0), Number(cash.paidCompletions || 0)),
     estimatedGrossRevenueUsd: estimatedGrossRevenueUsd ? formatEstimatedUsd(estimatedGrossRevenueUsd) : "0.00",
     listingRoastCompletions: Math.max(Number(base.listingRoastCompletions || 0), Number(cash.listingRoastCompletions || 0)),
@@ -227,6 +244,19 @@ function formatEstimatedUsd(value) {
   return (Math.round(value * 100) / 100).toFixed(2);
 }
 
+function buildPaidCompletionEvent(kind, priceUsd, paidAt) {
+  const meta = PAID_COMPLETION_ROUTE_META[kind] || PAID_COMPLETION_ROUTE_META.listingRoast;
+
+  return {
+    paidAt,
+    kind,
+    routeKey: meta.routeKey,
+    method: meta.method,
+    path: meta.path,
+    estimatedRevenueUsd: formatEstimatedUsd(priceUsd)
+  };
+}
+
 export async function recordSignal(signalKey) {
   if (!SIGNAL_KEYS.has(signalKey)) {
     return readCash();
@@ -248,7 +278,7 @@ export async function recordSignal(signalKey) {
 
 export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) {
   return updateCash((cash) => {
-    const isInstantScore = kind === "instantScore";
+    const isInstantScore = ["instantScore", "conversionScore", "agentListingConversion"].includes(kind);
     const isApiEntry = kind === "apiEntry";
     const isIndexedRoastGet = kind === "indexedRoastGet";
     const isListingScorePost = kind === "listingScorePost";
@@ -279,6 +309,7 @@ export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) 
     const siteAuditRevenue = Number(String(cash.x402SiteAuditEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isSiteAudit ? priceUsd : 0);
     const discoveryAuditRevenue = Number(String(cash.x402DiscoveryAuditEstimatedRevenueUsd || "$0").replace(/^\$/, "")) + (isDiscoveryAuditGroup ? priceUsd : 0);
     const now = new Date().toISOString();
+    const paidCompletionEvent = buildPaidCompletionEvent(kind, priceUsd, now);
     return {
       ...cash,
       paidCompletions,
@@ -303,7 +334,9 @@ export async function recordPaidCompletion(kind = "listingRoast", priceUsd = 1) 
       x402DiscoveryAuditEstimatedRevenueUsd: `$${formatEstimatedUsd(discoveryAuditRevenue)}`,
       firstSignalAt: cash.firstSignalAt || now,
       lastSignalAt: now,
-      lastPaidAt: now
+      lastPaidAt: now,
+      lastPaidCompletion: paidCompletionEvent,
+      recentPaidCompletions: [paidCompletionEvent, ...(Array.isArray(cash.recentPaidCompletions) ? cash.recentPaidCompletions : [])].slice(0, 20)
     };
   });
 }
