@@ -456,8 +456,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-19-url-aliases-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-19T20:37:19.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-19-buyer-url-examples-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-19T21:18:40.000Z");
       expect(x402Manifest.json.payNow).toContain("/api/pay-now");
       expect(x402Manifest.json.payNowExamples.skipReasons.selectedActionKey).toBe("buyerAgentSkipReasons");
       expect(x402Manifest.json.payNowExamples.skipReasons.route).toContain("/api/buyer-agent-skip-reasons");
@@ -622,6 +622,9 @@ describe("Listing Roast x402 service", () => {
       expect(resourcesById.x402_site_audit.keywords).toContain("paid API preflight");
       expect(resourcesById.x402_site_audit.keywords).toContain("x402 route health check");
       expect(resourcesById.x402_site_audit.maxAmountRequired).toBe("1000");
+      expect(resourcesById.x402_site_audit.input.url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
+      expect(resourcesById.x402_site_audit.input.base_url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
+      expect(resourcesById.x402_site_audit.input.endpointUrl).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
       expect(resourcesById.paid_api_preflight.path).toBe("/api/preflight");
       expect(resourcesById.paid_api_preflight.canonicalRoute).toBe("/api/x402-site-audit");
       expect(resourcesById.paid_api_preflight.description).toContain("paid API preflight before paying");
@@ -632,9 +635,13 @@ describe("Listing Roast x402 service", () => {
       expect(resourcesById.x402_discovery_audit_quick.path).toBe("/api/x402-discovery-audit");
       expect(resourcesById.x402_discovery_audit_quick.keywords).toContain("x402 discovery audit");
       expect(resourcesById.x402_discovery_audit_quick.maxAmountRequired).toBe("1000");
+      expect(resourcesById.x402_discovery_audit_quick.input.url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
+      expect(resourcesById.x402_discovery_audit_quick.input.base_url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
       expect(resourcesById.x402_discovery_audit.price).toBe("$0.01");
       expect(resourcesById.x402_discovery_audit.keywords).toContain("x402 bazaar discovery audit");
       expect(resourcesById.x402_discovery_audit.maxAmountRequired).toBe("10000");
+      expect(resourcesById.x402_discovery_audit.input.url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
+      expect(resourcesById.x402_discovery_audit.input.base_url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
       expect(resourcesById.listing_score.price).toBe("$0.005");
       expect(resourcesById.listing_score.maxAmountRequired).toBe("5000");
       expect(resourcesById.listing_roast.price).toBe("$0.01");
@@ -680,8 +687,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-19-url-aliases-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-19T20:37:19.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-19-buyer-url-examples-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-19T21:18:40.000Z");
       expect(agentTools.json.resource_samples[0].url).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].resource).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].method).toBe("GET");
@@ -2767,6 +2774,9 @@ describe("Listing Roast x402 service", () => {
         "Bazaar visibility",
         "stale Bazaar price"
       ]);
+      expect(challenge.extensions.bazaar.info.input.queryParams.url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
+      expect(challenge.extensions.bazaar.info.input.queryParams.base_url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
+      expect(challenge.extensions.bazaar.info.input.queryParams.endpointUrl).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
       expect(response.json.error).toBe("payment_required");
@@ -2799,6 +2809,8 @@ describe("Listing Roast x402 service", () => {
         expect(challenge.error).toBe("Payment required");
         expect(challenge.resource.url).toContain(path);
         expect(challenge.resource.description).toContain("paid API preflight");
+        expect(challenge.extensions.bazaar.info.input.queryParams.url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
+        expect(challenge.extensions.bazaar.info.input.queryParams.base_url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
         expect(challenge.accepts[0].network).toBe("eip155:84532");
         expect(challenge.accepts[0].amount).toBe("1000");
         expect(response.json.selectedPaidAction.path).toBe("/api/x402-site-audit");
@@ -2829,6 +2841,8 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("Discovery Audit Quick");
       expect(challenge.resource.description).toContain("route health");
+      expect(challenge.extensions.bazaar.info.input.queryParams.url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
+      expect(challenge.extensions.bazaar.info.input.queryParams.base_url).toBe("https://listing-roast-x402-service-production.up.railway.app/api/listing-roast");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
       expect(response.json.error).toBe("payment_required");

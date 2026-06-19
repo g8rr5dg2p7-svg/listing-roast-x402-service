@@ -213,8 +213,8 @@ const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality and discoverability for paid API listing quality, marketplace listing score, buyer-agent skip reasons, agent service listing clarity, paid API preflight, x402 site audit starter, x402 discovery audit triage, Bazaar search visibility, and stale pricing triage: lowest-price $0.001 GET on indexed /api/listing-roast. This paid-use-confirmed route has wallet proof at /api/paid-usage-proof; try it before higher-priced listing scorers or the $0.01 roast. Use /api/x402-site-audit for pre-pay metadata, /api/x402-discovery-audit for stale Bazaar, or POST /api/listing-roast for the full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-url-aliases-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T20:37:19.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-buyer-url-examples-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T21:18:40.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -1138,6 +1138,23 @@ function buildDiscoveryAuditInputFromQuery(query = {}) {
   return input;
 }
 
+function buildDiscoveryAuditBuyerVisibleInput(input = discoveryAuditRequestExample) {
+  const endpointUrl = input.endpointUrl || discoveryAuditRequestExample.endpointUrl;
+  return {
+    url: endpointUrl,
+    base_url: endpointUrl,
+    endpointUrl,
+    baseUrl: endpointUrl,
+    targetUrl: endpointUrl,
+    resource: endpointUrl,
+    method: input.method || discoveryAuditRequestExample.method,
+    expectedAmount: input.expectedAmount || discoveryAuditRequestExample.expectedAmount,
+    expectedNetwork: input.expectedNetwork || discoveryAuditRequestExample.expectedNetwork,
+    searchQuery: input.searchQuery || discoveryAuditRequestExample.searchQuery,
+    ...(input.requestBody ? { requestBody: input.requestBody } : {})
+  };
+}
+
 function usdcPriceToAmountUnits(value) {
   if (typeof value !== "string" && typeof value !== "number") {
     return undefined;
@@ -1811,7 +1828,7 @@ function buildPingDiscovery(config) {
 
 function buildDiscoveryAuditDiscovery(config) {
   return {
-    input: discoveryAuditRequestExample,
+    input: buildDiscoveryAuditBuyerVisibleInput(),
     bodyType: "json",
     inputSchema: {
       type: "object",
@@ -1889,7 +1906,7 @@ function buildSiteAuditDiscovery(config) {
   const discovery = buildDiscoveryAuditDiscovery(config);
 
   return {
-    input: buildDiscoveryAuditInputFromQuery(),
+    input: buildDiscoveryAuditBuyerVisibleInput(buildDiscoveryAuditInputFromQuery()),
     inputSchema: discovery.inputSchema,
     output: {
       example: buildSiteAuditExampleOutput(config),
@@ -4188,7 +4205,7 @@ function buildX402Manifest(config, cashRegister = {}) {
         description: "One-cent x402 Bazaar discovery audit for listing SEO, listing rank, seller growth, stale indexed pricing, missing marketplace visibility, direct 402 metadata, and next actions. Makes no paid calls.",
         keywords: ["x402 bazaar discovery audit", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "x402 listing stale price", "bazaar search visibility", "paid API listing", "x402 listing"],
         command: buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample),
-        input: discoveryAuditRequestExample,
+        input: buildDiscoveryAuditBuyerVisibleInput(),
         outputExample: buildDiscoveryAuditExampleOutput(),
         schema: absoluteUrl(config, "/api/discovery-audit-schema")
       },
