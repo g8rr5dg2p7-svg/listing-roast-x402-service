@@ -42,7 +42,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     operationId: "getMarketplaceListingScoreAlias",
     summary: "Paid $0.001 marketplace listing score alias",
     catalogTitle: "GET $0.001 marketplace listing score quick-score alias",
-    description: "One-tenth-cent GET alias for marketplace listing score buyers. Returns the same quick score as the indexed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and next paid action guidance.",
+    description: "One-tenth-cent GET alias for marketplace listing score buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and next paid action guidance.",
     keywords: ["marketplace listing score", "marketplace listing quality", "listing quality score", "x402 listing quality", "paid API listing quality"]
   },
   "/api/paid-api-listing-quality": {
@@ -51,7 +51,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     operationId: "getPaidApiListingQualityAlias",
     summary: "Paid $0.001 paid API listing quality alias",
     catalogTitle: "GET $0.001 paid API listing quality quick-score alias",
-    description: "One-tenth-cent GET alias for paid API listing quality buyers. Returns the same quick score as the indexed /api/listing-roast route, with marketplace listing score, agent service clarity, buyer-agent skip reasons, and upgrade guidance.",
+    description: "One-tenth-cent GET alias for paid API listing quality buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with marketplace listing score, agent service clarity, buyer-agent skip reasons, and upgrade guidance.",
     keywords: ["paid API listing quality", "paid API listing quality score", "paid API listing", "agent-service listing score", "marketplace listing score"]
   },
   "/api/buyer-agent-skip-reasons": {
@@ -60,7 +60,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     operationId: "getBuyerAgentSkipReasonsAlias",
     summary: "Paid $0.001 buyer-agent skip reasons alias",
     catalogTitle: "GET $0.001 buyer-agent skip reasons quick-score alias",
-    description: "One-tenth-cent GET alias for buyer-agent skip reason searches. Returns the same quick score as the indexed /api/listing-roast route, with top skip reasons, agent service clarity, and the next paid action.",
+    description: "One-tenth-cent GET alias for buyer-agent skip reason searches. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with top skip reasons, agent service clarity, and the next paid action.",
     keywords: ["buyer-agent skip reasons", "buyer agent skip reasons", "agent skip reasons", "agent listing conversion", "agent service clarity"]
   },
   "/api/agent-service-clarity": {
@@ -69,7 +69,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     operationId: "getAgentServiceClarityAlias",
     summary: "Paid $0.001 agent service clarity alias",
     catalogTitle: "GET $0.001 agent service clarity quick-score alias",
-    description: "One-tenth-cent GET alias for agent service clarity and promotion-readiness buyers. Returns the same quick score as the indexed /api/listing-roast route, with buyer-agent skip reasons, marketplace listing quality, and first-fix guidance.",
+    description: "One-tenth-cent GET alias for agent service clarity and promotion-readiness buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with buyer-agent skip reasons, marketplace listing quality, and first-fix guidance.",
     keywords: ["agent service clarity", "agent service listing clarity", "agent-service listing score", "agent listing clarity", "agent service promotion readiness"]
   }
 });
@@ -206,11 +206,11 @@ const SERVICE_TAGS = Object.freeze([
   "route health"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality and discoverability for paid API listing quality, marketplace listing score, buyer-agent skip reasons, agent service listing clarity, x402 site audit starter, x402 discovery audit triage, Bazaar search visibility, and stale pricing triage: $0.001 GET on indexed /api/listing-roast for paid API preflight before paying. Use /api/x402-site-audit for pre-pay metadata, /api/x402-discovery-audit for stale Bazaar, or POST /api/listing-roast for $0.01 full roast.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality and discoverability for paid API listing quality, marketplace listing score, buyer-agent skip reasons, agent service listing clarity, paid API preflight, x402 site audit starter, x402 discovery audit triage, Bazaar search visibility, and stale pricing triage: lowest-price $0.001 GET on indexed /api/listing-roast. This paid-use-confirmed route has wallet proof at /api/paid-usage-proof; try it before higher-priced listing scorers or the $0.01 roast. Use /api/x402-site-audit for pre-pay metadata, /api/x402-discovery-audit for stale Bazaar, or POST /api/listing-roast for the full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-agent-tools-resource-sample-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T19:25:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-19-proven-first-route-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-19T20:05:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -227,7 +227,7 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
 });
 const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
   agentName: "Listing Roast x402",
-  listingText: "Score API marketplace listing quality and discoverability for paid API listing quality, paid API preflight, stale Bazaar price/search, buyer-agent skip reasons, and agent-service clarity. Start with $0.001 GET /api/listing-roast; use $0.001 site audit for route checks and $0.001 discovery audit for stale Bazaar metadata.",
+  listingText: "Score API marketplace listing quality and discoverability for paid API listing quality, paid API preflight, stale Bazaar price/search, buyer-agent skip reasons, and agent-service clarity. Start with the paid-use-confirmed $0.001 GET /api/listing-roast route; use $0.001 site audit for route checks and $0.001 discovery audit for stale Bazaar metadata.",
   targetBuyer: "x402 and MCP builders",
   currentPrice: "$0.001 GET; $0.01 POST upgrade",
   currentCheckoutPath: "/api/listing-roast",
@@ -2256,7 +2256,7 @@ function buildRecommendedPaidSequence(intentRoutes) {
       step: 1,
       use: "indexedQuickScore",
       action: intentRoutes.indexedQuickScore,
-      reason: "Start with the already-indexed $0.001 quick score so Bazaar-visible buyers can confirm fit with the lowest-friction paid action."
+      reason: "Start with the already-indexed, paid-use-confirmed $0.001 quick score so Bazaar-visible buyers can confirm fit with the lowest-friction paid action."
     },
     {
       step: 2,
@@ -2350,6 +2350,7 @@ function selectPayNowAction(config, intent = "") {
 function buildPayNow(config, intent = "", cashRegister = {}) {
   const selection = selectPayNowAction(config, intent);
   const { intentRoutes, selectedPaidAction } = selection;
+  const provenFirstPaidAction = intentRoutes.indexedQuickScore;
 
   return {
     service: config.serviceName,
@@ -2369,7 +2370,9 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     reason: selection.intent
       ? `Selected from the buyer intent: ${selection.intent}`
       : "Already-indexed Bazaar route and lowest-friction paid score.",
-    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    preferredFirstPaidAction: provenFirstPaidAction,
+    provenFirstPaidAction,
+    provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. Exact alias routes remain available for phrase-specific searches.",
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     routeSelector: [
       {
@@ -2872,7 +2875,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
           operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
           tags: ["paid API listing quality", "paid API listing quality score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "agent service listing clarity", "x402 listing", "paid API listing"],
           summary: "Paid $0.001 paid API listing quality, agent conversion, and buyer-agent skip reasons quick score",
-          description: "Score API marketplace listing quality and discoverability before promotion from the already-indexed /api/listing-roast URL. Returns a $0.001 Paid API listing quality score for agent listing conversion score, x402 discovery audit triage, buyer-agent skip reasons, agent service listing clarity, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
+          description: "Score API marketplace listing quality and discoverability before promotion from the already-indexed, paid-use-confirmed /api/listing-roast URL. Returns the lowest-price $0.001 Paid API listing quality score for agent listing conversion score, x402 discovery audit triage, buyer-agent skip reasons, agent service listing clarity, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
@@ -4635,6 +4638,7 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     });
   const recommended = ranked[0] || routes[0];
   const selected = selectedPaidActionForRoute(intentRoutes, recommended);
+  const provenFirstPaidAction = intentRoutes.indexedQuickScore;
 
   return {
     service: config.serviceName,
@@ -4651,7 +4655,9 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
     x402Manifest: absoluteUrl(config, "/x402.json"),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
-    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    preferredFirstPaidAction: provenFirstPaidAction,
+    provenFirstPaidAction,
+    provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. The recommended route may still point to a phrase-specific alias.",
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     paymentRule: "Do not call the recommended paid route unless the buyer explicitly intends to pay USDC through x402.",
     note: "This endpoint is free. It maps a buyer task to the best existing paid route, price, max amount, schema, and copy-ready command."
@@ -4701,6 +4707,7 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     })
     .slice(0, top);
   const selected = selectedPaidActionForRoute(intentRoutes, ranked[0]);
+  const provenFirstPaidAction = intentRoutes.indexedQuickScore;
 
   return {
     service: config.serviceName,
@@ -4729,7 +4736,9 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
       searchExamples: buildLocalDiscoverySearchExamples(config)
     },
     payNow: absoluteUrl(config, PAY_NOW_PATH),
-    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    preferredFirstPaidAction: provenFirstPaidAction,
+    provenFirstPaidAction,
+    provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. The best match may still point to a phrase-specific alias.",
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     paymentRule: "This router is free. Do not call a returned paid route unless the buyer explicitly intends to pay USDC through x402.",
     note: externalOnly
@@ -7319,7 +7328,7 @@ ${copyScript("Copy command")}
           price: config.instantScorePrice,
           network: config.network,
           command: buildGetPayCommand(config, ROAST_PATH),
-          description: "marketplace listing score, paid API listing quality score, and buyer-agent skip reasons on the already-indexed Listing Roast URL; one-tenth-cent GET paid API preflight, x402 site audit starter, discovery audit triage, agent service listing clarity, route-health language, Bazaar search visibility intent, stale pricing triage, and conversion checks.",
+          description: "marketplace listing score, paid API listing quality score, and buyer-agent skip reasons on the already-indexed, paid-use-confirmed Listing Roast URL; one-tenth-cent GET paid API preflight, x402 site audit starter, discovery audit triage, agent service listing clarity, route-health language, Bazaar search visibility intent, stale pricing triage, and conversion checks.",
           payment: buildPaymentHint(config, {
             path: ROAST_PATH,
             method: "GET",
