@@ -158,7 +158,7 @@ const SERVICE_TAGS = Object.freeze([
   "route health"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "marketplace listing score, paid API listing quality score, and buyer-agent skip reasons: $0.001 GET Listing Roast Quick Score x402 on the already-indexed /api/listing-roast URL for paid API preflight, x402 site audit starter intent, x402 discovery audit triage, agent service listing clarity, route-health language, Bazaar search visibility intent, stale pricing triage, and x402 service discoverability. Use GET /api/x402-site-audit or GET /api/x402-discovery-audit for live no-spend metadata checks, or POST /api/listing-roast for the $0.01 full roast.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "marketplace listing score, paid API listing quality score, buyer-agent skip reasons, agent service listing clarity, x402 site audit starter, x402 discovery audit triage, Bazaar search visibility, and stale pricing triage: $0.001 GET on indexed /api/listing-roast for paid API preflight before paying. Use /api/x402-site-audit for pre-pay metadata, /api/x402-discovery-audit for stale Bazaar, or POST /api/listing-roast for $0.01 full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
 const ROUTE_SERVICE_TAGS = Object.freeze({
@@ -177,11 +177,11 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
 });
 const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
   agentName: "Listing Roast x402",
-  listingText: "A paid x402 score API for marketplace listing quality, paid API preflight, stale Bazaar price/search visibility, buyer-agent skip reasons, and agent-service clarity before promotion. Start with the already-indexed quick score route, then use the $0.001 discovery audit when a buyer needs to fix x402 Bazaar listing metadata.",
+  listingText: "A paid x402 score API for marketplace listing quality, paid API preflight, stale Bazaar price/search visibility, buyer-agent skip reasons, and agent-service clarity before promotion. Start with the already-indexed quick score route, use the $0.001 site audit when a buyer wants pre-pay route checks, then use the $0.001 discovery audit when a seller needs to fix stale x402 Bazaar listing metadata.",
   targetBuyer: "x402 and MCP builders",
   currentPrice: "$0.001 GET; $0.01 POST upgrade",
   currentCheckoutPath: "/api/listing-roast",
-  goal: "Convert buyer agents through the lowest-friction paid score, then route stale Bazaar listing or paid API preflight buyers to the $0.001 discovery audit"
+  goal: "Convert buyer agents through the lowest-friction paid score, route pre-pay endpoint checks to the $0.001 site audit, and route stale Bazaar listing buyers to the $0.001 discovery audit"
 });
 const quickScoreRequestExample = Object.freeze({
   ...LISTING_QUERY_PARAMETER_EXAMPLES
@@ -1188,9 +1188,9 @@ function indexedQuickScoreFollowup(config, input) {
     input.goal
   ].filter(Boolean).join(" ").toLowerCase();
 
-  if (includesAny(intentText, ["discovery audit", "bazaar", "stale price", "stale pricing", "search visibility", "search position", "route health", "paid api preflight", "preflight"])) {
+  if (wantsBazaarDiscoveryFix(intentText) || includesAny(intentText, ["route health"])) {
     return {
-      matchedBuyerIntent: "fix x402 Bazaar listing, stale price, search visibility, route health, or paid API preflight",
+      matchedBuyerIntent: "fix x402 Bazaar listing, stale price, search visibility, or route health",
       nextStep: "This indexed quick score confirms the listing fit. For stale Bazaar pricing, route health, and search visibility, buy GET /api/x402-discovery-audit next.",
       upgradeEndpoint: DISCOVERY_AUDIT_PATH,
       action: buildGetNextPaidAction(config, DISCOVERY_AUDIT_PATH, {
@@ -1201,15 +1201,15 @@ function indexedQuickScoreFollowup(config, input) {
     };
   }
 
-  if (includesAny(intentText, ["site audit", "metadata", "openapi", "llms", "robots", "sitemap", "endpoint counts", "payment schemes", "buyer-readiness", "buyer readiness"])) {
+  if (wantsPaidApiPreflight(intentText) || includesAny(intentText, ["site audit", "metadata", "openapi", "llms", "robots", "sitemap", "endpoint counts", "payment schemes", "buyer-readiness", "buyer readiness"])) {
     return {
-      matchedBuyerIntent: "x402 site audit, metadata, route health, or buyer-readiness",
-      nextStep: "This indexed quick score confirms the listing fit. For live no-spend metadata checks, buy GET /api/x402-site-audit next.",
+      matchedBuyerIntent: "paid API preflight, x402 site audit, metadata, route health, or buyer-readiness",
+      nextStep: "This indexed quick score confirms the listing fit. For live pre-pay metadata and route checks, buy GET /api/x402-site-audit next.",
       upgradeEndpoint: SITE_AUDIT_PATH,
       action: buildGetNextPaidAction(config, SITE_AUDIT_PATH, {
         price: config?.siteAuditPrice || "$0.001",
         maxAmountRequired: SITE_AUDIT_AMOUNT,
-        reason: "Buy the $0.001 x402 site audit when you want live no-spend checks for OpenAPI, llms.txt, route health, pricing, and buyer-readiness signals."
+        reason: "Buy the $0.001 x402 site audit when you want live pre-pay checks for OpenAPI, llms.txt, route health, pricing, and buyer-readiness signals before paying more."
       })
     };
   }
@@ -1239,7 +1239,7 @@ function indexedQuickScoreIntentHandoffs(config, input, options = {}) {
 
   return [
     {
-      intent: "fix x402 Bazaar listing, stale price, search visibility, route health, or paid API preflight",
+      intent: "fix x402 Bazaar listing, stale price, search visibility, or route health",
       action: buildGetNextPaidAction(config, DISCOVERY_AUDIT_PATH, {
         price: config?.siteAuditPrice || "$0.001",
         maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
@@ -1247,11 +1247,11 @@ function indexedQuickScoreIntentHandoffs(config, input, options = {}) {
       })
     },
     {
-      intent: "OpenAPI, llms.txt, robots, sitemap, payment metadata, or buyer-readiness checks",
+      intent: "paid API preflight before paying, OpenAPI, llms.txt, robots, sitemap, payment metadata, or buyer-readiness checks",
       action: buildGetNextPaidAction(config, SITE_AUDIT_PATH, {
         price: config?.siteAuditPrice || "$0.001",
         maxAmountRequired: SITE_AUDIT_AMOUNT,
-        reason: "Buy the $0.001 x402 site audit when you want live no-spend checks for OpenAPI, llms.txt, route health, pricing, and buyer-readiness signals."
+        reason: "Buy the $0.001 x402 site audit when you want live pre-pay checks for OpenAPI, llms.txt, route health, pricing, and buyer-readiness signals before paying more."
       })
     },
     {
@@ -1816,8 +1816,8 @@ function buildLocalDiscoverySearchExamples(config) {
     },
     {
       query: "paid API preflight",
-      expectedFirstPath: DISCOVERY_AUDIT_PATH,
-      expectedAmount: DISCOVERY_AUDIT_QUICK_AMOUNT
+      expectedFirstPath: SITE_AUDIT_PATH,
+      expectedAmount: SITE_AUDIT_AMOUNT
     },
     {
       query: "marketplace listing score",
@@ -2038,14 +2038,14 @@ function buildPayNowActions(config) {
       method: "GET",
       price: config.siteAuditPrice,
       maxAmountRequired: SITE_AUDIT_AMOUNT,
-      reason: "Use this when the buyer wants a quick public metadata check for OpenAPI, llms.txt, robots, sitemap, route health, and buyer-readiness signals."
+      reason: "Use this when the buyer wants a paid API preflight before paying more: public metadata, OpenAPI, llms.txt, robots, sitemap, route health, and buyer-readiness signals."
     }),
     discoveryAuditQuick: buildRoutePaymentAction(config, {
       path: DISCOVERY_AUDIT_PATH,
       method: "GET",
       price: config.siteAuditPrice,
       maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
-      reason: "Use this when the buyer asks to fix x402 Bazaar listing visibility, stale pricing, route health, paid API preflight, or wants the cheapest exact-path discovery audit before the full custom audit."
+      reason: "Use this when the buyer asks to fix x402 Bazaar listing visibility, stale pricing, search visibility, route health, or wants the cheapest exact-path discovery audit before the full custom audit."
     }),
     apiEntry: buildRoutePaymentAction(config, {
       path: API_ENTRY_PATH,
@@ -2219,11 +2219,11 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
         use: "agentListingConversion"
       },
       {
-        when: "Buyer asks for x402 discovery audit, stale Bazaar pricing, route health, search visibility, or paid API preflight",
+        when: "Buyer asks for x402 discovery audit, stale Bazaar pricing, route health, or search visibility",
         use: "discoveryAuditQuick"
       },
       {
-        when: "Buyer asks for OpenAPI, llms.txt, robots, sitemap, or buyer-readiness metadata checks",
+        when: "Buyer asks for paid API preflight before paying, OpenAPI, llms.txt, robots, sitemap, or buyer-readiness metadata checks",
         use: "x402SiteAudit"
       },
       {
@@ -4004,8 +4004,35 @@ function includesAny(text, values) {
   return values.some((value) => text.includes(value));
 }
 
+function wantsPaidApiPreflight(query) {
+  return includesAny(query, [
+    "paid api preflight",
+    "api preflight",
+    "endpoint preflight",
+    "preflight before paying",
+    "before paying",
+    "before you pay",
+    "before spending",
+    "pre-pay",
+    "pre pay"
+  ]);
+}
+
+function wantsBazaarDiscoveryFix(query) {
+  return includesAny(query, [
+    "discovery audit",
+    "bazaar",
+    "stale price",
+    "stale pricing",
+    "search visibility",
+    "search position"
+  ]);
+}
+
 function scoreCatalogResource(resource, query) {
   const normalizedQuery = query.toLowerCase();
+  const wantsPreflight = wantsPaidApiPreflight(normalizedQuery);
+  const wantsDiscoveryFix = wantsBazaarDiscoveryFix(normalizedQuery);
   const wantsCustomScore = includesAny(normalizedQuery, [
     "custom body",
     "body-specific",
@@ -4046,7 +4073,13 @@ function scoreCatalogResource(resource, query) {
     }
   }
 
-  if (includesAny(normalizedQuery, ["discovery audit", "bazaar", "stale price", "stale pricing", "preflight", "route health", "search visibility"])) {
+  if (wantsPreflight && !wantsDiscoveryFix) {
+    if (resource.path === SITE_AUDIT_PATH) score += 175;
+    if (resource.id === "indexed_roast_quick_score") score += 25;
+    if (resource.id === "x402_discovery_audit_quick") score += 20;
+  }
+
+  if (wantsDiscoveryFix || includesAny(normalizedQuery, ["route health"])) {
     if (resource.id === "x402_discovery_audit_quick") score += 130;
     if (resource.id === "x402_discovery_audit") score += 80;
     if (resource.path === SITE_AUDIT_PATH) score += 55;
@@ -4831,7 +4864,7 @@ function buildIntentLandingPages(config) {
       path: X402_SITE_AUDIT_PAGE_PATH,
       title: "x402 site audit | Listing Roast x402",
       heading: "x402 site audit and paid API preflight",
-      summary: "Use this when a buyer wants a quick route-health, OpenAPI, llms.txt, pricing, and Bazaar visibility check without assembling a request body.",
+      summary: "Use this when a buyer wants a quick paid API preflight before paying more: route-health, OpenAPI, llms.txt, pricing, and Bazaar visibility without assembling a request body.",
       primaryAction: intentRoutes.x402SiteAudit,
       primaryLabel: "Use the $0.001 GET site audit",
       supportingAction: intentRoutes.discoveryAudit,
@@ -5234,7 +5267,7 @@ function createX402Middleware(config) {
           payTo: config.payTo,
           maxTimeoutSeconds: 300
         },
-        description: withPaidUseProofDescription(config, "Listing Roast x402 Site Audit: $0.001 GET listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, paid API preflight, route health check, direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps."),
+        description: withPaidUseProofDescription(config, "Listing Roast x402 Site Audit: $0.001 GET listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, paid API preflight before paying more, route health check, direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "x402SiteAudit"),
         unpaidResponseBody: unpaidPaymentPreview(config, "x402SiteAudit"),
