@@ -573,7 +573,8 @@ describe("Listing Roast x402 service", () => {
       const authMarkdown = await fetchJson(server, "/auth.md");
       expect(authMarkdown.status).toBe(200);
       expect(authMarkdown.headers.get("content-type")).toContain("text/markdown");
-      expect(authMarkdown.text).toContain("# Listing Roast x402 Auth");
+      expect(authMarkdown.text).toContain("# Auth.md");
+      expect(authMarkdown.text).toContain("## Listing Roast x402 Auth");
       expect(authMarkdown.text).toContain("does not use accounts, API keys, OAuth login");
       expect(authMarkdown.text).toContain("Type: x402 payment");
       expect(authMarkdown.text).toContain("OAuth/OIDC: not supported");

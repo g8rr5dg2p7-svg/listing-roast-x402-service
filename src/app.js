@@ -345,7 +345,9 @@ Do not use it for legal advice, deep market research, or broad business strategy
 }
 
 function buildAuthMarkdown(config) {
-  return `# Listing Roast x402 Auth
+  return `# Auth.md
+
+## Listing Roast x402 Auth
 
 Listing Roast x402 does not use accounts, API keys, OAuth login, browser sign-up, or agent registration.
 
