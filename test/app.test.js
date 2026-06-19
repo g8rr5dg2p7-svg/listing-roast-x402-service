@@ -1085,6 +1085,8 @@ describe("Listing Roast x402 service", () => {
       const sitemap = await fetchJson(server, "/sitemap.xml");
       expect(sitemap.status).toBe(200);
       expect(sitemap.headers.get("cache-control")).toContain("no-store");
+      expect(sitemap.text.indexOf("<loc>http://localhost:8787/api/listing-roast</loc>")).toBeGreaterThan(-1);
+      expect(sitemap.text.indexOf("<loc>http://localhost:8787/api/listing-roast</loc>")).toBeLessThan(sitemap.text.indexOf("<loc>http://localhost:8787/api</loc>"));
       expect(sitemap.text).toContain("/paid-api-listing-quality");
       expect(sitemap.text).toContain("/agent-listing-conversion");
       expect(sitemap.text).toContain("/x402-discovery-audit");
