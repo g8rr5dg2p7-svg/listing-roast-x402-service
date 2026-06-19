@@ -1792,6 +1792,134 @@ function withPaidUseProofDescription(config, description) {
   return `${description} Public paid-use proof before payment: ${proof.paidUsageProof} exposes paidUsageProof and ${proof.cashRegister} exposes wallet-backed paid completion evidence.`;
 }
 
+function pickDefined(source, keys) {
+  return keys.reduce((result, key) => {
+    if (source?.[key] !== undefined) {
+      result[key] = source[key];
+    }
+    return result;
+  }, {});
+}
+
+function compactChallengeAction(action, options = {}) {
+  if (!action || typeof action !== "object") {
+    return action;
+  }
+
+  return {
+    ...pickDefined(action, ["intent"]),
+    ...(options.includeRoute === false ? {} : pickDefined(action, ["route"])),
+    ...pickDefined(action, ["path", "method", "price", "maxAmountRequired"]),
+    ...(options.includeBody && action.body ? { body: action.body } : {}),
+    ...(options.includeReason === false ? {} : pickDefined(action, ["reason"]))
+  };
+}
+
+function compactChallengePaidRoutes(routes) {
+  if (!routes || typeof routes !== "object" || Array.isArray(routes)) {
+    return routes;
+  }
+
+  return Object.fromEntries(
+    Object.entries(routes).map(([key, action]) => [
+      key,
+      compactChallengeAction(action, { includeRoute: false, includeReason: false })
+    ])
+  );
+}
+
+function compactChallengeOutputExample(example) {
+  if (!example || typeof example !== "object" || Array.isArray(example)) {
+    return example;
+  }
+
+  const compact = pickDefined(example, [
+    "service",
+    "endpoint",
+    "price",
+    "ok",
+    "purpose",
+    "verdict",
+    "score",
+    "firstFix",
+    "matchedBuyerIntent",
+    "nextStep",
+    "upgradeEndpoint",
+    "message",
+    "mode",
+    "route",
+    "safety"
+  ]);
+
+  if (example.direct402) {
+    compact.direct402 = pickDefined(example.direct402, ["ok", "status", "hasPaymentRequiredHeader", "hasBazaarExtension", "amount", "network"]);
+  }
+
+  if (example.bazaarDiscovery) {
+    compact.bazaarDiscovery = pickDefined(example.bazaarDiscovery, ["merchantIndexed", "searchVisible", "indexedAmount", "searchQuery"]);
+  }
+
+  if (example.catalogRefresh) {
+    compact.catalogRefresh = pickDefined(example.catalogRefresh, ["status", "directChallengeReadyForCatalog", "needsRealSettlement"]);
+  }
+
+  if (Array.isArray(example.mismatches)) {
+    compact.mismatches = example.mismatches.slice(0, 2);
+  }
+
+  if (Array.isArray(example.nextActions)) {
+    compact.nextActions = example.nextActions.slice(0, 2);
+  }
+
+  if (example.includedQuickScore) {
+    compact.includedQuickScore = compactChallengeOutputExample(example.includedQuickScore);
+  }
+
+  if (example.preferredFirstPaidAction) {
+    compact.preferredFirstPaidAction = compactChallengeAction(example.preferredFirstPaidAction);
+  }
+
+  if (example.nextPaidAction) {
+    compact.nextPaidAction = compactChallengeAction(example.nextPaidAction, { includeBody: Boolean(example.nextPaidAction.body) });
+  }
+
+  if (Array.isArray(example.nextPaidActions)) {
+    compact.nextPaidActions = example.nextPaidActions
+      .slice(0, 4)
+      .map((action) => compactChallengeAction(action, { includeRoute: false, includeReason: false }));
+  }
+
+  if (example.paidRoutes) {
+    compact.paidRoutes = compactChallengePaidRoutes(example.paidRoutes);
+  }
+
+  return Object.keys(compact).length ? compact : example;
+}
+
+function compactDiscoveryForChallenge(discovery) {
+  if (!discovery?.output?.example) {
+    return discovery;
+  }
+
+  const example = compactChallengeOutputExample(discovery.output.example);
+
+  return {
+    ...discovery,
+    output: {
+      ...discovery.output,
+      example,
+      schema: {
+        type: "object",
+        additionalProperties: true
+      }
+    }
+  };
+}
+
+function declareChallengeDiscoveryExtension(discovery) {
+  return declareDiscoveryExtension(compactDiscoveryForChallenge(discovery));
+}
+
 function buildRoutePaymentAction(config, options) {
   const method = options.method || "GET";
   const body = options.body;
@@ -4817,7 +4945,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
-        extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config))
+        extensions: declareChallengeDiscoveryExtension(buildApiEntryDiscovery(config))
       },
       [`GET ${API_V1_ENTRY_PATH}`]: {
         resource: resourceUrl(API_V1_ENTRY_PATH),
@@ -4833,7 +4961,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
-        extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config, API_V1_ENTRY_PATH))
+        extensions: declareChallengeDiscoveryExtension(buildApiEntryDiscovery(config, API_V1_ENTRY_PATH))
       },
       [`GET ${V1_ENTRY_PATH}`]: {
         resource: resourceUrl(V1_ENTRY_PATH),
@@ -4849,7 +4977,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
         unpaidResponseBody: unpaidPaymentPreview(config, "apiEntry"),
-        extensions: declareDiscoveryExtension(buildApiEntryDiscovery(config, V1_ENTRY_PATH))
+        extensions: declareChallengeDiscoveryExtension(buildApiEntryDiscovery(config, V1_ENTRY_PATH))
       },
       "POST /api/listing-score": {
         resource: resourceUrl(SCORE_PATH),
@@ -4865,7 +4993,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "listingScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "listingScore"),
-        extensions: declareDiscoveryExtension(buildScoreDiscovery(config))
+        extensions: declareChallengeDiscoveryExtension(buildScoreDiscovery(config))
       },
       [`GET ${INSTANT_SCORE_PATH}`]: {
         resource: resourceUrl(INSTANT_SCORE_PATH),
@@ -4881,7 +5009,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "instantScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "instantScore"),
-        extensions: declareDiscoveryExtension(buildInstantScoreDiscovery(config))
+        extensions: declareChallengeDiscoveryExtension(buildInstantScoreDiscovery(config))
       },
       [`GET ${CONVERSION_SCORE_PATH}`]: {
         resource: resourceUrl(CONVERSION_SCORE_PATH),
@@ -4897,7 +5025,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "conversionScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "conversionScore"),
-        extensions: declareDiscoveryExtension(buildConversionScoreDiscovery(config))
+        extensions: declareChallengeDiscoveryExtension(buildConversionScoreDiscovery(config))
       },
       [`GET ${AGENT_LISTING_PATH}`]: {
         resource: resourceUrl(AGENT_LISTING_PATH),
@@ -4913,7 +5041,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "agentListingConversion"),
         unpaidResponseBody: unpaidPaymentPreview(config, "agentListingConversion"),
-        extensions: declareDiscoveryExtension(buildAgentListingConversionDiscovery(config))
+        extensions: declareChallengeDiscoveryExtension(buildAgentListingConversionDiscovery(config))
       },
       [`GET ${ROAST_PATH}`]: {
         resource: resourceUrl(ROAST_PATH),
@@ -4929,7 +5057,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "indexedQuickScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
-        extensions: declareDiscoveryExtension(buildIndexedRoastGetDiscovery(config))
+        extensions: declareChallengeDiscoveryExtension(buildIndexedRoastGetDiscovery(config))
       },
       [`GET ${PING_PATH}`]: {
         resource: resourceUrl(PING_PATH),
@@ -4945,7 +5073,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "x402Ping"),
         unpaidResponseBody: unpaidPaymentPreview(config, "x402Ping"),
-        extensions: declareDiscoveryExtension(buildPingDiscovery(config))
+        extensions: declareChallengeDiscoveryExtension(buildPingDiscovery(config))
       },
       [`GET ${SITE_AUDIT_PATH}`]: {
         resource: resourceUrl(SITE_AUDIT_PATH),
@@ -4961,7 +5089,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "x402SiteAudit"),
         unpaidResponseBody: unpaidPaymentPreview(config, "x402SiteAudit"),
-        extensions: declareDiscoveryExtension(buildSiteAuditDiscovery(config))
+        extensions: declareChallengeDiscoveryExtension(buildSiteAuditDiscovery(config))
       },
       [`GET ${DISCOVERY_AUDIT_PATH}`]: {
         resource: resourceUrl(DISCOVERY_AUDIT_PATH),
@@ -4977,7 +5105,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAuditQuick"),
         unpaidResponseBody: unpaidPaymentPreview(config, "discoveryAuditQuick"),
-        extensions: declareDiscoveryExtension(buildDiscoveryAuditQuickDiscovery(config))
+        extensions: declareChallengeDiscoveryExtension(buildDiscoveryAuditQuickDiscovery(config))
       },
       [`POST ${DISCOVERY_AUDIT_PATH}`]: {
         resource: resourceUrl(DISCOVERY_AUDIT_PATH),
@@ -4993,7 +5121,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAudit"),
         unpaidResponseBody: unpaidPaymentPreview(config, "discoveryAudit"),
-        extensions: declareDiscoveryExtension(buildDiscoveryAuditDiscovery(config))
+        extensions: declareChallengeDiscoveryExtension(buildDiscoveryAuditDiscovery(config))
       },
       [`POST ${ROAST_PATH}`]: {
         resource: resourceUrl(ROAST_PATH),
@@ -5009,7 +5137,7 @@ function createX402Middleware(config) {
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "fullRoast"),
         unpaidResponseBody: unpaidPaymentPreview(config, "fullRoast"),
-        extensions: declareDiscoveryExtension(buildDiscovery(config))
+        extensions: declareChallengeDiscoveryExtension(buildDiscovery(config))
       }
     },
     server,

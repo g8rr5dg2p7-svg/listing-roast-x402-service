@@ -2120,7 +2120,7 @@ describe("Listing Roast x402 service", () => {
       const response = await fetchJson(server, "/api/listing-roast");
 
       expect(response.status).toBe(402);
-      expect(response.headers.get("payment-required").length).toBeLessThan(12000);
+      expect(response.headers.get("payment-required").length).toBeLessThan(9000);
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
@@ -2405,7 +2405,7 @@ describe("Listing Roast x402 service", () => {
       expect(scoreBodySchema.listingText.description).toContain("buyer-facing listing copy");
       expect(scoreBodySchema.source.description).toContain("upgrade path");
       expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.route).toContain("/api/listing-roast");
-      expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.command).toContain("--max-amount 10000");
+      expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.command).toBeUndefined();
       expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.body.source).toBe("listing-score-upgrade");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
