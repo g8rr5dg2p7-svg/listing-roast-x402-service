@@ -80,6 +80,7 @@ const PREFLIGHT_ALIAS_PATHS = Object.freeze(["/api/preflight", "/api/v1/prefligh
 const SITE_AUDIT_PAID_PATHS = Object.freeze([SITE_AUDIT_PATH, ...PREFLIGHT_ALIAS_PATHS]);
 const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
 const PAY_NOW_PATH = "/api/pay-now";
+const PAID_USAGE_PROOF_PATH = "/api/paid-usage-proof";
 const PRICING_PATH = "/api/pricing";
 const FIND_PATH = "/api/find";
 const ROUTE_PATH = "/api/route";
@@ -457,6 +458,7 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_X402_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
+    `<${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}>; rel="service-meta"; type="application/json"; title="wallet-backed paid-use proof"`,
     `<${absoluteUrl(config, PRICING_PATH)}>; rel="service-meta"; type="application/json"`,
     `<${absoluteUrl(config, FIND_PATH)}>; rel="search"; type="application/json"`,
     `<${absoluteUrl(config, ROUTE_PATH)}>; rel="service-meta"; type="application/json"`,
@@ -650,6 +652,7 @@ Fetch these before any payment:
 - Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
 - Examples and commands: ${absoluteUrl(config, "/api/examples")}
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
+- Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 - Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 - Local route router: ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3
@@ -797,6 +800,7 @@ Agents authorize each paid API call by completing the x402 payment challenge for
 - llms.txt: ${absoluteUrl(config, "/llms.txt")}
 - Full Markdown guide: ${absoluteUrl(config, LLMS_FULL_PATH)}
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
+- Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 - Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 - Local route router: ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3
@@ -1903,7 +1907,8 @@ function buildPaymentHint(config, options) {
 
 function buildPaidUseProofLinks(config) {
   return {
-    paidUsageProof: absoluteUrl(config, PAY_NOW_PATH),
+    paidUsageProof: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     note: "Free public proof surfaces expose paidUsageProof and wallet-backed paid completion evidence before payment."
   };
@@ -2838,11 +2843,13 @@ function buildOpenApiDocument(config, cashRegister = {}) {
         payTo: config.payTo,
         manifest: absoluteUrl(config, "/x402.json"),
         payNow: absoluteUrl(config, PAY_NOW_PATH),
+        paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
         preferredFirstPaidAction: intentRoutes.indexedQuickScore,
         recommendedPaidSequence
       },
       "x-recommended-first-paid-action": intentRoutes.indexedQuickScore,
-      "x-pay-now": absoluteUrl(config, PAY_NOW_PATH)
+      "x-pay-now": absoluteUrl(config, PAY_NOW_PATH),
+      "x-paid-usage-proof": absoluteUrl(config, PAID_USAGE_PROOF_PATH)
     },
     servers: [{ url: config.serviceUrl }],
     "x402": {
@@ -2851,12 +2858,14 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       payTo: config.payTo,
       manifest: absoluteUrl(config, "/x402.json"),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
       buyerInstruction: "If the buyer intends to spend USDC, start with GET /api/listing-roast at $0.001 / max 1000 USDC units; read the 402 Payment-Required header, complete x402 payment, then retry with X-PAYMENT."
     },
     "x-recommended-first-paid-action": intentRoutes.indexedQuickScore,
     "x-pay-now": absoluteUrl(config, PAY_NOW_PATH),
+    "x-paid-usage-proof": absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     paths: {
       [ROAST_PATH]: {
         get: {
@@ -3313,6 +3322,23 @@ function buildOpenApiDocument(config, cashRegister = {}) {
           }
         }
       },
+      [PAID_USAGE_PROOF_PATH]: {
+        get: {
+          operationId: "getPaidUsageProof",
+          summary: "Free wallet-backed paid-use proof",
+          description: "Compact no-spend JSON showing current paid completions, estimated gross revenue, wallet evidence fields, and the preferred first paid route.",
+          responses: {
+            200: {
+              description: "Wallet-backed paid-use proof and first paid action",
+              content: {
+                "application/json": {
+                  example: buildPaidUsageProofResponse(config)
+                }
+              }
+            }
+          }
+        }
+      },
       [PRICING_PATH]: {
         get: {
           operationId: "getPricingCatalog",
@@ -3637,6 +3663,30 @@ function buildPaidUsageProof(config, cashRegister = {}) {
   };
 }
 
+function buildPaidUsageProofResponse(config, cashRegister = {}) {
+  const intentRoutes = buildPayNowActions(config);
+  const proof = buildPaidUsageProof(config, cashRegister);
+
+  return {
+    service: config.serviceName,
+    noSpend: true,
+    purpose: "Compact public proof that Listing Roast x402 has real paid usage and the first paid route is still the low-friction indexed GET.",
+    paidUsageProof: proof,
+    settlementProof: buildSettlementProof(config),
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    pricing: absoluteUrl(config, PRICING_PATH),
+    find: absoluteUrl(config, FIND_PATH),
+    route: absoluteUrl(config, ROUTE_PATH),
+    cashRegister: absoluteUrl(config, "/api/cash-register"),
+    x402Manifest: absoluteUrl(config, "/x402.json"),
+    openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+    buyerInstruction: "Use this free proof endpoint before paying. If the buyer intends to spend USDC, start with GET /api/listing-roast at max 1000 USDC units, then upgrade only if the quick score proves enough fit.",
+    safety: "No paid calls are made by this endpoint. Wallet balance comes only from the public cash-register receiver wallet snapshot."
+  };
+}
+
 function buildQuickScoreAliasManifestResources(config) {
   return QUICK_SCORE_ALIAS_PATHS.map((path) => {
     const metadata = QUICK_SCORE_ALIAS_METADATA[path];
@@ -3780,6 +3830,7 @@ function buildX402Manifest(config, cashRegister = {}) {
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     payNowExamples: buildPayNowIntentExamples(config),
     intentLandingPages: buildIntentLandingHandoffs(config),
+    paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
     settlementProof: buildSettlementProof(config),
@@ -4132,6 +4183,7 @@ function buildAgentToolsManifest(config) {
     agent_card: WELL_KNOWN_AGENT_CARD_PATH,
     api_catalog: WELL_KNOWN_API_CATALOG_PATH,
     pay_now: PAY_NOW_PATH,
+    paid_usage_proof: PAID_USAGE_PROOF_PATH,
     pricing: PRICING_PATH,
     route: ROUTE_PATH,
     settlement_proof: "/api/cash-register",
@@ -4148,6 +4200,7 @@ function buildAgentToolsManifest(config) {
         returns: "paid listing quality quick score with next paid action guidance"
       },
       pay_now: absoluteUrl(config, PAY_NOW_PATH),
+      paid_usage_proof: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       pricing: absoluteUrl(config, PRICING_PATH),
       route: absoluteUrl(config, ROUTE_PATH),
       x402_manifest: absoluteUrl(config, WELL_KNOWN_X402_PATH),
@@ -4202,6 +4255,7 @@ function buildPricingCatalog(config, cashRegister = {}) {
     service: config.serviceName,
     noSpend: true,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
+    paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     homepage: absoluteUrl(config, "/"),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
@@ -4290,7 +4344,8 @@ function buildLocalDiscoveryItems(config) {
       schema: resource.schema,
       command: resource.command,
       preferredFirstPaidAction: resource.id === "indexed_roast_quick_score",
-      noSpendHandoff: absoluteUrl(config, PAY_NOW_PATH)
+      noSpendHandoff: absoluteUrl(config, PAY_NOW_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH)
     }
   }));
 }
@@ -4308,6 +4363,7 @@ function buildLocalDiscoveryResources(config, query = {}, cashRegister = {}) {
     service: config.serviceName,
     noSpend: true,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
+    paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     canonicalBazaar: "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources",
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
@@ -4361,6 +4417,7 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     query: rawQuery,
     noSpend: true,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
+    paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
     ...(selected || {}),
@@ -4387,6 +4444,7 @@ function buildLocalDiscoveryMerchant(config, query = {}, cashRegister = {}) {
     payTo: query.payTo || config.payTo,
     noSpend: true,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
+    paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
@@ -4583,6 +4641,7 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     query,
     noSpend: true,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
+    paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     recommended,
     ...(selected || {}),
     alternatives: ranked.filter((route) => route.id !== recommended.id).slice(0, 4),
@@ -4651,6 +4710,7 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     top,
     noSpend: true,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
+    paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     scope: "owned-routes-only",
     results: ranked,
     best: ranked[0] || null,
@@ -4928,7 +4988,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
       `Use GET ${absoluteUrl(config, SITE_AUDIT_PATH)} for a cheap x402 site audit and paid API preflight before paying; direct preflight aliases are ${formatPreflightAliasUrls(config)}.`,
       `Use POST ${absoluteUrl(config, ROAST_PATH)} only when the buyer wants the full ${config.price} roast, rewrite, and stop-or-upgrade guidance.`,
       `Use free GET ${absoluteUrl(config, PRICING_PATH)} for the paid route price catalog, free GET ${absoluteUrl(config, FIND_PATH)}?q=<task> to choose one route, and free GET/POST ${absoluteUrl(config, ROUTE_PATH)} to rank local paid routes before spending.`,
-      "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, Agent Skills index, MCP metadata, llms.txt, examples, sample score, pricing, route finder, local route router, and pay-now JSON."
+      "Do not call paid routes unless the buyer intends to pay; free discovery files are OpenAPI, x402 manifest, agent card, Agent Skills index, MCP metadata, llms.txt, examples, sample score, paid-use proof, pricing, route finder, local route router, and pay-now JSON."
     ].join(" "),
     auth: {
       type: "none"
@@ -4957,6 +5017,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
       recommendedPaidSequence,
       payNowExamples: buildPayNowIntentExamples(config),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       paidUsageProof: buildPaidUsageProof(config, cashRegister),
       settlementProof: buildSettlementProof(config)
     }
@@ -4980,6 +5041,7 @@ function buildApiCatalog(config) {
     { href: absoluteUrl(config, API_V1_ENTRY_PATH), type: "application/json", title: "GET $0.001 versioned x402 navigation route map" },
     { href: absoluteUrl(config, V1_ENTRY_PATH), type: "application/json", title: "GET $0.001 short versioned x402 navigation route map" },
     { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "GET free intent-aware pay-now handoff for the selected paid route" },
+    { href: absoluteUrl(config, PAID_USAGE_PROOF_PATH), type: "application/json", title: "GET free wallet-backed paid-use proof" },
     { href: absoluteUrl(config, PRICING_PATH), type: "application/json", title: "GET free paid route pricing catalog" },
     { href: absoluteUrl(config, FIND_PATH), type: "application/json", title: "GET free task-to-paid-route finder" },
     { href: absoluteUrl(config, ROUTE_PATH), type: "application/json", title: "GET/POST free local paid-route router" },
@@ -5068,6 +5130,7 @@ Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cos
 - MCP server-card metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 - Examples and commands: ${absoluteUrl(config, "/api/examples")}
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
+- Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 - Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 - Cash register: ${absoluteUrl(config, "/api/cash-register")}
@@ -5461,6 +5524,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
       asset: "USDC",
       manifest: absoluteUrl(config, "/x402.json"),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
       payNowExamples: buildPayNowIntentExamples(config),
@@ -5478,6 +5542,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
       route: absoluteUrl(config, ROUTE_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
       llms: absoluteUrl(config, LLMS_PATH),
       llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
@@ -6023,6 +6088,7 @@ export function createApp(overrides = {}) {
     const mcpUrl = absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH);
     const mcpServerCardUrl = absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH);
     const payNowUrl = absoluteUrl(config, PAY_NOW_PATH);
+    const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
     const instantCommand = buildGetPayCommand(config);
     const agentListingCommand = buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT);
     const indexedRoastGetCommand = buildGetPayCommand(config, ROAST_PATH);
@@ -6135,6 +6201,7 @@ export function createApp(overrides = {}) {
         <a href="${builderUrl}">Builder</a>
         <a href="${sampleUrl}">Sample</a>
         <a href="${examplesUrl}">Examples</a>
+        <a href="${paidUsageProofUrl}">Proof</a>
         <a href="#output">Output</a>
         <a href="${schemaUrl}">Schema</a>
         <a href="${cashRegisterUrl}">Cash register</a>
@@ -6313,7 +6380,7 @@ score: 4/5</div>
         <div>
           <h2>Output built for action.</h2>
           <p>The score response gives the first missing signal and upgrade guidance. The exact discovery audit GET route checks direct x402 metadata against Bazaar state at the same low first-click price. The full roast adds skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
-          <p class="muted">The current public cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. The command builder is available at <a href="${builderUrl}">/builder</a>. The direct pay-now handoff is available at <a href="${payNowUrl}">/api/pay-now</a> and accepts an intent query for task-specific commands. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
+          <p class="muted">The current public proof endpoint is available at <a href="${paidUsageProofUrl}">/api/paid-usage-proof</a>. The cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. The command builder is available at <a href="${builderUrl}">/builder</a>. The direct pay-now handoff is available at <a href="${payNowUrl}">/api/pay-now</a> and accepts an intent query for task-specific commands. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
         </div>
         <pre>${escapeHtml(prettyJson(scoreOutput))}</pre>
       </div>
@@ -6375,7 +6442,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", PAY_NOW_PATH, PAID_USAGE_PROOF_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -6649,6 +6716,7 @@ MCP metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH)}
 MCP aliases: ${absoluteUrl(config, WELL_KNOWN_MCP_PATH)}, ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)}
 MCP server card: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 Pay-now JSON: ${absoluteUrl(config, PAY_NOW_PATH)}
+Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
 Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 Route finder examples: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit, ${absoluteUrl(config, FIND_PATH)}?q=buyer-agent%20skip%20reasons, ${absoluteUrl(config, FIND_PATH)}?q=score%20my%20paid%20API%20listing%20with%20a%20custom%20body, ${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite
 Local route router examples: GET ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3, GET ${absoluteUrl(config, ROUTE_PATH)}?query=score%20my%20paid%20API%20listing%20with%20a%20custom%20body&top=3, POST ${absoluteUrl(config, ROUTE_PATH)} {"query":"buyer-agent skip reasons","top":3,"include":"local"}
@@ -7216,6 +7284,7 @@ ${copyScript("Copy command")}
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       payNowExamples,
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
       paidUsageProof: buildPaidUsageProof(config, cashRegister),
       settlementProof: buildSettlementProof(config),
@@ -7230,6 +7299,7 @@ ${copyScript("Copy command")}
         asset: "USDC",
         manifest: absoluteUrl(config, "/x402.json"),
         payNow: absoluteUrl(config, PAY_NOW_PATH),
+        paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
         preferredFirstPaidAction: intentRoutes.indexedQuickScore,
         recommendedPaidSequence,
         payNowExamples,
@@ -7503,6 +7573,12 @@ ${copyScript("Copy command")}
     await recordSignal("payNowViews");
     const cashRegister = await getCashRegister();
     setFreshDiscoveryHeaders(response).json(buildPayNow(config, request.query.intent || request.query.q || request.query.query || request.query.task || "", cashRegister));
+  });
+
+  app.get(PAID_USAGE_PROOF_PATH, async (_request, response) => {
+    await recordSignal("proofViews");
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildPaidUsageProofResponse(config, cashRegister));
   });
 
   app.get(PRICING_PATH, async (_request, response) => {
