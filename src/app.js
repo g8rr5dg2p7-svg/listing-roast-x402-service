@@ -2079,6 +2079,34 @@ function buildPayNowActions(config) {
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
       reason: "Use this first when a marketplace or Bazaar result points to Listing Roast; it is the already-indexed URL and the lowest-friction paid score."
     }),
+    marketplaceListingScore: buildRoutePaymentAction(config, {
+      path: "/api/marketplace-listing-score",
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer intent is exactly marketplace listing score or marketplace listing quality."
+    }),
+    paidApiListingQuality: buildRoutePaymentAction(config, {
+      path: "/api/paid-api-listing-quality",
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer intent is exactly paid API listing quality or paid API listing quality score."
+    }),
+    buyerAgentSkipReasons: buildRoutePaymentAction(config, {
+      path: "/api/buyer-agent-skip-reasons",
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer intent is exactly buyer-agent skip reasons."
+    }),
+    agentServiceClarity: buildRoutePaymentAction(config, {
+      path: "/api/agent-service-clarity",
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer intent is exactly agent service clarity or agent-service listing score."
+    }),
     instantScore: buildRoutePaymentAction(config, {
       path: INSTANT_SCORE_PATH,
       method: "GET",
@@ -2188,6 +2216,10 @@ function buildRecommendedPaidSequence(intentRoutes) {
 
 const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   indexed_roast_quick_score: "indexedQuickScore",
+  marketplace_listing_score_alias: "marketplaceListingScore",
+  paid_api_listing_quality_alias: "paidApiListingQuality",
+  buyer_agent_skip_reasons_alias: "buyerAgentSkipReasons",
+  agent_service_clarity_alias: "agentServiceClarity",
   directory_root_post: "directoryPost",
   instant_listing_score: "instantScore",
   x402_marketplace_conversion_score: "conversionScore",
@@ -2358,7 +2390,7 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
 
 function buildPayNowIntentExamples(config) {
   return {
-    skipReasons: buildPayNowIntentExample(config, "buyer-agent skip reasons", "indexedQuickScore"),
+    skipReasons: buildPayNowIntentExample(config, "buyer-agent skip reasons", "buyerAgentSkipReasons"),
     discoveryAudit: buildPayNowIntentExample(config, "x402 discovery audit", "discoveryAuditQuick"),
     fullRoast: buildPayNowIntentExample(config, "full roast rewrite top fixes", "fullRoast")
   };
@@ -4265,12 +4297,17 @@ function scoreCatalogResource(resource, query) {
 
   if (includesAny(normalizedQuery, ["skip reason", "skip reasons", "agent listing", "listing clarity", "agent service clarity", "agent-service", "buyer intent"])) {
     if (isIndexedRoastGet) score += 155;
+    if (resource.id === "buyer_agent_skip_reasons_alias" && includesAny(normalizedQuery, ["buyer-agent skip reason", "buyer-agent skip reasons", "buyer agent skip reason", "buyer agent skip reasons", "skip reasons"])) score += 320;
+    if (resource.id === "agent_service_clarity_alias" && includesAny(normalizedQuery, ["agent service clarity", "agent-service clarity", "agent service listing clarity", "agent-service listing score", "listing clarity"])) score += 320;
     if (resource.path === AGENT_LISTING_PATH) score += 90;
     if (resource.id === "listing_roast") score += 30;
   }
 
   if (includesAny(normalizedQuery, ["marketplace listing score", "marketplace listing quality", "paid api listing quality", "paid api listing quality score", "listing quality score", "x402 listing quality", "agent-service listing score", "agent service listing score"])) {
     if (isIndexedRoastGet) score += 260;
+    if (resource.id === "marketplace_listing_score_alias" && includesAny(normalizedQuery, ["marketplace listing score", "marketplace listing quality"])) score += 460;
+    if (resource.id === "paid_api_listing_quality_alias" && includesAny(normalizedQuery, ["paid api listing quality", "paid api listing quality score", "paid api listing"])) score += 460;
+    if (resource.id === "agent_service_clarity_alias" && includesAny(normalizedQuery, ["agent-service listing score", "agent service listing score"])) score += 430;
     if (resource.path === INSTANT_SCORE_PATH) score += 10;
   }
 
