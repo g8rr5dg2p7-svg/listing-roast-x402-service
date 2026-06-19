@@ -1844,10 +1844,14 @@ function webMcpScript(config) {
     })();`;
 }
 
+function buildOpenApiX402Security() {
+  return [{ x402: [] }];
+}
+
 function buildOpenApiDocument(config) {
   const intentRoutes = buildPayNowActions(config);
 
-  return {
+  const document = {
     openapi: "3.1.0",
     info: {
       title: config.serviceName,
@@ -2466,6 +2470,16 @@ function buildOpenApiDocument(config) {
         }
       }
     },
+    components: {
+      securitySchemes: {
+        x402: {
+          type: "apiKey",
+          in: "header",
+          name: "X-PAYMENT",
+          description: "x402 payment proof header sent after reading the HTTP 402 payment requirements."
+        }
+      }
+    },
     "x-listing-roast": {
       homepage: config.serviceUrl,
       builder: absoluteUrl(config, "/builder"),
@@ -2519,6 +2533,17 @@ function buildOpenApiDocument(config) {
       keywords: DISCOVERY_KEYWORDS
     }
   };
+
+  for (const pathItem of Object.values(document.paths)) {
+    for (const method of ["get", "post", "put", "patch", "delete"]) {
+      const operation = pathItem[method];
+      if (operation && operation["x-payment"]) {
+        operation.security = buildOpenApiX402Security();
+      }
+    }
+  }
+
+  return document;
 }
 
 function buildX402Manifest(config) {

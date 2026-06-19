@@ -654,7 +654,12 @@ describe("Listing Roast x402 service", () => {
       expect(wellKnownOpenApi.json.info.title).toBe(openApi.json.info.title);
 
       expect(openApi.json.info["x-keywords"]).toContain("x402 listing");
+      expect(openApi.json.components.securitySchemes.x402.type).toBe("apiKey");
+      expect(openApi.json.components.securitySchemes.x402.in).toBe("header");
+      expect(openApi.json.components.securitySchemes.x402.name).toBe("X-PAYMENT");
+      expect(openApi.json.components.securitySchemes.x402.description).toContain("HTTP 402");
       expect(openApi.json.paths["/api"].get.operationId).toBe("getListingRoastApiEntry");
+      expect(openApi.json.paths["/api"].get.security).toEqual([{ x402: [] }]);
       expect(openApi.json.paths["/api"].get["x-payment"].maxAmountRequired).toBe("1000");
       expect(openApi.json.paths["/api"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api"].get.summary).toContain("$0.001");
@@ -699,10 +704,12 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/x402-discovery-audit"].post["x-x402-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.summary).toContain("$0.01");
       expect(openApi.json.paths["/api/listing-roast"].get.operationId).toBe("getIndexedListingRoastX402MarketplaceConversionQuickScore");
+      expect(openApi.json.paths["/api/listing-roast"].get.security).toEqual([{ x402: [] }]);
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].maxAmountRequired).toBe("1000");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].preferredFirstPaidAction).toBe(true);
       expect(openApi.json.paths["/api/listing-roast"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/listing-roast"].get["x-x402-price"]).toBe("$0.001");
+      expect(openApi.json.paths["/api/listing-roast"].post.security).toEqual([{ x402: [] }]);
       expect(openApi.json.paths["/api/listing-roast"].post["x-payment"].maxAmountRequired).toBe("10000");
       expect(openApi.json.paths["/api/listing-roast"].post["x-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/listing-roast"].post["x-x402-price"]).toBe("$0.01");
@@ -715,6 +722,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.command).toContain("/api/listing-roast");
       expect(openApi.json.paths["/api/pay-now"].get.operationId).toBe("getPayNow");
+      expect(openApi.json.paths["/api/pay-now"].get.security).toBeUndefined();
       expect(openApi.json.paths["/api/pay-now"].get.parameters.map((parameter) => parameter.name)).toContain("intent");
       expect(openApi.json.paths["/api/pricing"].get.operationId).toBe("getPricingCatalog");
       expect(openApi.json.paths["/api/find"].get.operationId).toBe("findPaidRouteForTask");
