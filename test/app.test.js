@@ -1275,6 +1275,23 @@ describe("Listing Roast x402 service", () => {
       expect(payNowDiscoveryAudit.json.route).toContain("/api/x402-discovery-audit");
       expect(payNowDiscoveryAudit.json.maxAmountRequired).toBe("1000");
 
+      const payNowFixBazaar = await fetchJson(server, "/api/pay-now?intent=fix%20x402%20bazaar%20listing");
+      expect(payNowFixBazaar.status).toBe(200);
+      expect(payNowFixBazaar.json.selectedActionKey).toBe("discoveryAuditQuick");
+      expect(payNowFixBazaar.json.route).toContain("/api/x402-discovery-audit");
+      expect(payNowFixBazaar.json.maxAmountRequired).toBe("1000");
+      expect(payNowFixBazaar.json.rankedPaidRoutes[0].id).toBe("x402_discovery_audit_quick");
+
+      const payNowStalePrice = await fetchJson(server, "/api/pay-now?intent=stale%20bazaar%20price");
+      expect(payNowStalePrice.status).toBe(200);
+      expect(payNowStalePrice.json.selectedActionKey).toBe("discoveryAuditQuick");
+      expect(payNowStalePrice.json.route).toContain("/api/x402-discovery-audit");
+
+      const payNowMetadata = await fetchJson(server, "/api/pay-now?intent=openapi%20llms%20robots%20sitemap%20metadata");
+      expect(payNowMetadata.status).toBe(200);
+      expect(payNowMetadata.json.selectedActionKey).toBe("x402SiteAudit");
+      expect(payNowMetadata.json.route).toContain("/api/x402-site-audit");
+
       const payNowFullRoast = await fetchJson(server, "/api/pay-now?intent=full%20roast%20rewrite%20top%20fixes");
       expect(payNowFullRoast.status).toBe(200);
       expect(payNowFullRoast.json.selectedActionKey).toBe("fullRoast");
@@ -1467,7 +1484,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.sampleViews).toBe(2);
       expect(cashRegister.json.signals.schemaViews).toBe(2);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
-      expect(cashRegister.json.signals.payNowViews).toBe(4);
+      expect(cashRegister.json.signals.payNowViews).toBe(7);
       expect(cashRegister.json.signals.pricingViews).toBe(1);
       expect(cashRegister.json.signals.findViews).toBe(5);
       expect(cashRegister.json.signals.routeViews).toBe(9);

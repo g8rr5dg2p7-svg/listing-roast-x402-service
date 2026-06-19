@@ -1739,14 +1739,14 @@ function buildPayNowActions(config) {
       method: "GET",
       price: config.siteAuditPrice,
       maxAmountRequired: SITE_AUDIT_AMOUNT,
-      reason: "Use this when the buyer wants a quick x402 route health, Bazaar visibility, or paid API preflight check."
+      reason: "Use this when the buyer wants a quick public metadata check for OpenAPI, llms.txt, robots, sitemap, route health, and buyer-readiness signals."
     }),
     discoveryAuditQuick: buildRoutePaymentAction(config, {
       path: DISCOVERY_AUDIT_PATH,
       method: "GET",
       price: config.siteAuditPrice,
       maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
-      reason: "Use this when the buyer asks for an x402 discovery audit and wants the cheapest exact-path paid check before the full custom audit."
+      reason: "Use this when the buyer asks to fix x402 Bazaar listing visibility, stale pricing, route health, paid API preflight, or wants the cheapest exact-path discovery audit before the full custom audit."
     }),
     apiEntry: buildRoutePaymentAction(config, {
       path: API_ENTRY_PATH,
@@ -1899,12 +1899,12 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
         use: "agentListingConversion"
       },
       {
-        when: "Buyer asks for x402 route health, stale Bazaar pricing, or paid API preflight",
-        use: "x402SiteAudit"
+        when: "Buyer asks for x402 discovery audit, stale Bazaar pricing, route health, search visibility, or paid API preflight",
+        use: "discoveryAuditQuick"
       },
       {
-        when: "Buyer asks for x402 discovery audit and wants the exact audit path",
-        use: "discoveryAuditQuick"
+        when: "Buyer asks for OpenAPI, llms.txt, robots, sitemap, or buyer-readiness metadata checks",
+        use: "x402SiteAudit"
       },
       {
         when: "Buyer needs a custom body score",
@@ -3640,10 +3640,16 @@ function scoreCatalogResource(resource, query) {
     }
   }
 
-  if (includesAny(normalizedQuery, ["discovery audit", "bazaar", "stale price", "stale pricing", "preflight", "route health", "site audit", "search visibility"])) {
-    if (resource.path === SITE_AUDIT_PATH) score += 120;
-    if (resource.path === DISCOVERY_AUDIT_PATH) score += 90;
+  if (includesAny(normalizedQuery, ["discovery audit", "bazaar", "stale price", "stale pricing", "preflight", "route health", "search visibility"])) {
+    if (resource.id === "x402_discovery_audit_quick") score += 130;
+    if (resource.id === "x402_discovery_audit") score += 80;
+    if (resource.path === SITE_AUDIT_PATH) score += 55;
     if (resource.id === "indexed_roast_quick_score") score += 25;
+  }
+
+  if (includesAny(normalizedQuery, ["site audit", "metadata", "openapi", "llms", "robots", "sitemap", "endpoint counts", "payment schemes", "buyer-readiness", "buyer readiness"])) {
+    if (resource.path === SITE_AUDIT_PATH) score += 125;
+    if (resource.id === "x402_discovery_audit_quick") score += 35;
   }
 
   if (includesAny(normalizedQuery, ["discovery audit", "bazaar discovery", "x402 discovery"])) {
