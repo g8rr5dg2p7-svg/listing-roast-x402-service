@@ -33,6 +33,9 @@ const WELL_KNOWN_OPENAPI_JSON_PATH = "/.well-known/openapi.json";
 const WELL_KNOWN_AGENT_CARD_PATH = "/.well-known/agent-card.json";
 const WELL_KNOWN_AGENT_JSON_PATH = "/.well-known/agent.json";
 const WELL_KNOWN_AI_PLUGIN_PATH = "/.well-known/ai-plugin.json";
+const WELL_KNOWN_API_CATALOG_PATH = "/.well-known/api-catalog";
+const API_CATALOG_PROFILE = "https://www.rfc-editor.org/info/rfc9727";
+const API_CATALOG_CONTENT_TYPE = `application/linkset+json; profile="${API_CATALOG_PROFILE}"`;
 const INSTANT_SCORE_AMOUNT = "1000";
 const PING_AMOUNT = "1000";
 const SITE_AUDIT_AMOUNT = "1000";
@@ -135,7 +138,8 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, "/.well-known/mcp.json")}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
-    `<${absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH)}>; rel="service-desc"; type="application/json"`
+    `<${absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH)}>; rel="service-desc"; type="application/json"`,
+    `<${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}>; rel="api-catalog"; type="application/linkset+json"`
   ].join(", ");
 }
 
@@ -1222,6 +1226,7 @@ function buildOpenApiDocument(config) {
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
       aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
+      apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       preferredFirstPaidRoute: absoluteUrl(config, ROAST_PATH),
       recommendedFirstPaidAction: {
@@ -1267,6 +1272,7 @@ function buildX402Manifest(config) {
     agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
     agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
     aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
+    apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     aliases: [absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), absoluteUrl(config, WELL_KNOWN_X402_PATH)],
     network: config.network,
@@ -1627,6 +1633,53 @@ function buildAiPluginManifest(config) {
         maxAmountRequired: INSTANT_SCORE_AMOUNT
       }
     }
+  };
+}
+
+function buildApiCatalog(config) {
+  const item = [
+    { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET indexed $0.001 x402 listing quality quick score and POST $0.01 full roast" },
+    { href: absoluteUrl(config, INSTANT_SCORE_PATH), type: "application/json", title: "GET $0.001 instant paid API listing quality score" },
+    { href: absoluteUrl(config, CONVERSION_SCORE_PATH), type: "application/json", title: "GET $0.001 x402 marketplace conversion score" },
+    { href: absoluteUrl(config, AGENT_LISTING_PATH), type: "application/json", title: "GET $0.001 agent listing conversion score and buyer-agent skip reasons" },
+    { href: absoluteUrl(config, PING_PATH), type: "application/json", title: "GET $0.001 paid x402 ping" },
+    { href: absoluteUrl(config, SITE_AUDIT_PATH), type: "application/json", title: "GET $0.001 x402 site audit and paid API preflight" },
+    { href: absoluteUrl(config, "/api/listing-score"), type: "application/json", title: "POST $0.005 paid API listing quality score" },
+    { href: absoluteUrl(config, DISCOVERY_AUDIT_PATH), type: "application/json", title: "POST $0.01 x402 discovery audit" },
+    { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "GET free pay-now handoff for the preferred first paid route" },
+    { href: absoluteUrl(config, "/api/examples"), type: "application/json", title: "GET free examples, commands, payment hints, and sample outputs" },
+    { href: absoluteUrl(config, "/api/sample-score"), type: "application/json", title: "GET free sample score output" }
+  ];
+
+  return {
+    linkset: [
+      {
+        anchor: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
+        item,
+        "service-desc": [
+          { href: absoluteUrl(config, "/openapi.json"), type: "application/vnd.oai.openapi+json", title: "OpenAPI 3.1 contract" },
+          { href: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH), type: "application/vnd.oai.openapi+json", title: "Well-known OpenAPI alias" }
+        ],
+        "service-doc": [
+          { href: absoluteUrl(config, "/"), type: "text/html", title: "Human homepage" },
+          { href: absoluteUrl(config, "/llms.txt"), type: "text/plain", title: "Agent-readable route guide" }
+        ],
+        "service-meta": [
+          { href: absoluteUrl(config, "/x402.json"), type: "application/json", title: "x402 paid route manifest" },
+          { href: absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH), type: "application/json", title: "Well-known x402 JSON alias" },
+          { href: absoluteUrl(config, WELL_KNOWN_X402_PATH), type: "application/json", title: "Well-known x402 alias" },
+          { href: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH), type: "application/json", title: "A2A-style agent card" },
+          { href: absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH), type: "application/json", title: "Agent card alias" },
+          { href: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH), type: "application/json", title: "Fallback AI plugin manifest" },
+          { href: absoluteUrl(config, "/.well-known/mcp.json"), type: "application/json", title: "MCP metadata" },
+          { href: absoluteUrl(config, PAY_NOW_PATH), type: "application/json", title: "Pay-now handoff" },
+          { href: absoluteUrl(config, "/api/examples"), type: "application/json", title: "Examples and copy-ready commands" }
+        ],
+        status: [
+          { href: absoluteUrl(config, "/health"), type: "application/json", title: "Service health" }
+        ]
+      }
+    ]
   };
 }
 
@@ -2268,7 +2321,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
+    const urls = ["/", "/builder", "/sample", PAY_NOW_PATH, ROAST_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, SITE_AUDIT_PATH, DISCOVERY_AUDIT_PATH, "/api/sample-score", "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, "/llms.txt", "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, "/api/schema", "/api/score-schema", "/api/discovery-audit-schema", "/api/examples", "/.well-known/mcp.json"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -2294,6 +2347,7 @@ Sitemap: ${absoluteUrl(config, "/sitemap.xml")}
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
       aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
+      apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
       payNow: buildPayNow(config),
       instantScoreRoute: absoluteUrl(config, INSTANT_SCORE_PATH),
@@ -2427,6 +2481,7 @@ x402 manifest aliases: ${absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH)}, ${abso
 Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
 Agent card aliases: ${absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)}
 AI plugin manifest: ${absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH)}
+API catalog: ${absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH)}
 MCP metadata: ${absoluteUrl(config, "/.well-known/mcp.json")}
 Pay-now JSON: ${absoluteUrl(config, PAY_NOW_PATH)}
 Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
@@ -2550,6 +2605,15 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
   app.get(WELL_KNOWN_AI_PLUGIN_PATH, async (_request, response) => {
     await recordSignal("aiPluginViews");
     response.json(buildAiPluginManifest(config));
+  });
+
+  app.head(WELL_KNOWN_API_CATALOG_PATH, (_request, response) => {
+    response.set("Content-Type", API_CATALOG_CONTENT_TYPE).status(200).end();
+  });
+
+  app.get(WELL_KNOWN_API_CATALOG_PATH, async (_request, response) => {
+    await recordSignal("apiCatalogViews");
+    response.set("Content-Type", API_CATALOG_CONTENT_TYPE).send(prettyJson(buildApiCatalog(config)));
   });
 
   app.get("/builder", async (_request, response) => {
@@ -2856,6 +2920,7 @@ ${copyScript("Copy command")}
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentCardAliases: [absoluteUrl(config, WELL_KNOWN_AGENT_JSON_PATH)],
       aiPlugin: absoluteUrl(config, WELL_KNOWN_AI_PLUGIN_PATH),
+      apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       keywords: DISCOVERY_KEYWORDS,
       tools: [
