@@ -116,7 +116,7 @@ const DISCOVERY_KEYWORDS = [
   "x402 service discoverability"
 ];
 const DISCOVERY_DESCRIPTION = "Paid x402 API for paid API listing quality score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, and x402 service discoverability before promotion.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Marketplace listing score, paid API listing quality score, and buyer-agent skip reasons: $0.001 GET Listing Roast x402 quick score for agent service listing clarity, agent listing conversion score, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and x402 service discoverability on the indexed /api/listing-roast URL. POST the same URL for the $0.01 full roast.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Buyer-agent skip reasons, agent service listing clarity, marketplace listing score, and paid API listing quality score: $0.001 GET Listing Roast x402 quick score for agent listing conversion score, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and x402 service discoverability on the indexed /api/listing-roast URL. POST the same URL for the $0.01 full roast.";
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const LISTING_REQUEST_SCHEMA_PROPERTIES = {
   agentName: {
@@ -2616,13 +2616,13 @@ function buildX402Manifest(config) {
     resources: [
       {
         id: "indexed_roast_quick_score",
-        name: "indexed_roast_quick_score",
+        name: "buyer_agent_skip_reasons_listing_roast_score",
         method: "GET",
         path: ROAST_PATH,
         url: absoluteUrl(config, ROAST_PATH),
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: "One-tenth-cent GET marketplace listing score and score API marketplace listing quality and discoverability check for paid API listings, x402 listing quality, agent service listing clarity, agent listing conversion score, buyer-agent skip reasons, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and conversion checks on the already-indexed listing-roast URL. POST the same URL for the full one-cent roast.",
+        description: "Buyer-agent skip reasons, agent service listing clarity, marketplace listing score, and score API marketplace listing quality in a one-tenth-cent GET check for paid API listings, x402 listing quality, agent listing conversion score, x402 discovery audit buyers, paid API preflight buyers, route health checks, Bazaar search visibility, stale pricing triage, and conversion checks on the already-indexed listing-roast URL. POST the same URL for the full one-cent roast.",
         keywords: ["listing roast", "score API", "marketplace listing quality", "paid API listing quality", "paid API discoverability", "x402 listing quality", "agent listing conversion score", "agent listing conversion", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "x402 marketplace conversion", "x402 site audit", "x402 service discoverability audit", "x402 discovery audit", "x402 bazaar discovery audit", "paid API preflight", "x402 route health check", "bazaar search visibility", "x402 listing stale price", "GET paid API"],
         command: buildGetPayCommand(config, ROAST_PATH),
         input: buildInstantScoreDiscovery(config).input,
@@ -3299,8 +3299,8 @@ function buildAgentCard(config) {
     skills: [
       buildAgentSkill(config, {
         id: "indexed-listing-roast-quick-score",
-        name: "Indexed listing-roast quick score",
-        description: "$0.001 GET score on the already-indexed Listing Roast route.",
+        name: "Buyer-agent skip reasons quick score",
+        description: "$0.001 GET score for buyer-agent skip reasons, agent service listing clarity, and paid API listing quality on the already-indexed Listing Roast route.",
         tags: ["x402", "paid API listing", "listing roast", "buyer-agent skip reasons"],
         method: "GET",
         path: ROAST_PATH,
