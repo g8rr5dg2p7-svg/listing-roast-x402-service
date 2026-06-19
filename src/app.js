@@ -961,6 +961,143 @@ function buildPayNow(config) {
   };
 }
 
+function buildWebMcpHandoff(config) {
+  return {
+    service: config.serviceName,
+    noSpend: true,
+    purpose: "Help browser agents discover Listing Roast x402, inspect free metadata, and choose the lowest-cost paid route only after explicit buyer intent.",
+    freeDiscovery: {
+      homepage: absoluteUrl(config, "/"),
+      markdownGuide: absoluteUrl(config, INDEX_MARKDOWN_PATH),
+      llms: absoluteUrl(config, "/llms.txt"),
+      llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
+      agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
+      agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
+      mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
+      mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+      examples: absoluteUrl(config, "/api/examples"),
+      payNow: absoluteUrl(config, PAY_NOW_PATH)
+    },
+    preferredFirstPaidAction: {
+      route: absoluteUrl(config, ROAST_PATH),
+      path: ROAST_PATH,
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      network: config.network,
+      command: buildGetPayCommand(config, ROAST_PATH),
+      buyerAction: "Pay $0.001 for the already-indexed listing quality quick score."
+    },
+    paidRoutes: [
+      {
+        route: absoluteUrl(config, ROAST_PATH),
+        path: ROAST_PATH,
+        method: "GET",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        buyerAction: "Cheapest indexed quick score."
+      },
+      {
+        route: absoluteUrl(config, AGENT_LISTING_PATH),
+        path: AGENT_LISTING_PATH,
+        method: "GET",
+        price: config.instantScorePrice,
+        maxAmountRequired: INSTANT_SCORE_AMOUNT,
+        buyerAction: "Buyer-agent skip reasons and listing clarity score."
+      },
+      {
+        route: absoluteUrl(config, SITE_AUDIT_PATH),
+        path: SITE_AUDIT_PATH,
+        method: "GET",
+        price: config.siteAuditPrice,
+        maxAmountRequired: SITE_AUDIT_AMOUNT,
+        buyerAction: "Low-friction x402 metadata and Bazaar visibility audit."
+      },
+      {
+        route: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
+        path: DISCOVERY_AUDIT_PATH,
+        method: "POST",
+        price: config.discoveryAuditPrice,
+        maxAmountRequired: DISCOVERY_AUDIT_AMOUNT,
+        buyerAction: "Full x402 discovery audit for stale marketplace pricing or search misses."
+      },
+      {
+        route: absoluteUrl(config, "/api/listing-score"),
+        path: "/api/listing-score",
+        method: "POST",
+        price: config.scorePrice,
+        maxAmountRequired: "5000",
+        buyerAction: "Structured listing quality score from buyer-provided copy."
+      },
+      {
+        route: absoluteUrl(config, ROAST_PATH),
+        path: ROAST_PATH,
+        method: "POST",
+        price: config.price,
+        maxAmountRequired: "10000",
+        buyerAction: "Full listing roast, rewrite, top fixes, and launch guidance."
+      }
+    ],
+    guardrails: [
+      "This handoff is free and read-only.",
+      "Do not call paid routes unless the buyer explicitly intends to pay USDC.",
+      "Use the maxAmountRequired value shown for the selected route."
+    ]
+  };
+}
+
+function webMcpScript(config) {
+  const handoff = buildWebMcpHandoff(config);
+  return `
+    (function () {
+      var contexts = [];
+      var navigatorContext = typeof navigator !== "undefined" ? navigator.modelContext : null;
+      var documentContext = typeof document !== "undefined" ? document.modelContext : null;
+      if (navigatorContext && typeof navigatorContext.registerTool === "function") {
+        contexts.push(navigatorContext);
+      }
+      if (documentContext && typeof documentContext.registerTool === "function" && documentContext !== navigatorContext) {
+        contexts.push(documentContext);
+      }
+      if (!contexts.length) return;
+      var handoff = ${jsonScript(handoff)};
+      var tool = {
+        name: "listing_roast_x402_handoff",
+        description: "Return the free discovery links and preferred x402 paid route for Listing Roast. This tool never calls a paid endpoint.",
+        inputSchema: {
+          type: "object",
+          properties: {},
+          additionalProperties: false
+        },
+        annotations: {
+          readOnlyHint: true
+        },
+        execute: async function () {
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(handoff)
+              }
+            ],
+            structuredContent: handoff
+          };
+        }
+      };
+      contexts.forEach(function (context) {
+        try {
+          var result = context.registerTool(tool);
+          if (result && typeof result.catch === "function") {
+            result.catch(function () {});
+          }
+        } catch {}
+      });
+    })();`;
+}
+
 function buildOpenApiDocument(config) {
   return {
     openapi: "3.1.0",
@@ -2610,6 +2747,7 @@ score: 4/5</div>
   </footer>
   <script>
 ${copyScript()}
+${webMcpScript(config)}
   </script>
 </body>
 </html>`);

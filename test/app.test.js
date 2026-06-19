@@ -126,6 +126,12 @@ describe("Listing Roast x402 service", () => {
       expect(home.text).toContain("Listing Roast x402 paid routes");
       expect(home.text).toContain("/llms-full.txt");
       expect(home.text).toContain("/.well-known/mcp/server-card.json");
+      expect(home.text).toContain("navigator.modelContext");
+      expect(home.text).toContain("registerTool");
+      expect(home.text).toContain("listing_roast_x402_handoff");
+      expect(home.text).toContain("readOnlyHint");
+      expect(home.text).toContain("This tool never calls a paid endpoint");
+      expect(home.text).toContain("Do not call paid routes unless the buyer explicitly intends to pay USDC");
 
       const homeMarkdown = await fetchJson(server, "/", {
         headers: { Accept: "text/markdown" }
