@@ -5611,7 +5611,7 @@ export function createApp(overrides = {}) {
     .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 15px; border-radius: 8px; border: 1px solid #101010; background: #111; color: #fff; text-decoration: none; font-weight: 700; }
     button.button { cursor: pointer; font: inherit; }
     .button.secondary { background: #fff; color: #111; border-color: var(--line); }
-    .proof { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 24px; max-width: 900px; }
+    .proof { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 22px; max-width: 620px; }
     .proof div, .miniCard { border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,0.78); padding: 12px; }
     .proof strong { display: block; font-size: 1.1rem; }
     .device { border: 1px solid #cbd4df; border-radius: 8px; background: #111827; color: #e8eef6; box-shadow: 0 18px 40px rgba(17,24,39,0.16); overflow: hidden; }
@@ -5663,6 +5663,12 @@ export function createApp(overrides = {}) {
         <div>
           <h1>Find out why buyer agents skip your paid API listing.</h1>
           <p class="lead">Score API marketplace listing quality and discoverability before buyer agents skip the listing. Recommended paid sequence: start with the already-indexed ${config.instantScorePrice} <code>GET ${ROAST_PATH}</code> quick score, then upgrade to <code>POST ${ROAST_PATH}</code> at ${config.price} for the full roast.</p>
+          <div class="proof" aria-label="Proof points">
+            <div><strong class="metric">${escapeHtml(paidCompletionLabel)}</strong><span class="muted">${escapeHtml(grossRevenueLabel)} in the public cash register</span></div>
+            <div><strong class="metric">${escapeHtml(indexedPaidLabel)}</strong><span class="muted">Preferred route that already converted</span></div>
+            <div><strong class="metric">${escapeHtml(settlementLabel)}</strong><span class="muted">${escapeHtml(settlementText)}</span></div>
+            <div><strong>${config.instantScorePrice} -> ${config.price}</strong><span class="muted">GET quick score, then POST full roast</span></div>
+          </div>
           <div class="actions">
             <button class="button" type="button" data-copy-target="indexed-command" data-default-text="Copy $0.001 indexed GET command">Copy $0.001 indexed GET command</button>
             <button class="button" type="button" data-copy-target="agent-listing-command" data-default-text="Copy agent-listing command">Copy agent-listing command</button>
@@ -5677,12 +5683,6 @@ export function createApp(overrides = {}) {
             <a class="button secondary" href="${sampleUrl}">View sample score</a>
             <a class="button secondary" href="${examplesUrl}">Open examples JSON</a>
             <a class="button secondary" href="${schemaUrl}">View JSON schema</a>
-          </div>
-          <div class="proof" aria-label="Proof points">
-            <div><strong class="metric">${escapeHtml(paidCompletionLabel)}</strong><span class="muted">${escapeHtml(grossRevenueLabel)} in the public cash register</span></div>
-            <div><strong class="metric">${escapeHtml(indexedPaidLabel)}</strong><span class="muted">Preferred route that already converted</span></div>
-            <div><strong class="metric">${escapeHtml(settlementLabel)}</strong><span class="muted">${escapeHtml(settlementText)}</span></div>
-            <div><strong>${config.instantScorePrice} -> ${config.price}</strong><span class="muted">GET quick score, then POST full roast</span></div>
           </div>
         </div>
         <div class="device" aria-label="Terminal preview">
