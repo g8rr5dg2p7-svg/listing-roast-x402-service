@@ -98,6 +98,9 @@ describe("Listing Roast x402 service", () => {
       expect(home.status).toBe(200);
       expect(home.headers.get("link")).toContain("/.well-known/x402.json");
       expect(home.text).toContain("Copy $0.001 indexed GET command");
+      expect(home.text).toContain("Copy agent-listing command");
+      expect(home.text).toContain("Agent listing conversion command");
+      expect(home.text).toContain("/api/agent-listing-conversion");
       expect(home.text).toContain("Copy instant score command");
       expect(home.text).toContain("Preferred indexed listing-roast GET command");
       expect(home.text).toContain("Copy x402 ping command");
@@ -115,6 +118,8 @@ describe("Listing Roast x402 service", () => {
       expect(builder.status).toBe(200);
       expect(builder.text).toContain("Build a paid score command from your listing.");
       expect(builder.text).toContain("Preferred indexed GET command");
+      expect(builder.text).toContain("Copy agent-listing command");
+      expect(builder.text).toContain("/api/agent-listing-conversion");
       expect(builder.text).toContain("/api/listing-score");
       expect(builder.text).toContain("/api/x402-ping");
       expect(builder.text).toContain("/api/x402-site-audit");

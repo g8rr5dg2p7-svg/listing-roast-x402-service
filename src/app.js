@@ -1731,6 +1731,7 @@ export function createApp(overrides = {}) {
     await recordSignal("homepageViews");
     const cashRegisterUrl = absoluteUrl(config, "/api/cash-register");
     const instantRoute = absoluteUrl(config, INSTANT_SCORE_PATH);
+    const agentListingRoute = absoluteUrl(config, AGENT_LISTING_PATH);
     const paidRoute = absoluteUrl(config, ROAST_PATH);
     const scoreRoute = absoluteUrl(config, "/api/listing-score");
     const pingRoute = absoluteUrl(config, PING_PATH);
@@ -1745,6 +1746,7 @@ export function createApp(overrides = {}) {
     const mcpUrl = absoluteUrl(config, "/.well-known/mcp.json");
     const payNowUrl = absoluteUrl(config, PAY_NOW_PATH);
     const instantCommand = buildGetPayCommand(config);
+    const agentListingCommand = buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT);
     const indexedRoastGetCommand = buildGetPayCommand(config, ROAST_PATH);
     const pingCommand = buildGetPayCommand(config, PING_PATH, PING_AMOUNT);
     const siteAuditCommand = buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT);
@@ -1842,9 +1844,10 @@ export function createApp(overrides = {}) {
       <div class="wrap heroGrid">
         <div>
           <h1>Find out why buyer agents skip your paid API listing.</h1>
-          <p class="lead">Start with the already-indexed ${config.instantScorePrice} GET quick score on <code>${ROAST_PATH}</code>. Use the instant route when you want a dedicated score URL, run a ${config.siteAuditPrice} GET site audit when x402 discovery looks stale, or pay ${config.price} for the full roast.</p>
+          <p class="lead">Start with the already-indexed ${config.instantScorePrice} GET quick score on <code>${ROAST_PATH}</code>. Use <code>${AGENT_LISTING_PATH}</code> when buyer agents search for listing clarity or skip reasons, run a ${config.siteAuditPrice} GET site audit when x402 discovery looks stale, or pay ${config.price} for the full roast.</p>
           <div class="actions">
             <button class="button" type="button" data-copy-target="indexed-command" data-default-text="Copy $0.001 indexed GET command">Copy $0.001 indexed GET command</button>
+            <button class="button" type="button" data-copy-target="agent-listing-command" data-default-text="Copy agent-listing command">Copy agent-listing command</button>
             <button class="button secondary" type="button" data-copy-target="instant-command" data-default-text="Copy instant score command">Copy instant score command</button>
             <button class="button secondary" type="button" data-copy-target="ping-command" data-default-text="Copy x402 ping command">Copy x402 ping command</button>
             <button class="button secondary" type="button" data-copy-target="site-audit-command" data-default-text="Copy $0.001 site audit command">Copy $0.001 site audit command</button>
@@ -1870,6 +1873,7 @@ payTo: ${escapeHtml(config.payTo)}
 network: ${escapeHtml(config.network)}
 preferred indexed GET amount: ${INSTANT_SCORE_AMOUNT} USDC units
 instant score amount: ${INSTANT_SCORE_AMOUNT} USDC units
+agent listing conversion amount: ${INSTANT_SCORE_AMOUNT} USDC units
 score amount: 5000 USDC units
 site audit amount: ${SITE_AUDIT_AMOUNT} USDC units
 roast amount: 10000 USDC units
@@ -1921,6 +1925,11 @@ score: 4/5</div>
           <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units.</p>
         </div>
         <div class="card">
+          <h3>Agent listing conversion route</h3>
+          <p><code>GET ${escapeHtml(agentListingRoute)}</code></p>
+          <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. This is the search-winning route for buyer-agent skip reasons and agent service listing clarity.</p>
+        </div>
+        <div class="card">
           <h3>x402 ping route</h3>
           <p><code>GET ${escapeHtml(pingRoute)}</code></p>
           <p class="muted">Maximum payment: <strong>${PING_AMOUNT}</strong> USDC units. Use this to verify the payment rail before buying a score or roast.</p>
@@ -1953,6 +1962,10 @@ score: 4/5</div>
       <div class="wrap" style="margin-top: 18px;">
         <h3>Instant GET command</h3>
         <pre id="instant-command">${escapeHtml(instantCommand)}</pre>
+      </div>
+      <div class="wrap" style="margin-top: 18px;">
+        <h3>Agent listing conversion command</h3>
+        <pre id="agent-listing-command">${escapeHtml(agentListingCommand)}</pre>
       </div>
       <div class="wrap" style="margin-top: 18px;">
         <h3>x402 ping command</h3>
@@ -2005,7 +2018,7 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div class="card">
           <h3>Discovery</h3>
-          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path returns a $0.001 quick score challenge, and <code>GET /api/x402-site-audit</code> returns a $0.001 discovery audit challenge.</p>
+          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path returns a $0.001 quick score challenge, <code>GET /api/agent-listing-conversion</code> targets buyer-agent skip-reason searches, and <code>GET /api/x402-site-audit</code> returns a $0.001 discovery audit challenge.</p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a></p>
         </div>
         <div class="card">
@@ -2281,6 +2294,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
   app.get("/builder", async (_request, response) => {
     await recordSignal("builderViews");
     const instantRoute = absoluteUrl(config, INSTANT_SCORE_PATH);
+    const agentListingRoute = absoluteUrl(config, AGENT_LISTING_PATH);
     const indexedRoute = absoluteUrl(config, ROAST_PATH);
     const pingRoute = absoluteUrl(config, PING_PATH);
     const siteAuditRoute = absoluteUrl(config, SITE_AUDIT_PATH);
@@ -2289,6 +2303,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
     const sampleUrl = absoluteUrl(config, "/sample");
     const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
     const instantCommand = buildGetPayCommand(config);
+    const agentListingCommand = buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT);
     const indexedCommand = buildGetPayCommand(config, ROAST_PATH);
     const pingCommand = buildGetPayCommand(config, PING_PATH, PING_AMOUNT);
     const siteAuditCommand = buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT);
@@ -2300,7 +2315,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Build copy-ready x402 commands for the Listing Roast $0.001 GET score, $0.001 site audit, $0.005 score, and $0.01 full roast routes." />
+  <meta name="description" content="Build copy-ready x402 commands for the Listing Roast $0.001 indexed GET score, $0.001 agent-listing score, $0.001 site audit, $0.005 score, and $0.01 full roast routes." />
   <link rel="canonical" href="${escapeHtml(absoluteUrl(config, "/builder"))}" />
   <title>Command builder | ${escapeHtml(config.serviceName)}</title>
   <style>
@@ -2344,7 +2359,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
   <main>
     <div class="wrap">
       <h1>Build a paid score command from your listing.</h1>
-      <p class="lead">Paste the offer you are trying to sell. This page leads with the already-indexed ${config.instantScorePrice} GET command, then gives the instant-score URL, site audit, ${config.scorePrice} score route, and optional ${config.price} full roast route.</p>
+      <p class="lead">Paste the offer you are trying to sell. This page leads with the already-indexed ${config.instantScorePrice} GET command, then gives the search-winning agent-listing URL, instant-score URL, site audit, ${config.scorePrice} score route, and optional ${config.price} full roast route.</p>
       <div class="grid">
         <form class="card" id="builder-form">
           <label for="agentName">Service name</label>
@@ -2374,6 +2389,9 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
             <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(instantRoute)}</code></p>
             <pre id="instant-command">${escapeHtml(instantCommand)}</pre>
             <button class="button secondary" type="button" data-copy-target="instant-command" data-default-text="Copy instant command">Copy instant command</button>
+            <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(agentListingRoute)}</code></p>
+            <pre id="agent-listing-command">${escapeHtml(agentListingCommand)}</pre>
+            <button class="button" type="button" data-copy-target="agent-listing-command" data-default-text="Copy agent-listing command">Copy agent-listing command</button>
             <p class="muted" style="margin-top: 16px;"><code>GET ${escapeHtml(pingRoute)}</code></p>
             <pre id="ping-command">${escapeHtml(pingCommand)}</pre>
             <button class="button secondary" type="button" data-copy-target="ping-command" data-default-text="Copy x402 ping command">Copy x402 ping command</button>
