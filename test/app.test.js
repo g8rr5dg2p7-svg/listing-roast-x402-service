@@ -1230,6 +1230,8 @@ describe("Listing Roast x402 service", () => {
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].href).toBe("http://localhost:8787/api/listing-roast");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].method).toBe("GET");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].maxAmountRequired).toBe("1000");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].agentPaymentRequest.maxPayment).toBe("0.001");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].agentPaymentPrompt).toContain("pay up to 0.001 USDC");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].command).toContain("x402 pay 'http://localhost:8787/api/listing-roast'");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].command).toContain("-X GET");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].command).toContain("--max-amount 1000");
@@ -1242,6 +1244,8 @@ describe("Listing Roast x402 service", () => {
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].href).toBe("http://localhost:8787/api/listing-roast");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].method).toBe("POST");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].maxAmountRequired).toBe("10000");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].agentPaymentRequest.maxPayment).toBe("0.01");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].agentPaymentPrompt).toContain("pay up to 0.01 USDC");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].command).toContain("x402 pay 'http://localhost:8787/api/listing-roast'");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].command).toContain("-X POST");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].command).toContain("--max-amount 10000");

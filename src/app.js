@@ -6953,6 +6953,9 @@ function buildApiCatalog(config, cashRegister = {}) {
     method: step.action.method,
     price: step.action.price,
     maxAmountRequired: step.action.maxAmountRequired,
+    maxPaymentUsd: step.action.maxPaymentUsd,
+    agentPaymentRequest: step.action.agentPaymentRequest,
+    agentPaymentPrompt: step.action.agentPaymentPrompt,
     command: step.action.command,
     reason: step.reason,
     expectedChallenge: {
