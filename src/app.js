@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-challenge-search-phrases-v9";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T17:19:44.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-mcp-jsonrpc-handoff-v10";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T17:26:29.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -8892,6 +8892,7 @@ function buildIntentLandingPage(config, page) {
 
 function buildMcpServerCard(config, cashRegister = {}) {
   const metadataUrl = absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH);
+  const jsonRpcEndpoint = absoluteUrl(config, MCP_ROOT_PATH);
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
@@ -8903,6 +8904,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
     description: "Public discovery card for Listing Roast x402 paid HTTP+JSON routes. This card points agents to metadata, OpenAPI, x402 payment hints, and free route guides before any paid call.",
     iconUrl: absoluteUrl(config, ICON_SVG_PATH),
     endpoint: metadataUrl,
+    jsonRpcEndpoint,
     transport: "http",
     serverInfo: {
       name: config.serviceName,
@@ -8912,7 +8914,12 @@ function buildMcpServerCard(config, cashRegister = {}) {
       {
         type: "http",
         url: metadataUrl,
-        note: "Metadata discovery endpoint. Paid callable APIs are HTTP+JSON x402 routes described by OpenAPI and the x402 manifest."
+        note: "GET returns metadata; POST accepts a small MCP JSON-RPC bridge for no-spend tool handoff. Paid callable APIs are HTTP+JSON x402 routes described by OpenAPI and the x402 manifest."
+      },
+      {
+        type: "http",
+        url: jsonRpcEndpoint,
+        note: "POST JSON-RPC endpoint for initialize, tools/list, and safe no-spend tools/call handoffs."
       }
     ],
     capabilities: {
@@ -8954,6 +8961,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
       route: absoluteUrl(config, ROUTE_PATH),
       commands: absoluteUrl(config, COMMANDS_PATH),
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      jsonRpcEndpoint,
       cashRegister: absoluteUrl(config, "/api/cash-register"),
       llms: absoluteUrl(config, LLMS_PATH),
       llmsAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_PATH)],
@@ -8968,6 +8976,189 @@ function buildMcpServerCard(config, cashRegister = {}) {
     crawl: true,
     last_updated: DISCOVERY_METADATA_UPDATED_AT
   };
+}
+
+function mcpToolContent(text, structuredContent = {}) {
+  return {
+    content: [
+      {
+        type: "text",
+        text
+      }
+    ],
+    structuredContent,
+    isError: false
+  };
+}
+
+function buildMcpJsonRpcTools() {
+  return [
+    {
+      name: "listing_roast_x402_handoff",
+      title: "Listing Roast x402 paid route handoff",
+      description: "Map a buyer intent to the safest Listing Roast x402 paid route and return copy-ready payment commands without making a paid call.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          intent: {
+            type: "string",
+            description: "Buyer task or search phrase, for example paid API listing quality, buyer-agent skip reasons, x402 discovery audit, or full listing roast."
+          }
+        }
+      }
+    },
+    {
+      name: "listing_roast_route_search",
+      title: "Search Listing Roast paid routes",
+      description: "Search owned Listing Roast x402 paid routes and return prices, max amounts, commands, and proof links without spending.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Route search query."
+          }
+        }
+      }
+    },
+    {
+      name: "listing_roast_paid_usage_proof",
+      title: "Listing Roast paid-use proof",
+      description: "Return wallet-backed paid-use proof, receiver wallet snapshot, and preferred first paid action before any payment.",
+      inputSchema: {
+        type: "object",
+        properties: {}
+      }
+    }
+  ];
+}
+
+function buildMcpInitializeResult(config) {
+  return {
+    protocolVersion: "2025-06-18",
+    capabilities: {
+      tools: {},
+      resources: {}
+    },
+    serverInfo: {
+      name: config.serviceName,
+      version: DISCOVERY_METADATA_VERSION
+    },
+    instructions: "Use tools/list, then tools/call for no-spend route handoffs. Paid execution happens only through explicit x402 HTTP calls returned by the tools."
+  };
+}
+
+function buildMcpToolCallResult(config, cashRegister, name, args = {}) {
+  if (name === "listing_roast_x402_handoff") {
+    const intent = String(args.intent || args.query || "").slice(0, 240);
+    const handoff = buildPayNow(config, intent, cashRegister);
+    const selected = handoff.selectedFirstPaidAction || handoff.selectedPaidAction || handoff.preferredFirstPaidAction;
+    const text = [
+      `Selected ${selected?.method || "GET"} ${selected?.path || ROAST_PATH} at ${selected?.price || config.instantScorePrice}.`,
+      `Max amount: ${selected?.maxAmountRequired || INSTANT_SCORE_AMOUNT} USDC units.`,
+      `Command: ${selected?.command || buildGetPayCommand(config, ROAST_PATH)}`,
+      `Proof before payment: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}`
+    ].join("\n");
+
+    return mcpToolContent(text, {
+      noSpend: true,
+      intent: intent || null,
+      selectedActionKey: handoff.selectedActionKey,
+      selectedFirstPaidAction: selected,
+      selectedPaidAction: handoff.selectedPaidAction,
+      exactIntentPaidAction: handoff.exactIntentPaidAction,
+      selectedPaidSequence: handoff.selectedPaidSequence,
+      paidUsageProof: handoff.paidUsageProof,
+      links: handoff.links,
+      paymentRule: "Do not run the returned command unless the buyer explicitly intends to pay USDC through x402."
+    });
+  }
+
+  if (name === "listing_roast_route_search") {
+    const query = String(args.query || args.intent || args.q || "").slice(0, 240);
+    const result = buildFindResult(config, query, cashRegister);
+    const selected = result.selectedFirstPaidAction || result.recommendedPaidRoute || result.preferredFirstPaidAction;
+    const text = [
+      `Best route for "${query || "default"}": ${selected?.method || result.recommended?.method || "GET"} ${selected?.path || result.recommended?.path || ROAST_PATH}.`,
+      `Price: ${selected?.price || result.recommended?.price || config.instantScorePrice}; max amount: ${selected?.maxAmountRequired || result.recommended?.maxAmountRequired || INSTANT_SCORE_AMOUNT} USDC units.`,
+      `Command: ${result.command || selected?.command || buildGetPayCommand(config, ROAST_PATH)}`,
+      `Proof before payment: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}`
+    ].join("\n");
+
+    return mcpToolContent(text, {
+      noSpend: true,
+      query,
+      result,
+      paymentRule: result.paymentRule
+    });
+  }
+
+  if (name === "listing_roast_paid_usage_proof") {
+    const proof = buildPaidUsageProof(config, cashRegister);
+    const text = `${proof.proofText}. Preferred first paid route: ${proof.preferredConvertedRoute.method} ${proof.preferredConvertedRoute.path} at ${proof.preferredConvertedRoute.price}.`;
+
+    return mcpToolContent(text, {
+      noSpend: true,
+      paidUsageProof: proof,
+      settlementProof: buildSettlementProof(config, cashRegister),
+      cashRegister: absoluteUrl(config, "/api/cash-register")
+    });
+  }
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Unknown Listing Roast MCP tool: ${name || "(missing name)"}`
+      }
+    ],
+    structuredContent: {
+      noSpend: true,
+      availableTools: buildMcpJsonRpcTools().map((tool) => tool.name)
+    },
+    isError: true
+  };
+}
+
+function mcpJsonRpcResponse(id, result) {
+  return {
+    jsonrpc: "2.0",
+    id: id ?? null,
+    result
+  };
+}
+
+function mcpJsonRpcError(id, code, message) {
+  return {
+    jsonrpc: "2.0",
+    id: id ?? null,
+    error: {
+      code,
+      message
+    }
+  };
+}
+
+function buildMcpJsonRpcResponse(config, cashRegister, payload = {}) {
+  const { id = null, method, params = {} } = payload || {};
+
+  if (method === "initialize") {
+    return mcpJsonRpcResponse(id, buildMcpInitializeResult(config));
+  }
+
+  if (method === "ping") {
+    return mcpJsonRpcResponse(id, {});
+  }
+
+  if (method === "tools/list") {
+    return mcpJsonRpcResponse(id, { tools: buildMcpJsonRpcTools() });
+  }
+
+  if (method === "tools/call") {
+    return mcpJsonRpcResponse(id, buildMcpToolCallResult(config, cashRegister, params.name, params.arguments || {}));
+  }
+
+  return mcpJsonRpcError(id, -32601, `Unsupported MCP method: ${method || "(missing method)"}`);
 }
 
 function routeServiceMetadata(routeKey) {
@@ -10907,6 +11098,10 @@ ${copyScript("Copy command")}
       mcpAliases: mcpAliasUrls(config),
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       mcpServerCardAliases: mcpServerCardAliasUrls(config),
+      mcpJsonRpcEndpoint: absoluteUrl(config, MCP_ROOT_PATH),
+      mcpJsonRpcAliases: [absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH), absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, MCP_ROOT_PATH)],
+      mcpJsonRpcMethods: ["initialize", "ping", "tools/list", "tools/call"],
+      mcpJsonRpcTools: buildMcpJsonRpcTools().map((tool) => tool.name),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       commands: absoluteUrl(config, COMMANDS_PATH),
       payNowExamples,
@@ -11209,6 +11404,12 @@ ${copyScript("Copy command")}
         }
       ]
     });
+  });
+
+  app.post([WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH], async (request, response) => {
+    await recordSignal("mcpViews");
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildMcpJsonRpcResponse(config, cashRegister, request.body));
   });
 
   app.get("/api/cash-register", async (_request, response) => {
