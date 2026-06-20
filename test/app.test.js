@@ -1551,6 +1551,8 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("Command builder");
       expect(llms.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
       expect(llms.text).not.toContain("Paid-use proof before payment: Paid-use proof before payment");
+      expect(llms.text).toContain("Bazaar cataloging note");
+      expect(llms.text).toContain("extensions.bazaar metadata");
       expect(llms.text).toContain("/api/cash-register");
       expect(llms.text).toContain("/AGENTS.md");
       expect(llms.text).toContain("/docs");
@@ -1620,6 +1622,8 @@ describe("Listing Roast x402 service", () => {
       expect(llmsFull.text).toContain("Recommended Paid Sequence");
       expect(llmsFull.text).toContain("Paid-Use Proof Before Payment");
       expect(llmsFull.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
+      expect(llmsFull.text).toContain("Bazaar Cataloging Note");
+      expect(llmsFull.text).toContain("extensions.bazaar metadata");
       expect(llmsFull.text).toContain("Full roast command");
       expect(llmsFull.text).toContain("after the indexed quick score for the dedicated agent-listing conversion deep dive");
       expect(llmsFull.text).toContain("/api/preflight");
@@ -1642,6 +1646,8 @@ describe("Listing Roast x402 service", () => {
       expect(indexMarkdown.text).toContain("Preferred First Paid Route");
       expect(indexMarkdown.text).toContain("Paid-Use Proof Before Payment");
       expect(indexMarkdown.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
+      expect(indexMarkdown.text).toContain("Bazaar Cataloging Note");
+      expect(indexMarkdown.text).toContain("extensions.bazaar metadata");
       expect(indexMarkdown.text).toContain("/api/preflight");
       expect(indexMarkdown.text).toContain("/api/v1/preflight");
       expect(indexMarkdown.text).toContain("/preflight");
@@ -1653,6 +1659,8 @@ describe("Listing Roast x402 service", () => {
       expect(authMarkdown.text).toContain("## Listing Roast x402 Auth");
       expect(authMarkdown.text).toContain("Paid-Use Proof Before Payment");
       expect(authMarkdown.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
+      expect(authMarkdown.text).toContain("Bazaar Cataloging Note");
+      expect(authMarkdown.text).toContain("extensions.bazaar metadata");
       expect(authMarkdown.text).toContain("does not use accounts, API keys, OAuth login");
       expect(authMarkdown.text).toContain("Type: x402 payment");
       expect(authMarkdown.text).toContain("OAuth/OIDC: not supported");
@@ -1809,6 +1817,9 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.expectedChallenge.status).toBe(402);
       expect(payNow.json.paidUsageProof.paidCompletions).toBe(0);
       expect(payNow.json.paidUsageProof.noSpend).toBe(true);
+      expect(payNow.json.bazaarCataloging.noSelfPay).toBe(true);
+      expect(payNow.json.bazaarCataloging.note).toContain("extensions.bazaar metadata");
+      expect(payNow.json.bazaarCataloging.doNot).toContain("Do not pay only to refresh Bazaar search");
       expect(payNow.json.noSpendNote).toContain("Fetching this endpoint is free");
 
       const paidUsageProof = await fetchJson(server, "/api/paid-usage-proof");
@@ -1822,6 +1833,8 @@ describe("Listing Roast x402 service", () => {
       expect(paidUsageProof.json.commands).toContain("/api/commands");
       expect(paidUsageProof.json.payNow).toContain("/api/pay-now");
       expect(paidUsageProof.json.cashRegister).toContain("/api/cash-register");
+      expect(paidUsageProof.json.bazaarCataloging.noSelfPay).toBe(true);
+      expect(paidUsageProof.json.bazaarCataloging.note).toContain("extensions.bazaar metadata");
 
       const commands = await fetchJson(server, "/api/commands?intent=paid%20API%20listing%20quality");
       expect(commands.status).toBe(200);
@@ -1831,6 +1844,8 @@ describe("Listing Roast x402 service", () => {
       expect(commands.json.firstPaidAction.path).toBe("/api/listing-roast");
       expect(commands.json.firstPaidAction.command).toContain("--max-amount 1000");
       expect(commands.json.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
+      expect(commands.json.bazaarCataloging.noSelfPay).toBe(true);
+      expect(commands.json.bazaarCataloging.note).toContain("extensions.bazaar metadata");
 
       const payNowSkipReasons = await fetchJson(server, "/api/pay-now?intent=buyer-agent%20skip%20reasons");
       expect(payNowSkipReasons.status).toBe(200);
@@ -2614,6 +2629,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentsMarkdown.text).toContain("No OAuth, account registration, API key, agent registration, ACP, UCP, or MPP endpoint is supported");
       expect(agentsMarkdown.text).toContain("Paid-Use Proof Before Payment");
       expect(agentsMarkdown.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
+      expect(agentsMarkdown.text).toContain("Bazaar Cataloging Note");
+      expect(agentsMarkdown.text).toContain("extensions.bazaar metadata");
       expect(agentsMarkdown.text).toContain("/api/paid-usage-proof");
       expect(agentsMarkdown.text).toContain("/api/cash-register");
       expect(agentsMarkdown.text).toContain("/v1");

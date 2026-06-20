@@ -760,6 +760,24 @@ function formatPaidUseProofMarkdown(config, cashRegister = {}) {
   return `Paid-use proof before payment: ${proof.proofText}. Preferred converted route: GET ${absoluteUrl(config, proof.preferredConvertedRoute.path)} (${proof.preferredConvertedRoute.price}, max ${proof.preferredConvertedRoute.maxAmountRequired} USDC units). Proof JSON: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}. Cash register: ${proof.cashRegister}.`;
 }
 
+function buildBazaarCatalogingGuidance(config) {
+  return {
+    noSelfPay: true,
+    note: "For legitimate paid use from a custom x402 client, preserve the 402 response extensions.bazaar metadata in the payment payload when the client supports extensions; this helps CDP Bazaar catalog the route after settlement.",
+    doNot: "Do not pay only to refresh Bazaar search or directory metadata.",
+    preferredFreeChecks: [
+      absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      absoluteUrl(config, COMMANDS_PATH),
+      absoluteUrl(config, PAY_NOW_PATH)
+    ]
+  };
+}
+
+function formatBazaarCatalogingMarkdown(config) {
+  const guidance = buildBazaarCatalogingGuidance(config);
+  return `Bazaar cataloging note: ${guidance.note} ${guidance.doNot}`;
+}
+
 function buildAgentSkillMarkdown(config, cashRegister = {}) {
   return `---
 name: listing-roast-x402
@@ -798,6 +816,10 @@ ${formatPaidUseProofMarkdown(config, cashRegister)}
 ## Payment Rule
 
 Do not call paid routes unless the buyer explicitly intends to pay. Paid calls require x402 payment in USDC on ${config.network}. Use the max amount shown below.
+
+## Bazaar Cataloging Note
+
+${formatBazaarCatalogingMarkdown(config)}
 
 ## Preferred First Paid Action
 
@@ -943,6 +965,10 @@ Agents authorize each paid API call by completing the x402 payment challenge for
 ## Paid-Use Proof Before Payment
 
 ${formatPaidUseProofMarkdown(config, cashRegister)}
+
+## Bazaar Cataloging Note
+
+${formatBazaarCatalogingMarkdown(config)}
 
 ## Preferred First Paid Action
 
@@ -2998,6 +3024,7 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
       discoveryAudit: intentRoutes.discoveryAudit
     },
     marketplaceNote: "CDP Bazaar updates indexed descriptions after a real settled payment; this free handoff reflects the current live route map without spending.",
+    bazaarCataloging: buildBazaarCatalogingGuidance(config),
     intentHint: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons`,
     noSpendNote: "Fetching this endpoint is free. Payment happens only when a buyer calls the x402 paid route."
   };
@@ -3149,7 +3176,8 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
       x402Manifest: absoluteUrl(config, "/x402.json"),
       openApi: absoluteUrl(config, "/openapi.json")
     },
-    marketplaceNote: "CDP Bazaar updates indexed descriptions after a real settled payment; this free handoff reflects the current live route map without spending."
+    marketplaceNote: "CDP Bazaar updates indexed descriptions after a real settled payment; this free handoff reflects the current live route map without spending.",
+    bazaarCataloging: buildBazaarCatalogingGuidance(config)
   };
 }
 
@@ -4571,6 +4599,7 @@ function buildPaidUsageProofResponse(config, cashRegister = {}) {
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     x402Manifest: absoluteUrl(config, "/x402.json"),
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+    bazaarCataloging: buildBazaarCatalogingGuidance(config),
     buyerInstruction: "Use this free proof endpoint before paying. If the buyer intends to spend USDC, start with GET /api/listing-roast at max 1000 USDC units, then upgrade only if the quick score proves enough fit.",
     safety: "No paid calls are made by this endpoint. Wallet balance comes only from the public cash-register receiver wallet snapshot."
   };
@@ -6378,6 +6407,10 @@ ${formatPaidUseProofMarkdown(config, cashRegister)}
 
 Do not call paid routes unless the buyer explicitly intends to pay USDC through x402. All free discovery routes above are safe to fetch without payment.
 
+## Bazaar Cataloging Note
+
+${formatBazaarCatalogingMarkdown(config)}
+
 ## Preferred First Paid Route
 
 - Method: GET
@@ -6433,6 +6466,10 @@ Listing Roast x402 is a paid API for agents and builders who need a quick x402 l
 - Do not call paid routes unless the buyer explicitly intends to pay USDC through x402.
 - No OAuth, account registration, API key, agent registration, ACP, UCP, or MPP endpoint is supported.
 - Use the HTTP 402 challenge and x402 payment header flow for paid routes.
+
+## Bazaar Cataloging Note
+
+${formatBazaarCatalogingMarkdown(config)}
 
 ## Paid-Use Proof Before Payment
 
@@ -8034,6 +8071,8 @@ Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cos
 Paid API preflight aliases: GET ${formatPreflightAliasUrls(config)}. These aliases cost ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT} USDC units, and return the x402 site-audit output for agents that probe common preflight URLs before paying more.
 
 ${formatPaidUseProofMarkdown(config, cashRegister)}
+
+${formatBazaarCatalogingMarkdown(config)}
 
 Homepage: ${absoluteUrl(config, "/")}
 Command builder: ${absoluteUrl(config, "/builder")}
