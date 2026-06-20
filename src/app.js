@@ -59,7 +59,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     operationId: "getMarketplaceListingConversionAlias",
     summary: "Paid $0.001 marketplace listing conversion alias",
     catalogTitle: "GET $0.001 marketplace listing conversion API quick-score alias",
-    description: "Marketplace listing conversion API x402: $0.001 GET exact-phrase alias for buyer agents searching marketplace listing conversion API, marketplace listing conversion, x402 marketplace conversion, or marketplace conversion score. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
+    description: "Marketplace listing conversion API x402: $0.001 GET alias for buyer agents searching marketplace listing conversion API, marketplace listing conversion, or x402 marketplace conversion. Same quick score as paid-use-confirmed /api/listing-roast, with paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
     keywords: ["marketplace listing conversion API", "marketplace listing conversion", "marketplace conversion score", "marketplace conversion check", "x402 marketplace conversion", "paid API listing quality", "agent listing conversion score"]
   },
   "/api/marketplace-product-listing-quality": {
