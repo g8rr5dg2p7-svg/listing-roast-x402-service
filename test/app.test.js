@@ -1782,9 +1782,11 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json["x-listing-roast"].x402Manifest).toContain("/x402.json");
       expect(openApi.json["x-listing-roast"].keywords).toContain("paid API listing");
 
+      const indexedPaymentPrompt = "Agent payment prompt: Call this x402 endpoint with GET and pay up to 0.001 USDC: http://localhost:8787/api/listing-roast";
       const llms = await fetchJson(server, "/llms.txt");
       expect(llms.status).toBe(200);
       expect(llms.text).toContain("Command builder");
+      expect(llms.text).toContain(indexedPaymentPrompt);
       expect(llms.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
       expect(llms.text).not.toContain("Paid-use proof before payment: Paid-use proof before payment");
       expect(llms.text).toContain("Bazaar cataloging note");
@@ -1862,6 +1864,7 @@ describe("Listing Roast x402 service", () => {
       expect(llmsFull.text).toContain("/.well-known/mcp/server-card.json");
       expect(llmsFull.text).toContain("Recommended Paid Sequence");
       expect(llmsFull.text).toContain("Paid-Use Proof Before Payment");
+      expect(llmsFull.text).toContain(indexedPaymentPrompt);
       expect(llmsFull.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
       expect(llmsFull.text).toContain("Bazaar Cataloging Note");
       expect(llmsFull.text).toContain("extensions.bazaar metadata");
@@ -1886,6 +1889,7 @@ describe("Listing Roast x402 service", () => {
       expect(indexMarkdown.headers.get("content-type")).toContain("text/markdown");
       expect(indexMarkdown.text).toContain("Preferred First Paid Route");
       expect(indexMarkdown.text).toContain("Paid-Use Proof Before Payment");
+      expect(indexMarkdown.text).toContain(indexedPaymentPrompt);
       expect(indexMarkdown.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
       expect(indexMarkdown.text).toContain("Bazaar Cataloging Note");
       expect(indexMarkdown.text).toContain("extensions.bazaar metadata");
@@ -1924,6 +1928,8 @@ describe("Listing Roast x402 service", () => {
       expect(robots.text).toContain("Content-Signal: search=yes, ai-input=yes, ai-train=no");
       expect(robots.text).toContain("/x402.json");
       expect(robots.text).toContain("/api/commands");
+      expect(robots.text).toContain("/api/pay-now?intent=paid%20API%20listing%20quality%20score");
+      expect(robots.text).toContain(indexedPaymentPrompt);
       expect(robots.text).toContain("/api/route");
       expect(robots.text).toContain("/paid-api-listing-quality");
       expect(robots.text).toContain("/buyer-agent-skip-reasons");
@@ -3136,6 +3142,7 @@ describe("Listing Roast x402 service", () => {
       expect(agentsMarkdown.text).toContain("extensions.bazaar metadata");
       expect(agentsMarkdown.text).toContain("x402 marketplace conversion read, agent listing conversion score");
       expect(agentsMarkdown.text).toContain("paid API listing quality, x402 marketplace conversion, or agent listing conversion score");
+      expect(agentsMarkdown.text).toContain("Agent payment prompt: Call this x402 endpoint with GET and pay up to 0.001 USDC: http://localhost:8787/api/listing-roast");
       expect(agentsMarkdown.text).toContain("Recommended Paid Sequence");
       expect(agentsMarkdown.text).toContain("Full roast command");
       expect(agentsMarkdown.text).toContain("POST http://localhost:8787/api/listing-roast");

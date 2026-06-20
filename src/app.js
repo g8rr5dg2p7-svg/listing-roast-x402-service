@@ -7069,12 +7069,18 @@ function buildApiCatalog(config, cashRegister = {}) {
   };
 }
 
+function formatIndexedQuickScoreAgentPaymentPrompt(config) {
+  return `Call this x402 endpoint with GET and pay up to ${priceToUsd(config.instantScorePrice)} USDC: ${absoluteUrl(config, ROAST_PATH)}`;
+}
+
 function buildAgentMarkdownGuide(config, cashRegister = {}) {
   return `# Listing Roast x402
 
 Listing Roast x402 is a paid HTTP JSON API for builders who need a quick read on why buyer agents skip a paid API or x402 marketplace listing.
 
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
+
+Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
 
 Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, marketplace listing conversion API, marketplace listing conversion, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
 
@@ -7119,6 +7125,7 @@ ${formatBazaarCatalogingMarkdown(config)}
 - URL: ${absoluteUrl(config, ROAST_PATH)}
 - Price: ${config.instantScorePrice}
 - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+- Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
 - Best for: paid API listing quality, marketplace listing quality, x402 marketplace conversion, agent listing conversion score, x402 listing quality, agent service listing clarity, and buyer-agent skip reasons.
 - Exact buyer-phrase aliases: GET ${formatQuickScoreAliasUrls(config)}
 
@@ -7183,6 +7190,7 @@ ${formatPaidUseProofMarkdown(config, cashRegister)}
 - URL: ${absoluteUrl(config, ROAST_PATH)}
 - Price: ${config.instantScorePrice}
 - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+- Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
 - Use it for the fastest paid score from the already-indexed listing-roast URL when the buyer asks for paid API listing quality, x402 marketplace conversion, or agent listing conversion score.
 - Exact buyer-phrase aliases: GET ${formatQuickScoreAliasUrls(config)}.
 
@@ -7306,6 +7314,8 @@ Allow: /
 # - ${absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH)}
 # - ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
 # - ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
+# Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=paid%20API%20listing%20quality%20score
+# Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
 # Preferred paid route after explicit buyer intent: ${absoluteUrl(config, ROAST_PATH)}
 Sitemap: ${sitemapUrl}
 `;
@@ -8867,6 +8877,8 @@ Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who n
 
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
 
+Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
+
 Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, marketplace listing conversion API, marketplace listing conversion, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
 
 Paid API preflight aliases: GET ${formatPreflightAliasUrls(config)}. These aliases cost ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT} USDC units, and return the x402 site-audit output for agents that probe common preflight URLs before paying more.
@@ -8918,6 +8930,7 @@ Preferred first paid route:
   - Price: ${config.instantScorePrice}
   - Network: ${config.network}
   - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
+  - Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
   - Command:
 ${indentText(buildGetPayCommand(config, ROAST_PATH))}
   - Output: quick paid API listing quality score from the already-indexed listing-roast URL
