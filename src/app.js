@@ -755,7 +755,12 @@ function sha256Digest(value) {
   return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }
 
-function buildAgentSkillMarkdown(config) {
+function formatPaidUseProofMarkdown(config, cashRegister = {}) {
+  const proof = buildPaidUsageProof(config, cashRegister);
+  return `Paid-use proof before payment: ${proof.proofText}. Preferred converted route: GET ${absoluteUrl(config, proof.preferredConvertedRoute.path)} (${proof.preferredConvertedRoute.price}, max ${proof.preferredConvertedRoute.maxAmountRequired} USDC units). Proof JSON: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}. Cash register: ${proof.cashRegister}.`;
+}
+
+function buildAgentSkillMarkdown(config, cashRegister = {}) {
   return `---
 name: listing-roast-x402
 description: Use Listing Roast x402 when an agent needs a paid API listing quality score, buyer-agent skip reasons, agent-service listing clarity, x402 marketplace conversion feedback, or a discoverability audit before promoting a paid x402/API service. Start with free discovery and only pay when the buyer intends to spend USDC.
@@ -785,6 +790,10 @@ Fetch these before any payment:
 - MCP metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH)}
 - MCP discovery aliases: ${absoluteUrl(config, WELL_KNOWN_MCP_PATH)}, ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)}
 - MCP server card: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
+
+## Paid-Use Proof Before Payment
+
+${formatPaidUseProofMarkdown(config, cashRegister)}
 
 ## Payment Rule
 
@@ -871,7 +880,7 @@ Do not use it for legal advice, deep market research, or broad business strategy
 `;
 }
 
-function buildAuthMarkdown(config) {
+function buildAuthMarkdown(config, cashRegister = {}) {
   return `# Auth.md
 
 ## Listing Roast x402 Auth
@@ -931,6 +940,10 @@ Agents authorize each paid API call by completing the x402 payment challenge for
 - Local route router: ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3
 - WebMCP handoff: load ${absoluteUrl(config, "/")} in a WebMCP-capable browser and call \`listing_roast_x402_handoff\`.
 
+## Paid-Use Proof Before Payment
+
+${formatPaidUseProofMarkdown(config, cashRegister)}
+
 ## Preferred First Paid Action
 
 Use the already-indexed GET route first when the buyer wants a quick listing quality score:
@@ -975,13 +988,14 @@ ${buildPayCommand(config)}
 `;
 }
 
-function buildAgentSkillsIndex(config) {
-  const skill = buildAgentSkillMarkdown(config);
+function buildAgentSkillsIndex(config, cashRegister = {}) {
+  const skill = buildAgentSkillMarkdown(config, cashRegister);
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const commands = absoluteUrl(config, COMMANDS_PATH);
   const payNow = absoluteUrl(config, PAY_NOW_PATH);
   const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
+  const paidUsageProof = buildPaidUsageProof(config, cashRegister);
   const openApiAliases = openApiAliasUrls(config);
   const openApiYamlAliases = openApiYamlAliasUrls(config);
   const x402ManifestAliases = x402ManifestAliasUrls(config);
@@ -999,6 +1013,8 @@ function buildAgentSkillsIndex(config) {
     commands,
     payNow,
     paidUsageProofUrl,
+    cashRegister: absoluteUrl(config, "/api/cash-register"),
+    paidUsageProof,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     exactIntentPaidActions: {
       paidApiListingQuality: intentRoutes.paidApiListingQuality,
@@ -1028,6 +1044,8 @@ function buildAgentSkillsIndex(config) {
       commands,
       payNow,
       paidUsageProofUrl,
+      cashRegister: absoluteUrl(config, "/api/cash-register"),
+      paidUsageProof,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       exactIntentPaidActions: {
         paidApiListingQuality: intentRoutes.paidApiListingQuality,
@@ -1053,7 +1071,8 @@ function buildAgentSkillsIndex(config) {
       mcpServerCardAliases,
       apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
       routeFinder: absoluteUrl(config, FIND_PATH),
-      localRouter: absoluteUrl(config, ROUTE_PATH)
+      localRouter: absoluteUrl(config, ROUTE_PATH),
+      cashRegister: absoluteUrl(config, "/api/cash-register")
     },
     skills: [
       {
@@ -1067,6 +1086,8 @@ function buildAgentSkillsIndex(config) {
           commands,
           payNow,
           paidUsageProofUrl,
+          cashRegister: absoluteUrl(config, "/api/cash-register"),
+          paidUsageProof,
           x402ManifestAliases,
           openApiAliases,
           mcpAliases,
@@ -6317,7 +6338,7 @@ function buildApiCatalog(config, cashRegister = {}) {
   };
 }
 
-function buildAgentMarkdownGuide(config) {
+function buildAgentMarkdownGuide(config, cashRegister = {}) {
   return `# Listing Roast x402
 
 Listing Roast x402 is a paid HTTP JSON API for builders who need a quick read on why buyer agents skip a paid API or x402 marketplace listing.
@@ -6325,6 +6346,10 @@ Listing Roast x402 is a paid HTTP JSON API for builders who need a quick read on
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
 
 Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, paid API listing quality, buyer-agent skip reasons, and agent service clarity searches.
+
+## Paid-Use Proof Before Payment
+
+${formatPaidUseProofMarkdown(config, cashRegister)}
 
 ## Free Discovery
 
@@ -6397,7 +6422,7 @@ ${DISCOVERY_KEYWORDS.join(", ")}
 `;
 }
 
-function buildAgentsMarkdown(config) {
+function buildAgentsMarkdown(config, cashRegister = {}) {
   return `# AGENTS.md
 
 Listing Roast x402 is a paid API for agents and builders who need a quick x402 listing-quality score, buyer-agent skip-reason check, or service-discovery audit.
@@ -6408,6 +6433,10 @@ Listing Roast x402 is a paid API for agents and builders who need a quick x402 l
 - Do not call paid routes unless the buyer explicitly intends to pay USDC through x402.
 - No OAuth, account registration, API key, agent registration, ACP, UCP, or MPP endpoint is supported.
 - Use the HTTP 402 challenge and x402 payment header flow for paid routes.
+
+## Paid-Use Proof Before Payment
+
+${formatPaidUseProofMarkdown(config, cashRegister)}
 
 ## Best First Paid Route
 
@@ -6457,6 +6486,8 @@ Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_A
 - Agent card: ${absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH)}
 - Agent Skills: ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
 - MCP metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH)}
+- Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
+- Cash register: ${absoluteUrl(config, "/api/cash-register")}
 
 ## Other Paid Routes
 
@@ -7709,13 +7740,15 @@ ${webMcpScript(config)}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
   });
 
-  app.get([AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH], (_request, response) => {
-    response.type("text/markdown").send(buildAuthMarkdown(config));
+  app.get([AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH], async (_request, response) => {
+    const cashRegister = await getCashRegister();
+    response.type("text/markdown").send(buildAuthMarkdown(config, cashRegister));
   });
 
   app.get(AGENTS_MARKDOWN_PATH, async (_request, response) => {
     await recordSignal("llmsViews");
-    response.type("text/markdown").send(buildAgentsMarkdown(config));
+    const cashRegister = await getCashRegister();
+    response.type("text/markdown").send(buildAgentsMarkdown(config, cashRegister));
   });
 
   app.get(COMMANDS_PATH, async (request, response) => {
@@ -7981,11 +8014,13 @@ ${webMcpScript(config)}
 
   app.get([INDEX_MARKDOWN_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH], async (_request, response) => {
     await recordSignal("llmsViews");
-    response.type("text/markdown").send(buildAgentMarkdownGuide(config));
+    const cashRegister = await getCashRegister();
+    response.type("text/markdown").send(buildAgentMarkdownGuide(config, cashRegister));
   });
 
   app.get([LLMS_PATH, WELL_KNOWN_LLMS_PATH], async (_request, response) => {
     await recordSignal("llmsViews");
+    const cashRegister = await getCashRegister();
     response
       .type("text/plain")
       .send(`# Listing Roast x402
@@ -7997,6 +8032,8 @@ Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.ins
 Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, paid API listing quality, buyer-agent skip reasons, and agent service clarity searches.
 
 Paid API preflight aliases: GET ${formatPreflightAliasUrls(config)}. These aliases cost ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT} USDC units, and return the x402 site-audit output for agents that probe common preflight URLs before paying more.
+
+Paid-use proof before payment: ${formatPaidUseProofMarkdown(config, cashRegister)}
 
 Homepage: ${absoluteUrl(config, "/")}
 Command builder: ${absoluteUrl(config, "/builder")}
@@ -8020,6 +8057,7 @@ MCP aliases: ${absoluteUrl(config, WELL_KNOWN_MCP_PATH)}, ${absoluteUrl(config, 
 MCP server card: ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 Pay-now JSON: ${absoluteUrl(config, PAY_NOW_PATH)}
 Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
+Cash register: ${absoluteUrl(config, "/api/cash-register")}
 Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 Route finder examples: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit, ${absoluteUrl(config, FIND_PATH)}?q=buyer-agent%20skip%20reasons, ${absoluteUrl(config, FIND_PATH)}?q=score%20my%20paid%20API%20listing%20with%20a%20custom%20body, ${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite
 Local route router examples: GET ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3, GET ${absoluteUrl(config, ROUTE_PATH)}?query=score%20my%20paid%20API%20listing%20with%20a%20custom%20body&top=3, POST ${absoluteUrl(config, ROUTE_PATH)} {"query":"buyer-agent skip reasons","top":3,"include":"local"}
@@ -8183,7 +8221,8 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get([DOCS_PATH, API_DOCS_PATH], async (_request, response) => {
     await recordSignal("llmsViews");
-    response.type("text/markdown").send(buildAgentMarkdownGuide(config));
+    const cashRegister = await getCashRegister();
+    response.type("text/markdown").send(buildAgentMarkdownGuide(config, cashRegister));
   });
 
   async function serveX402Manifest(_request, response) {
@@ -8237,9 +8276,10 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get(WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, async (_request, response) => {
     await recordSignal("agentSkillsViews");
+    const cashRegister = await getCashRegister();
     setFreshDiscoveryHeaders(response)
       .set("Access-Control-Allow-Origin", "*")
-      .json(buildAgentSkillsIndex(config));
+      .json(buildAgentSkillsIndex(config, cashRegister));
   });
 
   app.head(WELL_KNOWN_AGENT_SKILL_PATH, (_request, response) => {
@@ -8252,10 +8292,11 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get(WELL_KNOWN_AGENT_SKILL_PATH, async (_request, response) => {
     await recordSignal("agentSkillViews");
+    const cashRegister = await getCashRegister();
     setFreshDiscoveryHeaders(response)
       .set("Access-Control-Allow-Origin", "*")
       .type("text/markdown")
-      .send(buildAgentSkillMarkdown(config));
+      .send(buildAgentSkillMarkdown(config, cashRegister));
   });
 
   app.get("/builder", async (_request, response) => {
