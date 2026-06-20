@@ -487,8 +487,8 @@ const CHALLENGE_ROUTE_SERVICE_TAGS = Object.freeze({
 });
 const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
   agentName: "Listing Roast x402",
-  listingText: "Score marketplace product listing quality, paid API listing quality, marketplace listing score, marketplace listing conversion API, x402 marketplace conversion, agent listing conversion score, buyer-agent skip reasons, and agent-service clarity. Start with $0.001 GET /api/listing-roast; buy $0.01 GET /api/full-listing-roast for the full roast, or POST /api/listing-roast for custom-body input.",
-  targetBuyer: "x402 and MCP builders",
+  listingText: "Score marketplace product listing quality, paid API listing quality, marketplace listing score, AgentCore Gateway, Coinbase x402 Bazaar MCP, x402 marketplace conversion, agent listing conversion score, buyer-agent skip reasons, and agent-service clarity. Start with $0.001 GET /api/listing-roast; buy $0.01 GET /api/full-listing-roast for full roast; POST /api/listing-roast for custom-body input.",
+  targetBuyer: "x402, MCP, and AgentCore Gateway builders",
   currentPrice: "$0.001 GET; $0.01 GET/POST roast",
   currentCheckoutPath: "/api/listing-roast",
   goal: "Convert buyer agents through the lowest-friction paid score, then upgrade promising buyers to the $0.01 full roast while keeping custom-body and audit handoffs available."
@@ -7827,7 +7827,14 @@ function wantsPaidApiPreflight(query) {
 }
 
 function wantsBazaarDiscoveryFix(query) {
-  return includesAny(query, [
+  const normalizedQuery = String(query || "").toLowerCase()
+    .replaceAll("coinbase x402 bazaar mcp server", "coinbase x402 mcp server")
+    .replaceAll("coinbase bazaar mcp server", "coinbase mcp server")
+    .replaceAll("x402 bazaar mcp server", "x402 mcp server")
+    .replaceAll("bazaar mcp server", "mcp server")
+    .replaceAll("bazaar mcp", "mcp");
+
+  return includesAny(normalizedQuery, [
     "discovery audit",
     "agent402",
     "agent 402",

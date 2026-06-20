@@ -4,7 +4,7 @@ export const listingRoastRequestSchema = z
   .object({
     agentName: z.string().trim().min(1).max(120),
     listingText: z.string().trim().min(20).max(4000),
-    targetBuyer: z.string().trim().min(2).max(160).default("x402 and MCP builders"),
+    targetBuyer: z.string().trim().min(2).max(160).default("x402, MCP, and AgentCore Gateway builders"),
     currentPrice: z.string().trim().max(40).optional(),
     currentCheckoutPath: z.string().trim().max(240).optional(),
     goal: z.string().trim().max(240).optional(),
@@ -119,7 +119,7 @@ function issueList(input, checks) {
 function rewrite(input, checks) {
   const price = input.currentPrice || "the listed price";
   const path = input.currentCheckoutPath || "POST /api/your-paid-route";
-  const target = input.targetBuyer || "x402 and MCP builders";
+  const target = input.targetBuyer || "x402, MCP, and AgentCore Gateway builders";
   const output = checks.hasOutput ? firstSentence(input.listingText) : "a structured critique with skip reasons, conversion fixes, and a stop-or-upgrade recommendation";
 
   return `${input.agentName} helps ${target} improve a paid agent/API listing before promotion. For ${price}, call ${path} to get ${output}. Use it when the listing is live enough to sell, but the buyer, output, price, or checkout promise may still be unclear.`;
@@ -194,7 +194,7 @@ export function buildListingScore(input) {
 export const requestExample = {
   agentName: "Example x402 API",
   listingText: "A paid x402 API that helps builders check whether buyer agents understand the offer before paying. It returns JSON with skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade recommendation. Example payloads are included for quick testing.",
-  targetBuyer: "x402 and MCP builders",
+  targetBuyer: "x402, MCP, and AgentCore Gateway builders",
   currentPrice: "$0.01",
   currentCheckoutPath: "/api/example-agent-score",
   goal: "Increase first paid conversion"

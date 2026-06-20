@@ -140,7 +140,7 @@ describe("Listing Roast x402 service", () => {
     const staleCachedQuery = {
       agentName: "Example x402 API",
       listingText: "A paid x402 API that helps builders check whether buyer agents understand the offer before paying. It returns JSON with skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade recommendation. Example payloads are included for quick testing.",
-      targetBuyer: "x402 and MCP builders",
+      targetBuyer: "x402, MCP, and AgentCore Gateway builders",
       currentPrice: "$1.00",
       currentCheckoutPath: "/api/listing-roast",
       goal: "Increase first paid conversion"
@@ -4902,7 +4902,7 @@ describe("Listing Roast x402 service", () => {
         body: JSON.stringify({
           agentName: "Example x402 API",
           listingText: "Score marketplace product listing quality and buyer-agent skip reasons.",
-          targetBuyer: "x402 and MCP builders",
+          targetBuyer: "x402, MCP, and AgentCore Gateway builders",
           currentPrice: "$0.01",
           goal: "Improve paid conversion"
         })
