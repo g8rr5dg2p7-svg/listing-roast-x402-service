@@ -359,8 +359,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "agent listing conversion score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-agent402-route-visibility-alias-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T12:35:01.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-agent402-output-alignment-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T13:15:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
