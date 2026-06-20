@@ -357,8 +357,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-intent-first-paid-handoff-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T10:30:07.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-paid-challenge-first-route-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T10:33:55.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -4018,6 +4018,14 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
   const paidResponsePreview = buildPaidResponsePreview(config, intentRouteKey, selected);
   const agentPaymentRequest = buildAgentPaymentRequest(selected);
   const payNowUrl = payNowUrlForSelection(config, intentRouteKey, selected);
+  const selectedFirstPaidAction = firstPaidActionForSelectedIntent(payNow.intentRoutes, intentRouteKey, selected);
+  const exactIntentPaidAction = exactIntentPaidActionForSelection(payNow.intentRoutes, intentRouteKey, selected);
+  const selectedPaidSequence = buildSelectedPaidSequence(payNow.intentRoutes, intentRouteKey, selected);
+  const selectedFirstPaidResponsePreview = buildPaidResponsePreview(
+    config,
+    isQuickScoreExactAliasActionKey(intentRouteKey) && !shouldUseExactAliasFirst(intentRouteKey) ? "indexedQuickScore" : intentRouteKey,
+    selectedFirstPaidAction
+  );
   const sampleQueryInputs = selected.method === "GET" && QUICK_SCORE_PAID_PATHS.includes(selected.path)
     ? quickScoreAliasInputDefaults(selected.path)
     : null;
@@ -4041,7 +4049,11 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     },
     service: config.serviceName,
     noSpendPreview: true,
+    selectedActionKey: intentRouteKey,
     selectedPaidAction: selected,
+    ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
+    selectedFirstPaidAction,
+    selectedPaidSequence,
     agentPaymentRequest,
     agentPaymentPrompt: agentPaymentRequest.prompt,
     maxPaymentUsd: agentPaymentRequest.maxPayment,
@@ -4056,6 +4068,8 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     commandHandoff: absoluteUrl(config, COMMANDS_PATH),
     whyPay: paidResponsePreview.whyPay,
     paidResponsePreview,
+    selectedFirstPaidResponsePreview,
+    buyerInstruction: buildSelectedBuyerInstruction(intentRouteKey, selected, payNow.preferredFirstPaidAction),
     preferredFirstPaidAction: payNow.preferredFirstPaidAction,
     recommendedPaidSequence: payNow.recommendedPaidSequence,
     routeSelector: payNow.routeSelector,
