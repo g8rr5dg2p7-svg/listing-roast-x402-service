@@ -2838,13 +2838,24 @@ function buildRoutePaymentAction(config, options) {
     : body === null
       ? buildPostPayCommand(config, options.path, options.maxAmountRequired)
       : buildPayCommand(config, options.path, options.maxAmountRequired, body);
+  const route = absoluteUrl(config, options.path);
+  const agentPaymentRequest = buildAgentPaymentRequest({
+    route,
+    path: options.path,
+    method,
+    price: options.price,
+    maxAmountRequired: options.maxAmountRequired
+  });
 
   return {
-    route: absoluteUrl(config, options.path),
+    route,
     path: options.path,
     method,
     price: options.price,
     maxAmountRequired: options.maxAmountRequired,
+    maxPaymentUsd: agentPaymentRequest.maxPayment,
+    agentPaymentRequest,
+    agentPaymentPrompt: agentPaymentRequest.prompt,
     command,
     reason: options.reason,
     ...(body ? { body } : {})
@@ -3443,6 +3454,9 @@ function compactPaidAction(action) {
     method: action.method,
     price: action.price,
     maxAmountRequired: action.maxAmountRequired,
+    maxPaymentUsd: action.maxPaymentUsd,
+    agentPaymentRequest: action.agentPaymentRequest,
+    agentPaymentPrompt: action.agentPaymentPrompt,
     command: action.command,
     reason: action.reason,
     ...(action.body ? { body: action.body } : {})
