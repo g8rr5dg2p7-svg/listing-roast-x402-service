@@ -293,6 +293,13 @@ describe("Listing Roast x402 service", () => {
       expect(marketplaceListingConversion.text).toContain("/api/paid-usage-proof");
       expect(marketplaceListingConversion.text).toContain("This page does not call a paid route");
 
+      const marketplaceListingConversionApi = await fetchJson(server, "/marketplace-listing-conversion-api");
+      expect(marketplaceListingConversionApi.status).toBe(200);
+      expect(marketplaceListingConversionApi.text).toContain("Marketplace listing conversion API score for paid APIs");
+      expect(marketplaceListingConversionApi.text).toContain("/api/marketplace-listing-conversion-api");
+      expect(marketplaceListingConversionApi.text).toContain("/api/listing-roast");
+      expect(marketplaceListingConversionApi.text).toContain("This page does not call a paid route");
+
       const x402ListingQuality = await fetchJson(server, "/x402-listing-quality");
       expect(x402ListingQuality.status).toBe(200);
       expect(x402ListingQuality.text).toContain("x402 listing quality score for paid APIs");
@@ -2703,7 +2710,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.payNowViews).toBe(17);
       expect(cashRegister.json.signals.pricingViews).toBe(1);
       expect(cashRegister.json.signals.findViews).toBe(9);
-      expect(cashRegister.json.signals.routeViews).toBe(20);
+      expect(cashRegister.json.signals.routeViews).toBe(21);
       expect(cashRegister.json.signals.localDiscoveryViews).toBe(16);
       expect(cashRegister.json.signals.mcpViews).toBe(6);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(5);

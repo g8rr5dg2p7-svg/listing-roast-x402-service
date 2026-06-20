@@ -218,6 +218,7 @@ const PAID_API_LISTING_QUALITY_PATH = "/paid-api-listing-quality";
 const PAID_API_LISTING_QUALITY_SCORE_PATH = "/paid-api-listing-quality-score";
 const LISTING_QUALITY_SCORE_API_PAGE_PATH = "/listing-quality-score-api";
 const MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH = "/marketplace-product-listing-quality";
+const MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH = "/marketplace-listing-conversion-api";
 const MARKETPLACE_LISTING_CONVERSION_PAGE_PATH = "/marketplace-listing-conversion";
 const X402_LISTING_QUALITY_PAGE_PATH = "/x402-listing-quality";
 const BUYER_AGENT_SKIP_REASONS_PAGE_PATH = "/buyer-agent-skip-reasons";
@@ -230,6 +231,7 @@ const INTENT_LANDING_PATHS = [
   PAID_API_LISTING_QUALITY_SCORE_PATH,
   LISTING_QUALITY_SCORE_API_PAGE_PATH,
   MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH,
+  MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH,
   MARKETPLACE_LISTING_CONVERSION_PAGE_PATH,
   X402_LISTING_QUALITY_PAGE_PATH,
   BUYER_AGENT_SKIP_REASONS_PAGE_PATH,
@@ -8262,7 +8264,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Discovery</h3>
           <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, marketplace listing conversion API, marketplace listing conversion, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/marketplace-listing-conversion</code>, <code>/api/marketplace-product-listing-quality</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/paid-api-listing-quality-score</code>, <code>/api/listing-quality-score-api</code>, <code>/api/x402-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
-          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_SCORE_PATH)}">Paid API listing quality score</a> · <a href="${absoluteUrl(config, LISTING_QUALITY_SCORE_API_PAGE_PATH)}">Listing quality score API</a> · <a href="${absoluteUrl(config, MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH)}">Marketplace product listing quality</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_PAGE_PATH)}">Marketplace listing conversion</a> · <a href="${absoluteUrl(config, X402_LISTING_QUALITY_PAGE_PATH)}">x402 listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
+          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_SCORE_PATH)}">Paid API listing quality score</a> · <a href="${absoluteUrl(config, LISTING_QUALITY_SCORE_API_PAGE_PATH)}">Listing quality score API</a> · <a href="${absoluteUrl(config, MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH)}">Marketplace product listing quality</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH)}">Marketplace listing conversion API</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_PAGE_PATH)}">Marketplace listing conversion</a> · <a href="${absoluteUrl(config, X402_LISTING_QUALITY_PAGE_PATH)}">x402 listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
         <div class="card">
@@ -8289,6 +8291,17 @@ ${webMcpScript(config)}
       response.type("html").send(buildIntentLandingPage(config, page));
     });
   }
+
+  app.get(MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH, async (_request, response) => {
+    await recordSignal("routeViews");
+    const page = buildIntentLandingPages(config).find((landingPage) => landingPage.path === MARKETPLACE_LISTING_CONVERSION_PAGE_PATH);
+    response.type("html").send(buildIntentLandingPage(config, {
+      ...page,
+      path: MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH,
+      title: "Marketplace listing conversion API | Listing Roast x402",
+      heading: "Marketplace listing conversion API score for paid APIs"
+    }));
+  });
 
   app.get("/robots.txt", (_request, response) => {
     response
