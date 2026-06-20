@@ -186,6 +186,7 @@ describe("Listing Roast x402 service", () => {
       expect(home.text).toContain("Recommended paid sequence");
       expect(home.text).toContain("GET /api/listing-roast");
       expect(home.text).toContain("POST /api/listing-roast");
+      expect(home.text).toContain("safe defaults when stale directory cards omit the body");
       expect(home.text).toContain("Copy $0.001 indexed GET command");
       expect(home.text).toContain("Copy agent-listing command");
       expect(home.text).toContain("Agent listing conversion command");
@@ -1833,6 +1834,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].post["x-payment"].commandHandoff).toContain("/api/commands?intent=full%20listing%20roast");
       expect(openApi.json.paths["/api/listing-roast"].post["x-price"]).toBe("$0.01");
       expect(openApi.json.paths["/api/listing-roast"].post["x-x402-price"]).toBe("$0.01");
+      expect(openApi.json.paths["/api/listing-roast"].post.description).toContain("omitted bodies use safe Listing Roast defaults");
+      expect(openApi.json.paths["/api/listing-roast"].post.requestBody.required).toBe(false);
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("$0.001");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("buyer-agent skip reasons");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("listing quality");
@@ -4541,6 +4544,7 @@ describe("Listing Roast x402 service", () => {
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
+      expect(challenge.resource.description).toContain("omitted bodies use safe defaults");
       expect(challenge.accepts[0].amount).toBe("10000");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
@@ -4586,6 +4590,9 @@ describe("Listing Roast x402 service", () => {
 
       expect(response.status).toBe(402);
       expect(response.headers.get("payment-required")).toBeTruthy();
+      const challenge = readPaymentRequiredHeader(response.headers);
+      expect(challenge.resource.description).toContain("Custom JSON body optional");
+      expect(challenge.resource.description).toContain("omitted bodies use safe defaults");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);

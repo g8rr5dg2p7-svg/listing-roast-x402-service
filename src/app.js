@@ -2348,6 +2348,14 @@ function buildFullRoastGetDiscovery(config) {
   };
 }
 
+function buildFullRoastPostFallbackInput(config) {
+  return buildInstantScoreInput({
+    currentPrice: config.price,
+    currentCheckoutPath: ROAST_PATH,
+    goal: "Buy the full listing roast from the cached POST path for rewritten listing copy, top fixes, buyer-agent skip reasons, and stop-or-upgrade guidance."
+  });
+}
+
 function buildApiEntryOutput(config, query = {}, options = {}) {
   const quickScoreInput = buildInstantScoreInput(query);
   const quickScore = options.discoveryExample
@@ -3361,7 +3369,7 @@ function buildPayNowActions(config) {
       price: config.price,
       maxAmountRequired: "10000",
       body: requestExample,
-      reason: "Use this when the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance."
+      reason: "Use this when the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance with a custom request body; omitted bodies use safe defaults."
     }),
     fullRoastGet: buildRoutePaymentAction(config, {
       path: FULL_ROAST_GET_PATH,
@@ -4834,7 +4842,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
           operationId: "postListingRoast",
           tags: ["x402 listing", "paid API listing"],
           summary: "Paid $0.01 full roast rewrite and conversion guidance",
-          description: "Returns paid API listing conversion feedback, marketplace listing quality fixes, buyer-agent skip reasons, rewritten listing copy, and stop-or-upgrade guidance after x402 payment.",
+          description: "Returns paid API listing conversion feedback, marketplace listing quality fixes, buyer-agent skip reasons, rewritten listing copy, and stop-or-upgrade guidance after x402 payment. Custom JSON body is optional; omitted bodies use safe Listing Roast defaults.",
           "x-price": config.price,
           "x-x402-price": config.price,
           "x-payment": buildPaymentHint(config, {
@@ -4845,7 +4853,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
             buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
           }),
           requestBody: {
-            required: true,
+            required: false,
             content: {
               "application/json": {
                 schema: buildDiscovery(config).inputSchema,
@@ -8818,7 +8826,7 @@ function createX402Middleware(config) {
         resource: resourceUrl(ROAST_PATH),
         ...challengeRouteServiceMetadata("fullRoast"),
         accepts: acceptsForRoute(ROAST_PATH, config.price),
-        description: withPaidUseProofDescription(config, "Listing Roast x402: $0.01 marketplace listing conversion API roast for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance."),
+        description: withPaidUseProofDescription(config, "Listing Roast x402: $0.01 marketplace listing conversion API roast for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance. Custom JSON body optional; omitted bodies use safe defaults."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "fullRoast"),
         unpaidResponseBody: unpaidPaymentPreview(config, "fullRoast"),
@@ -9290,7 +9298,7 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div>
           <h2>Pay the indexed ${config.instantScorePrice} route first, then upgrade when the score is promising.</h2>
-          <p>All paid endpoints are protected by x402. The already-indexed <code>GET ${ROAST_PATH}</code> route is the preferred first paid action for Bazaar traffic, x402 marketplace conversion checks, and agent listing conversion score buyers; <code>GET ${FULL_ROAST_GET_PATH}</code> is the direct full one-cent roast, and <code>POST ${ROAST_PATH}</code> remains available for custom-body full roasts. The exact <code>GET ${DISCOVERY_AUDIT_PATH}</code> route is the lowest-friction discovery audit for agents that do not want to assemble a body first.</p>
+          <p>All paid endpoints are protected by x402. The already-indexed <code>GET ${ROAST_PATH}</code> route is the preferred first paid action for Bazaar traffic, x402 marketplace conversion checks, and agent listing conversion score buyers; <code>GET ${FULL_ROAST_GET_PATH}</code> is the direct full one-cent roast, and <code>POST ${ROAST_PATH}</code> remains available for custom-body full roasts with safe defaults when stale directory cards omit the body. The exact <code>GET ${DISCOVERY_AUDIT_PATH}</code> route is the lowest-friction discovery audit for agents that do not want to assemble a body first.</p>
           <p class="muted">Agent payment prompt: <code>${escapeHtml(homepageAgentPaymentPrompt)}</code></p>
           <p>
             <span class="tag">Base mainnet</span>
@@ -10961,7 +10969,10 @@ ${copyScript("Copy command")}
   });
 
   app.post(ROAST_PATH, async (request, response) => {
-    const parsed = listingRoastRequestSchema.safeParse(request.listingRoastInput ?? normalizeListingRoastRequestBody(request.body));
+    const parsed = listingRoastRequestSchema.safeParse(
+      request.listingRoastInput
+        ?? (isEmptyBody(request.body) ? buildFullRoastPostFallbackInput(config) : normalizeListingRoastRequestBody(request.body))
+    );
     if (!parsed.success) {
       response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
       return;
