@@ -17,7 +17,7 @@ Live production service:
 - Full x402 discovery audit route: POST https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Direct full roast route: GET https://listing-roast-x402-service-production.up.railway.app/api/full-listing-roast
-- Custom-body full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
+- Custom-body full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast (body optional for stale directory cards; omitted bodies use safe defaults)
 - Schema: https://listing-roast-x402-service-production.up.railway.app/api/schema
 - Score schema: https://listing-roast-x402-service-production.up.railway.app/api/score-schema
 - Discovery audit schema: https://listing-roast-x402-service-production.up.railway.app/api/discovery-audit-schema
@@ -26,7 +26,7 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: 7b0d2b55-17e4-4a4d-b94d-370d0039d87b.
+- Railway deploy: successful. Latest verified deployment: f0e5a3e2-c497-477c-92e1-68c176ce6af2.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
@@ -41,16 +41,16 @@ Current verified state:
 - Full x402 discovery audit route: HTTP 402, amount 10000 USDC units.
 - Score route: HTTP 402, amount 5000 USDC units.
 - Direct full roast route: HTTP 402, amount 10000 USDC units.
-- Custom-body full roast route: HTTP 402, amount 10000 USDC units.
+- Custom-body full roast route: HTTP 402, amount 10000 USDC units. Empty-body and `{}` stale-card POST probes return the same valid x402 challenge; invalid non-empty bodies return 400 before payment.
 - Discovery-audit output includes direct 402 metadata, public Bazaar visibility, Agent402 route visibility, and catalog-refresh settlement guidance without paying the audited endpoint.
 - Direct full-roast route: verified in `/x402.json`, `/api/find`, `/api/commands`, and direct x402 details as `GET /api/full-listing-roast` with amount 10000.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
 - Receiver wallet balance is the durable revenue check across deploys.
-- The deployment-local cash counter can reset when Railway replaces the container.
+- The cash register baseline is preserved through Railway env import; use `/api/cash-register` plus the receiver wallet balance to distinguish register-confirmed and wallet-settled revenue.
 - First settlement transaction: 0x59f6d99257170dd796419a7d8a50dab7d113acb2198f0fafa993f6f30490fbf0.
 - Second settlement transaction: 0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71 for 1000 USDC units on the indexed GET `/api/listing-roast` route.
-- CDP Bazaar merchant discovery: indexed for the receiver wallet.
+- CDP Bazaar merchant discovery: indexed for the receiver wallet. The external search card may remain cached until another real settlement refreshes Bazaar metadata.
 
 Current production environment:
 
@@ -140,4 +140,4 @@ Expected production result:
 
 Promotion rule:
 
-Promote the Railway homepage, `/builder`, `/sample`, or `/api/pay-now` page above. The service has verified production x402 challenges, two wallet-confirmed paid completions, and a direct $0.01 GET full-roast route after the $0.001 quick score.
+Promote the Railway homepage, `/builder`, `/sample`, or `/api/pay-now` page above. The service has verified production x402 challenges, two wallet-confirmed paid completions, a direct $0.01 GET full-roast route after the $0.001 quick score, and a safe custom-body POST fallback for stale directory cards.

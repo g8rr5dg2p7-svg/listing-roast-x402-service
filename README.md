@@ -51,7 +51,7 @@ Live production deployment: https://listing-roast-x402-service-production.up.rai
 - `GET /api/agent402-route-visibility` - protected $0.001 exact-path Agent402 route visibility alias that returns the same quick discovery-audit output for agents searching Agent402 router visibility or ranking issues.
 - `POST /api/x402-discovery-audit` - protected $0.01 full x402/Bazaar/Agent402 discovery audit for stale pricing, missing search visibility, Agent402 route visibility, direct 402 metadata, and catalog-refresh settlement requirements with a custom body. It accepts the same URL aliases and makes no paid calls.
 - `POST /api/listing-score` - protected $0.005 x402 score route.
-- `POST /api/listing-roast` - protected $0.01 x402 custom-body full roast after the quick score.
+- `POST /api/listing-roast` - protected $0.01 x402 custom-body full roast after the quick score; omitted bodies use safe defaults for stale directory cards.
 - `GET /api/cash-register` - deployment-local funnel counters, paid completion count, route-level paid counters, and receiver wallet USDC balance on Base mainnet. `GET /api/paid-usage-proof` is the compact buyer-facing proof view over the same evidence.
 
 ## Promotion

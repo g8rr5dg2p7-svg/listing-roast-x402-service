@@ -19,14 +19,14 @@ Use this when sharing Listing Roast x402 with builders. Keep the claim tight: th
 - Full x402 discovery audit route: POST https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Direct full roast route: GET https://listing-roast-x402-service-production.up.railway.app/api/full-listing-roast
-- Custom-body full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
+- Custom-body full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast (body optional for stale directory cards; omitted bodies use safe defaults)
 - Examples: https://listing-roast-x402-service-production.up.railway.app/api/examples
 - Cash register: https://listing-roast-x402-service-production.up.railway.app/api/cash-register
 - GitHub: https://github.com/g8rr5dg2p7-svg/listing-roast-x402-service
 
 ## Short Pitch
 
-Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who need a paid API listing quality score before promotion. Start with the already-indexed $0.001 GET `/api/listing-roast` quick score for marketplace listing quality, x402 site-audit starter intent, x402 discovery-audit triage, and paid API preflight; use the $0.001 instant score URL, paid ping, GET site audit, GET discovery-audit quick route, or exact GET Agent402 route visibility route when needed; use the $0.005 listing score when you have a JSON payload; buy the $0.01 GET `/api/full-listing-roast` route for buyer-agent skip reasons, top fixes, and rewritten copy; use POST `/api/listing-roast` when you need a custom body; or use the $0.01 full discovery audit when Bazaar pricing/search visibility or Agent402 route visibility needs a custom body.
+Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who need a paid API listing quality score before promotion. Start with the already-indexed $0.001 GET `/api/listing-roast` quick score for marketplace listing quality, x402 site-audit starter intent, x402 discovery-audit triage, and paid API preflight; use the $0.001 instant score URL, paid ping, GET site audit, GET discovery-audit quick route, or exact GET Agent402 route visibility route when needed; use the $0.005 listing score when you have a JSON payload; buy the $0.01 GET `/api/full-listing-roast` route for buyer-agent skip reasons, top fixes, and rewritten copy; use POST `/api/listing-roast` only when you need a custom body or a stale directory card points there; or use the $0.01 full discovery audit when Bazaar pricing/search visibility or Agent402 route visibility needs a custom body.
 
 ## X-Style Post
 
