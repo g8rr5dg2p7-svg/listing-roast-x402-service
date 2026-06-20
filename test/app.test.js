@@ -1810,7 +1810,7 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/api/agent-listing-conversion");
       expect(llms.text).toContain("--max-amount 1000");
       expect(llms.text).toContain("--max-amount 10000");
-      expect(llms.text).toContain("Recommended paid sequence");
+      expect(llms.text).toContain("Recommended Paid Sequence");
       expect(llms.text).toContain("Full roast command");
       expect(llms.text).toContain("already-indexed listing-roast URL");
       expect(llms.text).toContain("/x402.json");
@@ -3073,6 +3073,10 @@ describe("Listing Roast x402 service", () => {
       expect(agentsMarkdown.text).toContain("extensions.bazaar metadata");
       expect(agentsMarkdown.text).toContain("x402 marketplace conversion read, agent listing conversion score");
       expect(agentsMarkdown.text).toContain("paid API listing quality, x402 marketplace conversion, or agent listing conversion score");
+      expect(agentsMarkdown.text).toContain("Recommended Paid Sequence");
+      expect(agentsMarkdown.text).toContain("Full roast command");
+      expect(agentsMarkdown.text).toContain("POST http://localhost:8787/api/listing-roast");
+      expect(agentsMarkdown.text).toContain("--max-amount 10000");
       expect(agentsMarkdown.text).toContain("/api/paid-usage-proof");
       expect(agentsMarkdown.text).toContain("/api/cash-register");
       expect(agentsMarkdown.text).toContain("/v1");

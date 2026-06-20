@@ -7090,6 +7090,17 @@ ${formatPaidUseProofMarkdown(config, cashRegister)}
 ${buildGetPayCommand(config, ROAST_PATH)}
 \`\`\`
 
+## Recommended Paid Sequence
+
+1. Start with GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units. This is the already-indexed quick score route and the lowest-friction paid test.
+2. Upgrade to POST ${absoluteUrl(config, ROAST_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
+
+Full roast command:
+
+\`\`\`bash
+${buildPayCommand(config)}
+\`\`\`
+
 ## Generic Paid Entry Points
 
 - GET ${absoluteUrl(config, API_ENTRY_PATH)} for agents that start at /api first.
@@ -8813,7 +8824,7 @@ ${indentText(buildGetPayCommand(config, ROAST_PATH))}
   - Use first when a marketplace result points to /api/listing-roast or an agent wants the lowest-friction payable route for paid API listing quality, x402 marketplace conversion, or agent listing conversion score
   - Exact buyer-phrase aliases: GET ${formatQuickScoreAliasUrls(config)}
 
-Recommended paid sequence:
+Recommended Paid Sequence:
 
 1. Start with GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units. This is the already-indexed quick score route for x402 marketplace conversion and agent listing conversion score buyers.
 2. Upgrade to POST ${absoluteUrl(config, ROAST_PATH)} for ${config.price}, max 10000 USDC units only when the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
