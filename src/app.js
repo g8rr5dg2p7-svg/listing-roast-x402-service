@@ -5282,23 +5282,35 @@ function buildPrimaryEndpointHandoff(config, intentRoutes = buildPayNowActions(c
   };
 }
 
-function buildStartHereHandoff(config, cashRegister = {}, intentRoutes = buildPayNowActions(config)) {
-  const firstAction = intentRoutes.indexedQuickScore;
-  const upgradeAction = intentRoutes.fullRoast;
+function buildStartHereHandoff(config, cashRegister = {}, intentRoutes = buildPayNowActions(config), options = {}) {
+  const selectedSequence = Array.isArray(options.selectedPaidSequence) ? options.selectedPaidSequence : [];
+  const firstStep = selectedSequence.find((step) => step.step === 1 && step.action);
+  const followupStep = selectedSequence.find((step) => step.step > 1 && step.action);
+  const firstAction = options.firstAction || firstStep?.action || intentRoutes.indexedQuickScore;
+  const use = options.use || firstStep?.use || "indexedQuickScore";
+  const upgradeAction = options.upgradeAction === null
+    ? null
+    : options.upgradeAction || followupStep?.action || (use === "fullRoast" ? null : intentRoutes.fullRoast);
+  const upgradeUse = options.upgradeUse || followupStep?.use || (upgradeAction ? "fullRoast" : null);
   const proof = buildPaidUsageProof(config, cashRegister);
 
   return {
-    use: "indexedQuickScore",
+    use,
     route: firstAction.route,
     path: firstAction.path,
     method: firstAction.method,
     price: firstAction.price,
     maxAmountRequired: firstAction.maxAmountRequired,
+    maxPaymentUsd: firstAction.maxPaymentUsd,
     network: config.network,
     payTo: config.payTo,
     command: firstAction.command,
-    buyerInstruction: `If the buyer intends to pay, start with ${firstAction.method} ${firstAction.path} at max ${firstAction.maxAmountRequired} USDC units.`,
-    whyThisRoute: "This is the already-indexed, wallet-backed first paid route and the lowest-friction path to a real paid completion.",
+    agentPaymentRequest: firstAction.agentPaymentRequest,
+    agentPaymentPrompt: firstAction.agentPaymentPrompt,
+    buyerInstruction: options.buyerInstruction || `If the buyer intends to pay, start with ${firstAction.method} ${firstAction.path} at max ${firstAction.maxAmountRequired} USDC units.`,
+    whyThisRoute: options.whyThisRoute || (use === "indexedQuickScore"
+      ? "This is the already-indexed, wallet-backed first paid route and the lowest-friction path to a real paid completion."
+      : "This is the best first paid route for the buyer's current search intent. The already-indexed quick-score route remains available as the proven low-cost first touch."),
     paidUseProof: {
       paidCompletions: proof.paidCompletions,
       estimatedGrossRevenueUsd: proof.estimatedGrossRevenueUsd,
@@ -5312,15 +5324,18 @@ function buildStartHereHandoff(config, cashRegister = {}, intentRoutes = buildPa
       network: config.network,
       route: firstAction.route
     },
-    upgradeAfterFit: {
-      use: "fullRoast",
+    ...(upgradeAction ? { upgradeAfterFit: {
+      use: upgradeUse,
       route: upgradeAction.route,
       path: upgradeAction.path,
       method: upgradeAction.method,
       price: upgradeAction.price,
       maxAmountRequired: upgradeAction.maxAmountRequired,
-      command: upgradeAction.command
-    },
+      maxPaymentUsd: upgradeAction.maxPaymentUsd,
+      command: upgradeAction.command,
+      agentPaymentRequest: upgradeAction.agentPaymentRequest,
+      agentPaymentPrompt: upgradeAction.agentPaymentPrompt
+    } } : {}),
     noSpendNote: "Fetching this handoff is free. Payment happens only when a buyer calls the x402 paid route with a valid payment header."
   };
 }
@@ -6066,7 +6081,6 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
   const rawQuery = String(query.query || query.q || "").trim().slice(0, 400);
   const maxUsdPrice = query.maxUsdPrice == null ? null : Number(query.maxUsdPrice);
   const intentRoutes = buildPayNowActions(config);
-  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
   const resources = buildLocalDiscoveryItems(config)
     .filter((item) => !query.network || item.accepts.some((accept) => accept.network === query.network))
     .filter((item) => !query.payTo || item.accepts.some((accept) => String(accept.payTo).toLowerCase() === String(query.payTo).toLowerCase()))
@@ -6097,6 +6111,11 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedIntentPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedIntentPaidAction);
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedIntentPaidAction);
+  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes, {
+    selectedPaidSequence,
+    use: selectedPaidSequence[0]?.use || selectedActionKey,
+    firstAction: selectedFirstPaidAction
+  });
   const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
 
   return {
@@ -6436,7 +6455,6 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
   const query = String(rawQuery || "").trim().slice(0, 240);
   const routes = buildPaidRouteCatalog(config);
   const intentRoutes = buildPayNowActions(config);
-  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
   const ranked = routes
     .map((route) => ({ ...route, matchScore: query ? scoreCatalogResource(route, query) : (route.preferredFirstPaidAction ? 1 : 0) }))
     .sort((left, right) => {
@@ -6451,6 +6469,11 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction);
+  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes, {
+    selectedPaidSequence,
+    use: selectedPaidSequence[0]?.use || selectedActionKey,
+    firstAction: selectedFirstPaidAction
+  });
   const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
 
   return {
@@ -6522,7 +6545,6 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
   const externalOnly = include === "external";
   const routes = externalOnly ? [] : buildPaidRouteCatalog(config);
   const intentRoutes = buildPayNowActions(config);
-  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
   const ranked = routes
     .map((route) => ({
       slug: route.id,
@@ -6554,6 +6576,11 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction);
+  const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes, {
+    selectedPaidSequence,
+    use: selectedPaidSequence[0]?.use || selectedActionKey,
+    firstAction: selectedFirstPaidAction
+  });
   const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
 
   return {

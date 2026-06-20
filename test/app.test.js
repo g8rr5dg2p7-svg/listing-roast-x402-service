@@ -2417,8 +2417,12 @@ describe("Listing Roast x402 service", () => {
       expect(findDiscovery.json.paidUsageProof.paidCompletions).toBe(0);
       expect(findDiscovery.json.commands).toContain("/api/commands");
       expect(findDiscovery.json.links.commands).toContain("/api/commands");
-      expect(findDiscovery.json.startHere.path).toBe("/api/listing-roast");
+      expect(findDiscovery.json.startHere.use).toBe("discoveryAuditQuick");
+      expect(findDiscovery.json.startHere.path).toBe("/api/x402-discovery-audit");
+      expect(findDiscovery.json.startHere.method).toBe("GET");
       expect(findDiscovery.json.startHere.expectedChallenge.amount).toBe("1000");
+      expect(findDiscovery.json.startHere.upgradeAfterFit.path).toBe("/api/x402-discovery-audit");
+      expect(findDiscovery.json.startHere.upgradeAfterFit.maxAmountRequired).toBe("10000");
       expect(findDiscovery.json.recommended.path).toBe("/api/x402-discovery-audit");
       expect(findDiscovery.json.recommended.maxAmountRequired).toBe("1000");
       expect(findDiscovery.json.selectedActionKey).toBe("discoveryAuditQuick");
@@ -2513,6 +2517,15 @@ describe("Listing Roast x402 service", () => {
       expect(findFullRewrite.status).toBe(200);
       expect(findFullRewrite.json.recommended.id).toBe("listing_roast");
       expect(findFullRewrite.json.recommended.method).toBe("POST");
+      expect(findFullRewrite.json.startHere.use).toBe("fullRoast");
+      expect(findFullRewrite.json.startHere.path).toBe("/api/listing-roast");
+      expect(findFullRewrite.json.startHere.method).toBe("POST");
+      expect(findFullRewrite.json.startHere.maxAmountRequired).toBe("10000");
+      expect(findFullRewrite.json.startHere.upgradeAfterFit).toBeUndefined();
+      expect(findFullRewrite.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(findFullRewrite.json.preferredFirstPaidAction.method).toBe("GET");
+      expect(findFullRewrite.json.recommendedPaidSequence[0].use).toBe("fullRoast");
+      expect(findFullRewrite.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("10000");
 
       const findCustomScore = await fetchJson(server, "/api/find?q=score%20my%20paid%20API%20listing%20with%20a%20custom%20body");
       expect(findCustomScore.status).toBe(200);
@@ -2525,8 +2538,11 @@ describe("Listing Roast x402 service", () => {
       expect(routeDiscovery.headers.get("payment-required")).toBeNull();
       expect(routeDiscovery.json.noSpend).toBe(true);
       expect(routeDiscovery.json.paidUsageProof.paidCompletions).toBe(0);
-      expect(routeDiscovery.json.startHere.path).toBe("/api/listing-roast");
-      expect(routeDiscovery.json.startHere.buyerInstruction).toContain("start with GET /api/listing-roast");
+      expect(routeDiscovery.json.startHere.use).toBe("discoveryAuditQuick");
+      expect(routeDiscovery.json.startHere.path).toBe("/api/x402-discovery-audit");
+      expect(routeDiscovery.json.startHere.buyerInstruction).toContain("start with GET /api/x402-discovery-audit");
+      expect(routeDiscovery.json.startHere.upgradeAfterFit.path).toBe("/api/x402-discovery-audit");
+      expect(routeDiscovery.json.startHere.upgradeAfterFit.maxAmountRequired).toBe("10000");
       expect(routeDiscovery.json.scope).toBe("owned-routes-only");
       expect(routeDiscovery.json.results).toHaveLength(3);
       expect(routeDiscovery.json.best.path).toBe("/api/x402-discovery-audit");
@@ -2555,6 +2571,22 @@ describe("Listing Roast x402 service", () => {
       expect(routeDiscovery.json.command).toContain("/api/x402-discovery-audit");
       expect(routeDiscovery.json.commandHandoff).toContain("x402%20discovery%20audit");
       expect(routeDiscovery.json.paymentRule).toContain("Do not call");
+
+      const routeFullRewrite = await fetchJson(server, "/api/route?query=listing%20roast%20full%20rewrite&top=3");
+      expect(routeFullRewrite.status).toBe(200);
+      expect(routeFullRewrite.headers.get("payment-required")).toBeNull();
+      expect(routeFullRewrite.json.best.path).toBe("/api/listing-roast");
+      expect(routeFullRewrite.json.best.method).toBe("POST");
+      expect(routeFullRewrite.json.selectedActionKey).toBe("fullRoast");
+      expect(routeFullRewrite.json.startHere.use).toBe("fullRoast");
+      expect(routeFullRewrite.json.startHere.path).toBe("/api/listing-roast");
+      expect(routeFullRewrite.json.startHere.method).toBe("POST");
+      expect(routeFullRewrite.json.startHere.maxAmountRequired).toBe("10000");
+      expect(routeFullRewrite.json.startHere.upgradeAfterFit).toBeUndefined();
+      expect(routeFullRewrite.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(routeFullRewrite.json.preferredFirstPaidAction.method).toBe("GET");
+      expect(routeFullRewrite.json.recommendedPaidSequence[0].use).toBe("fullRoast");
+      expect(routeFullRewrite.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("10000");
 
       const routeFixBazaar = await fetchJson(server, "/api/route?intent=fix%20x402%20bazaar%20listing&top=3");
       expect(routeFixBazaar.status).toBe(200);
@@ -2693,7 +2725,10 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoverySearch.json.paidUsageProof.paidCompletions).toBe(0);
       expect(localDiscoverySearch.json.commands).toContain("/api/commands");
       expect(localDiscoverySearch.json.links.commands).toContain("/api/commands");
-      expect(localDiscoverySearch.json.startHere.path).toBe("/api/listing-roast");
+      expect(localDiscoverySearch.json.startHere.use).toBe("discoveryAuditQuick");
+      expect(localDiscoverySearch.json.startHere.path).toBe("/api/x402-discovery-audit");
+      expect(localDiscoverySearch.json.startHere.method).toBe("GET");
+      expect(localDiscoverySearch.json.startHere.upgradeAfterFit.path).toBe("/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.startHere.upgradeAfterFit.maxAmountRequired).toBe("10000");
       expect(localDiscoverySearch.json.resources[0].resource).toBe("http://localhost:8787/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.selectedActionKey).toBe("discoveryAuditQuick");
@@ -2730,6 +2765,20 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoverySearch.json.genericRecommendedPaidSequence[1].use).toBe("fullRoast");
       expect(localDiscoverySearch.json.paidResponsePreview.route).toBe("/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.paidResponsePreview.example.endpoint).toBe("x402-discovery-audit-quick");
+
+      const localDiscoveryFullRoastSearch = await fetchJson(server, "/v2/x402/discovery/search?query=full%20roast%20rewrite%20top%20fixes&limit=2");
+      expect(localDiscoveryFullRoastSearch.status).toBe(200);
+      expect(localDiscoveryFullRoastSearch.headers.get("payment-required")).toBeNull();
+      expect(localDiscoveryFullRoastSearch.json.resources[0].metadata.id).toBe("listing_roast");
+      expect(localDiscoveryFullRoastSearch.json.startHere.use).toBe("fullRoast");
+      expect(localDiscoveryFullRoastSearch.json.startHere.path).toBe("/api/listing-roast");
+      expect(localDiscoveryFullRoastSearch.json.startHere.method).toBe("POST");
+      expect(localDiscoveryFullRoastSearch.json.startHere.maxAmountRequired).toBe("10000");
+      expect(localDiscoveryFullRoastSearch.json.startHere.upgradeAfterFit).toBeUndefined();
+      expect(localDiscoveryFullRoastSearch.json.recommendedPaidSequence[0].use).toBe("fullRoast");
+      expect(localDiscoveryFullRoastSearch.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("10000");
+      expect(localDiscoveryFullRoastSearch.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(localDiscoveryFullRoastSearch.json.preferredFirstPaidAction.method).toBe("GET");
 
       const localDiscoveryPreflightSearch = await fetchJson(server, "/v2/x402/discovery/search?query=paid%20API%20preflight%20before%20paying&limit=2");
       expect(localDiscoveryPreflightSearch.status).toBe(200);
@@ -2866,8 +2915,8 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.payNowViews).toBe(17);
       expect(cashRegister.json.signals.pricingViews).toBe(1);
       expect(cashRegister.json.signals.findViews).toBe(9);
-      expect(cashRegister.json.signals.routeViews).toBe(21);
-      expect(cashRegister.json.signals.localDiscoveryViews).toBe(16);
+      expect(cashRegister.json.signals.routeViews).toBe(22);
+      expect(cashRegister.json.signals.localDiscoveryViews).toBe(17);
       expect(cashRegister.json.signals.mcpViews).toBe(6);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(5);
       expect(cashRegister.json.signals.agentCardViews).toBe(4);
