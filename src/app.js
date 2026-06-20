@@ -3820,6 +3820,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     payTo: config.payTo,
     maxTimeoutSeconds: 300
   }];
+  const paidResponsePreview = buildPaidResponsePreview(config, intentRouteKey, selected);
 
   return {
     error: "payment_required",
@@ -3834,7 +3835,12 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     service: config.serviceName,
     noSpendPreview: true,
     selectedPaidAction: selected,
-    paidResponsePreview: buildPaidResponsePreview(config, intentRouteKey, selected),
+    payCommand: selected.command,
+    pay_command: selected.command,
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    commandHandoff: absoluteUrl(config, COMMANDS_PATH),
+    whyPay: paidResponsePreview.whyPay,
+    paidResponsePreview,
     preferredFirstPaidAction: payNow.preferredFirstPaidAction,
     recommendedPaidSequence: payNow.recommendedPaidSequence,
     routeSelector: payNow.routeSelector,

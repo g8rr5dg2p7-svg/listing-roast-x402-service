@@ -3567,6 +3567,12 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.error).toBe("payment_required");
       expect(response.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(response.json.selectedPaidAction.command).toContain("--max-amount 1000");
+      expect(response.json.payCommand).toContain("/api/listing-roast");
+      expect(response.json.payCommand).toContain("--max-amount 1000");
+      expect(response.json.pay_command).toBe(response.json.payCommand);
+      expect(response.json.payNow).toContain("/api/pay-now");
+      expect(response.json.commandHandoff).toContain("/api/commands");
+      expect(response.json.whyPay).toContain("$0.001");
       expect(response.json.paidResponsePreview.noSpendPreview).toBe(true);
       expect(response.json.paidResponsePreview.route).toBe("/api/listing-roast");
       expect(response.json.paidResponsePreview.maxAmountRequired).toBe("1000");
