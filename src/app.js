@@ -357,8 +357,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-route-handoff-alignment-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T10:12:31.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-intent-first-paid-handoff-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T10:30:07.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -6603,6 +6603,14 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     selectedActionKey,
     selectedPaidAction,
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
+    rankedPaidRoutes: ranked.slice(0, 5).map((route) => ({
+      id: route.id,
+      path: route.path,
+      method: route.method,
+      price: route.price,
+      maxAmountRequired: route.maxAmountRequired,
+      matchScore: route.matchScore
+    })),
     alternatives: ranked.filter((route) => route.id !== recommended.id).slice(0, 4),
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
@@ -7560,6 +7568,7 @@ function buildIntentLandingPages(config) {
       title: "Paid API listing quality score | Listing Roast x402",
       heading: "Paid API listing quality score for x402 services",
       summary: "Use this when a buyer agent is searching for paid API listing quality, marketplace listing quality, x402 listing quality, or paid API discoverability before spending USDC.",
+      selectedActionKey: "paidApiListingQuality",
       primaryAction: intentRoutes.paidApiListingQuality,
       primaryLabel: "Use the $0.001 paid API listing quality route",
       supportingAction: intentRoutes.indexedQuickScore,
@@ -7571,6 +7580,7 @@ function buildIntentLandingPages(config) {
       title: "Paid API listing quality score route | Listing Roast x402",
       heading: "Exact paid API listing quality score route for buyer agents",
       summary: "Use this when a buyer agent searches for paid API listing quality score and needs the $0.001 exact-phrase route before deciding whether to buy the full roast.",
+      selectedActionKey: "paidApiListingQualityScore",
       primaryAction: intentRoutes.paidApiListingQualityScore,
       primaryLabel: "Use the $0.001 paid API listing quality score route",
       supportingAction: intentRoutes.indexedQuickScore,
@@ -7582,6 +7592,7 @@ function buildIntentLandingPages(config) {
       title: "Listing quality score API | Listing Roast x402",
       heading: "Listing quality score API for paid marketplace offers",
       summary: "Use this when a buyer agent searches for listing quality score API and needs the $0.001 exact-phrase route before deciding whether to buy the full roast.",
+      selectedActionKey: "listingQualityScoreApi",
       primaryAction: intentRoutes.listingQualityScoreApi,
       primaryLabel: "Use the $0.001 listing quality score API route",
       supportingAction: intentRoutes.indexedQuickScore,
@@ -7593,6 +7604,7 @@ function buildIntentLandingPages(config) {
       title: "Marketplace product listing quality | Listing Roast x402",
       heading: "Marketplace product listing quality score for paid APIs",
       summary: "Use this when a buyer agent searches for marketplace product listing quality and needs a $0.001 exact-phrase route that scores the offer before a larger paid call.",
+      selectedActionKey: "marketplaceProductListingQuality",
       primaryAction: intentRoutes.marketplaceProductListingQuality,
       primaryLabel: "Use the $0.001 marketplace product listing quality route",
       supportingAction: intentRoutes.indexedQuickScore,
@@ -7604,6 +7616,7 @@ function buildIntentLandingPages(config) {
       title: "Marketplace listing conversion API | Listing Roast x402",
       heading: "Marketplace listing conversion API score for paid APIs",
       summary: "Use this exact landing page when a buyer agent searches for marketplace listing conversion API and needs a no-spend handoff to the $0.001 /api/marketplace-listing-conversion-api paid route.",
+      selectedActionKey: "marketplaceListingConversion",
       primaryAction: intentRoutes.marketplaceListingConversion,
       primaryLabel: "Use the $0.001 marketplace listing conversion API route",
       supportingAction: intentRoutes.indexedQuickScore,
@@ -7615,6 +7628,7 @@ function buildIntentLandingPages(config) {
       title: "Marketplace listing conversion API score | Listing Roast x402",
       heading: "Marketplace listing conversion API score for paid APIs",
       summary: "Use this when a buyer agent searches for marketplace listing conversion API, marketplace listing conversion, marketplace conversion score, or x402 marketplace conversion and needs a $0.001 exact-phrase route before a larger paid call.",
+      selectedActionKey: "marketplaceListingConversion",
       primaryAction: intentRoutes.marketplaceListingConversion,
       primaryLabel: "Use the $0.001 marketplace listing conversion API route",
       supportingAction: intentRoutes.indexedQuickScore,
@@ -7626,6 +7640,7 @@ function buildIntentLandingPages(config) {
       title: "x402 listing quality score | Listing Roast x402",
       heading: "x402 listing quality score for paid APIs",
       summary: "Use this when a buyer agent searches for x402 listing quality and needs a $0.001 exact-phrase route that scores the offer before a larger paid call.",
+      selectedActionKey: "x402ListingQuality",
       primaryAction: intentRoutes.x402ListingQuality,
       primaryLabel: "Use the $0.001 x402 listing quality route",
       supportingAction: intentRoutes.indexedQuickScore,
@@ -7637,6 +7652,7 @@ function buildIntentLandingPages(config) {
       title: "Buyer-agent skip reasons | Listing Roast x402",
       heading: "Buyer-agent skip reasons for paid API listings",
       summary: "Use this when the buyer asks why agents skip a paid API listing, whether the offer is clear enough to pay for, or what the first conversion fix should be.",
+      selectedActionKey: "buyerAgentSkipReasons",
       primaryAction: intentRoutes.buyerAgentSkipReasons,
       primaryLabel: "Use the $0.001 buyer-agent skip reasons route",
       supportingAction: intentRoutes.indexedQuickScore,
@@ -7648,6 +7664,7 @@ function buildIntentLandingPages(config) {
       title: "Agent service clarity score | Listing Roast x402",
       heading: "Agent service clarity score for x402 paid APIs",
       summary: "Use this when the buyer wants to know whether an agent service listing names the buyer, output, price, and checkout path clearly enough to justify a paid call.",
+      selectedActionKey: "agentServiceClarity",
       primaryAction: intentRoutes.agentServiceClarity,
       primaryLabel: "Use the $0.001 agent service clarity route",
       supportingAction: intentRoutes.agentListingConversion,
@@ -7659,6 +7676,7 @@ function buildIntentLandingPages(config) {
       title: "Agent listing conversion score | Listing Roast x402",
       heading: "Agent listing conversion score and buyer-agent skip reasons",
       summary: "Use this when the buyer wants to know whether agents understand the offer, price, output, and checkout path before paying.",
+      selectedActionKey: "agentListingConversion",
       primaryAction: intentRoutes.agentListingConversion,
       primaryLabel: "Use the $0.001 agent listing conversion route",
       supportingAction: intentRoutes.fullRoast,
@@ -7670,6 +7688,7 @@ function buildIntentLandingPages(config) {
       title: "x402 discovery audit | Listing Roast x402",
       heading: "x402 discovery audit for stale Bazaar visibility",
       summary: "Use this when a seller needs to compare direct x402 payment metadata with marketplace search visibility, stale pricing, and route health before promotion.",
+      selectedActionKey: "discoveryAuditQuick",
       primaryAction: intentRoutes.discoveryAuditQuick,
       primaryLabel: "Start with the $0.001 GET discovery audit",
       supportingAction: intentRoutes.discoveryAudit,
@@ -7681,6 +7700,7 @@ function buildIntentLandingPages(config) {
       title: "x402 site audit | Listing Roast x402",
       heading: "x402 site audit and paid API preflight",
       summary: "Use this when a buyer wants a quick paid API preflight before paying more: route-health, OpenAPI, llms.txt, pricing, and Bazaar visibility without assembling a request body. Direct aliases: /api/preflight, /api/v1/preflight, and /preflight.",
+      selectedActionKey: "x402SiteAudit",
       primaryAction: intentRoutes.x402SiteAudit,
       primaryLabel: "Use the $0.001 GET site audit",
       supportingAction: intentRoutes.discoveryAudit,
@@ -7702,20 +7722,55 @@ function summarizePaidAction(action) {
   };
 }
 
+function intentForLandingPage(page) {
+  return page.keywords?.[0] || "";
+}
+
+function relativeIntentUrl(pathname, intent = "") {
+  return intent ? `${pathname}?intent=${encodeURIComponent(intent)}` : pathname;
+}
+
+function absoluteIntentUrl(config, pathname, intent = "") {
+  return intent ? `${absoluteUrl(config, pathname)}?intent=${encodeURIComponent(intent)}` : absoluteUrl(config, pathname);
+}
+
 function buildIntentLandingHandoffs(config) {
-  return buildIntentLandingPages(config).map((page) => ({
-    path: page.path,
-    url: absoluteUrl(config, page.path),
-    title: page.heading,
-    summary: page.summary,
-    keywords: page.keywords,
-    primaryPaidAction: summarizePaidAction(page.primaryAction),
-    supportingPaidAction: summarizePaidAction(page.supportingAction)
-  }));
+  const intentRoutes = buildPayNowActions(config);
+
+  return buildIntentLandingPages(config).map((page) => {
+    const intent = intentForLandingPage(page);
+    const firstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, page.selectedActionKey, page.primaryAction);
+    const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, page.selectedActionKey, page.primaryAction);
+
+    return {
+      path: page.path,
+      url: absoluteUrl(config, page.path),
+      title: page.heading,
+      summary: page.summary,
+      keywords: page.keywords,
+      selectedActionKey: page.selectedActionKey,
+      payNow: absoluteIntentUrl(config, PAY_NOW_PATH, intent),
+      commands: absoluteIntentUrl(config, COMMANDS_PATH, intent),
+      firstPaidAction: summarizePaidAction(firstPaidAction),
+      primaryPaidAction: summarizePaidAction(page.primaryAction),
+      ...(exactIntentPaidAction ? { exactIntentPaidAction: summarizePaidAction(exactIntentPaidAction) } : {}),
+      supportingPaidAction: summarizePaidAction(page.supportingAction),
+      buyerInstruction: buildSelectedBuyerInstruction(page.selectedActionKey, page.primaryAction, intentRoutes.indexedQuickScore)
+    };
+  });
 }
 
 function buildIntentLandingPage(config, page) {
-  const indexedAction = buildPayNowActions(config).indexedQuickScore;
+  const intentRoutes = buildPayNowActions(config);
+  const indexedAction = intentRoutes.indexedQuickScore;
+  const intent = intentForLandingPage(page);
+  const payNowUrl = relativeIntentUrl(PAY_NOW_PATH, intent);
+  const commandsUrl = relativeIntentUrl(COMMANDS_PATH, intent);
+  const firstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, page.selectedActionKey, page.primaryAction);
+  const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, page.selectedActionKey, page.primaryAction);
+  const firstPaidLabel = firstPaidAction.path === page.primaryAction.path && firstPaidAction.method === page.primaryAction.method
+    ? page.primaryLabel
+    : "Start with the proven $0.001 indexed route";
 
   return `<!doctype html>
 <html lang="en">
@@ -7780,16 +7835,16 @@ function buildIntentLandingPage(config, page) {
         <h1>${escapeHtml(page.heading)}</h1>
         <p class="lead">${escapeHtml(page.summary)}</p>
         <p>${page.keywords.map((keyword) => `<span class="tag">${escapeHtml(keyword)}</span>`).join("")}</p>
-        <a class="button" href="${escapeHtml(page.primaryAction.route)}">${escapeHtml(page.primaryLabel)}</a>
-        <a class="button secondary" href="/api/pay-now">Open free route handoff</a>
+        <a class="button" href="${escapeHtml(firstPaidAction.route)}">${escapeHtml(firstPaidLabel)}</a>
+        <a class="button secondary" href="${escapeHtml(payNowUrl)}">Open free route handoff</a>
         <a class="button secondary" href="${PAID_USAGE_PROOF_PATH}">Verify paid-use proof</a>
-        <a class="button secondary" href="/api/commands">Open compact command JSON</a>
+        <a class="button secondary" href="${escapeHtml(commandsUrl)}">Open compact command JSON</a>
       </div>
     </section>
     <section>
       <div class="wrap grid">
         <div class="card">
-          <h2>Primary paid route</h2>
+          <h2>${exactIntentPaidAction ? "Exact intent route" : "Primary paid route"}</h2>
           <p><code>${escapeHtml(page.primaryAction.method)} ${escapeHtml(page.primaryAction.path)}</code></p>
           <p class="muted">Price: ${escapeHtml(page.primaryAction.price)}. Max amount: ${escapeHtml(page.primaryAction.maxAmountRequired)} USDC units. ${escapeHtml(page.primaryAction.reason)}</p>
           <pre>${escapeHtml(page.primaryAction.command)}</pre>
