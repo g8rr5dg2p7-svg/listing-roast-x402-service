@@ -4681,6 +4681,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("Proof before payment");
       expect(challenge.resource.description).toContain("/api/paid-usage-proof");
       expect(challenge.resource.description).toContain("/api/cash-register");
+      expect(challenge.resource.description).toContain("GET /api/full-listing-roast");
       expect(challenge.resource.serviceName).toBe("Listing Roast x402 Paid API Listing Quality Score");
       expect(challenge.resource.tags).toEqual([
         "x402",
