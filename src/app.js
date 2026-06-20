@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-proof-action-handoff-v37";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T23:20:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-pay-now-wallet-proof-v38";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T23:35:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -3875,7 +3875,7 @@ function selectPayNowAction(config, intent = "") {
   };
 }
 
-function buildPayNow(config, intent = "", cashRegister = {}) {
+function buildPayNow(config, intent = "", cashRegister = {}, receiverWallet = null) {
   const selection = selectPayNowAction(config, intent);
   const { intentRoutes, selectedPaidAction } = selection;
   const provenFirstPaidAction = intentRoutes.indexedQuickScore;
@@ -3900,7 +3900,7 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     service: config.serviceName,
     metadataVersion: DISCOVERY_METADATA_VERSION,
     metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
-    paidUsageProof: buildPaidUsageProof(config, cashRegister),
+    paidUsageProof: buildPaidUsageProof(config, cashRegister, receiverWallet),
     settlementProof: buildSettlementProof(config, cashRegister),
     officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     commands: absoluteUrl(config, COMMANDS_PATH),
@@ -6170,8 +6170,13 @@ function buildPaidUsageProof(config, cashRegister = {}, receiverWallet = null) {
   const derivedPaidCompletion = buildDerivedPaidCompletionFromSettlement(cashRegister, latestWalletSettlement);
   const latestPaidCompletion = cashRegister.lastPaidCompletion || (derivedPaidCompletion && recentPaidCompletions.length === 0 ? derivedPaidCompletion : null);
   const hasReceiverWalletSnapshot = receiverWallet && typeof receiverWallet === "object" && receiverWallet.address;
-  const receiverWalletHasBalance = hasReceiverWalletSnapshot && receiverWallet.usdcUnits && /^\d+$/.test(String(receiverWallet.usdcUnits));
-  const isWalletConfirmed = Boolean(paidCompletions > 0 && latestWalletSettlement && receiverWalletHasBalance);
+  const receiverWalletHasUnits = hasReceiverWalletSnapshot && receiverWallet.usdcUnits && /^\d+$/.test(String(receiverWallet.usdcUnits));
+  const latestSettlementHasUnits = latestWalletSettlement?.usdcUnits && /^\d+$/.test(String(latestWalletSettlement.usdcUnits));
+  const receiverWalletUnits = receiverWalletHasUnits ? BigInt(receiverWallet.usdcUnits) : null;
+  const latestSettlementUnits = latestSettlementHasUnits ? BigInt(latestWalletSettlement.usdcUnits) : null;
+  const receiverWalletHasBalance = receiverWalletUnits !== null && receiverWalletUnits > 0n;
+  const receiverWalletCoversLatestSettlement = latestSettlementUnits === null || (receiverWalletUnits !== null && receiverWalletUnits >= latestSettlementUnits);
+  const isWalletConfirmed = Boolean(paidCompletions > 0 && latestWalletSettlement && receiverWalletHasBalance && receiverWalletCoversLatestSettlement);
   const isWalletSettlementLinked = Boolean(paidCompletions > 0 && latestWalletSettlement);
   const proofText = isWalletConfirmed
     ? `${paidCompletions} wallet-confirmed paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered; receiver wallet ${receiverWallet.usdcBalance} USDC`
@@ -12149,7 +12154,8 @@ ${copyScript("Copy command")}
   app.get(PAY_NOW_PATH, async (request, response) => {
     await recordSignal("payNowViews");
     const cashRegister = await getCashRegister();
-    const payNow = buildPayNow(config, request.query.intent || request.query.q || request.query.query || request.query.task || "", cashRegister);
+    const receiverWallet = await getReceiverBalanceSnapshot(config);
+    const payNow = buildPayNow(config, request.query.intent || request.query.q || request.query.query || request.query.task || "", cashRegister, receiverWallet);
     await recordIntentSignal("payNow", payNow.selectedActionKey);
     setFreshDiscoveryHeaders(response).json({
       ...payNow,
