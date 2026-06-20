@@ -12,6 +12,7 @@
     "agent-service-clarity",
     "agentcore-x402-payments",
     "coinbase-bazaar-mcp",
+    "coinbase-x402-bazaar-mcp-server",
     "marketplace-listing-conversion",
     "x402-discovery-audit",
     "paid-api-preflight"

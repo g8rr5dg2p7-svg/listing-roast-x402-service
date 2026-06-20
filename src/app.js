@@ -44,6 +44,7 @@ const QUICK_SCORE_ALIAS_PATHS = Object.freeze([
   "/api/paid-api-listing-quality-score",
   "/api/listing-quality-score-api",
   "/api/agentcore-x402-payments",
+  "/api/coinbase-x402-bazaar-mcp-server",
   "/api/x402-listing-quality",
   "/api/buyer-agent-skip-reasons",
   "/api/agent-service-clarity"
@@ -121,6 +122,15 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     catalogTitle: "GET $0.001 AgentCore x402 payments quick-score alias",
     description: "AgentCore x402 payments readiness x402: $0.001 GET exact-phrase alias for AgentCore Gateway, Amazon Bedrock AgentCore payments, and Coinbase x402 Bazaar MCP server buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
     keywords: ["AgentCore x402 payments", "Amazon Bedrock AgentCore payments", "AgentCore Gateway", "Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "AgentCore paid API discovery", "paid API listing quality score"]
+  },
+  "/api/coinbase-x402-bazaar-mcp-server": {
+    id: "coinbase_x402_bazaar_mcp_server_alias",
+    name: "coinbase_x402_bazaar_mcp_server",
+    operationId: "getCoinbaseX402BazaarMcpServerAlias",
+    summary: "Paid $0.001 Coinbase x402 Bazaar MCP server alias",
+    catalogTitle: "GET $0.001 Coinbase x402 Bazaar MCP server quick-score alias",
+    description: "Coinbase x402 Bazaar MCP server readiness x402: $0.001 GET exact-phrase alias for buyers searching Coinbase x402 Bazaar MCP server, x402 Bazaar MCP server, or Bazaar MCP tools. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with AgentCore x402 payments, paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
+    keywords: ["Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "Bazaar MCP tools", "Coinbase Bazaar MCP", "AgentCore x402 payments", "paid API listing quality score"]
   },
   "/api/x402-listing-quality": {
     id: "x402_listing_quality_alias",
@@ -245,6 +255,7 @@ const AGENT_LISTING_CONVERSION_PAGE_PATH = "/agent-listing-conversion";
 const X402_DISCOVERY_AUDIT_PAGE_PATH = "/x402-discovery-audit";
 const X402_SITE_AUDIT_PAGE_PATH = "/x402-site-audit";
 const AGENTCORE_X402_PAYMENTS_PAGE_PATH = "/agentcore-x402-payments";
+const COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH = "/coinbase-x402-bazaar-mcp-server";
 const INTENT_LANDING_PATHS = [
   PAID_API_LISTING_QUALITY_PATH,
   PAID_API_LISTING_QUALITY_SCORE_PATH,
@@ -258,7 +269,8 @@ const INTENT_LANDING_PATHS = [
   AGENT_LISTING_CONVERSION_PAGE_PATH,
   X402_DISCOVERY_AUDIT_PAGE_PATH,
   X402_SITE_AUDIT_PAGE_PATH,
-  AGENTCORE_X402_PAYMENTS_PAGE_PATH
+  AGENTCORE_X402_PAYMENTS_PAGE_PATH,
+  COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH
 ];
 const API_V1_OPENAPI_JSON_PATH = "/api/v1/openapi.json";
 const SWAGGER_JSON_PATH = "/swagger.json";
@@ -308,6 +320,8 @@ const DISCOVERY_KEYWORDS = [
   "AgentCore Gateway",
   "Coinbase x402 Bazaar MCP server",
   "x402 Bazaar MCP server",
+  "Bazaar MCP tools",
+  "Coinbase Bazaar MCP",
   "AgentCore paid API discovery",
   "x402 listing stale price",
   "buyer-agent skip reasons",
@@ -357,7 +371,9 @@ const SERVICE_TAGS = Object.freeze([
   "agent service clarity",
   "x402 discovery audit",
   "paid API preflight",
-  "route health"
+  "route health",
+  "Coinbase x402 Bazaar MCP server",
+  "x402 Bazaar MCP server"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools snippets; returns an included quick score, route map, indexed /api/listing-roast handoff, prices, and next paid actions.";
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 GET /api/listing-roast quick score on the indexed paid-use-confirmed URL for paid API listing quality score, marketplace product listing quality, Agentic.Market listing score, AgentCore x402 payments readiness, Coinbase x402 Bazaar MCP server buyers, marketplace listing conversion API, marketplace listing score, x402 marketplace conversion, buyer-agent skip reasons, buyer agent skip reasons, agent listing conversion score, agent service clarity, agent-service listing score, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, Bazaar search visibility, and x402 seller growth checklist; direct GET full-roast upgrade.";
@@ -384,8 +400,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-agentcore-paid-alias-v3";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T16:04:53.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-bazaar-mcp-server-alias-v4";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T16:14:50.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -457,6 +473,7 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   paid_api_listing_quality_score_alias: "indexedQuickScore",
   listing_quality_score_api_alias: "indexedQuickScore",
   agentcore_x402_payments_alias: "indexedQuickScore",
+  coinbase_x402_bazaar_mcp_server_alias: "indexedQuickScore",
   x402_listing_quality_alias: "indexedQuickScore",
   buyer_agent_skip_reasons_alias: "indexedQuickScore",
   agent_service_clarity_alias: "indexedQuickScore",
@@ -2792,6 +2809,7 @@ function inferPaymentHintIntentRouteKey(path, method = "GET") {
     "GET /api/paid-api-listing-quality-score": "paidApiListingQualityScore",
     "GET /api/listing-quality-score-api": "listingQualityScoreApi",
     "GET /api/agentcore-x402-payments": "agentCoreX402Payments",
+    "GET /api/coinbase-x402-bazaar-mcp-server": "coinbaseX402BazaarMcpServer",
     "GET /api/x402-listing-quality": "x402ListingQuality",
     "GET /api/buyer-agent-skip-reasons": "buyerAgentSkipReasons",
     "GET /api/agent-service-clarity": "agentServiceClarity"
@@ -3297,6 +3315,13 @@ function buildPayNowActions(config) {
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
       reason: "Use this when the buyer intent is exactly AgentCore x402 payments, AgentCore Gateway, or Coinbase x402 Bazaar MCP server readiness."
     }),
+    coinbaseX402BazaarMcpServer: buildRoutePaymentAction(config, {
+      path: "/api/coinbase-x402-bazaar-mcp-server",
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer intent is exactly Coinbase x402 Bazaar MCP server or x402 Bazaar MCP server readiness."
+    }),
     x402ListingQuality: buildRoutePaymentAction(config, {
       path: "/api/x402-listing-quality",
       method: "GET",
@@ -3456,6 +3481,7 @@ const SELECTED_FOLLOWUP_ACTION_BY_KEY = {
   paidApiListingQualityScore: "fullRoastGet",
   listingQualityScoreApi: "fullRoastGet",
   agentCoreX402Payments: "fullRoastGet",
+  coinbaseX402BazaarMcpServer: "fullRoastGet",
   x402ListingQuality: "fullRoastGet",
   buyerAgentSkipReasons: "fullRoastGet",
   agentServiceClarity: "fullRoastGet",
@@ -3477,6 +3503,7 @@ const QUICK_SCORE_EXACT_ALIAS_ACTION_KEYS = new Set([
   "paidApiListingQualityScore",
   "listingQualityScoreApi",
   "agentCoreX402Payments",
+  "coinbaseX402BazaarMcpServer",
   "x402ListingQuality",
   "buyerAgentSkipReasons",
   "agentServiceClarity"
@@ -3595,6 +3622,7 @@ const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   paid_api_listing_quality_score_alias: "paidApiListingQualityScore",
   listing_quality_score_api_alias: "listingQualityScoreApi",
   agentcore_x402_payments_alias: "agentCoreX402Payments",
+  coinbase_x402_bazaar_mcp_server_alias: "coinbaseX402BazaarMcpServer",
   x402_listing_quality_alias: "x402ListingQuality",
   buyer_agent_skip_reasons_alias: "buyerAgentSkipReasons",
   agent_service_clarity_alias: "agentServiceClarity",
@@ -3765,8 +3793,12 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
         use: "listingQualityScoreApi"
       },
       {
-        when: "Buyer asks exactly for AgentCore x402 payments, AgentCore Gateway, or Coinbase x402 Bazaar MCP server readiness",
+        when: "Buyer asks exactly for AgentCore x402 payments or AgentCore Gateway readiness",
         use: "agentCoreX402Payments"
+      },
+      {
+        when: "Buyer asks exactly for Coinbase x402 Bazaar MCP server, x402 Bazaar MCP server, or Bazaar MCP tools",
+        use: "coinbaseX402BazaarMcpServer"
       },
       {
         when: "Buyer asks exactly for x402 listing quality",
@@ -4258,6 +4290,10 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
     },
     agentCoreX402Payments: {
       includes: ["AgentCore x402 payments readiness", "Coinbase x402 Bazaar MCP server buyers", "upgrade path"],
+      example: quickScoreExample
+    },
+    coinbaseX402BazaarMcpServer: {
+      includes: ["Coinbase x402 Bazaar MCP server readiness", "x402 Bazaar MCP server buyers", "upgrade path"],
       example: quickScoreExample
     },
     x402ListingQuality: {
@@ -7016,6 +7052,10 @@ function wantsFullRoastOutput(query) {
 function quickScoreAliasActionKeyForQuery(query) {
   const normalizedQuery = String(query || "").toLowerCase();
 
+  if (includesAny(normalizedQuery, ["coinbase x402 bazaar mcp server", "x402 bazaar mcp server", "bazaar mcp tools", "coinbase bazaar mcp"])) {
+    return "coinbaseX402BazaarMcpServer";
+  }
+
   if (
     !normalizedQuery ||
     wantsPaidApiPreflight(normalizedQuery) ||
@@ -7038,7 +7078,7 @@ function quickScoreAliasActionKeyForQuery(query) {
     return "paidApiListingQualityScore";
   }
 
-  if (includesAny(normalizedQuery, ["agentcore x402 payment", "agentcore x402 payments", "amazon bedrock agentcore payment", "amazon bedrock agentcore payments", "agentcore gateway", "coinbase x402 bazaar mcp server", "x402 bazaar mcp server", "agentcore paid api discovery"])) {
+  if (includesAny(normalizedQuery, ["agentcore x402 payment", "agentcore x402 payments", "amazon bedrock agentcore payment", "amazon bedrock agentcore payments", "agentcore gateway", "agentcore paid api discovery"])) {
     return "agentCoreX402Payments";
   }
 
@@ -7163,6 +7203,18 @@ function scoreCatalogResource(resource, query) {
     if (resource.id === "marketplace_listing_conversion_alias") score += 455;
     if (resource.path === CONVERSION_SCORE_PATH) score += 140;
     if (isIndexedRoastGet) score += 15;
+  }
+
+  if (includesAny(normalizedQuery, ["coinbase x402 bazaar mcp server", "x402 bazaar mcp server", "bazaar mcp tools", "coinbase bazaar mcp"])) {
+    if (resource.id === "coinbase_x402_bazaar_mcp_server_alias") score += 120;
+    if (resource.id === "agentcore_x402_payments_alias") score += 40;
+    if (isIndexedRoastGet) score += 650;
+  }
+
+  if (includesAny(normalizedQuery, ["agentcore x402 payment", "agentcore x402 payments", "amazon bedrock agentcore payment", "amazon bedrock agentcore payments", "agentcore gateway", "agentcore paid api discovery"])) {
+    if (resource.id === "agentcore_x402_payments_alias") score += 80;
+    if (resource.id === "coinbase_x402_bazaar_mcp_server_alias") score += 20;
+    if (isIndexedRoastGet) score += 25;
   }
 
   if (includesAny(normalizedQuery, ["agent listing conversion", "listing conversion score", "agent listing conversion score"])) {
@@ -8014,6 +8066,7 @@ ${formatPaidUseProofMarkdown(config, cashRegister)}
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
 - Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
 - AgentCore x402 payments page: ${absoluteUrl(config, AGENTCORE_X402_PAYMENTS_PAGE_PATH)}
+- Coinbase x402 Bazaar MCP server page: ${absoluteUrl(config, COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH)}
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 - Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 - Cash register: ${absoluteUrl(config, "/api/cash-register")}
@@ -8217,6 +8270,7 @@ Allow: /
 # - ${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}
 # - ${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}
 # - ${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}
+# - ${absoluteUrl(config, COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH)}
 # - ${absoluteUrl(config, "/llms.txt")}
 # - ${absoluteUrl(config, LLMS_FULL_PATH)}
 # - ${absoluteUrl(config, "/x402.json")}
@@ -8399,6 +8453,18 @@ function buildIntentLandingPages(config) {
       supportingAction: intentRoutes.fullRoastGet,
       supportingLabel: "Upgrade to the $0.01 full roast only after the quick score shows a fit.",
       keywords: ["AgentCore x402 payments", "Amazon Bedrock AgentCore payments", "AgentCore Gateway", "Coinbase x402 Bazaar MCP server", "paid API listing quality score", "x402 paid API discovery"]
+    },
+    {
+      path: COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH,
+      title: "Coinbase x402 Bazaar MCP server route | Listing Roast x402",
+      heading: "Coinbase x402 Bazaar MCP server route for paid API listing quality",
+      summary: "Use this when a buyer agent searches Coinbase x402 Bazaar MCP server, x402 Bazaar MCP server, or Bazaar MCP tools and needs a wallet-confirmed $0.001 paid API listing quality score before a larger paid call.",
+      selectedActionKey: "coinbaseX402BazaarMcpServer",
+      primaryAction: intentRoutes.coinbaseX402BazaarMcpServer,
+      primaryLabel: "Use the $0.001 Coinbase x402 Bazaar MCP server route",
+      supportingAction: intentRoutes.indexedQuickScore,
+      supportingLabel: "Use the indexed /api/listing-roast route first when marketplace search points there.",
+      keywords: ["Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "Bazaar MCP tools", "Coinbase Bazaar MCP", "AgentCore x402 payments", "paid API listing quality score"]
     }
   ];
 }
@@ -9564,7 +9630,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Discovery</h3>
           <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, marketplace listing conversion API, marketplace listing conversion, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, AgentCore x402 payments, Coinbase x402 Bazaar MCP server buyers, x402 marketplace conversion, agent listing conversion score, x402 listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/marketplace-listing-conversion</code>, <code>/api/marketplace-product-listing-quality</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/paid-api-listing-quality-score</code>, <code>/api/listing-quality-score-api</code>, <code>/api/x402-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>GET /api/full-listing-roast</code> returns the direct full $0.01 roast, <code>POST /api/listing-roast</code> remains available for custom-body full roasts, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
-          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_SCORE_PATH)}">Paid API listing quality score</a> · <a href="${absoluteUrl(config, LISTING_QUALITY_SCORE_API_PAGE_PATH)}">Listing quality score API</a> · <a href="${absoluteUrl(config, MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH)}">Marketplace product listing quality</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH)}">Marketplace listing conversion API</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_PAGE_PATH)}">Marketplace listing conversion</a> · <a href="${absoluteUrl(config, X402_LISTING_QUALITY_PAGE_PATH)}">x402 listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a> · <a href="${absoluteUrl(config, AGENTCORE_X402_PAYMENTS_PAGE_PATH)}">AgentCore x402 payments</a></p>
+          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_SCORE_PATH)}">Paid API listing quality score</a> · <a href="${absoluteUrl(config, LISTING_QUALITY_SCORE_API_PAGE_PATH)}">Listing quality score API</a> · <a href="${absoluteUrl(config, MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH)}">Marketplace product listing quality</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH)}">Marketplace listing conversion API</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_PAGE_PATH)}">Marketplace listing conversion</a> · <a href="${absoluteUrl(config, X402_LISTING_QUALITY_PAGE_PATH)}">x402 listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a> · <a href="${absoluteUrl(config, AGENTCORE_X402_PAYMENTS_PAGE_PATH)}">AgentCore x402 payments</a> · <a href="${absoluteUrl(config, COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH)}">Coinbase x402 Bazaar MCP server</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
         <div class="card">
@@ -9953,6 +10019,7 @@ Local x402 discovery resources: ${absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_P
 Local x402 discovery search: ${absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0])}?query=x402%20discovery%20audit
 Local x402 merchant resources: ${absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])}?payTo=${config.payTo}
 AgentCore x402 payments page: ${absoluteUrl(config, AGENTCORE_X402_PAYMENTS_PAGE_PATH)}
+Coinbase x402 Bazaar MCP server page: ${absoluteUrl(config, COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH)}
 Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
 
 Buyer intent landing pages:
