@@ -3832,6 +3832,21 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
   };
 }
 
+function buildAgentPaymentRequest(selected) {
+  const maxPayment = priceToUsd(selected.price);
+  return {
+    prompt: `Call this x402 endpoint with ${selected.method} and pay up to ${maxPayment} USDC: ${selected.route}`,
+    url: selected.route,
+    path: selected.path,
+    method: selected.method,
+    maxPayment,
+    maxAmountRequired: selected.maxAmountRequired,
+    paymentRequiredHeader: "Payment-Required",
+    paymentHeader: "X-PAYMENT",
+    safety: `Keep the cap at ${maxPayment} USDC / ${selected.maxAmountRequired} USDC units; abort if the live challenge asks for more.`
+  };
+}
+
 function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore", selectedOverride = null) {
   const payNow = buildPayNow(config);
   const selectedBase = payNow.intentRoutes[intentRouteKey] || payNow.preferredFirstPaidAction;
@@ -3864,6 +3879,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     extra: usdcPaymentExtra(config.network, paymentResource.url)
   }];
   const paidResponsePreview = buildPaidResponsePreview(config, intentRouteKey, selected);
+  const agentPaymentRequest = buildAgentPaymentRequest(selected);
   const sampleQueryInputs = selected.method === "GET" && QUICK_SCORE_PAID_PATHS.includes(selected.path)
     ? quickScoreAliasInputDefaults(selected.path)
     : null;
@@ -3888,6 +3904,9 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     service: config.serviceName,
     noSpendPreview: true,
     selectedPaidAction: selected,
+    agentPaymentRequest,
+    agentPaymentPrompt: agentPaymentRequest.prompt,
+    maxPaymentUsd: agentPaymentRequest.maxPayment,
     payCommand: selected.command,
     pay_command: selected.command,
     payCommandExamples: {
@@ -3915,6 +3934,8 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
       route: selected.path,
       method: selected.method,
       maxAmountRequired: selected.maxAmountRequired,
+      maxPaymentUsd: agentPaymentRequest.maxPayment,
+      agentPaymentPrompt: agentPaymentRequest.prompt,
       command: selected.command,
       instruction: "Parse the Payment-Required header, complete the exact x402 payment, then retry this same route with the X-PAYMENT header."
     },

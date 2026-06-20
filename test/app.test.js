@@ -3639,6 +3639,11 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.catalogRefreshHint.resource).toBe(response.json.resource.url);
       expect(response.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(response.json.selectedPaidAction.command).toContain("--max-amount 1000");
+      expect(response.json.agentPaymentRequest.url).toContain("/api/listing-roast");
+      expect(response.json.agentPaymentRequest.method).toBe("GET");
+      expect(response.json.agentPaymentRequest.maxPayment).toBe("0.001");
+      expect(response.json.agentPaymentRequest.maxAmountRequired).toBe("1000");
+      expect(response.json.agentPaymentPrompt).toContain("pay up to 0.001 USDC");
       expect(response.json.payCommand).toContain("/api/listing-roast");
       expect(response.json.payCommand).toMatch(/x402 pay '.*\/api\/listing-roast'/);
       expect(response.json.payCommand).toContain("--max-amount 1000");
@@ -3670,6 +3675,8 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.x402Retry.paymentRequiredHeader).toBe("Payment-Required");
       expect(response.json.x402Retry.paymentHeader).toBe("X-PAYMENT");
       expect(response.json.x402Retry.route).toContain("/api/listing-roast");
+      expect(response.json.x402Retry.maxPaymentUsd).toBe("0.001");
+      expect(response.json.x402Retry.agentPaymentPrompt).toContain("pay up to 0.001 USDC");
       expect(response.json.x402Retry.command).toContain("--max-amount 1000");
       expect(response.json.intentRoutes.agentListingConversion.path).toBe("/api/agent-listing-conversion");
 
