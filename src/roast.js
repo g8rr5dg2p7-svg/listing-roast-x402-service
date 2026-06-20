@@ -12,6 +12,36 @@ export const listingRoastRequestSchema = z
   })
   .strict();
 
+function firstString(...values) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return String(value);
+    }
+  }
+
+  return undefined;
+}
+
+export function normalizeListingRoastRequestBody(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return body;
+  }
+
+  return {
+    agentName: firstString(body.agentName, body.serviceName, body.name, body.agent, body.title),
+    listingText: firstString(body.listingText, body.description, body.listing, body.copy, body.summary),
+    targetBuyer: firstString(body.targetBuyer, body.buyer, body.audience, body.targetAudience),
+    currentPrice: firstString(body.currentPrice, body.price, body.amount),
+    currentCheckoutPath: firstString(body.currentCheckoutPath, body.checkoutPath, body.path, body.route, body.url, body.endpointUrl, body.resource),
+    goal: firstString(body.goal, body.objective),
+    source: firstString(body.source)
+  };
+}
+
 const buyerWords = [
   "buyer",
   "agent",

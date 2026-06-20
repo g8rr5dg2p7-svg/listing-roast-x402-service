@@ -14,7 +14,7 @@ import {
   discoveryAuditRequestExample,
   discoveryAuditRequestSchema
 } from "./discoveryAudit.js";
-import { buildListingRoast, buildListingScore, listingRoastRequestSchema, requestExample } from "./roast.js";
+import { buildListingRoast, buildListingScore, listingRoastRequestSchema, normalizeListingRoastRequestBody, requestExample } from "./roast.js";
 
 const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
 const BASE_MAINNET_NETWORK = "eip155:8453";
@@ -253,8 +253,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-intent-page-proof-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T01:54:48.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-alias-input-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T02:03:46.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -323,32 +323,32 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
 const LISTING_REQUEST_SCHEMA_PROPERTIES = {
   agentName: {
     type: "string",
-    description: "Name of the paid API, MCP tool, agent service, or marketplace listing being evaluated.",
+    description: "Name of the paid API, MCP tool, agent service, or listing. Aliases: serviceName,name,agent,title.",
     example: LISTING_QUERY_PARAMETER_EXAMPLES.agentName
   },
   listingText: {
     type: "string",
-    description: "Current buyer-facing listing copy, README excerpt, marketplace description, or route summary to score.",
+    description: "buyer-facing listing copy, README excerpt, marketplace description, or route summary. Aliases: description,listing,copy,summary.",
     example: LISTING_QUERY_PARAMETER_EXAMPLES.listingText
   },
   targetBuyer: {
     type: "string",
-    description: "The buyer or agent persona the listing should convert, such as x402 builders, MCP users, or API buyers.",
+    description: "Buyer/agent persona to convert, such as x402 builders or API buyers. Aliases: buyer,audience,targetAudience.",
     example: LISTING_QUERY_PARAMETER_EXAMPLES.targetBuyer
   },
   currentPrice: {
     type: "string",
-    description: "Advertised price or max x402 amount the buyer will see before paying.",
+    description: "Advertised price or max x402 amount before payment. Aliases: price,amount.",
     example: LISTING_QUERY_PARAMETER_EXAMPLES.currentPrice
   },
   currentCheckoutPath: {
     type: "string",
-    description: "The endpoint, checkout path, or x402 route the buyer is expected to call.",
+    description: "Endpoint, checkout path, or x402 route. Aliases: checkoutPath,path,route,url,endpointUrl,resource.",
     example: LISTING_QUERY_PARAMETER_EXAMPLES.currentCheckoutPath
   },
   goal: {
     type: "string",
-    description: "The conversion goal, such as more paid completions, fewer buyer-agent skips, or better marketplace search fit.",
+    description: "Goal: more paid completions. Alias: objective.",
     example: LISTING_QUERY_PARAMETER_EXAMPLES.goal
   },
   source: {
@@ -7200,7 +7200,7 @@ async function validateListingRoastRequest(request, response, next) {
     return;
   }
 
-  const parsed = listingRoastRequestSchema.safeParse(request.body);
+  const parsed = listingRoastRequestSchema.safeParse(normalizeListingRoastRequestBody(request.body));
   if (!parsed.success) {
     await recordSignal("invalidRequests");
     response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
@@ -9187,7 +9187,7 @@ ${copyScript("Copy command")}
   });
 
   app.post("/api/listing-score", async (request, response) => {
-    const parsed = listingRoastRequestSchema.safeParse(request.listingRoastInput ?? request.body);
+    const parsed = listingRoastRequestSchema.safeParse(request.listingRoastInput ?? normalizeListingRoastRequestBody(request.body));
     if (!parsed.success) {
       response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
       return;
@@ -9199,7 +9199,7 @@ ${copyScript("Copy command")}
   });
 
   app.post(ROAST_PATH, async (request, response) => {
-    const parsed = listingRoastRequestSchema.safeParse(request.listingRoastInput ?? request.body);
+    const parsed = listingRoastRequestSchema.safeParse(request.listingRoastInput ?? normalizeListingRoastRequestBody(request.body));
     if (!parsed.success) {
       response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
       return;
