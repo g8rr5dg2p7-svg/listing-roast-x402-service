@@ -2904,6 +2904,13 @@ describe("Listing Roast x402 service", () => {
       expect(payNowSkipReasons.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(payNowSkipReasons.json.exactIntentPaidAction.path).toBe("/api/buyer-agent-skip-reasons");
       expect(payNowSkipReasons.json.selectedFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(payNowSkipReasons.json.publicCdpStaleCardOverride.status).toBe("owned-live-metadata-overrides-stale-public-card");
+      expect(payNowSkipReasons.json.publicCdpStaleCardOverride.preferredFirstPaidPath).toBe("/api/listing-roast");
+      expect(payNowSkipReasons.json.publicCdpStaleCardOverride.selectedPaidPath).toBe("/api/listing-roast");
+      expect(payNowSkipReasons.json.publicCdpStaleCardOverride.selectedPaidMaxAmountRequired).toBe("1000");
+      expect(payNowSkipReasons.json.publicCdpStaleCardOverride.directFullRoastPath).toBe("/api/full-listing-roast");
+      expect(payNowSkipReasons.json.publicCdpStaleCardOverride.stalePublicFieldsToIgnore.join(" ")).toContain("$1.00");
+      expect(payNowSkipReasons.json.publicCdpStaleCardOverride.stalePublicFieldsToIgnore.join(" ")).toContain("POST /api/listing-roast");
       expect(payNowSkipReasons.json.selectedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(payNowSkipReasons.json.selectedPaidSequence[0].action.path).toBe("/api/listing-roast");
       expect(payNowSkipReasons.json.selectedPaidSequence[1].use).toBe("fullRoastGet");
@@ -3039,6 +3046,9 @@ describe("Listing Roast x402 service", () => {
       expect(payNowFullRoast.json.method).toBe("GET");
       expect(payNowFullRoast.json.maxAmountRequired).toBe("10000");
       expect(payNowFullRoast.json.expectedChallenge.amount).toBe("10000");
+      expect(payNowFullRoast.json.publicCdpStaleCardOverride.selectedPaidPath).toBe("/api/full-listing-roast");
+      expect(payNowFullRoast.json.publicCdpStaleCardOverride.selectedPaidMaxAmountRequired).toBe("10000");
+      expect(payNowFullRoast.json.publicCdpStaleCardOverride.directFullRoastPath).toBe("/api/full-listing-roast");
       expect(payNowFullRoast.json.paymentShortcut.firstPaidPath).toBe("/api/full-listing-roast");
       expect(payNowFullRoast.json.paymentShortcut.upgradeAfterQuickScore).toBeUndefined();
       expect(payNowFullRoast.json.paymentShortcut.directFullRoastNow).toBeUndefined();

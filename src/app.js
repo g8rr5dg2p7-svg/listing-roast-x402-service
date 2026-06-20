@@ -3934,6 +3934,12 @@ function buildPayNow(config, intent = "", cashRegister = {}, receiverWallet = nu
     selection.selectedActionKey,
     intentRoutes
   );
+  const publicCdpStaleCardOverride = buildPublicCdpStaleCardOverride(
+    config,
+    intentRoutes,
+    selectedFirstPaidAction,
+    handoffSelectedPaidAction
+  );
 
   return {
     service: config.serviceName,
@@ -3942,6 +3948,7 @@ function buildPayNow(config, intent = "", cashRegister = {}, receiverWallet = nu
     paidUsageProof: buildPaidUsageProof(config, cashRegister, receiverWallet),
     settlementProof: buildSettlementProof(config, cashRegister),
     officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
+    publicCdpStaleCardOverride,
     commands: absoluteUrl(config, COMMANDS_PATH),
     links: {
       commands: absoluteUrl(config, COMMANDS_PATH),
@@ -4117,6 +4124,12 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
     selectedActionKey,
     intentRoutes
   );
+  const publicCdpStaleCardOverride = buildPublicCdpStaleCardOverride(
+    config,
+    intentRoutes,
+    selectedFirstPaidAction,
+    handoffSelectedPaidAction
+  );
 
   return {
     service: config.serviceName,
@@ -4124,6 +4137,7 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
     metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
     intent,
     selectedActionKey,
+    publicCdpStaleCardOverride,
     paymentShortcut,
     ...(paymentShortcut.upgradeAfterQuickScore ? { upgradeAfterQuickScore: paymentShortcut.upgradeAfterQuickScore } : {}),
     selectedPaidAction: handoffSelectedPaidAction,
@@ -4268,6 +4282,31 @@ function buildPaymentShortcutForAction(config, selectedPaidAction, firstPaidActi
     instruction: upgradeAfterQuickScore
       ? "Use the firstPaidUrl for the proven first paid action. Use upgradeAfterQuickScore only after the quick score shows enough fit."
       : "Use the firstPaidUrl for this paid action. This intent already points at the direct paid route, so no follow-up upgrade shortcut is needed."
+  };
+}
+
+function buildPublicCdpStaleCardOverride(config, intentRoutes = {}, firstPaidAction = {}, selectedPaidAction = {}) {
+  const indexedQuickScore = intentRoutes.indexedQuickScore || firstPaidAction || {};
+  const directFullRoast = intentRoutes.fullRoastGet || {};
+
+  return {
+    source: "public-cdp-bazaar-card",
+    status: "owned-live-metadata-overrides-stale-public-card",
+    noSpend: true,
+    livePaymentRule: "Use the live Payment-Required header amount and resource; do not use cached marketplace example fields as the payment amount.",
+    stalePublicFieldsToIgnore: [
+      "currentPrice example values such as $1.00",
+      "older full-roast hints that say POST /api/listing-roast instead of GET /api/full-listing-roast"
+    ],
+    preferredFirstPaidPath: indexedQuickScore.path || ROAST_PATH,
+    preferredFirstPaidMaxAmountRequired: indexedQuickScore.maxAmountRequired || INSTANT_SCORE_AMOUNT,
+    selectedPaidPath: selectedPaidAction.path || indexedQuickScore.path || ROAST_PATH,
+    selectedPaidMaxAmountRequired: selectedPaidAction.maxAmountRequired || indexedQuickScore.maxAmountRequired || INSTANT_SCORE_AMOUNT,
+    directFullRoastPath: directFullRoast.path || FULL_ROAST_GET_PATH,
+    directFullRoastMaxAmountRequired: directFullRoast.maxAmountRequired || "10000",
+    proofBeforePay: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    instruction: "If public CDP/Bazaar search returns stale example input, keep the buyer on this owned handoff, then pay only the live route selected here."
   };
 }
 
