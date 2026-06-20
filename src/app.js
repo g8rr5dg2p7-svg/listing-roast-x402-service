@@ -34,6 +34,7 @@ const AGENT_LISTING_PATH = "/api/agent-listing-conversion";
 const AGENT_LISTING_SCORE_PATH = "/api/agent-listing-conversion-score";
 const AGENT_LISTING_PAID_PATHS = Object.freeze([AGENT_LISTING_PATH, AGENT_LISTING_SCORE_PATH]);
 const ROAST_PATH = "/api/listing-roast";
+const FULL_ROAST_GET_PATH = "/api/full-listing-roast";
 const QUICK_SCORE_ALIAS_PATHS = Object.freeze([
   "/api/marketplace-listing-score",
   "/api/marketplace-listing-conversion-api",
@@ -343,6 +344,8 @@ const SERVICE_TAGS = Object.freeze([
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools snippets; returns an included quick score, route map, indexed /api/listing-roast handoff, prices, and next paid actions.";
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 GET /api/listing-roast quick score on the indexed paid-use-confirmed URL for paid API listing quality score, marketplace product listing quality, Agentic.Market listing score, marketplace listing conversion API, marketplace listing score, x402 marketplace conversion, buyer-agent skip reasons, buyer agent skip reasons, agent listing conversion score, agent service clarity, agent-service listing score, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, Bazaar search visibility, and x402 seller growth checklist; POST upgrade.";
 const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 paid API listing quality score; marketplace conversion API; buyer-agent skip reasons; buyer agent skip reasons; agent service clarity; x402 discovery audit; x402 site audit; paid API preflight; route health; stale Bazaar price.";
+const FULL_ROAST_GET_DESCRIPTION = "Full Listing Roast by Listing Roast: $0.01 GET /api/full-listing-roast for high-intent buyers who want buyer-agent skip reasons, top fixes, rewritten listing copy, and stop-or-upgrade guidance without assembling a POST body. Uses query params or safe defaults; POST /api/listing-roast remains the custom-body full roast.";
+const FULL_ROAST_GET_CHALLENGE_DESCRIPTION = "Full Listing Roast x402: $0.01 GET full listing roast, buyer-agent skip reasons, top fixes, rewritten listing copy, stop-or-upgrade guidance, and launch guidance for paid API and x402 marketplace sellers.";
 const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
   "listing quality score API",
   "marketplace product listing quality",
@@ -361,8 +364,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-agent-listing-score-alias-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T13:24:22.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-full-roast-get-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T14:24:22.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -378,7 +381,7 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   x402SiteAudit: ["x402", "x402 site audit", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
   discoveryAuditQuick: ["x402", "Bazaar visibility", "Agent402 route visibility", "Agent402 router", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 listing SEO audit", "x402 listing rank doctor", "paid API preflight", "route health"],
   discoveryAudit: ["x402", "Bazaar visibility", "Agent402 route visibility", "Agent402 router", "discovery audit", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "stale Bazaar price", "paid API preflight"],
-  fullRoast: ["x402", "listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons"]
+  fullRoast: ["x402", "listing roast", "full listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons", "top fixes", "rewritten listing"]
 });
 const CHALLENGE_ROUTE_SERVICE_TAGS = Object.freeze({
   indexedQuickScore: ["x402", "paid API listing quality score", "marketplace listing score", "buyer agent skip reasons", "x402 marketplace conversion", "x402 discovery audit", "paid API preflight", "stale Bazaar price"],
@@ -442,6 +445,7 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   agent402_route_visibility_audit: "discoveryAuditQuick",
   x402_discovery_audit_quick: "discoveryAuditQuick",
   x402_discovery_audit: "discoveryAudit",
+  full_listing_roast_get: "fullRoastGet",
   listing_score: "listingScore",
   listing_roast: "fullRoast"
 });
@@ -730,6 +734,7 @@ function listingQueryOpenApiParameters(defaults = LISTING_QUERY_PARAMETER_EXAMPL
 function buildDiscoveryLinks(config) {
   const exactPaidRouteLinks = [
     [ROAST_PATH, "GET $0.001 indexed listing-roast quick score"],
+    [FULL_ROAST_GET_PATH, "GET $0.01 full listing roast"],
     ...QUICK_SCORE_ALIAS_PATHS.map((pathname) => [
       pathname,
       QUICK_SCORE_ALIAS_METADATA[pathname].catalogTitle.replace(" quick-score alias", "")
@@ -804,6 +809,7 @@ function isPaidRouteRequest(method, pathname) {
     CONVERSION_SCORE_PATH,
     ...AGENT_LISTING_PAID_PATHS,
     ROAST_PATH,
+    FULL_ROAST_GET_PATH,
     PING_PATH,
     ...DISCOVERY_AUDIT_QUICK_PATHS,
     ...QUICK_SCORE_ALIAS_PATHS,
@@ -816,6 +822,8 @@ function buildCompactPaidRouteLinks(config, pathname) {
   const routeTitle = QUICK_SCORE_ALIAS_METADATA[routePath]?.catalogTitle
     || (routePath === ROAST_PATH
       ? "GET $0.001 indexed listing-roast quick score"
+      : routePath === FULL_ROAST_GET_PATH
+        ? "GET $0.01 full listing roast"
       : routePath === AGENT402_ROUTE_VISIBILITY_PATH
         ? "GET $0.001 Agent402 route visibility audit"
         : routePath === DISCOVERY_AUDIT_PATH
@@ -2307,6 +2315,34 @@ function buildIndexedRoastGetDiscovery(config, options = {}) {
   };
 }
 
+function buildFullRoastGetDiscovery(config) {
+  const queryExample = {
+    ...quickScoreRequestExample,
+    currentPrice: config.price,
+    currentCheckoutPath: FULL_ROAST_GET_PATH,
+    goal: "Buy the full listing roast directly for rewritten listing copy, top fixes, buyer-agent skip reasons, and stop-or-upgrade guidance."
+  };
+
+  return {
+    input: queryExample,
+    inputSchema: {
+      type: "object",
+      properties: listingQuerySchemaProperties(queryExample)
+    },
+    output: {
+      example: buildListingRoast(buildInstantScoreInput(queryExample)),
+      schema: buildDiscovery(config).output.schema
+    },
+    service: {
+      name: config.serviceName,
+      url: config.serviceUrl,
+      route: absoluteUrl(config, FULL_ROAST_GET_PATH),
+      price: config.price,
+      network: config.network
+    }
+  };
+}
+
 function buildApiEntryOutput(config, query = {}, options = {}) {
   const quickScoreInput = buildInstantScoreInput(query);
   const quickScore = options.discoveryExample
@@ -2418,6 +2454,13 @@ function buildApiEntryOutput(config, query = {}, options = {}) {
         route: absoluteUrl(config, ROAST_PATH),
         path: ROAST_PATH,
         method: "POST",
+        price: config.price,
+        maxAmountRequired: "10000"
+      },
+      fullRoastGet: {
+        route: absoluteUrl(config, FULL_ROAST_GET_PATH),
+        path: FULL_ROAST_GET_PATH,
+        method: "GET",
         price: config.price,
         maxAmountRequired: "10000"
       }
@@ -2687,6 +2730,7 @@ function inferPaymentHintIntentRouteKey(path, method = "GET") {
     [`GET ${API_V1_ENTRY_PATH}`]: "apiV1Entry",
     [`GET ${V1_ENTRY_PATH}`]: "v1Entry",
     [`GET ${ROAST_PATH}`]: "indexedQuickScore",
+    [`GET ${FULL_ROAST_GET_PATH}`]: "fullRoastGet",
     [`POST ${ROAST_PATH}`]: "fullRoast",
     [`GET ${INSTANT_SCORE_PATH}`]: "instantScore",
     [`GET ${CONVERSION_SCORE_PATH}`]: "conversionScore",
@@ -3313,6 +3357,13 @@ function buildPayNowActions(config) {
       body: requestExample,
       reason: "Use this when the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance."
     }),
+    fullRoastGet: buildRoutePaymentAction(config, {
+      path: FULL_ROAST_GET_PATH,
+      method: "GET",
+      price: config.price,
+      maxAmountRequired: "10000",
+      reason: "Use this exact high-intent GET route when the buyer wants the full listing roast, rewritten copy, top fixes, buyer-agent skip reasons, and stop-or-upgrade guidance without assembling a POST body."
+    }),
     discoveryAudit: buildRoutePaymentAction(config, {
       path: DISCOVERY_AUDIT_PATH,
       method: "POST",
@@ -3383,6 +3434,7 @@ const QUICK_SCORE_EXACT_ALIAS_ACTION_KEYS = new Set([
 ]);
 
 const EXACT_ALIAS_FIRST_ACTION_KEYS = new Set([]);
+const TERMINAL_PAID_ACTION_KEYS = new Set(["fullRoast", "fullRoastGet"]);
 
 function isQuickScoreExactAliasActionKey(selectedActionKey) {
   return QUICK_SCORE_EXACT_ALIAS_ACTION_KEYS.has(selectedActionKey);
@@ -3390,6 +3442,10 @@ function isQuickScoreExactAliasActionKey(selectedActionKey) {
 
 function shouldUseExactAliasFirst(selectedActionKey) {
   return EXACT_ALIAS_FIRST_ACTION_KEYS.has(selectedActionKey);
+}
+
+function isTerminalPaidActionKey(actionKey = "") {
+  return TERMINAL_PAID_ACTION_KEYS.has(actionKey);
 }
 
 function firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey = "indexedQuickScore", selectedPaidAction = null) {
@@ -3504,6 +3560,7 @@ const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   api_v1_paid_api_preflight: "x402SiteAudit",
   root_paid_api_preflight: "x402SiteAudit",
   x402_discovery_audit_quick: "discoveryAuditQuick",
+  full_listing_roast_get: "fullRoastGet",
   listing_score: "listingScore",
   listing_roast: "fullRoast",
   x402_discovery_audit: "discoveryAudit",
@@ -3763,7 +3820,7 @@ function buildPayNowIntentExamples(config) {
   return {
     skipReasons: buildPayNowIntentExample(config, "buyer-agent skip reasons", "buyerAgentSkipReasons"),
     discoveryAudit: buildPayNowIntentExample(config, "x402 discovery audit", "discoveryAuditQuick"),
-    fullRoast: buildPayNowIntentExample(config, "full roast rewrite top fixes", "fullRoast")
+    fullRoast: buildPayNowIntentExample(config, "full roast rewrite top fixes", "fullRoastGet")
   };
 }
 
@@ -3908,7 +3965,7 @@ function commandActionKeyForIntent(intent = "") {
   }
 
   if (wantsFullRoastOutput(normalizedIntent)) {
-    return { intent: rawIntent, selectedActionKey: "fullRoast" };
+    return { intent: rawIntent, selectedActionKey: "fullRoastGet" };
   }
 
   return { intent: rawIntent, selectedActionKey: "indexedQuickScore" };
@@ -3927,7 +3984,9 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
   const compactFirstPaidAction = compactPaidAction(firstPaidAction);
   const compactSelectedPaidAction = compactPaidAction(handoffSelectedPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction));
   const compactExactIntentPaidAction = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
-  const upgradeAction = selectedPaidSequence.find((step) => step.step === 2)?.action || intentRoutes.fullRoast;
+  const upgradeAction = isTerminalPaidActionKey(selection.selectedActionKey)
+    ? null
+    : selectedPaidSequence.find((step) => step.step === 2)?.action || intentRoutes.fullRoast;
   const commandIntentSuffix = selection.intent ? `?intent=${encodeURIComponent(selection.intent)}` : "";
 
   return {
@@ -3963,7 +4022,7 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
       network: config.network,
       route: firstPaidAction.route
     },
-    upgradeAfterFit: compactPaidAction(upgradeAction),
+    ...(upgradeAction ? { upgradeAfterFit: compactPaidAction(upgradeAction) } : {}),
     whenToPay: "Pay only when the buyer explicitly wants a paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent-service clarity check, or full listing roast.",
     whenNotToPay: "Do not pay for discovery, proof checks, pricing, route selection, or health checks; use the free links below first.",
     freeBeforePay: {
@@ -4044,6 +4103,7 @@ function paidCompletionRouteKeyFromSettlement(method, pathname) {
     [`GET ${AGENT_LISTING_PATH}`]: "agentListingConversion",
     [`GET ${AGENT_LISTING_SCORE_PATH}`]: "agentListingConversion",
     [`GET ${ROAST_PATH}`]: "indexedRoastGet",
+    [`GET ${FULL_ROAST_GET_PATH}`]: "fullRoastGet",
     [`POST ${ROAST_PATH}`]: "listingRoast",
     [`POST ${SCORE_PATH}`]: "listingScorePost",
     [`GET ${PING_PATH}`]: "x402Ping",
@@ -4194,6 +4254,14 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
       includes: ["full rewrite", "top fixes", "stop-or-upgrade guidance"],
       example: () => buildListingRoast(requestExample)
     },
+    fullRoastGet: {
+      includes: ["full rewrite", "top fixes", "buyer-agent skip reasons", "stop-or-upgrade guidance"],
+      example: () => buildListingRoast(buildInstantScoreInput({
+        ...quickScoreRequestExample,
+        currentPrice: config.price,
+        currentCheckoutPath: FULL_ROAST_GET_PATH
+      }))
+    },
     discoveryAudit: {
       includes: ["full x402 discovery audit", "Agent402 route visibility", "mismatches", "next actions"],
       example: () => buildDiscoveryAuditExampleOutput()
@@ -4253,7 +4321,8 @@ function payNowIntentForSelection(intentRouteKey = "indexedQuickScore", selected
     agent402RouteVisibility: "Agent402 route visibility",
     discoveryAuditQuick: "x402 discovery audit",
     discoveryAudit: "x402 discovery audit",
-    fullRoast: "full listing roast"
+    fullRoast: "full listing roast",
+    fullRoastGet: "full listing roast"
   };
 
   return intentByRouteKey[intentRouteKey] || "";
@@ -4672,6 +4741,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
     [`POST ${DISCOVERY_AUDIT_PATH}`]: "discoveryAudit",
     "POST /api/listing-score": "listingScore",
     [`GET ${ROAST_PATH}`]: "indexedQuickScore",
+    [`GET ${FULL_ROAST_GET_PATH}`]: "fullRoastGet",
     [`POST ${ROAST_PATH}`]: "fullRoast"
   };
 
@@ -4784,6 +4854,45 @@ function buildOpenApiDocument(config, cashRegister = {}) {
                 "application/json": {
                   schema: buildDiscovery(config).output.schema,
                   example: buildListingRoast(requestExample)
+                }
+              }
+            },
+            402: { description: "x402 payment required" }
+          }
+        }
+      },
+      [FULL_ROAST_GET_PATH]: {
+        get: {
+          operationId: "getFullListingRoast",
+          tags: ["full listing roast", "listing roast rewrite", "buyer-agent skip reasons", "x402 listing"],
+          summary: "Paid $0.01 direct full listing roast",
+          description: "Direct GET full listing roast for buyer agents that want rewritten listing copy, top fixes, buyer-agent skip reasons, and stop-or-upgrade guidance without assembling a POST body.",
+          "x-price": config.price,
+          "x-x402-price": config.price,
+          "x-payment": buildPaymentHint(config, {
+            path: FULL_ROAST_GET_PATH,
+            method: "GET",
+            price: config.price,
+            maxAmountRequired: "10000",
+            buyerAction: "Pay $0.01 for the direct full listing roast, rewrite, top fixes, buyer-agent skip reasons, and stop-or-upgrade guidance."
+          }),
+          parameters: listingQueryOpenApiParameters({
+            ...LISTING_QUERY_PARAMETER_EXAMPLES,
+            currentPrice: config.price,
+            currentCheckoutPath: FULL_ROAST_GET_PATH,
+            goal: "Buy the full listing roast directly."
+          }),
+          responses: {
+            200: {
+              description: "Paid full roast response from the direct GET full-roast URL",
+              content: {
+                "application/json": {
+                  schema: buildDiscovery(config).output.schema,
+                  example: buildListingRoast(buildInstantScoreInput({
+                    ...quickScoreRequestExample,
+                    currentPrice: config.price,
+                    currentCheckoutPath: FULL_ROAST_GET_PATH
+                  }))
                 }
               }
             },
@@ -5724,7 +5833,7 @@ function buildStartHereHandoff(config, cashRegister = {}, intentRoutes = buildPa
   const use = options.use || firstStep?.use || "indexedQuickScore";
   const upgradeAction = options.upgradeAction === null
     ? null
-    : options.upgradeAction || followupStep?.action || (use === "fullRoast" ? null : intentRoutes.fullRoast);
+    : options.upgradeAction || followupStep?.action || (isTerminalPaidActionKey(use) ? null : intentRoutes.fullRoast);
   const upgradeUse = options.upgradeUse || followupStep?.use || (upgradeAction ? "fullRoast" : null);
   const proof = buildPaidUsageProof(config, cashRegister);
 
@@ -6069,6 +6178,26 @@ function buildX402Manifest(config, cashRegister = {}) {
         input: requestExample,
         outputExample: buildListingScoreWithUpgrade(requestExample, config),
         schema: absoluteUrl(config, "/api/score-schema")
+      },
+      {
+        id: "full_listing_roast_get",
+        name: "full_listing_roast_get",
+        method: "GET",
+        path: FULL_ROAST_GET_PATH,
+        url: absoluteUrl(config, FULL_ROAST_GET_PATH),
+        price: config.price,
+        maxAmountRequired: "10000",
+        description: FULL_ROAST_GET_DESCRIPTION,
+        keywords: ["full listing roast", "listing roast full", "full roast", "listing roast rewrite", "top fixes", "rewritten listing", "stop-or-upgrade guidance", "buyer-agent skip reasons", "buyer agent skip reasons", "launch guidance", "paid API listing quality", "x402 marketplace conversion", "GET paid API"],
+        command: buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000"),
+        input: buildFullRoastGetDiscovery(config).input,
+        outputExample: buildListingRoast(buildInstantScoreInput({
+          ...quickScoreRequestExample,
+          currentPrice: config.price,
+          currentCheckoutPath: FULL_ROAST_GET_PATH
+        })),
+        schema: absoluteUrl(config, "/api/schema"),
+        canonicalPostRoute: ROAST_PATH
       },
       {
         id: "listing_roast",
@@ -6931,6 +7060,7 @@ function scoreCatalogResource(resource, query) {
   }
 
   if (includesAny(normalizedQuery, ["full roast", "rewrite", "top fixes", "launch guidance", "custom body", "body-specific"])) {
+    if (resource.id === "full_listing_roast_get" && !includesAny(normalizedQuery, ["custom body", "body-specific", "post body"])) score += 260;
     if (resource.id === "listing_roast") score += 125;
     if (resource.id === "listing_score") score += 55;
     if (resource.id === "indexed_roast_quick_score") score += 20;
@@ -6942,6 +7072,7 @@ function scoreCatalogResource(resource, query) {
   }
 
   if (wantsFullRoast) {
+    if (resource.id === "full_listing_roast_get") score += 220;
     if (resource.id === "listing_roast") score += 70;
   }
 
@@ -8422,6 +8553,10 @@ function paymentRouteMetadataKey(intentRouteKey, selected) {
     return "indexedQuickScore";
   }
 
+  if (method === "GET" && pathname === FULL_ROAST_GET_PATH) {
+    return "fullRoast";
+  }
+
   if (method === "GET" && SITE_AUDIT_PAID_PATHS.includes(pathname)) {
     return "x402SiteAudit";
   }
@@ -8656,6 +8791,22 @@ function createX402Middleware(config) {
         customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAudit"),
         unpaidResponseBody: unpaidPaymentPreview(config, "discoveryAudit"),
         extensions: declareChallengeDiscoveryExtension(buildDiscoveryAuditDiscovery(config))
+      },
+      [`GET ${FULL_ROAST_GET_PATH}`]: {
+        resource: resourceUrl(FULL_ROAST_GET_PATH),
+        ...challengeRouteServiceMetadata("fullRoast"),
+        accepts: acceptsForRoute(FULL_ROAST_GET_PATH, config.price),
+        description: withPaidUseProofDescription(config, FULL_ROAST_GET_CHALLENGE_DESCRIPTION),
+        mimeType: "application/json",
+        customPaywallHtml: buildCustomPaywallHtml(config, "fullRoastGet"),
+        unpaidResponseBody: unpaidPaymentPreview(config, "fullRoastGet", {
+          path: FULL_ROAST_GET_PATH,
+          method: "GET",
+          price: config.price,
+          maxAmountRequired: "10000",
+          resourceDescription: withPaidUseProofDescription(config, FULL_ROAST_GET_CHALLENGE_DESCRIPTION)
+        }),
+        extensions: declareChallengeDiscoveryExtension(buildFullRoastGetDiscovery(config))
       },
       [`POST ${ROAST_PATH}`]: {
         resource: resourceUrl(ROAST_PATH),
@@ -9323,7 +9474,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", API_SAMPLE_PATH, PAY_NOW_PATH, COMMANDS_PATH, PAID_USAGE_PROOF_PATH, ...PAID_USAGE_PROOF_ALIAS_PATHS, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ...AGENT_LISTING_PAID_PATHS, PING_PATH, ...SITE_AUDIT_PAID_PATHS, ...DISCOVERY_AUDIT_QUICK_PATHS, API_SAMPLE_SCORE_PATH, ...OPENAPI_JSON_PATHS, ...OPENAPI_YAML_PATHS, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, ...PAYMENT_MANIFEST_PATHS, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, MCP_SERVER_CARD_PATH, "/api/schema", SCHEMA_JSON_PATH, "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, FULL_ROAST_GET_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", API_SAMPLE_PATH, PAY_NOW_PATH, COMMANDS_PATH, PAID_USAGE_PROOF_PATH, ...PAID_USAGE_PROOF_ALIAS_PATHS, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ...AGENT_LISTING_PAID_PATHS, PING_PATH, ...SITE_AUDIT_PAID_PATHS, ...DISCOVERY_AUDIT_QUICK_PATHS, API_SAMPLE_SCORE_PATH, ...OPENAPI_JSON_PATHS, ...OPENAPI_YAML_PATHS, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, ...PAYMENT_MANIFEST_PATHS, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, MCP_SERVER_CARD_PATH, "/api/schema", SCHEMA_JSON_PATH, "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -10670,10 +10821,10 @@ ${copyScript("Copy command")}
   });
 
   app.head([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], rejectHeadPaidRoute);
-  app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ...AGENT_LISTING_PAID_PATHS, ...QUICK_SCORE_PAID_PATHS, PING_PATH, ...SITE_AUDIT_PAID_PATHS, ...DISCOVERY_AUDIT_QUICK_PATHS, "/api/listing-score"], rejectHeadPaidRoute);
+  app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ...AGENT_LISTING_PAID_PATHS, ...QUICK_SCORE_PAID_PATHS, FULL_ROAST_GET_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, ...DISCOVERY_AUDIT_QUICK_PATHS, "/api/listing-score"], rejectHeadPaidRoute);
   app.post(ROOT_DIRECTORY_POST_PATH, recordDirectoryPostProbe);
   app.get([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], recordApiEntryProbe);
-  app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ...AGENT_LISTING_PAID_PATHS, ...QUICK_SCORE_PAID_PATHS], recordGetScoreProbe);
+  app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ...AGENT_LISTING_PAID_PATHS, ...QUICK_SCORE_PAID_PATHS, FULL_ROAST_GET_PATH], recordGetScoreProbe);
   app.get(PING_PATH, recordPingProbe);
   app.get([...SITE_AUDIT_PAID_PATHS, ...DISCOVERY_AUDIT_QUICK_PATHS], recordAuditProbe);
   app.post(ROAST_PATH, validateListingRoastRequest);
@@ -10726,6 +10877,12 @@ ${copyScript("Copy command")}
   app.get(QUICK_SCORE_PAID_PATHS, async (request, response) => {
     const result = buildIndexedRoastQuickScore(buildInstantScoreInput(request.query), config);
     const cashRegister = await recordPaidCompletion("indexedRoastGet", 0.001);
+    response.json({ ...result, cashRegister });
+  });
+
+  app.get(FULL_ROAST_GET_PATH, async (request, response) => {
+    const result = buildListingRoast(buildInstantScoreInput(request.query));
+    const cashRegister = await recordPaidCompletion("fullRoastGet", 0.01);
     response.json({ ...result, cashRegister });
   });
 

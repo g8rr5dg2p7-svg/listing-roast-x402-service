@@ -55,6 +55,7 @@ const PAID_COMPLETION_ROUTE_META = {
   x402SiteAudit: { routeKey: "x402SiteAudit", method: "GET", path: "/api/x402-site-audit" },
   x402DiscoveryAuditQuick: { routeKey: "x402DiscoveryAuditQuick", method: "GET", path: "/api/x402-discovery-audit" },
   x402DiscoveryAudit: { routeKey: "x402DiscoveryAudit", method: "POST", path: "/api/x402-discovery-audit" },
+  fullRoastGet: { routeKey: "fullRoastGet", method: "GET", path: "/api/full-listing-roast" },
   listingRoast: { routeKey: "listingRoast", method: "POST", path: "/api/listing-roast" }
 };
 
