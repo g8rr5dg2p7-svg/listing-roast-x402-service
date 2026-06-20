@@ -1024,10 +1024,13 @@ Fetch these before any payment:
 - Examples and commands: ${absoluteUrl(config, "/api/examples")}
 - Compact command handoff: ${absoluteUrl(config, COMMANDS_PATH)}?intent=paid%20API%20listing%20quality
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
+- Full-roast pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=full%20roast%20rewrite%20top%20fixes
 - Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 - Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
+- Full-roast route finder: ${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite
 - Local route router: ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3
+- Full-roast local router: ${absoluteUrl(config, ROUTE_PATH)}?query=listing%20roast%20full%20rewrite&top=3
 - Route guide: ${absoluteUrl(config, "/llms.txt")}
 - Full route guide: ${absoluteUrl(config, LLMS_FULL_PATH)}
 - MCP metadata: ${absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH)}
@@ -1191,10 +1194,13 @@ Agents authorize each paid API call by completing the x402 payment challenge for
 - Full Markdown guide: ${absoluteUrl(config, LLMS_FULL_PATH)}
 - Compact command handoff: ${absoluteUrl(config, COMMANDS_PATH)}?intent=paid%20API%20listing%20quality
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
+- Full-roast pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=full%20roast%20rewrite%20top%20fixes
 - Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 - Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
+- Full-roast route finder: ${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite
 - Local route router: ${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3
+- Full-roast local router: ${absoluteUrl(config, ROUTE_PATH)}?query=listing%20roast%20full%20rewrite&top=3
 - WebMCP handoff: load ${absoluteUrl(config, "/")} in a WebMCP-capable browser and call \`listing_roast_x402_handoff\`.
 
 ## Paid-Use Proof Before Payment
@@ -1291,12 +1297,14 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
     routeFinderExamples: [
       `${absoluteUrl(config, FIND_PATH)}?q=buyer-agent%20skip%20reasons`,
       `${absoluteUrl(config, FIND_PATH)}?q=paid%20API%20listing%20quality`,
-      `${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit`
+      `${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit`,
+      `${absoluteUrl(config, FIND_PATH)}?q=listing%20roast%20full%20rewrite`
     ],
     localRouterExamples: [
       `${absoluteUrl(config, ROUTE_PATH)}?query=buyer-agent%20skip%20reasons&top=3`,
       `${absoluteUrl(config, ROUTE_PATH)}?query=paid%20API%20listing%20quality&top=3`,
-      `${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3`
+      `${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3`,
+      `${absoluteUrl(config, ROUTE_PATH)}?query=listing%20roast%20full%20rewrite&top=3`
     ],
     payment: {
       protocol: "x402",
@@ -7002,6 +7010,7 @@ function buildApiCatalog(config, cashRegister = {}) {
     "marketplace listing score",
     "paid API listing quality score",
     "buyer-agent skip reasons",
+    "full roast rewrite top fixes",
     "x402 discovery audit"
   ];
   const paymentHandoffLinks = intentHandoffs.map((intent) => ({

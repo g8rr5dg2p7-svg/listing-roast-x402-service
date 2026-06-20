@@ -1226,9 +1226,11 @@ describe("Listing Roast x402 service", () => {
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/v2/x402/discovery/search");
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/v2/x402/discovery/merchant");
       expect(apiCatalog.json.linkset[0]["payment-handoff"].map((item) => item.href)).toContain("http://localhost:8787/api/pay-now?intent=paid%20API%20listing%20quality%20score");
+      expect(apiCatalog.json.linkset[0]["payment-handoff"].map((item) => item.href)).toContain("http://localhost:8787/api/pay-now?intent=full%20roast%20rewrite%20top%20fixes");
       expect(apiCatalog.json.linkset[0]["payment-handoff"].map((item) => item.href)).toContain("http://localhost:8787/api/pay-now?intent=x402%20discovery%20audit");
       expect(apiCatalog.json.linkset[0]["command-handoff"].map((item) => item.href)).toContain("http://localhost:8787/api/commands?intent=marketplace%20listing%20score");
       expect(apiCatalog.json.linkset[0]["command-handoff"].map((item) => item.href)).toContain("http://localhost:8787/api/commands?intent=buyer-agent%20skip%20reasons");
+      expect(apiCatalog.json.linkset[0]["command-handoff"].map((item) => item.href)).toContain("http://localhost:8787/api/commands?intent=full%20roast%20rewrite%20top%20fixes");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].href).toBe("http://localhost:8787/api/listing-roast");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].method).toBe("GET");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].maxAmountRequired).toBe("1000");
@@ -1307,7 +1309,9 @@ describe("Listing Roast x402 service", () => {
       expect(agentSkills.json.exactIntentPaidActions.paidApiListingQuality.path).toBe("/api/paid-api-listing-quality");
       expect(agentSkills.json.exactIntentPaidActions.discoveryAuditQuick.maxAmountRequired).toBe("1000");
       expect(agentSkills.json.routeFinderExamples.join(" ")).toContain("x402%20discovery%20audit");
+      expect(agentSkills.json.routeFinderExamples.join(" ")).toContain("listing%20roast%20full%20rewrite");
       expect(agentSkills.json.localRouterExamples.join(" ")).toContain("buyer-agent%20skip%20reasons");
+      expect(agentSkills.json.localRouterExamples.join(" ")).toContain("listing%20roast%20full%20rewrite");
       expect(agentSkills.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(agentSkills.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(agentSkills.json.skills[0].metadata.commands).toContain("/api/commands");
@@ -1336,6 +1340,9 @@ describe("Listing Roast x402 service", () => {
       expect(agentSkill.text).toContain("/api/paid-usage-proof");
       expect(agentSkill.text).toContain("/api/cash-register");
       expect(agentSkill.text).toContain("Full roast command");
+      expect(agentSkill.text).toContain("/api/pay-now?intent=full%20roast%20rewrite%20top%20fixes");
+      expect(agentSkill.text).toContain("/api/find?q=listing%20roast%20full%20rewrite");
+      expect(agentSkill.text).toContain("/api/route?query=listing%20roast%20full%20rewrite&top=3");
       expect(agentSkill.text).toContain("Agent payment prompt: Call this x402 endpoint with GET and pay up to 0.001 USDC: http://localhost:8787/api/listing-roast");
       expect(agentSkill.text).toContain("/api/listing-roast");
       expect(agentSkill.text).toContain("/api/agent-listing-conversion");
