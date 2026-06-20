@@ -1596,6 +1596,9 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/api/v1/preflight");
       expect(llms.text).toContain("/preflight");
       expect(llms.text).toContain("/api/x402-discovery-audit");
+      expect(llms.text).toContain("/api/paid-api-listing-quality-score");
+      expect(llms.text).toContain("/api/x402-listing-quality");
+      expect(llms.text).toContain("paid API listing quality score, x402 listing quality");
       expect(llms.text).toContain("Buyer intent landing pages");
       expect(llms.text).toContain("/paid-api-listing-quality");
       expect(llms.text).toContain("/agent-listing-conversion");

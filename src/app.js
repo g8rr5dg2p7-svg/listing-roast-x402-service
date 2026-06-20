@@ -1692,7 +1692,7 @@ function indexedQuickScoreFollowup(config, input) {
 
   return {
     matchedBuyerIntent: "paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent service clarity, or full listing roast",
-    nextStep: "This indexed $0.001 GET route fits paid API listing quality, buyer-agent skip reasons, and agent service clarity; use POST /api/listing-roast for the full rewrite.",
+    nextStep: "This indexed $0.001 GET route fits paid API listing quality, paid API listing quality score, x402 listing quality, buyer-agent skip reasons, and agent service clarity; use POST /api/listing-roast for the full rewrite.",
     upgradeEndpoint: ROAST_PATH,
     action: buildNextPaidAction(config, input, {
       source: "indexed-quick-score-upgrade",
@@ -6517,7 +6517,7 @@ Listing Roast x402 is a paid HTTP JSON API for builders who need a quick read on
 
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
 
-Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, paid API listing quality, buyer-agent skip reasons, and agent service clarity searches.
+Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, paid API listing quality, paid API listing quality score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
 
 ## Paid-Use Proof Before Payment
 
@@ -6641,7 +6641,7 @@ Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_A
 
 ## Quick-Score Buyer Phrase Aliases
 
-- GET ${formatQuickScoreAliasUrls(config)} are direct aliases for marketplace listing score, paid API listing quality, buyer-agent skip reasons, and agent service clarity searches.
+- GET ${formatQuickScoreAliasUrls(config)} are direct aliases for marketplace listing score, paid API listing quality, paid API listing quality score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
 - Each alias costs ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and returns the same quick-score output as GET ${absoluteUrl(config, ROAST_PATH)}.
 
 ## Paid API Preflight Aliases
@@ -8220,7 +8220,7 @@ Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who n
 
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
 
-Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, paid API listing quality, buyer-agent skip reasons, and agent service clarity searches.
+Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, paid API listing quality, paid API listing quality score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
 
 Paid API preflight aliases: GET ${formatPreflightAliasUrls(config)}. These aliases cost ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT} USDC units, and return the x402 site-audit output for agents that probe common preflight URLs before paying more.
 
