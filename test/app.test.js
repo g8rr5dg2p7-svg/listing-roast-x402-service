@@ -506,6 +506,12 @@ describe("Listing Roast x402 service", () => {
       const x402Manifest = await fetchJson(server, "/x402.json");
       expect(x402Manifest.status).toBe(200);
       expectFreshDiscoveryHeaders(x402Manifest.headers);
+      const compressedX402Manifest = await fetch(`http://127.0.0.1:${server.address().port}/x402.json`, {
+        headers: { "accept-encoding": "gzip" }
+      });
+      expect(compressedX402Manifest.status).toBe(200);
+      expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-manifest-service-label-v1");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -2359,7 +2365,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.routeViews).toBe(13);
       expect(cashRegister.json.signals.localDiscoveryViews).toBe(11);
       expect(cashRegister.json.signals.mcpViews).toBe(6);
-      expect(cashRegister.json.signals.x402ManifestViews).toBe(4);
+      expect(cashRegister.json.signals.x402ManifestViews).toBe(5);
       expect(cashRegister.json.signals.agentCardViews).toBe(4);
       expect(cashRegister.json.signals.aiPluginViews).toBe(1);
       expect(cashRegister.json.signals.apiCatalogViews).toBe(2);

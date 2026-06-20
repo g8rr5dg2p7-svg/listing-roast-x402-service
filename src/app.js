@@ -1,5 +1,6 @@
 import express from "express";
 import { createHash } from "node:crypto";
+import { gzipSync } from "node:zlib";
 import { getAuthHeaders } from "@coinbase/cdp-sdk/auth";
 import { HTTPFacilitatorClient, x402ResourceServer } from "@x402/core/server";
 import { registerExactEvmScheme } from "@x402/evm/exact/server";
@@ -20,6 +21,8 @@ const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
 const BASE_MAINNET_NETWORK = "eip155:8453";
 const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const USDC_DECIMALS = 1_000_000n;
+const GZIP_RESPONSE_THRESHOLD_BYTES = 1024;
+const COMPRESSIBLE_CONTENT_TYPE = /(json|text|javascript|svg|xml|markdown|linkset)/i;
 const ROOT_DIRECTORY_POST_PATH = "/";
 const API_ENTRY_PATH = "/api";
 const API_V1_ENTRY_PATH = "/api/v1";
@@ -459,6 +462,48 @@ function indentText(value, spaces = 4) {
 
 function uniqueTerms(values = []) {
   return Array.from(new Set(values.filter((value) => typeof value === "string" && value.trim()).map((value) => value.trim())));
+}
+
+function appendVaryHeader(value, headerName) {
+  const headers = String(value || "")
+    .split(",")
+    .map((header) => header.trim())
+    .filter(Boolean);
+  const alreadyPresent = headers.some((header) => header === "*" || header.toLowerCase() === headerName.toLowerCase());
+  return alreadyPresent ? (value || headerName) : [...headers, headerName].join(", ");
+}
+
+function gzipLargeTextResponses(request, response, next) {
+  if (!/\bgzip\b/i.test(request.get("accept-encoding") || "")) {
+    next();
+    return;
+  }
+
+  const originalSend = response.send.bind(response);
+  response.send = (body) => {
+    if (
+      response.get("content-encoding") ||
+      response.statusCode === 204 ||
+      response.statusCode === 304 ||
+      !(Buffer.isBuffer(body) || typeof body === "string")
+    ) {
+      return originalSend(body);
+    }
+
+    const bodyBuffer = Buffer.isBuffer(body) ? body : Buffer.from(body);
+    const contentType = response.get("content-type") || "";
+    if (bodyBuffer.byteLength < GZIP_RESPONSE_THRESHOLD_BYTES || !COMPRESSIBLE_CONTENT_TYPE.test(contentType)) {
+      return originalSend(body);
+    }
+
+    const gzippedBody = gzipSync(bodyBuffer);
+    response.set("content-encoding", "gzip");
+    response.set("vary", appendVaryHeader(response.get("vary"), "Accept-Encoding"));
+    response.set("content-length", String(gzippedBody.byteLength));
+    return originalSend(gzippedBody);
+  };
+
+  next();
 }
 
 function routeTags(routeKey) {
@@ -7400,6 +7445,7 @@ export function createApp(overrides = {}) {
   const config = getConfig(overrides);
   const app = express();
   app.set("trust proxy", 1);
+  app.use(gzipLargeTextResponses);
   app.use(express.json({ limit: "32kb" }));
   app.use((_request, response, next) => {
     response.set("Link", buildDiscoveryLinks(config));
