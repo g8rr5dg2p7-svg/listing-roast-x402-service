@@ -312,8 +312,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-listing-roast-command-intent-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T04:15:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-exact-intent-command-routes-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T04:25:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -3378,8 +3378,16 @@ function commandActionKeyForIntent(intent = "") {
     return { intent: rawIntent, selectedActionKey: "discoveryAuditQuick" };
   }
 
-  if (normalizedIntent.includes("preflight") || normalizedIntent.includes("openapi") || normalizedIntent.includes("llms") || normalizedIntent.includes("robots") || normalizedIntent.includes("sitemap") || normalizedIntent.includes("metadata")) {
+  if (normalizedIntent.includes("site audit") || normalizedIntent.includes("preflight") || normalizedIntent.includes("openapi") || normalizedIntent.includes("llms") || normalizedIntent.includes("robots") || normalizedIntent.includes("sitemap") || normalizedIntent.includes("metadata")) {
     return { intent: rawIntent, selectedActionKey: "x402SiteAudit" };
+  }
+
+  if (normalizedIntent.includes("marketplace conversion") || normalizedIntent.includes("conversion score")) {
+    return { intent: rawIntent, selectedActionKey: "conversionScore" };
+  }
+
+  if (normalizedIntent.includes("agent listing conversion") || normalizedIntent.includes("listing conversion")) {
+    return { intent: rawIntent, selectedActionKey: "agentListingConversion" };
   }
 
   if (normalizedIntent.includes("custom") || normalizedIntent.includes("body") || normalizedIntent.includes("listing score")) {
@@ -5979,6 +5987,11 @@ function scoreCatalogResource(resource, query) {
 
   if (includesAny(normalizedQuery, ["x402 marketplace conversion", "marketplace conversion score", "marketplace conversion check"])) {
     if (resource.path === CONVERSION_SCORE_PATH) score += 140;
+    if (isIndexedRoastGet) score += 15;
+  }
+
+  if (includesAny(normalizedQuery, ["agent listing conversion", "listing conversion score", "agent listing conversion score"])) {
+    if (resource.path === AGENT_LISTING_PATH) score += 260;
     if (isIndexedRoastGet) score += 15;
   }
 
