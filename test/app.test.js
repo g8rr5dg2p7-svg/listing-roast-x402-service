@@ -2055,7 +2055,8 @@ describe("Listing Roast x402 service", () => {
         "x402 listing quality",
         "marketplace listing conversion API",
         "marketplace product listing quality",
-        "buyer-agent skip reasons"
+        "buyer-agent skip reasons",
+        "Agentic.Market listing score"
       ]);
       expect(payNow.json.buyerPhraseCommandPack[0].firstPaidAction.path).toBe("/api/listing-roast");
       expect(payNow.json.buyerPhraseCommandPack[0].exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality-score");
@@ -2065,6 +2066,7 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.buyerPhraseCommandPack[2].exactIntentPaidAction.path).toBe("/api/x402-listing-quality");
       expect(payNow.json.buyerPhraseCommandPack[3].exactIntentPaidAction.path).toBe("/api/marketplace-listing-conversion-api");
       expect(payNow.json.buyerPhraseCommandPack[4].exactIntentPaidAction.path).toBe("/api/marketplace-product-listing-quality");
+      expect(payNow.json.buyerPhraseCommandPack[6].exactIntentPaidAction.path).toBe("/api/marketplace-listing-score");
       expect(payNow.json.expectedChallenge.status).toBe(402);
       expect(payNow.json.paidUsageProof.paidCompletions).toBe(0);
       expect(payNow.json.paidUsageProof.noSpend).toBe(true);

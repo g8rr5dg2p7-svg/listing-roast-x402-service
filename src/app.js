@@ -53,7 +53,7 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     summary: "Paid $0.001 marketplace listing score alias",
     catalogTitle: "GET $0.001 marketplace listing score quick-score alias",
     description: "Marketplace listing score x402: $0.001 GET alias for marketplace listing score buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and next paid action guidance.",
-    keywords: ["marketplace listing score", "marketplace listing quality", "listing quality score", "x402 listing quality", "paid API listing quality"]
+    keywords: ["marketplace listing score", "Agentic.Market listing score", "agentic market listing score", "marketplace listing quality", "listing quality score", "x402 listing quality", "paid API listing quality"]
   },
   "/api/marketplace-listing-conversion-api": {
     id: "marketplace_listing_conversion_api_alias",
@@ -3473,6 +3473,11 @@ function buildBuyerPhraseCommandPack(config) {
       intent: "buyer-agent skip reasons",
       actionKey: "buyerAgentSkipReasons",
       landingPage: BUYER_AGENT_SKIP_REASONS_PAGE_PATH
+    },
+    {
+      intent: "Agentic.Market listing score",
+      actionKey: "marketplaceListingScore",
+      landingPage: "/api/marketplace-listing-score"
     }
   ];
 
