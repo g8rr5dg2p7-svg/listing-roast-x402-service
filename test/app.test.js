@@ -1741,6 +1741,12 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json["x-listing-roast"].paidUsageProof.noSpend).toBe(true);
       expect(openApi.json["x-listing-roast"].settlementProof.evidenceFields).toContain("receiverWallet.usdcBalance");
       expect(openApi.json["x-listing-roast"].recommendedFirstPaidAction.route).toContain("/api/listing-roast");
+      expect(openApi.json["x-recommended-paid-sequence"][0].use).toBe("indexedQuickScore");
+      expect(openApi.json["x-recommended-paid-sequence"][0].action.maxAmountRequired).toBe("1000");
+      expect(openApi.json["x-recommended-paid-sequence"][1].use).toBe("fullRoast");
+      expect(openApi.json["x-recommended-paid-sequence"][1].action.maxAmountRequired).toBe("10000");
+      expect(openApi.json.info["x-recommended-paid-sequence"][0].use).toBe("indexedQuickScore");
+      expect(openApi.json.info["x-recommended-paid-sequence"][1].action.path).toBe("/api/listing-roast");
       expect(openApi.json["x-listing-roast"].recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(openApi.json["x-listing-roast"].recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
       expect(openApi.json["x-listing-roast"].recommendedPaidSequence[1].use).toBe("fullRoast");

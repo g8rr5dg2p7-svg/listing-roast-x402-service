@@ -4217,6 +4217,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
         recommendedPaidSequence
       },
       "x-recommended-first-paid-action": intentRoutes.indexedQuickScore,
+      "x-recommended-paid-sequence": recommendedPaidSequence,
       "x-commands": absoluteUrl(config, COMMANDS_PATH),
       "x-pay-now": absoluteUrl(config, PAY_NOW_PATH),
       "x-paid-usage-proof": absoluteUrl(config, PAID_USAGE_PROOF_PATH)
@@ -4234,6 +4235,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       buyerInstruction: "If the buyer intends to spend USDC, start with GET /api/listing-roast at $0.001 / max 1000 USDC units; read the 402 Payment-Required header, complete x402 payment, then retry with X-PAYMENT."
     },
     "x-recommended-first-paid-action": intentRoutes.indexedQuickScore,
+    "x-recommended-paid-sequence": recommendedPaidSequence,
     "x-commands": absoluteUrl(config, COMMANDS_PATH),
     "x-pay-now": absoluteUrl(config, PAY_NOW_PATH),
     "x-paid-usage-proof": absoluteUrl(config, PAID_USAGE_PROOF_PATH),
