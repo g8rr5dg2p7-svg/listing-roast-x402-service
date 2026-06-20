@@ -357,7 +357,7 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-command-handoff-aliases-v1";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-openapi-command-aliases-v1";
 const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T10:56:30.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
@@ -2570,6 +2570,8 @@ function buildPaymentHint(config, options) {
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, intentRouteKey, paidAction);
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, intentRouteKey, paidAction);
   const firstAgentPaymentRequest = buildAgentPaymentRequest(selectedFirstPaidAction);
+  const commandHandoffUrl = commandUrlForSelection(config, intentRouteKey, paidAction);
+  const freeHandoffUrl = payNowUrlForSelection(config, intentRouteKey, paidAction);
 
   return {
     protocol: "x402",
@@ -2593,6 +2595,15 @@ function buildPaymentHint(config, options) {
     firstAgentPaymentRequest,
     firstAgentPaymentPrompt: firstAgentPaymentRequest.prompt,
     firstPayCommand: selectedFirstPaidAction.command,
+    firstPaidCommand: selectedFirstPaidAction.command,
+    payCommand: selectedFirstPaidAction.command,
+    pay_command: selectedFirstPaidAction.command,
+    command: selectedFirstPaidAction.command,
+    selectedPaidActionCommand: paidAction.command,
+    commandHandoff: commandHandoffUrl,
+    commands: commandHandoffUrl,
+    freeHandoff: freeHandoffUrl,
+    payNow: freeHandoffUrl,
     buyerInstruction: buildSelectedBuyerInstruction(intentRouteKey, paidAction, intentRoutes.indexedQuickScore),
     paidResponsePreview: buildPaidResponsePreview(config, intentRouteKey, paidAction),
     selectedFirstPaidResponsePreview: buildPaidResponsePreview(
