@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-cdp-handoff-in-402-v19";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T18:23:59.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-cdp-handoff-in-payment-header-v20";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T19:07:52.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -2350,6 +2350,7 @@ function buildIndexedRoastQuickScoreDiscoveryExample(input, config) {
 
   return {
     ...output,
+    officialCdpDiscovery: compactOfficialCdpDiscoveryHandoff(buildOfficialCdpDiscoveryHandoff(config)),
     checkedSignals: undefined,
     buyerIntentHandoffs: undefined,
     fullRoastUpgradeDecision: undefined,
@@ -3168,6 +3169,10 @@ function compactChallengeOutputExample(example) {
 
   if (example.catalogRefresh) {
     compact.catalogRefresh = pickDefined(example.catalogRefresh, ["status", "directChallengeReadyForCatalog", "needsRealSettlement", "exactResourceUrl"]);
+  }
+
+  if (example.officialCdpDiscovery) {
+    compact.officialCdpDiscovery = compactOfficialCdpDiscoveryHandoff(example.officialCdpDiscovery);
   }
 
   if (Array.isArray(example.mismatches)) {
@@ -7018,6 +7023,14 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     priceFilterReason: "Use maxUsdPrice=0.001 for cheap-route discovery; current live checks show this finds the indexed route ahead of broader unfiltered marketplace results.",
     refreshRule: "CDP Bazaar refreshes catalog metadata after real settlement; unpaid probes do not refresh search."
   };
+}
+
+function compactOfficialCdpDiscoveryHandoff(handoff) {
+  return pickDefined(handoff, [
+    "recommendedSearchQuery",
+    "recommendedMaxUsdPrice",
+    "alternateSearchQueries"
+  ]);
 }
 
 function formatOfficialCdpDiscoveryMarkdown(config) {
