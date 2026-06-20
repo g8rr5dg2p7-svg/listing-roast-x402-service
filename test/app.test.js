@@ -3570,6 +3570,13 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.payCommand).toContain("/api/listing-roast");
       expect(response.json.payCommand).toContain("--max-amount 1000");
       expect(response.json.pay_command).toBe(response.json.payCommand);
+      expect(response.json.payCommandExamples.bareRoute).toBe(response.json.payCommand);
+      expect(response.json.payCommandExamples.withSampleInputs).toContain("/api/listing-roast?agentName=");
+      expect(response.json.payCommandExamples.withSampleInputs).toContain("listingText=");
+      expect(response.json.payCommandExamples.withSampleInputs).toContain("--max-amount 1000");
+      expect(response.json.sampleQueryPayCommand).toBe(response.json.payCommandExamples.withSampleInputs);
+      expect(response.json.sampleQueryInputs.agentName).toBe("Listing Roast x402");
+      expect(response.json.sampleQueryInputs.listingText).toContain("marketplace product listing quality");
       expect(response.json.payNow).toContain("/api/pay-now");
       expect(response.json.commandHandoff).toContain("/api/commands");
       expect(response.json.whyPay).toContain("$0.001");

@@ -951,6 +951,19 @@ function buildGetPayCommand(config, pathname = INSTANT_SCORE_PATH, maxAmount = I
   --max-amount ${maxAmount}`;
 }
 
+function buildGetPayCommandWithQuery(config, pathname = ROAST_PATH, maxAmount = INSTANT_SCORE_AMOUNT, query = quickScoreRequestExample) {
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  }
+  const queryString = searchParams.toString();
+  const pathWithQuery = queryString ? `${pathname}?${queryString}` : pathname;
+
+  return buildGetPayCommand(config, pathWithQuery, maxAmount);
+}
+
 function sha256Digest(value) {
   return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }
@@ -3821,6 +3834,12 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     maxTimeoutSeconds: 300
   }];
   const paidResponsePreview = buildPaidResponsePreview(config, intentRouteKey, selected);
+  const sampleQueryInputs = selected.method === "GET" && QUICK_SCORE_PAID_PATHS.includes(selected.path)
+    ? quickScoreAliasInputDefaults(selected.path)
+    : null;
+  const sampleQueryPayCommand = sampleQueryInputs
+    ? buildGetPayCommandWithQuery(config, selected.path, selected.maxAmountRequired, sampleQueryInputs)
+    : null;
 
   return {
     error: "payment_required",
@@ -3837,6 +3856,11 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     selectedPaidAction: selected,
     payCommand: selected.command,
     pay_command: selected.command,
+    payCommandExamples: {
+      bareRoute: selected.command,
+      ...(sampleQueryPayCommand ? { withSampleInputs: sampleQueryPayCommand } : {})
+    },
+    ...(sampleQueryPayCommand ? { sampleQueryPayCommand, sampleQueryInputs } : {}),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     commandHandoff: absoluteUrl(config, COMMANDS_PATH),
     whyPay: paidResponsePreview.whyPay,
