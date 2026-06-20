@@ -165,6 +165,30 @@ describe("Listing Roast x402 service", () => {
     expect(buildInstantScoreInput(customQuery, { normalizeStaleIndexedDefaults: true }).currentPrice).toBe("$0.02");
   });
 
+  it("serves checkout-style aliases as free pay-now handoffs", async () => {
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      for (const aliasPath of ["/api/checkout", "/checkout", "/api/buy", "/buy", "/api/pay", "/pay", "/api/start", "/start"]) {
+        const checkout = await fetchJson(server, `${aliasPath}?intent=buyer-agent%20skip%20reasons`);
+        expect(checkout.status).toBe(200);
+        expect(checkout.headers.get("payment-required")).toBeNull();
+        expect(checkout.json.noSpendNote).toContain("Fetching this endpoint is free");
+        expect(checkout.json.canonicalPayNow).toBe("http://localhost:8787/api/pay-now");
+        expect(checkout.json.checkoutAliases).toContain(`http://localhost:8787${aliasPath}`);
+        expect(checkout.json.links.canonicalPayNow).toBe("http://localhost:8787/api/pay-now");
+        expect(checkout.json.links.checkoutAliases).toContain("http://localhost:8787/api/checkout");
+        expect(checkout.json.selectedActionKey).toBe("buyerAgentSkipReasons");
+        expect(checkout.json.selectedPaidPath).toBe("/api/listing-roast");
+        expect(checkout.json.firstPaidPath).toBe("/api/listing-roast");
+        expect(checkout.json.payableRoute.path).toBe("/api/listing-roast");
+        expect(checkout.json.paymentRule).toContain("Do not call paid routes");
+      }
+    } finally {
+      server.close();
+    }
+  });
+
   it("records aggregate no-spend intent signals without storing raw queries", async () => {
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
     const server = await listen(app);

@@ -213,6 +213,7 @@ const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
 const AGENT402_ROUTE_VISIBILITY_PATH = "/api/agent402-route-visibility";
 const DISCOVERY_AUDIT_QUICK_PATHS = Object.freeze([DISCOVERY_AUDIT_PATH, AGENT402_ROUTE_VISIBILITY_PATH]);
 const PAY_NOW_PATH = "/api/pay-now";
+const PAY_NOW_ALIAS_PATHS = Object.freeze(["/api/checkout", "/checkout", "/api/buy", "/buy", "/api/pay", "/pay", "/api/start", "/start"]);
 const COMMANDS_PATH = "/api/commands";
 const PAID_USAGE_PROOF_PATH = "/api/paid-usage-proof";
 const PAID_USAGE_PROOF_ALIAS_PATHS = Object.freeze(["/api/proof", "/proof", "/paid-usage-proof"]);
@@ -851,6 +852,7 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, WELL_KNOWN_X402_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, API_X402_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
+    ...PAY_NOW_ALIAS_PATHS.map((pathname) => `<${absoluteUrl(config, pathname)}>; rel="help"; type="application/json"; title="pay-now handoff alias"`),
     `<${absoluteUrl(config, COMMANDS_PATH)}>; rel="help"; type="application/json"; title="compact pay command handoff"`,
     `<${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}>; rel="service-meta"; type="application/json"; title="wallet-backed paid-use proof"`,
     ...PAID_USAGE_PROOF_ALIAS_PATHS.map((pathname) => `<${absoluteUrl(config, pathname)}>; rel="service-meta"; type="application/json"; title="paid-use proof alias"`),
@@ -3955,8 +3957,12 @@ function buildPayNow(config, intent = "", cashRegister = {}, receiverWallet = nu
     settlementProof: buildSettlementProof(config, cashRegister),
     officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     publicCdpStaleCardOverride,
+    canonicalPayNow: absoluteUrl(config, PAY_NOW_PATH),
+    checkoutAliases: PAY_NOW_ALIAS_PATHS.map((pathname) => absoluteUrl(config, pathname)),
     commands: absoluteUrl(config, COMMANDS_PATH),
     links: {
+      canonicalPayNow: absoluteUrl(config, PAY_NOW_PATH),
+      checkoutAliases: PAY_NOW_ALIAS_PATHS.map((pathname) => absoluteUrl(config, pathname)),
       commands: absoluteUrl(config, COMMANDS_PATH),
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       pricing: absoluteUrl(config, PRICING_PATH),
@@ -4110,6 +4116,7 @@ function buildPayNow(config, intent = "", cashRegister = {}, receiverWallet = nu
     marketplaceNote: "CDP Bazaar updates indexed descriptions after a real settled payment; this free handoff reflects the current live route map without spending.",
     bazaarCataloging: buildBazaarCatalogingGuidance(config),
     intentHint: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons`,
+    paymentRule: "Do not call paid routes unless the buyer explicitly intends to pay USDC through x402.",
     noSpendNote: "Fetching this endpoint is free. Payment happens only when a buyer calls the x402 paid route."
   };
 }
@@ -12441,7 +12448,7 @@ ${copyScript("Copy command")}
     response.json(buildPublicCashRegister(config, cashRegister, receiverWallet));
   });
 
-  app.get(PAY_NOW_PATH, async (request, response) => {
+  app.get([PAY_NOW_PATH, ...PAY_NOW_ALIAS_PATHS], async (request, response) => {
     await recordSignal("payNowViews");
     const cashRegister = await getCashRegister();
     const receiverWallet = await getReceiverBalanceSnapshot(config);
