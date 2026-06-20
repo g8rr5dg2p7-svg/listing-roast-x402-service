@@ -240,7 +240,7 @@ const SERVICE_TAGS = Object.freeze([
   "route health"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality and discoverability. $0.001 GET /api/listing-roast for paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent service clarity, paid API preflight, x402 discovery audit, Bazaar visibility, and stale price; upgrade via POST /api/listing-roast.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score and buyer-agent skip reasons. $0.001 GET /api/listing-roast for marketplace listing score, agent service clarity, paid API preflight, x402 discovery audit, Bazaar visibility, stale price, and discoverability; upgrade via POST /api/listing-roast.";
 const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
   "paid API listing quality score",
   "marketplace listing score",
@@ -253,8 +253,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-agent-skills-intent-aliases-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T02:30:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-route-search-frontload-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T01:48:24.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -3751,7 +3751,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
           operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
           tags: ["paid API listing quality", "paid API listing quality score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "agent service listing clarity", "x402 listing", "paid API listing"],
           summary: "Paid $0.001 paid API listing quality, agent conversion, and buyer-agent skip reasons quick score",
-          description: "Score API marketplace listing quality and discoverability before promotion from the already-indexed, paid-use-confirmed /api/listing-roast URL. Returns the lowest-price $0.001 Paid API listing quality score for agent listing conversion score, x402 discovery audit triage, buyer-agent skip reasons, agent service listing clarity, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
+          description: "Paid API listing quality score and buyer-agent skip reasons before promotion from the already-indexed, paid-use-confirmed /api/listing-roast URL. Returns the lowest-price $0.001 marketplace listing score for agent listing conversion score, x402 discovery audit triage, agent service listing clarity, paid API preflight triage, route health, stale pricing, Bazaar search visibility, and conversion checks after payment. Use POST on the same URL for the full $0.01 roast.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
