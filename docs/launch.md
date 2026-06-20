@@ -31,11 +31,11 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: c35b254c-ea28-4f11-b781-3c2963876cd9.
-- Latest live code commit: 306e8a3 Expose upgrade shortcut in free handoffs.
-- Latest GitHub release: upgrade-handoff-v1.
+- Railway deploy: successful. Latest verified deployment: 97de4820-7f0f-4603-8b3e-d4779eb44f99.
+- Latest live code commit: d6fbaba Clarify terminal pay-now shortcut.
+- Latest GitHub release: terminal-handoff-v1.
 - Latest metadata version: 2026-06-20-terminal-handoff-v34.
-- Latest repo docs refresh: early `paymentShortcut.upgradeAfterQuickScore` for the $0.01 full-roast route, compact upgrade shortcuts in `/api/pay-now`, `/api/examples`, `/api/commands`, and payment hints, early `paymentShortcut` fields before bulky unpaid 402 metadata, compact top-level payable-route fields in unpaid 402 JSON bodies, aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
+- Latest repo docs refresh: direct terminal `paymentShortcut` guidance for the $0.01 full-roast route, early `paymentShortcut.upgradeAfterQuickScore` for quick-score-to-full-roast upgrades, compact upgrade shortcuts in `/api/pay-now`, `/api/examples`, `/api/commands`, and payment hints, early `paymentShortcut` fields before bulky unpaid 402 metadata, compact top-level payable-route fields in unpaid 402 JSON bodies, aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
