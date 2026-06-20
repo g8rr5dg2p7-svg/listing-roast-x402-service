@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-mcp-resource-compat-v11";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T17:34:58.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-mcp-advertise-resources-v12";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T17:41:17.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -8908,7 +8908,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
     transport: "http",
     serverInfo: {
       name: config.serviceName,
-      version: "0.2.0"
+      version: DISCOVERY_METADATA_VERSION
     },
     transports: [
       {
@@ -8919,7 +8919,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
       {
         type: "http",
         url: jsonRpcEndpoint,
-        note: "POST JSON-RPC endpoint for initialize, tools/list, and safe no-spend tools/call handoffs."
+        note: "POST JSON-RPC endpoint for initialize, tools/list, tools/call, resources/list, resources/read, prompts/list, and safe no-spend handoffs."
       }
     ],
     capabilities: {
@@ -11189,8 +11189,9 @@ ${copyScript("Copy command")}
       mcpServerCardAliases: mcpServerCardAliasUrls(config),
       mcpJsonRpcEndpoint: absoluteUrl(config, MCP_ROOT_PATH),
       mcpJsonRpcAliases: [absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH), absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, MCP_ROOT_PATH)],
-      mcpJsonRpcMethods: ["initialize", "ping", "tools/list", "tools/call"],
+      mcpJsonRpcMethods: ["initialize", "ping", "tools/list", "tools/call", "resources/list", "resources/read", "prompts/list"],
       mcpJsonRpcTools: buildMcpJsonRpcTools().map((tool) => tool.name),
+      mcpJsonRpcResources: buildMcpJsonRpcResources(config).map((resource) => resource.uri),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       commands: absoluteUrl(config, COMMANDS_PATH),
       payNowExamples,
