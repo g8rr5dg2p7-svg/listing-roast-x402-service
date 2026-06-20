@@ -1550,6 +1550,7 @@ describe("Listing Roast x402 service", () => {
       expect(llms.status).toBe(200);
       expect(llms.text).toContain("Command builder");
       expect(llms.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
+      expect(llms.text).not.toContain("Paid-use proof before payment: Paid-use proof before payment");
       expect(llms.text).toContain("/api/cash-register");
       expect(llms.text).toContain("/AGENTS.md");
       expect(llms.text).toContain("/docs");

@@ -8033,7 +8033,7 @@ Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cos
 
 Paid API preflight aliases: GET ${formatPreflightAliasUrls(config)}. These aliases cost ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT} USDC units, and return the x402 site-audit output for agents that probe common preflight URLs before paying more.
 
-Paid-use proof before payment: ${formatPaidUseProofMarkdown(config, cashRegister)}
+${formatPaidUseProofMarkdown(config, cashRegister)}
 
 Homepage: ${absoluteUrl(config, "/")}
 Command builder: ${absoluteUrl(config, "/builder")}
