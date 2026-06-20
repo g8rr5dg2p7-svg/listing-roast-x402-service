@@ -588,7 +588,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(compressedX402Manifest.status).toBe(200);
       expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
-      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-bazaar-keyword-refresh-v1");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-api-catalog-command-handoff-v1");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -624,8 +624,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-bazaar-keyword-refresh-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T05:28:32.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-api-catalog-command-handoff-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T07:22:48.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -961,8 +961,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-bazaar-keyword-refresh-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T05:28:32.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-api-catalog-command-handoff-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T07:22:48.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -1221,9 +1221,21 @@ describe("Listing Roast x402 service", () => {
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].href).toBe("http://localhost:8787/api/listing-roast");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].method).toBe("GET");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].maxAmountRequired).toBe("1000");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].command).toContain("x402 pay 'http://localhost:8787/api/listing-roast'");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].command).toContain("-X GET");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].command).toContain("--max-amount 1000");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].expectedChallenge).toEqual({
+        status: 402,
+        network: "eip155:84532",
+        amount: "1000",
+        route: "http://localhost:8787/api/listing-roast"
+      });
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].href).toBe("http://localhost:8787/api/listing-roast");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].method).toBe("POST");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].maxAmountRequired).toBe("10000");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].command).toContain("x402 pay 'http://localhost:8787/api/listing-roast'");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].command).toContain("-X POST");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].command).toContain("--max-amount 10000");
       expect(apiCatalog.json.linkset[0]["paid-use-proof"][0].href).toBe("http://localhost:8787/api/paid-usage-proof");
       expect(apiCatalog.json.linkset[0]["paid-use-proof"][0].title).toContain("0 paid completions");
       expect(apiCatalog.json.linkset[0]["paid-use-proof"][0].paidCompletions).toBe(0);
@@ -1253,7 +1265,7 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
-      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-bazaar-keyword-refresh-v1");
+      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-api-catalog-command-handoff-v1");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -3134,7 +3146,7 @@ describe("Listing Roast x402 service", () => {
 
       const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
       expect(paymentAlias.status).toBe(200);
-      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-bazaar-keyword-refresh-v1");
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-api-catalog-command-handoff-v1");
       expect(paymentAlias.json.commands).toContain("/api/commands");
 
       const mcpJsonAlias = await fetchJson(server, "/mcp.json");

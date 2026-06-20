@@ -353,8 +353,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-bazaar-keyword-refresh-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T05:28:32.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-api-catalog-command-handoff-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T07:22:48.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -6865,7 +6865,15 @@ function buildApiCatalog(config, cashRegister = {}) {
     use: step.use,
     method: step.action.method,
     price: step.action.price,
-    maxAmountRequired: step.action.maxAmountRequired
+    maxAmountRequired: step.action.maxAmountRequired,
+    command: step.action.command,
+    reason: step.reason,
+    expectedChallenge: {
+      status: 402,
+      network: config.network,
+      amount: step.action.maxAmountRequired,
+      route: step.action.route
+    }
   }));
   const item = [
     { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET preferred first $0.001 indexed x402 marketplace listing score and POST $0.01 full roast" },
