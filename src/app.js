@@ -337,8 +337,8 @@ const SERVICE_TAGS = Object.freeze([
   "route health"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools snippets; returns an included quick score, route map, indexed /api/listing-roast handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Listing Roast Quick Score: paid API listing quality score, marketplace product listing quality, Agentic.Market listing score, marketplace listing conversion API, marketplace listing score, x402 marketplace conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service clarity, agent-service listing score, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, and x402 seller growth checklist. $0.001 GET /api/listing-roast quick score on the indexed paid-use-confirmed URL; POST upgrade.";
-const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Listing Roast Quick Score: $0.001 GET /api/listing-roast paid API listing quality score, marketplace conversion API, buyer-agent skip reasons, buyer agent skip reasons, agent service clarity, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 GET /api/listing-roast quick score on the indexed paid-use-confirmed URL for paid API listing quality score, marketplace product listing quality, Agentic.Market listing score, marketplace listing conversion API, marketplace listing score, x402 marketplace conversion, buyer-agent skip reasons, buyer agent skip reasons, agent listing conversion score, agent service clarity, agent-service listing score, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, Bazaar search visibility, and x402 seller growth checklist; POST upgrade.";
+const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 paid API listing quality score; marketplace conversion API; buyer-agent skip reasons; buyer agent skip reasons; agent service clarity; x402 discovery audit; x402 site audit; paid API preflight; route health; stale Bazaar price.";
 const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
   "listing quality score API",
   "marketplace product listing quality",
@@ -357,8 +357,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "agent listing conversion score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-agent-conversion-search-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T11:36:12.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-route-search-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T11:42:19.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -4493,7 +4493,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
         get: {
           operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
           tags: ["listing roast quick score", "paid API listing quality", "paid API listing quality score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "agent service listing clarity", "x402 listing", "paid API listing"],
-          summary: "Paid $0.001 listing roast quick score for paid API listing quality and buyer-agent skip reasons",
+          summary: "Paid $0.001 paid API listing quality score, Listing Roast quick score, and buyer-agent skip reasons",
           description: "Listing quality score API for paid API listing quality score, marketplace product listing quality, buyer-agent skip reasons, marketplace listing score, marketplace listing conversion API, agent service clarity, and agent service listing clarity. Lowest-price $0.001 score from indexed /api/listing-roast for agent listing conversion score, x402 marketplace conversion, x402 discovery audit, x402 site audit, paid API preflight, fix x402 Bazaar listing, stale price, route health, Bazaar search visibility, and conversion checks; POST same URL for $0.01 full roast.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
@@ -4503,7 +4503,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
             price: config.instantScorePrice,
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
             preferredFirstPaidAction: true,
-            buyerAction: "Pay $0.001 on the already-indexed marketplace route for buyer-agent skip reasons, agent service listing clarity, and a quick listing quality score."
+            buyerAction: "Pay $0.001 on the already-indexed /api/listing-roast route for a paid API listing quality score, buyer-agent skip reasons, agent service listing clarity, and marketplace listing score."
           }),
           parameters: listingQueryOpenApiParameters(),
           responses: {
@@ -6990,15 +6990,15 @@ function buildAgentCard(config, cashRegister = {}) {
     skills: [
       buildAgentSkill(config, {
         id: "indexed-listing-roast-quick-score",
-        name: "Buyer-agent skip reasons quick score",
-        description: "$0.001 GET score for buyer-agent skip reasons, agent service listing clarity, and paid API listing quality on the already-indexed Listing Roast route.",
+        name: "Paid API listing quality score",
+        description: "$0.001 GET paid API listing quality score for buyer-agent skip reasons, agent service listing clarity, and marketplace listing score on the already-indexed Listing Roast route.",
         tags: ["x402", "paid API listing", "listing roast", "buyer-agent skip reasons"],
         method: "GET",
         path: ROAST_PATH,
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
         preferredFirstPaidAction: true,
-        buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
+        buyerAction: "Pay $0.001 on the already-indexed /api/listing-roast route for a paid API listing quality score."
       }),
       buildAgentSkill(config, {
         id: "api-entry-route-map",
@@ -9091,7 +9091,7 @@ ${webMcpScript(config)}
           price: config.instantScorePrice,
           maxAmountRequired: INSTANT_SCORE_AMOUNT,
           preferredFirstPaidAction: true,
-          buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
+          buyerAction: "Pay $0.001 on the already-indexed /api/listing-roast route for a paid API listing quality score."
         }),
         instantScore: buildPaymentHint(config, {
           path: INSTANT_SCORE_PATH,
@@ -9962,7 +9962,7 @@ ${copyScript("Copy command")}
             price: config.instantScorePrice,
             maxAmountRequired: INSTANT_SCORE_AMOUNT,
             preferredFirstPaidAction: true,
-            buyerAction: "Pay $0.001 on the already-indexed marketplace route for a quick listing quality score."
+            buyerAction: "Pay $0.001 on the already-indexed /api/listing-roast route for a paid API listing quality score."
           }),
           keywords: ["listing roast", "score API", "marketplace listing quality", "paid API listing quality", "paid API discoverability", "x402 listing quality", "agent listing conversion score", "agent listing conversion", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "x402 marketplace conversion", "x402 site audit", "x402 service discoverability audit", "x402 discovery audit", "x402 bazaar discovery audit", "paid API preflight", "x402 route health check", "bazaar search visibility", "x402 listing stale price", "x402 metadata audit", "x402 buyer-readiness signals"],
           input: buildInstantScoreDiscovery(config).input

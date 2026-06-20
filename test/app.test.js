@@ -599,7 +599,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(compressedX402Manifest.status).toBe(200);
       expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
-      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-agent-conversion-search-v1");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-indexed-route-search-v1");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -635,8 +635,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-agent-conversion-search-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T11:36:12.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-indexed-route-search-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T11:42:19.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -771,7 +771,7 @@ describe("Listing Roast x402 service", () => {
       const resourcesById = Object.fromEntries(x402Manifest.json.resources.map((resource) => [resource.id, resource]));
       expect(x402Manifest.json.resources[0].name).toBe("marketplace_listing_score_paid_api_listing_quality_score");
       expect(x402Manifest.json.resources[0].serviceName).toBe("Listing Roast x402 Paid API Listing Quality Score");
-      expect(x402Manifest.json.resources[0].description).toMatch(/^Listing Roast Quick Score/);
+      expect(x402Manifest.json.resources[0].description).toMatch(/^Paid API Listing Quality Score by Listing Roast/);
       expect(x402Manifest.json.resources[0].description).toContain("marketplace listing conversion API");
       expect(x402Manifest.json.resources[0].description).toContain("marketplace product listing quality");
       expect(x402Manifest.json.resources[0].description).toContain("Agentic.Market listing score");
@@ -991,8 +991,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-agent-conversion-search-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T11:36:12.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-indexed-route-search-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T11:42:19.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -1323,7 +1323,7 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
-      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-agent-conversion-search-v1");
+      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-indexed-route-search-v1");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -1720,7 +1720,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.requestBody.content["application/json"].schema.properties.url.description).toContain("Alias for endpointUrl");
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.requestBody.content["application/json"].schema.properties.base_url.description).toContain("Alias for endpointUrl");
       expect(openApi.json.paths["/api/listing-roast"].get.operationId).toBe("getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore");
-      expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("listing roast quick score");
+      expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("paid API listing quality score");
       expect(openApi.json.paths["/api/listing-roast"].get.tags[0]).toBe("listing roast quick score");
       expect(openApi.json.paths["/api/listing-roast"].get.tags).toContain("paid API listing quality");
       expect(openApi.json.paths["/api/listing-roast"].get.security).toEqual([{ x402: [] }]);
@@ -3393,7 +3393,7 @@ describe("Listing Roast x402 service", () => {
 
       const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
       expect(paymentAlias.status).toBe(200);
-      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-agent-conversion-search-v1");
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-indexed-route-search-v1");
       expect(paymentAlias.json.commands).toContain("/api/commands");
 
       const mcpJsonAlias = await fetchJson(server, "/mcp.json");
@@ -3800,10 +3800,10 @@ describe("Listing Roast x402 service", () => {
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
-      expect(challenge.resource.description).toMatch(/^Listing Roast Quick Score/);
+      expect(challenge.resource.description).toMatch(/^Paid API Listing Quality Score by Listing Roast/);
       expect(challenge.resource.description.toLowerCase()).toContain("paid api listing quality score");
       expect(challenge.resource.description).toContain("marketplace conversion API");
-      expect(challenge.resource.description).toContain("Listing Roast Quick Score");
+      expect(challenge.resource.description).toContain("paid API listing quality score");
       expect(challenge.resource.description).toContain("x402 discovery audit");
       expect(challenge.resource.description).toContain("x402 site audit");
       expect(challenge.resource.description).toContain("paid API preflight");
