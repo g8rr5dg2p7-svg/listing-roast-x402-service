@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-prepay-risk-pages-v6";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T16:55:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-alias-payment-mirror-v7";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T16:58:48.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -2791,8 +2791,9 @@ function buildDiscoveryAuditDiscovery(config) {
   };
 }
 
-function buildSiteAuditDiscovery(config) {
+function buildSiteAuditDiscovery(config, options = {}) {
   const discovery = buildDiscoveryAuditDiscovery(config);
+  const routePath = options.routePath || SITE_AUDIT_PATH;
 
   return {
     input: buildDiscoveryAuditBuyerVisibleInput(buildDiscoveryAuditInputFromQuery()),
@@ -2804,7 +2805,7 @@ function buildSiteAuditDiscovery(config) {
     service: {
       name: config.serviceName,
       url: config.serviceUrl,
-      route: absoluteUrl(config, SITE_AUDIT_PATH),
+      route: absoluteUrl(config, routePath),
       price: config.siteAuditPrice,
       network: config.network
     }
@@ -2838,6 +2839,17 @@ function buildAgent402RouteVisibilityDiscovery(config) {
     input: buildDiscoveryAuditBuyerVisibleInput(input),
     outputExample: buildAgent402RouteVisibilityExampleOutput(config)
   });
+}
+
+function siteAuditIntentRouteKeyForPath(pathname) {
+  const metadata = SITE_AUDIT_EXACT_ALIAS_METADATA[pathname];
+
+  return metadata ? PAY_NOW_ACTION_BY_RESOURCE_ID[metadata.id] || "x402SiteAudit" : "x402SiteAudit";
+}
+
+function siteAuditDescriptionForPath(pathname) {
+  return SITE_AUDIT_EXACT_ALIAS_METADATA[pathname]?.description
+    || "Listing Roast x402 Site Audit: $0.001 GET x402 site audit, x402 buyer prepay risk score, score x402 endpoint before paying, x402 route health check, x402 listing SEO audit, x402 marketplace SEO audit, Bazaar search visibility, listing rank doctor, seller growth checklist, service discoverability audit, paid API preflight before paying more, direct 402 metadata, Bazaar pricing, and no-spend next actions.";
 }
 
 function inferPaymentHintIntentRouteKey(path, method = "GET") {
@@ -9037,16 +9049,27 @@ function createX402Middleware(config) {
     maxTimeoutSeconds: 300,
     extra: usdcPaymentExtra(config.network, resourceUrl(routePath))
   });
-  const buildSiteAuditPaymentRoute = (routePath) => ({
-    resource: resourceUrl(routePath),
-    ...challengeRouteServiceMetadata("x402SiteAudit"),
-    accepts: acceptsForRoute(routePath, config.siteAuditPrice),
-    description: withPaidUseProofDescription(config, "Listing Roast x402 Site Audit: $0.001 GET x402 site audit, x402 buyer prepay risk score, score x402 endpoint before paying, x402 route health check, x402 listing SEO audit, x402 marketplace SEO audit, Bazaar search visibility, listing rank doctor, seller growth checklist, service discoverability audit, paid API preflight before paying more, direct 402 metadata, Bazaar pricing, and no-spend fix steps."),
-    mimeType: "application/json",
-    customPaywallHtml: buildCustomPaywallHtml(config, "x402SiteAudit"),
-    unpaidResponseBody: unpaidPaymentPreview(config, "x402SiteAudit"),
-    extensions: declareChallengeDiscoveryExtension(buildSiteAuditDiscovery(config))
-  });
+  const buildSiteAuditPaymentRoute = (routePath) => {
+    const intentRouteKey = siteAuditIntentRouteKeyForPath(routePath);
+    const description = withPaidUseProofDescription(config, siteAuditDescriptionForPath(routePath));
+
+    return {
+      resource: resourceUrl(routePath),
+      ...challengeRouteServiceMetadata("x402SiteAudit"),
+      accepts: acceptsForRoute(routePath, config.siteAuditPrice),
+      description,
+      mimeType: "application/json",
+      customPaywallHtml: buildCustomPaywallHtml(config, intentRouteKey),
+      unpaidResponseBody: unpaidPaymentPreview(config, intentRouteKey, {
+        path: routePath,
+        method: "GET",
+        price: config.siteAuditPrice,
+        maxAmountRequired: SITE_AUDIT_AMOUNT,
+        resourceDescription: description
+      }),
+      extensions: declareChallengeDiscoveryExtension(buildSiteAuditDiscovery(config, { routePath }))
+    };
+  };
   const buildDiscoveryAuditQuickPaymentRoute = (routePath) => {
     const isAgent402Alias = routePath === AGENT402_ROUTE_VISIBILITY_PATH;
     const intentRouteKey = isAgent402Alias ? "agent402RouteVisibility" : "discoveryAuditQuick";
