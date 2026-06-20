@@ -3263,6 +3263,7 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.selectedPaidAction.method).toBe("POST");
       expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
       expect(response.json.selectedPaidAction.command).not.toContain("-d ");
+      expect(response.json.resource.description).toContain("includes a quick score");
       expect(response.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
