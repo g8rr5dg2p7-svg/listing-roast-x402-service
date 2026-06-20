@@ -85,6 +85,7 @@ const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
 const PAY_NOW_PATH = "/api/pay-now";
 const COMMANDS_PATH = "/api/commands";
 const PAID_USAGE_PROOF_PATH = "/api/paid-usage-proof";
+const PAID_USAGE_PROOF_ALIAS_PATHS = Object.freeze(["/api/proof", "/proof", "/paid-usage-proof"]);
 const PRICING_PATH = "/api/pricing";
 const FIND_PATH = "/api/find";
 const ROUTE_PATH = "/api/route";
@@ -617,6 +618,7 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
     `<${absoluteUrl(config, COMMANDS_PATH)}>; rel="help"; type="application/json"; title="compact pay command handoff"`,
     `<${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}>; rel="service-meta"; type="application/json"; title="wallet-backed paid-use proof"`,
+    ...PAID_USAGE_PROOF_ALIAS_PATHS.map((pathname) => `<${absoluteUrl(config, pathname)}>; rel="service-meta"; type="application/json"; title="paid-use proof alias"`),
     `<${absoluteUrl(config, PRICING_PATH)}>; rel="service-meta"; type="application/json"`,
     `<${absoluteUrl(config, FIND_PATH)}>; rel="search"; type="application/json"`,
     `<${absoluteUrl(config, ROUTE_PATH)}>; rel="service-meta"; type="application/json"`,
@@ -7848,7 +7850,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", API_SAMPLE_PATH, PAY_NOW_PATH, COMMANDS_PATH, PAID_USAGE_PROOF_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, API_SAMPLE_SCORE_PATH, ...OPENAPI_JSON_PATHS, ...OPENAPI_YAML_PATHS, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, ...PAYMENT_MANIFEST_PATHS, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, MCP_SERVER_CARD_PATH, "/api/schema", SCHEMA_JSON_PATH, "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", API_SAMPLE_PATH, PAY_NOW_PATH, COMMANDS_PATH, PAID_USAGE_PROOF_PATH, ...PAID_USAGE_PROOF_ALIAS_PATHS, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, API_SAMPLE_SCORE_PATH, ...OPENAPI_JSON_PATHS, ...OPENAPI_YAML_PATHS, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, ...PAYMENT_MANIFEST_PATHS, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, MCP_SERVER_CARD_PATH, "/api/schema", SCHEMA_JSON_PATH, "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -9097,7 +9099,7 @@ ${copyScript("Copy command")}
     setFreshDiscoveryHeaders(response).json(buildPayNow(config, request.query.intent || request.query.q || request.query.query || request.query.task || "", cashRegister));
   });
 
-  app.get(PAID_USAGE_PROOF_PATH, async (_request, response) => {
+  app.get([PAID_USAGE_PROOF_PATH, ...PAID_USAGE_PROOF_ALIAS_PATHS], async (_request, response) => {
     await recordSignal("proofViews");
     const cashRegister = await getCashRegister();
     setFreshDiscoveryHeaders(response).json(buildPaidUsageProofResponse(config, cashRegister));

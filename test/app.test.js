@@ -140,6 +140,8 @@ describe("Listing Roast x402 service", () => {
       expect(health.headers.get("link")).toContain("GET $0.001 paid API listing quality");
       expect(health.headers.get("link")).toContain("/api/pay-now");
       expect(health.headers.get("link")).toContain("/api/commands");
+      expect(health.headers.get("link")).toContain("/api/proof");
+      expect(health.headers.get("link")).toContain("/proof");
       expect(health.headers.get("link")).toContain("/api/pricing");
       expect(health.headers.get("link")).toContain("/api/find");
       expect(health.headers.get("link")).toContain("/api/route");
@@ -1851,6 +1853,14 @@ describe("Listing Roast x402 service", () => {
       expect(paidUsageProof.json.cashRegister).toContain("/api/cash-register");
       expect(paidUsageProof.json.bazaarCataloging.noSelfPay).toBe(true);
       expect(paidUsageProof.json.bazaarCataloging.note).toContain("extensions.bazaar metadata");
+      for (const aliasPath of ["/api/proof", "/proof", "/paid-usage-proof"]) {
+        const proofAlias = await fetchJson(server, aliasPath);
+        expect(proofAlias.status).toBe(200);
+        expect(proofAlias.headers.get("payment-required")).toBeNull();
+        expect(proofAlias.json.noSpend).toBe(true);
+        expect(proofAlias.json.paidUsageProof.paidCompletions).toBe(0);
+        expect(proofAlias.json.cashRegister).toContain("/api/cash-register");
+      }
 
       const commands = await fetchJson(server, "/api/commands?intent=paid%20API%20listing%20quality");
       expect(commands.status).toBe(200);
