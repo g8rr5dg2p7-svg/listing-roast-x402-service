@@ -357,8 +357,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-challenge-command-aliases-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T11:25:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-site-audit-search-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T11:31:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -371,14 +371,14 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   agentListingConversion: ["x402", "buyer-agent skip reasons", "agent service clarity", "agent service promotion readiness", "listing conversion", "paid API"],
   indexedQuickScore: ["x402", "listing quality score API", "marketplace product listing quality", "paid API listing quality score", "paid API listing quality", "marketplace listing score", "marketplace listing conversion API", "x402 marketplace conversion", "agent listing conversion", "buyer-agent skip reasons", "agent-service listing score", "x402 site audit", "x402 discovery audit", "paid API preflight", "agent service clarity", "route health"],
   x402Ping: ["x402", "payment rail", "paid API", "route health", "Base USDC"],
-  x402SiteAudit: ["x402", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "route health", "Bazaar visibility", "stale Bazaar price"],
+  x402SiteAudit: ["x402", "x402 site audit", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
   discoveryAuditQuick: ["x402", "Bazaar visibility", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 listing SEO audit", "x402 listing rank doctor", "paid API preflight", "route health"],
   discoveryAudit: ["x402", "Bazaar visibility", "discovery audit", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "stale Bazaar price", "paid API preflight"],
   fullRoast: ["x402", "listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons"]
 });
 const CHALLENGE_ROUTE_SERVICE_TAGS = Object.freeze({
   indexedQuickScore: ["x402", "paid API listing quality score", "marketplace listing score", "buyer agent skip reasons", "x402 marketplace conversion", "x402 discovery audit", "paid API preflight", "stale Bazaar price"],
-  x402SiteAudit: ["x402", "x402 site audit", "x402 seller growth checklist", "x402 listing SEO audit", "paid API preflight", "route health", "Bazaar visibility", "stale Bazaar price"],
+  x402SiteAudit: ["x402", "x402 site audit", "x402 marketplace SEO audit", "x402 seller growth checklist", "x402 listing SEO audit", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
   discoveryAuditQuick: ["x402", "x402 discovery audit", "Bazaar visibility", "paid API preflight", "route health"],
   discoveryAudit: ["x402", "x402 discovery audit", "Bazaar visibility", "stale Bazaar price", "paid API preflight"]
 });
@@ -3077,7 +3077,7 @@ function buildPayNowActions(config) {
       method: "GET",
       price: config.siteAuditPrice,
       maxAmountRequired: SITE_AUDIT_AMOUNT,
-      reason: "Use this when the buyer wants a paid API preflight before paying more: public metadata, OpenAPI, llms.txt, robots, sitemap, route health, and buyer-readiness signals."
+      reason: "Use this when the buyer asks for an x402 site audit, x402 marketplace SEO audit, Bazaar search visibility check, paid API preflight, route health, or buyer-readiness signals before paying more."
     }),
     discoveryAuditQuick: buildRoutePaymentAction(config, {
       path: DISCOVERY_AUDIT_PATH,
@@ -4767,10 +4767,10 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       },
       [SITE_AUDIT_PATH]: {
         get: {
-          operationId: "getX402SellerIntelligenceCatalogMetadataStaleBazaarPriceRouteHealthPaidApiPreflightAudit",
+          operationId: "getX402SiteAuditListingSeoMarketplaceSeoBazaarSearchVisibilitySellerGrowth",
           tags: ["x402 discovery", "x402 site audit", "x402 seller discoverability", "x402 service discoverability audit", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "x402 route health check", "stale Bazaar price", "paid API listing"],
-          summary: "Paid $0.001 x402 seller intelligence, catalog metadata quality, stale Bazaar price, route health check, paid API preflight, listing SEO audit, rank doctor, growth checklist, and Bazaar fix",
-          description: "Lowest-friction GET route for agents that want a quick no-spend x402 listing SEO audit, x402 listing rank doctor, x402 seller growth checklist, x402 seller intelligence, x402 marketplace SEO audit, x402 seller discoverability audit, fix x402 Bazaar listing guidance, x402 catalog metadata quality check, paid API preflight, route health check, public x402 discovery check, pricing check, stale Bazaar price check, direct 402 metadata check, and Bazaar search visibility check before buying the full audit.",
+          summary: "Paid $0.001 x402 site audit, x402 listing SEO audit, x402 marketplace SEO audit, Bazaar search visibility, stale Bazaar price, route health, paid API preflight, and seller growth checklist",
+          description: "Exact-path x402 site audit for agents that want a quick no-spend x402 listing SEO audit, x402 marketplace SEO audit, Bazaar search visibility check, x402 listing rank doctor, x402 seller growth checklist, x402 seller intelligence, x402 seller discoverability audit, fix x402 Bazaar listing guidance, x402 catalog metadata quality check, paid API preflight, route health check, public x402 discovery check, pricing check, stale Bazaar price check, and direct 402 metadata check before buying the full audit.",
           "x-price": config.siteAuditPrice,
           "x-x402-price": config.siteAuditPrice,
           "x-payment": buildPaymentHint(config, {
@@ -4778,7 +4778,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
             method: "GET",
             price: config.siteAuditPrice,
             maxAmountRequired: SITE_AUDIT_AMOUNT,
-            buyerAction: "Pay $0.001 for a no-spend x402 listing SEO audit, listing rank doctor, seller growth checklist, paid API preflight, metadata, pricing, and search visibility check."
+            buyerAction: "Pay $0.001 for a no-spend x402 site audit, x402 listing SEO audit, marketplace SEO audit, metadata, pricing, route health, and Bazaar search visibility check."
           }),
           parameters: [
             { name: "endpointUrl", in: "query", required: false, schema: { type: "string" } },
@@ -5701,8 +5701,8 @@ function buildX402Manifest(config, cashRegister = {}) {
         url: absoluteUrl(config, SITE_AUDIT_PATH),
         price: config.siteAuditPrice,
         maxAmountRequired: SITE_AUDIT_AMOUNT,
-        description: "One-tenth-cent GET x402 listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, and paid API preflight before paying for direct 402 metadata, route health, Bazaar pricing, search visibility, OpenAPI, llms.txt, and no-spend next actions.",
-        keywords: ["x402 site audit", "x402 service discoverability audit", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "x402 route health check", "x402 discovery audit", "x402 bazaar discovery audit", "bazaar search visibility", "x402 listing stale price"],
+        description: "One-tenth-cent GET x402 site audit, x402 listing SEO audit, x402 marketplace SEO audit, Bazaar search visibility, listing rank doctor, seller growth checklist, service discoverability audit, and paid API preflight before paying for direct 402 metadata, route health, Bazaar pricing, OpenAPI, llms.txt, and no-spend next actions.",
+        keywords: ["x402 site audit", "x402 site audit API", "x402 service discoverability audit", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "x402 route health check", "x402 discovery audit", "x402 bazaar discovery audit", "bazaar search visibility", "x402 listing stale price"],
         command: buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT),
         input: buildSiteAuditDiscovery(config).input,
         outputExample: buildSiteAuditExampleOutput(config),
@@ -8128,7 +8128,7 @@ function createX402Middleware(config) {
     resource: resourceUrl(routePath),
     ...challengeRouteServiceMetadata("x402SiteAudit"),
     accepts: acceptsForRoute(routePath, config.siteAuditPrice),
-    description: withPaidUseProofDescription(config, "Listing Roast x402 Site Audit: $0.001 GET listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, paid API preflight before paying more, route health check, direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps."),
+    description: withPaidUseProofDescription(config, "Listing Roast x402 Site Audit: $0.001 GET x402 site audit, x402 listing SEO audit, x402 marketplace SEO audit, Bazaar search visibility, listing rank doctor, seller growth checklist, service discoverability audit, paid API preflight before paying more, route health check, direct 402 metadata, Bazaar pricing, and no-spend fix steps."),
     mimeType: "application/json",
     customPaywallHtml: buildCustomPaywallHtml(config, "x402SiteAudit"),
     unpaidResponseBody: unpaidPaymentPreview(config, "x402SiteAudit"),
@@ -10108,7 +10108,7 @@ ${copyScript("Copy command")}
           price: config.siteAuditPrice,
           network: config.network,
           command: buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT),
-        description: "one-tenth-cent GET x402 listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, and paid API preflight before paying for direct 402 metadata, route health, Bazaar pricing, search visibility, and no-spend fix steps.",
+          description: "one-tenth-cent GET x402 site audit, x402 listing SEO audit, x402 marketplace SEO audit, Bazaar search visibility, listing rank doctor, seller growth checklist, service discoverability audit, and paid API preflight before paying for direct 402 metadata, route health, Bazaar pricing, and no-spend fix steps.",
           payment: buildPaymentHint(config, {
             path: SITE_AUDIT_PATH,
             method: "GET",
@@ -10116,7 +10116,7 @@ ${copyScript("Copy command")}
             maxAmountRequired: SITE_AUDIT_AMOUNT,
             buyerAction: "Pay $0.001 for a no-spend x402 listing SEO audit, listing rank doctor, seller growth checklist, metadata, pricing, and search visibility check."
           }),
-          keywords: ["x402 site audit", "x402 service discoverability audit", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "x402 route health check", "x402 discovery audit", "bazaar search visibility", "x402 listing stale price"],
+          keywords: ["x402 site audit", "x402 site audit API", "x402 service discoverability audit", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "x402 route health check", "x402 discovery audit", "bazaar search visibility", "x402 listing stale price"],
           input: buildSiteAuditDiscovery(config).input
         },
         {
