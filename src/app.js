@@ -253,8 +253,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-route-search-frontload-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T01:48:24.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-intent-page-proof-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T01:54:48.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -6694,6 +6694,8 @@ function buildIntentLandingHandoffs(config) {
 }
 
 function buildIntentLandingPage(config, page) {
+  const indexedAction = buildPayNowActions(config).indexedQuickScore;
+
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -6745,6 +6747,7 @@ function buildIntentLandingPage(config, page) {
         <a href="/builder">Builder</a>
         <a href="/api/pay-now">Pay-now</a>
         <a href="/api/commands">Commands</a>
+        <a href="${PAID_USAGE_PROOF_PATH}">Proof</a>
         <a href="/x402.json">Manifest</a>
         <a href="/openapi.json">OpenAPI</a>
       </nav>
@@ -6758,6 +6761,7 @@ function buildIntentLandingPage(config, page) {
         <p>${page.keywords.map((keyword) => `<span class="tag">${escapeHtml(keyword)}</span>`).join("")}</p>
         <a class="button" href="${escapeHtml(page.primaryAction.route)}">${escapeHtml(page.primaryLabel)}</a>
         <a class="button secondary" href="/api/pay-now">Open free route handoff</a>
+        <a class="button secondary" href="${PAID_USAGE_PROOF_PATH}">Verify paid-use proof</a>
         <a class="button secondary" href="/api/commands">Open compact command JSON</a>
       </div>
     </section>
@@ -6770,6 +6774,12 @@ function buildIntentLandingPage(config, page) {
           <pre>${escapeHtml(page.primaryAction.command)}</pre>
         </div>
         <div class="card">
+          <h2>Proven first paid route</h2>
+          <p><code>${escapeHtml(indexedAction.method)} ${escapeHtml(indexedAction.path)}</code></p>
+          <p class="muted">This is the already-indexed route with confirmed paid use. Check <a href="${PAID_USAGE_PROOF_PATH}">/api/paid-usage-proof</a> before paying.</p>
+          <pre>${escapeHtml(indexedAction.command)}</pre>
+        </div>
+        <div class="card">
           <h2>Upgrade path</h2>
           <p>${escapeHtml(page.supportingLabel)}</p>
           <p><code>${escapeHtml(page.supportingAction.method)} ${escapeHtml(page.supportingAction.path)}</code></p>
@@ -6777,7 +6787,7 @@ function buildIntentLandingPage(config, page) {
         </div>
         <div class="card">
           <h2>Free discovery before payment</h2>
-          <p><a href="/llms.txt">llms.txt</a> gives the short route guide. <a href="/x402.json">x402.json</a> gives machine-readable paid routes. <a href="/api/commands">/api/commands</a> gives the compact command handoff. <a href="/api/examples">/api/examples</a> gives command-ready examples.</p>
+          <p><a href="/llms.txt">llms.txt</a> gives the short route guide. <a href="/x402.json">x402.json</a> gives machine-readable paid routes. <a href="/api/commands">/api/commands</a> gives the compact command handoff. <a href="/api/examples">/api/examples</a> gives command-ready examples. <a href="${PAID_USAGE_PROOF_PATH}">/api/paid-usage-proof</a> gives wallet-backed paid-use proof.</p>
         </div>
         <div class="card">
           <h2>No-spend boundary</h2>
