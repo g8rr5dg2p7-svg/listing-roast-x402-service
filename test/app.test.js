@@ -3416,6 +3416,7 @@ describe("Listing Roast x402 service", () => {
       });
 
       expect(response.status).toBe(402);
+      expect(response.headers.get("payment-required").length).toBeLessThan(7600);
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
@@ -4042,15 +4043,15 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.extensions.bazaar.info.output.example.nextPaidActions.find((action) => action.path === "/api/full-listing-roast").maxAmountRequired).toBe("10000");
       expect(challenge.extensions.bazaar.info.output.example.nextPaidActions.find((action) => action.path === "/api/full-listing-roast").command).toBeUndefined();
       const indexedQuerySchema = challenge.extensions.bazaar.schema.properties.input.properties.queryParams.properties;
-      expect(indexedQuerySchema.agentName.description).toContain("paid API");
-      expect(indexedQuerySchema.listingText.description).toContain("marketplace description");
+      expect(indexedQuerySchema.agentName.description).toBeUndefined();
+      expect(indexedQuerySchema.listingText.description).toBeUndefined();
       expect(indexedQuerySchema.currentPrice.example).toBeUndefined();
       expect(indexedQuerySchema.currentPrice.default).toBeUndefined();
       expect(challenge.extensions.bazaar.info.input.queryParams.currentPrice).toBe("$0.001 GET; $0.01 GET/POST roast");
       expect(indexedQuerySchema.currentCheckoutPath.example).toBeUndefined();
       expect(indexedQuerySchema.currentCheckoutPath.default).toBeUndefined();
       expect(challenge.extensions.bazaar.info.input.queryParams.currentCheckoutPath).toBe("/api/listing-roast");
-      expect(indexedQuerySchema.goal.description).toContain("paid completions");
+      expect(indexedQuerySchema.goal.description).toBeUndefined();
       const indexedOutputSchema = challenge.extensions.bazaar.schema.properties.output.properties.example;
       expect(indexedOutputSchema.required).toEqual(["service", "endpoint", "price"]);
       expect(indexedOutputSchema.properties.service.type).toBe("string");
@@ -4331,6 +4332,7 @@ describe("Listing Roast x402 service", () => {
       for (const path of ["/api/preflight", "/api/v1/preflight", "/preflight"]) {
         const response = await fetchJson(server, `${path}?url=https%3A%2F%2Flisting-roast-x402-service-production.up.railway.app%2Fapi%2Flisting-roast&query=paid%20API%20preflight`);
         expect(response.status).toBe(402);
+        expect(response.headers.get("payment-required").length).toBeLessThan(7600);
         const challenge = readPaymentRequiredHeader(response.headers);
         expect(challenge.error).toBe("Payment required");
         expect(challenge.resource.url).toContain(path);
@@ -4361,6 +4363,7 @@ describe("Listing Roast x402 service", () => {
       const response = await fetchJson(server, "/api/x402-discovery-audit?url=https%3A%2F%2Flisting-roast-x402-service-production.up.railway.app%2Fapi%2Flisting-roast&query=listing%20roast");
 
       expect(response.status).toBe(402);
+      expect(response.headers.get("payment-required").length).toBeLessThan(7600);
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/x402-discovery-audit");
@@ -4404,6 +4407,7 @@ describe("Listing Roast x402 service", () => {
       const response = await fetchJson(server, "/api/agent402-route-visibility");
 
       expect(response.status).toBe(402);
+      expect(response.headers.get("payment-required").length).toBeLessThan(7600);
       const challenge = readPaymentRequiredHeader(response.headers);
       const input = challenge.extensions.bazaar.info.input.queryParams;
       expect(challenge.error).toBe("Payment required");
@@ -4532,12 +4536,10 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("5000");
       const scoreBodySchema = challenge.extensions.bazaar.schema.properties.input.properties.body.properties;
-      expect(scoreBodySchema.agentName.description).toContain("agent service");
-      expect(scoreBodySchema.agentName.description).toContain("serviceName");
-      expect(scoreBodySchema.listingText.description).toContain("buyer-facing listing copy");
-      expect(scoreBodySchema.listingText.description).toContain("description");
-      expect(scoreBodySchema.currentCheckoutPath.description).toContain("endpointUrl");
-      expect(scoreBodySchema.source.description).toContain("upgrade path");
+      expect(scoreBodySchema.agentName.description).toBeUndefined();
+      expect(scoreBodySchema.listingText.description).toBeUndefined();
+      expect(scoreBodySchema.currentCheckoutPath.description).toBeUndefined();
+      expect(scoreBodySchema.source.description).toBeUndefined();
       expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.route).toContain("/api/listing-roast");
       expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.command).toBeUndefined();
       expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.body.source).toBe("listing-score-upgrade");

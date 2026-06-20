@@ -3142,7 +3142,7 @@ function compactChallengeInputSchema(schema) {
 
   const compact = {};
   for (const [key, value] of Object.entries(schema)) {
-    if (key === "example" || key === "default") {
+    if (["$schema", "default", "description", "example", "examples", "title"].includes(key)) {
       continue;
     }
 
