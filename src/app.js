@@ -312,8 +312,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-buyer-phrase-command-pack-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T03:40:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-proof-command-pack-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T03:50:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -4864,6 +4864,7 @@ function buildPaidUsageProofResponse(config, cashRegister = {}) {
     settlementProof: buildSettlementProof(config),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
+    buyerPhraseCommandPack: buildBuyerPhraseCommandPack(config),
     commands: absoluteUrl(config, COMMANDS_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
