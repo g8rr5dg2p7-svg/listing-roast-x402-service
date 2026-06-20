@@ -357,8 +357,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-openapi-command-aliases-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T10:56:30.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-challenge-command-aliases-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T11:25:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -4079,6 +4079,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(payNow.intentRoutes, intentRouteKey, selected);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(payNow.intentRoutes, intentRouteKey, selected);
   const selectedPaidSequence = buildSelectedPaidSequence(payNow.intentRoutes, intentRouteKey, selected);
+  const firstAgentPaymentRequest = buildAgentPaymentRequest(selectedFirstPaidAction);
   const selectedFirstPaidResponsePreview = buildPaidResponsePreview(
     config,
     isQuickScoreExactAliasActionKey(intentRouteKey) && !shouldUseExactAliasFirst(intentRouteKey) ? "indexedQuickScore" : intentRouteKey,
@@ -4115,8 +4116,15 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     agentPaymentRequest,
     agentPaymentPrompt: agentPaymentRequest.prompt,
     maxPaymentUsd: agentPaymentRequest.maxPayment,
+    firstAgentPaymentRequest,
+    firstAgentPaymentPrompt: firstAgentPaymentRequest.prompt,
+    firstPayCommand: selectedFirstPaidAction.command,
+    firstPaidCommand: selectedFirstPaidAction.command,
     payCommand: selected.command,
     pay_command: selected.command,
+    command: selected.command,
+    selectedPaidActionCommand: selected.command,
+    exactIntentPayCommand: exactIntentPaidAction?.command || selected.command,
     payCommandExamples: {
       bareRoute: selected.command,
       ...(sampleQueryPayCommand ? { withSampleInputs: sampleQueryPayCommand } : {})
