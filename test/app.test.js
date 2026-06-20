@@ -180,8 +180,9 @@ describe("Listing Roast x402 service", () => {
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
       expect(home.headers.get("link")).toContain("/.well-known/x402.json");
-      expect(home.text).toContain("Score API marketplace listing quality and discoverability before promotion");
-      expect(home.text).toContain("first step for marketplace listing quality, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, x402 listing quality, and buyer-agent skip-reason searches");
+      expect(home.text).toContain("Score paid API listing quality, x402 marketplace conversion, and agent listing conversion before promotion");
+      expect(home.text).toContain("first step for marketplace listing quality, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, and buyer-agent skip-reason searches");
+      expect(home.text).toContain("x402 marketplace conversion score, agent listing conversion score, structured JSON critique");
       expect(home.text).toContain("Recommended paid sequence");
       expect(home.text).toContain("GET /api/listing-roast");
       expect(home.text).toContain("POST /api/listing-roast");
@@ -1047,6 +1048,8 @@ describe("Listing Roast x402 service", () => {
       expect(aiPlugin.json.name_for_model).toBe("listing_roast_x402");
       expect(aiPlugin.json.description_for_model).toContain("x402 payment");
       expect(aiPlugin.json.description_for_model).toContain("/api/listing-roast");
+      expect(aiPlugin.json.description_for_model).toContain("x402 marketplace conversion");
+      expect(aiPlugin.json.description_for_model).toContain("agent listing conversion score");
       expect(aiPlugin.json.auth.type).toBe("none");
       expect(aiPlugin.json.api.type).toBe("openapi");
       expect(aiPlugin.json.api.url).toContain("/.well-known/openapi.json");
@@ -1673,7 +1676,7 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/api/x402-discovery-audit");
       expect(llms.text).toContain("/api/paid-api-listing-quality-score");
       expect(llms.text).toContain("/api/x402-listing-quality");
-      expect(llms.text).toContain("paid API listing quality score, x402 listing quality");
+      expect(llms.text).toContain("paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality");
       expect(llms.text).toContain("Buyer intent landing pages");
       expect(llms.text).toContain("/paid-api-listing-quality");
       expect(llms.text).toContain("/paid-api-listing-quality-score");
@@ -2891,6 +2894,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentsMarkdown.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
       expect(agentsMarkdown.text).toContain("Bazaar Cataloging Note");
       expect(agentsMarkdown.text).toContain("extensions.bazaar metadata");
+      expect(agentsMarkdown.text).toContain("x402 marketplace conversion read, agent listing conversion score");
+      expect(agentsMarkdown.text).toContain("paid API listing quality, x402 marketplace conversion, or agent listing conversion score");
       expect(agentsMarkdown.text).toContain("/api/paid-usage-proof");
       expect(agentsMarkdown.text).toContain("/api/cash-register");
       expect(agentsMarkdown.text).toContain("/v1");
@@ -2904,6 +2909,7 @@ describe("Listing Roast x402 service", () => {
       expect(docs.text).toContain("# Listing Roast x402");
       expect(docs.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
       expect(docs.text).toContain("/AGENTS.md");
+      expect(docs.text).toContain("x402 marketplace conversion, agent listing conversion score");
 
       const apiDocs = await fetchJson(server, "/api-docs");
       expect(apiDocs.status).toBe(200);
