@@ -43,6 +43,7 @@ const QUICK_SCORE_ALIAS_PATHS = Object.freeze([
   "/api/paid-api-listing-quality",
   "/api/paid-api-listing-quality-score",
   "/api/listing-quality-score-api",
+  "/api/agentcore-x402-payments",
   "/api/x402-listing-quality",
   "/api/buyer-agent-skip-reasons",
   "/api/agent-service-clarity"
@@ -111,6 +112,15 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     catalogTitle: "GET $0.001 listing quality score API quick-score alias",
     description: "Listing quality score API x402: $0.001 GET exact-phrase alias for buyer agents searching listing quality score API. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with marketplace product listing quality, paid API listing quality score, buyer-agent skip reasons, and upgrade guidance.",
     keywords: ["listing quality score API", "listing quality score", "marketplace product listing quality", "paid API listing quality score", "marketplace listing score"]
+  },
+  "/api/agentcore-x402-payments": {
+    id: "agentcore_x402_payments_alias",
+    name: "agentcore_x402_payments",
+    operationId: "getAgentCoreX402PaymentsAlias",
+    summary: "Paid $0.001 AgentCore x402 payments alias",
+    catalogTitle: "GET $0.001 AgentCore x402 payments quick-score alias",
+    description: "AgentCore x402 payments readiness x402: $0.001 GET exact-phrase alias for AgentCore Gateway, Amazon Bedrock AgentCore payments, and Coinbase x402 Bazaar MCP server buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
+    keywords: ["AgentCore x402 payments", "Amazon Bedrock AgentCore payments", "AgentCore Gateway", "Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "AgentCore paid API discovery", "paid API listing quality score"]
   },
   "/api/x402-listing-quality": {
     id: "x402_listing_quality_alias",
@@ -374,8 +384,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-agentcore-route-metadata-v2";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T16:00:03.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-agentcore-paid-alias-v3";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T16:04:53.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -446,6 +456,7 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   paid_api_listing_quality_alias: "indexedQuickScore",
   paid_api_listing_quality_score_alias: "indexedQuickScore",
   listing_quality_score_api_alias: "indexedQuickScore",
+  agentcore_x402_payments_alias: "indexedQuickScore",
   x402_listing_quality_alias: "indexedQuickScore",
   buyer_agent_skip_reasons_alias: "indexedQuickScore",
   agent_service_clarity_alias: "indexedQuickScore",
@@ -1331,6 +1342,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
       marketplaceProductListingQuality: intentRoutes.marketplaceProductListingQuality,
       listingQualityScoreApi: intentRoutes.listingQualityScoreApi,
       paidApiListingQuality: intentRoutes.paidApiListingQuality,
+      agentCoreX402Payments: intentRoutes.agentCoreX402Payments,
       buyerAgentSkipReasons: intentRoutes.buyerAgentSkipReasons,
       agentServiceClarity: intentRoutes.agentServiceClarity,
       discoveryAuditQuick: intentRoutes.discoveryAuditQuick,
@@ -1367,6 +1379,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
         marketplaceProductListingQuality: intentRoutes.marketplaceProductListingQuality,
         listingQualityScoreApi: intentRoutes.listingQualityScoreApi,
         paidApiListingQuality: intentRoutes.paidApiListingQuality,
+        agentCoreX402Payments: intentRoutes.agentCoreX402Payments,
         buyerAgentSkipReasons: intentRoutes.buyerAgentSkipReasons,
         discoveryAuditQuick: intentRoutes.discoveryAuditQuick,
         x402SiteAudit: intentRoutes.x402SiteAudit
@@ -1415,6 +1428,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
             marketplaceProductListingQuality: intentRoutes.marketplaceProductListingQuality,
             listingQualityScoreApi: intentRoutes.listingQualityScoreApi,
             paidApiListingQuality: intentRoutes.paidApiListingQuality,
+            agentCoreX402Payments: intentRoutes.agentCoreX402Payments,
             buyerAgentSkipReasons: intentRoutes.buyerAgentSkipReasons,
             discoveryAuditQuick: intentRoutes.discoveryAuditQuick,
             x402SiteAudit: intentRoutes.x402SiteAudit
@@ -2777,6 +2791,7 @@ function inferPaymentHintIntentRouteKey(path, method = "GET") {
     "GET /api/paid-api-listing-quality": "paidApiListingQuality",
     "GET /api/paid-api-listing-quality-score": "paidApiListingQualityScore",
     "GET /api/listing-quality-score-api": "listingQualityScoreApi",
+    "GET /api/agentcore-x402-payments": "agentCoreX402Payments",
     "GET /api/x402-listing-quality": "x402ListingQuality",
     "GET /api/buyer-agent-skip-reasons": "buyerAgentSkipReasons",
     "GET /api/agent-service-clarity": "agentServiceClarity"
@@ -3275,6 +3290,13 @@ function buildPayNowActions(config) {
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
       reason: "Use this when the buyer intent is exactly listing quality score API."
     }),
+    agentCoreX402Payments: buildRoutePaymentAction(config, {
+      path: "/api/agentcore-x402-payments",
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer intent is exactly AgentCore x402 payments, AgentCore Gateway, or Coinbase x402 Bazaar MCP server readiness."
+    }),
     x402ListingQuality: buildRoutePaymentAction(config, {
       path: "/api/x402-listing-quality",
       method: "GET",
@@ -3433,6 +3455,7 @@ const SELECTED_FOLLOWUP_ACTION_BY_KEY = {
   paidApiListingQuality: "fullRoastGet",
   paidApiListingQualityScore: "fullRoastGet",
   listingQualityScoreApi: "fullRoastGet",
+  agentCoreX402Payments: "fullRoastGet",
   x402ListingQuality: "fullRoastGet",
   buyerAgentSkipReasons: "fullRoastGet",
   agentServiceClarity: "fullRoastGet",
@@ -3453,6 +3476,7 @@ const QUICK_SCORE_EXACT_ALIAS_ACTION_KEYS = new Set([
   "paidApiListingQuality",
   "paidApiListingQualityScore",
   "listingQualityScoreApi",
+  "agentCoreX402Payments",
   "x402ListingQuality",
   "buyerAgentSkipReasons",
   "agentServiceClarity"
@@ -3570,6 +3594,7 @@ const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   paid_api_listing_quality_alias: "paidApiListingQuality",
   paid_api_listing_quality_score_alias: "paidApiListingQualityScore",
   listing_quality_score_api_alias: "listingQualityScoreApi",
+  agentcore_x402_payments_alias: "agentCoreX402Payments",
   x402_listing_quality_alias: "x402ListingQuality",
   buyer_agent_skip_reasons_alias: "buyerAgentSkipReasons",
   agent_service_clarity_alias: "agentServiceClarity",
@@ -3738,6 +3763,10 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
       {
         when: "Buyer asks exactly for listing quality score API",
         use: "listingQualityScoreApi"
+      },
+      {
+        when: "Buyer asks exactly for AgentCore x402 payments, AgentCore Gateway, or Coinbase x402 Bazaar MCP server readiness",
+        use: "agentCoreX402Payments"
       },
       {
         when: "Buyer asks exactly for x402 listing quality",
@@ -4225,6 +4254,10 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
     },
     listingQualityScoreApi: {
       includes: ["listing quality score API", "marketplace product listing quality", "upgrade path"],
+      example: quickScoreExample
+    },
+    agentCoreX402Payments: {
+      includes: ["AgentCore x402 payments readiness", "Coinbase x402 Bazaar MCP server buyers", "upgrade path"],
       example: quickScoreExample
     },
     x402ListingQuality: {
@@ -7005,6 +7038,10 @@ function quickScoreAliasActionKeyForQuery(query) {
     return "paidApiListingQualityScore";
   }
 
+  if (includesAny(normalizedQuery, ["agentcore x402 payment", "agentcore x402 payments", "amazon bedrock agentcore payment", "amazon bedrock agentcore payments", "agentcore gateway", "coinbase x402 bazaar mcp server", "x402 bazaar mcp server", "agentcore paid api discovery"])) {
+    return "agentCoreX402Payments";
+  }
+
   if (includesAny(normalizedQuery, ["x402 listing quality", "x402 listing quality score"])) {
     return "x402ListingQuality";
   }
@@ -7056,9 +7093,15 @@ function scoreCatalogResource(resource, query) {
   const tokens = normalizedQuery.split(/[^a-z0-9]+/).filter((token) => token.length > 2);
   let score = resource.preferredFirstPaidAction ? 5 : 0;
   const isIndexedRoastGet = resource.id === "indexed_roast_quick_score" || (String(resource.method || "").toUpperCase() === "GET" && resource.path === ROAST_PATH);
+  const selectedQuickScoreAliasActionKey = quickScoreAliasActionKeyForQuery(normalizedQuery);
+  const resourceActionKey = PAY_NOW_ACTION_BY_RESOURCE_ID[resource.id];
 
-  if (quickScoreAliasActionKeyForQuery(normalizedQuery) && isIndexedRoastGet) {
+  if (selectedQuickScoreAliasActionKey && isIndexedRoastGet) {
     score += 500;
+  }
+
+  if (selectedQuickScoreAliasActionKey && resourceActionKey === selectedQuickScoreAliasActionKey) {
+    score += 100;
   }
 
   if (normalizedQuery && searchable.includes(normalizedQuery)) {
