@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-route-discoverability-v15";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T17:55:57.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-stale-bazaar-default-fallback-v16";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T18:03:45.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -2017,15 +2017,40 @@ function buildAgent402RouteVisibilityExampleOutput(config) {
   });
 }
 
-function buildInstantScoreInput(query = {}) {
+function isStaleIndexedQuickScoreBazaarDefault(query = {}) {
+  const agentName = queryValue(query.agentName, "");
+  const listingText = queryValue(query.listingText || query.text, "");
+  const currentPrice = queryValue(query.currentPrice, "");
+  const currentCheckoutPath = queryValue(query.currentCheckoutPath, "");
+
+  return agentName === requestExample.agentName
+    && currentPrice === "$1.00"
+    && currentCheckoutPath === ROAST_PATH
+    && listingText.startsWith("A paid x402 API that helps builders check whether buyer agents understand the offer before paying.");
+}
+
+export function normalizeIndexedQuickScoreQuery(query = {}) {
+  if (!isStaleIndexedQuickScoreBazaarDefault(query)) {
+    return query;
+  }
+
+  return {
+    ...query,
+    ...quickScoreRequestExample,
+    source: "indexed-get-score-stale-bazaar-cache-normalized"
+  };
+}
+
+export function buildInstantScoreInput(query = {}, options = {}) {
+  const effectiveQuery = options.normalizeStaleIndexedDefaults ? normalizeIndexedQuickScoreQuery(query) : query;
   return listingRoastRequestSchema.parse({
-    agentName: queryValue(query.agentName, quickScoreRequestExample.agentName),
-    listingText: queryValue(query.listingText || query.text, quickScoreRequestExample.listingText),
-    targetBuyer: queryValue(query.targetBuyer, quickScoreRequestExample.targetBuyer),
-    currentPrice: queryValue(query.currentPrice, quickScoreRequestExample.currentPrice),
-    currentCheckoutPath: queryValue(query.currentCheckoutPath, quickScoreRequestExample.currentCheckoutPath),
-    goal: queryValue(query.goal, quickScoreRequestExample.goal),
-    source: "instant-get-score"
+    agentName: queryValue(effectiveQuery.agentName, quickScoreRequestExample.agentName),
+    listingText: queryValue(effectiveQuery.listingText || effectiveQuery.text, quickScoreRequestExample.listingText),
+    targetBuyer: queryValue(effectiveQuery.targetBuyer, quickScoreRequestExample.targetBuyer),
+    currentPrice: queryValue(effectiveQuery.currentPrice, quickScoreRequestExample.currentPrice),
+    currentCheckoutPath: queryValue(effectiveQuery.currentCheckoutPath, quickScoreRequestExample.currentCheckoutPath),
+    goal: queryValue(effectiveQuery.goal, quickScoreRequestExample.goal),
+    source: queryValue(effectiveQuery.source, "instant-get-score")
   });
 }
 
@@ -11663,7 +11688,9 @@ ${copyScript("Copy command")}
   });
 
   app.get(QUICK_SCORE_PAID_PATHS, async (request, response) => {
-    const result = buildIndexedRoastQuickScore(buildInstantScoreInput(request.query), config);
+    const result = buildIndexedRoastQuickScore(buildInstantScoreInput(request.query, {
+      normalizeStaleIndexedDefaults: request.path === ROAST_PATH
+    }), config);
     const cashRegister = await recordPaidCompletion("indexedRoastGet", 0.001);
     response.json({ ...result, cashRegister });
   });
