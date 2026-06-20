@@ -791,6 +791,11 @@ describe("Listing Roast x402 service", () => {
       expect(resourcesById.agent402_route_visibility_audit.input.agent402Query).toBe("Agent402 route visibility");
       expect(resourcesById.agent402_route_visibility_audit.outputExample.route).toBe("/api/agent402-route-visibility");
       expect(resourcesById.agent402_route_visibility_audit.outputExample.endpoint).toBe("agent402-route-visibility-audit");
+      expect(resourcesById.agent402_route_visibility_audit.outputExample.input.endpointUrl).toBe("http://localhost:8787/api/agent402-route-visibility");
+      expect(resourcesById.agent402_route_visibility_audit.outputExample.input.searchQuery).toBe("Agent402 route visibility");
+      expect(resourcesById.agent402_route_visibility_audit.outputExample.input.agent402Query).toBe("Agent402 route visibility");
+      expect(resourcesById.agent402_route_visibility_audit.outputExample.agent402Route.topRank).toBe(1);
+      expect(resourcesById.agent402_route_visibility_audit.outputExample.agent402Route.matchedResult.route).toBe("/api/agent402-route-visibility");
       expect(x402Manifest.json.resources[0].name).toBe("marketplace_listing_score_paid_api_listing_quality_score");
       expect(x402Manifest.json.resources[0].serviceName).toBe("Listing Roast x402 Paid API Listing Quality Score");
       expect(x402Manifest.json.resources[0].description).toMatch(/^Paid API Listing Quality Score by Listing Roast/);
@@ -4285,6 +4290,9 @@ describe("Listing Roast x402 service", () => {
       expect(input.agent402Query).toBe("Agent402 route visibility");
       expect(challenge.extensions.bazaar.info.output.example.route).toBe("/api/agent402-route-visibility");
       expect(challenge.extensions.bazaar.info.output.example.endpoint).toBe("agent402-route-visibility-audit");
+      expect(challenge.extensions.bazaar.info.output.example.agent402Route.topRank).toBe(1);
+      expect(challenge.extensions.bazaar.info.output.example.agent402Route.matchedResult.route).toBe("/api/agent402-route-visibility");
+      expect(challenge.extensions.bazaar.info.output.example.catalogRefresh.exactResourceUrl).toBe("http://localhost:8787/api/agent402-route-visibility");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
       expect(response.json.selectedActionKey).toBe("agent402RouteVisibility");
@@ -4292,6 +4300,8 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
       expect(response.json.paidResponsePreview.route).toBe("/api/agent402-route-visibility");
       expect(response.json.paidResponsePreview.example.endpoint).toBe("agent402-route-visibility-audit");
+      expect(response.json.paidResponsePreview.example.agent402Route.matchedResult.route).toBe("/api/agent402-route-visibility");
+      expect(response.json.paidResponsePreview.example.catalogRefresh.exactResourceUrl).toBe("http://localhost:8787/api/agent402-route-visibility");
 
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.signals.unpaidChallenges).toBe(1);

@@ -1829,6 +1829,79 @@ function buildDiscoveryAuditQuickExampleOutput(config, options = {}) {
   return buildDiscoveryAuditQuickOutput(config, buildDiscoveryAuditExampleOutput(), options);
 }
 
+function buildAgent402RouteVisibilityExampleOutput(config) {
+  const endpointUrl = absoluteUrl(config, AGENT402_ROUTE_VISIBILITY_PATH);
+  const input = {
+    endpointUrl,
+    method: "GET",
+    expectedAmount: String(DISCOVERY_AUDIT_QUICK_AMOUNT),
+    expectedNetwork: config.network,
+    searchQuery: "Agent402 route visibility",
+    agent402Query: "Agent402 route visibility"
+  };
+
+  return buildDiscoveryAuditQuickOutput(config, {
+    ...buildDiscoveryAuditExampleOutput(),
+    input,
+    direct402: {
+      ok: true,
+      status: 402,
+      hasPaymentRequiredHeader: true,
+      hasBazaarExtension: true,
+      amount: String(DISCOVERY_AUDIT_QUICK_AMOUNT),
+      network: config.network
+    },
+    bazaarDiscovery: {
+      merchantIndexed: false,
+      searchVisible: false,
+      indexedAmount: null,
+      searchQuery: "Agent402 route visibility"
+    },
+    agent402Route: {
+      query: "Agent402 route visibility",
+      routeVisible: true,
+      topRank: 1,
+      matchedResult: {
+        sellerName: "Listing Roast x402",
+        route: AGENT402_ROUTE_VISIBILITY_PATH,
+        url: endpointUrl,
+        method: "GET",
+        price: "$0.001"
+      },
+      error: null
+    },
+    catalogRefresh: {
+      status: "needs_settled_payment_with_resource_metadata",
+      directChallengeReadyForCatalog: true,
+      needsRealSettlement: true,
+      exactResourceUrl: endpointUrl,
+      settlementRequirements: [
+        "A real buyer must complete verify and settle through the CDP Facilitator for this exact endpoint URL.",
+        "The settle payload must include paymentPayload.resource for the exact resource URL so CDP can catalog the route.",
+        "The client/facilitator path should preserve the Bazaar extension metadata declared in the 402 challenge."
+      ],
+      whyUnpaidProbesAreNotEnough: "Unpaid 402/details/search probes can prove direct route truth, but they do not refresh CDP Bazaar catalog entries.",
+      evidence: {
+        direct402Ok: true,
+        bazaarExtensionPresent: true,
+        merchantIndexed: false,
+        searchVisible: false,
+        indexedAmount: null,
+        directAmount: String(DISCOVERY_AUDIT_QUICK_AMOUNT)
+      }
+    },
+    mismatches: ["CDP Bazaar has not indexed this exact Agent402 route-visibility alias yet."],
+    nextActions: [
+      "Let real buyer settlement on this exact route teach CDP Bazaar the current resource metadata.",
+      "Use the Agent402 rank-1 route result as the current live routing signal while CDP Bazaar catches up."
+    ]
+  }, {
+    routePath: AGENT402_ROUTE_VISIBILITY_PATH,
+    endpoint: "agent402-route-visibility-audit",
+    mode: "agent402-route-visibility"
+  });
+}
+
 function buildInstantScoreInput(query = {}) {
   return listingRoastRequestSchema.parse({
     agentName: queryValue(query.agentName, quickScoreRequestExample.agentName),
@@ -2583,11 +2656,7 @@ function buildAgent402RouteVisibilityDiscovery(config) {
   return buildDiscoveryAuditQuickDiscovery(config, {
     routePath: AGENT402_ROUTE_VISIBILITY_PATH,
     input: buildDiscoveryAuditBuyerVisibleInput(input),
-    outputExample: buildDiscoveryAuditQuickExampleOutput(config, {
-      routePath: AGENT402_ROUTE_VISIBILITY_PATH,
-      endpoint: "agent402-route-visibility-audit",
-      mode: "agent402-route-visibility"
-    })
+    outputExample: buildAgent402RouteVisibilityExampleOutput(config)
   });
 }
 
@@ -2865,8 +2934,17 @@ function compactChallengeOutputExample(example) {
     compact.bazaarDiscovery = pickDefined(example.bazaarDiscovery, ["merchantIndexed", "searchVisible", "indexedAmount", "searchQuery"]);
   }
 
+  if (example.agent402Route) {
+    compact.agent402Route = {
+      ...pickDefined(example.agent402Route, ["query", "routeVisible", "topRank"]),
+      ...(example.agent402Route.matchedResult
+        ? { matchedResult: pickDefined(example.agent402Route.matchedResult, ["sellerName", "route", "url", "method", "price"]) }
+        : {})
+    };
+  }
+
   if (example.catalogRefresh) {
-    compact.catalogRefresh = pickDefined(example.catalogRefresh, ["status", "directChallengeReadyForCatalog", "needsRealSettlement"]);
+    compact.catalogRefresh = pickDefined(example.catalogRefresh, ["status", "directChallengeReadyForCatalog", "needsRealSettlement", "exactResourceUrl"]);
   }
 
   if (Array.isArray(example.mismatches)) {
@@ -4078,11 +4156,7 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
     },
     agent402RouteVisibility: {
       includes: ["Agent402 route visibility", "Agent402 router ranking", "search visibility", "route health", "next actions"],
-      example: () => buildDiscoveryAuditQuickExampleOutput(config, {
-        routePath: AGENT402_ROUTE_VISIBILITY_PATH,
-        endpoint: "agent402-route-visibility-audit",
-        mode: "agent402-route-visibility"
-      })
+      example: () => buildAgent402RouteVisibilityExampleOutput(config)
     },
     listingScore: {
       includes: ["custom score", "first fix", "upgrade path"],
@@ -5873,11 +5947,7 @@ function buildX402Manifest(config, cashRegister = {}) {
         keywords: ["Agent402 route visibility", "Agent402 router", "Agent402 routing", "Agent402 route visibility audit", "x402 discovery audit", "x402 bazaar discovery audit", "x402 service discoverability audit", "paid API preflight", "x402 route health check", "bazaar search visibility", "x402 listing stale price", "stale Bazaar price", "GET paid API"],
         command: buildGetPayCommand(config, AGENT402_ROUTE_VISIBILITY_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT),
         input: buildAgent402RouteVisibilityDiscovery(config).input,
-        outputExample: buildDiscoveryAuditQuickExampleOutput(config, {
-          routePath: AGENT402_ROUTE_VISIBILITY_PATH,
-          endpoint: "agent402-route-visibility-audit",
-          mode: "agent402-route-visibility"
-        }),
+        outputExample: buildAgent402RouteVisibilityExampleOutput(config),
         schema: absoluteUrl(config, "/api/discovery-audit-schema")
       },
       {
