@@ -13,7 +13,7 @@ const quickScoreAliasPaths = [
   "/api/buyer-agent-skip-reasons",
   "/api/agent-service-clarity"
 ];
-const defaultGetPaths = new Set(["/api", "/api/v1", "/v1", "/api/listing-roast", ...quickScoreAliasPaths, "/api/instant-listing-score", "/api/x402-marketplace-conversion", "/api/agent-listing-conversion", "/api/x402-ping", "/api/x402-site-audit", "/api/x402-discovery-audit"]);
+const defaultGetPaths = new Set(["/api", "/api/v1", "/v1", "/api/listing-roast", ...quickScoreAliasPaths, "/api/instant-listing-score", "/api/x402-marketplace-conversion", "/api/agent-listing-conversion", "/api/x402-ping", "/api/x402-site-audit", "/api/x402-discovery-audit", "/api/agent402-route-visibility"]);
 const thousandUnitPaths = new Set([...defaultGetPaths, "/"]);
 const smokeMethod = process.env.SMOKE_METHOD || (defaultGetPaths.has(smokePath) ? "GET" : "POST");
 const expectedAmount = process.env.EXPECTED_X402_AMOUNT || (thousandUnitPaths.has(smokePath) ? "1000" : smokePath === "/api/listing-score" ? "5000" : "10000");

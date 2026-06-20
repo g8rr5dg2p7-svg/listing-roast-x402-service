@@ -143,6 +143,8 @@ const SITE_AUDIT_PATH = "/api/x402-site-audit";
 const PREFLIGHT_ALIAS_PATHS = Object.freeze(["/api/preflight", "/api/v1/preflight", "/preflight"]);
 const SITE_AUDIT_PAID_PATHS = Object.freeze([SITE_AUDIT_PATH, ...PREFLIGHT_ALIAS_PATHS]);
 const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
+const AGENT402_ROUTE_VISIBILITY_PATH = "/api/agent402-route-visibility";
+const DISCOVERY_AUDIT_QUICK_PATHS = Object.freeze([DISCOVERY_AUDIT_PATH, AGENT402_ROUTE_VISIBILITY_PATH]);
 const PAY_NOW_PATH = "/api/pay-now";
 const COMMANDS_PATH = "/api/commands";
 const PAID_USAGE_PROOF_PATH = "/api/paid-usage-proof";
@@ -357,8 +359,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "agent listing conversion score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-agent402-route-audit-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T12:12:48.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-agent402-route-visibility-alias-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T12:35:01.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -434,6 +436,7 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   paid_api_preflight: "x402SiteAudit",
   api_v1_paid_api_preflight: "x402SiteAudit",
   root_paid_api_preflight: "x402SiteAudit",
+  agent402_route_visibility_audit: "discoveryAuditQuick",
   x402_discovery_audit_quick: "discoveryAuditQuick",
   x402_discovery_audit: "discoveryAudit",
   listing_score: "listingScore",
@@ -799,7 +802,7 @@ function isPaidRouteRequest(method, pathname) {
     AGENT_LISTING_PATH,
     ROAST_PATH,
     PING_PATH,
-    DISCOVERY_AUDIT_PATH,
+    ...DISCOVERY_AUDIT_QUICK_PATHS,
     ...QUICK_SCORE_ALIAS_PATHS,
     ...SITE_AUDIT_PAID_PATHS
   ].includes(pathname);
@@ -807,7 +810,14 @@ function isPaidRouteRequest(method, pathname) {
 
 function buildCompactPaidRouteLinks(config, pathname) {
   const routePath = pathname || ROAST_PATH;
-  const routeTitle = QUICK_SCORE_ALIAS_METADATA[routePath]?.catalogTitle || (routePath === ROAST_PATH ? "GET $0.001 indexed listing-roast quick score" : "x402 paid route");
+  const routeTitle = QUICK_SCORE_ALIAS_METADATA[routePath]?.catalogTitle
+    || (routePath === ROAST_PATH
+      ? "GET $0.001 indexed listing-roast quick score"
+      : routePath === AGENT402_ROUTE_VISIBILITY_PATH
+        ? "GET $0.001 Agent402 route visibility audit"
+        : routePath === DISCOVERY_AUDIT_PATH
+          ? "GET $0.001 x402 discovery audit quick check"
+          : "x402 paid route");
   const routeMethod = routePath === ROOT_DIRECTORY_POST_PATH ? "POST" : "GET";
   const intentRouteKey = inferPaymentHintIntentRouteKey(routePath, routeMethod);
   const selectedRoute = { path: routePath };
@@ -2259,6 +2269,13 @@ function buildApiEntryOutput(config, query = {}, options = {}) {
         price: config.siteAuditPrice,
         maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT
       },
+      agent402RouteVisibility: {
+        route: absoluteUrl(config, AGENT402_ROUTE_VISIBILITY_PATH),
+        path: AGENT402_ROUTE_VISIBILITY_PATH,
+        method: "GET",
+        price: config.siteAuditPrice,
+        maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT
+      },
       listingScore: {
         route: absoluteUrl(config, "/api/listing-score"),
         path: "/api/listing-score",
@@ -2508,21 +2525,33 @@ function buildSiteAuditDiscovery(config) {
   };
 }
 
-function buildDiscoveryAuditQuickDiscovery(config) {
+function buildDiscoveryAuditQuickDiscovery(config, options = {}) {
   const discovery = buildSiteAuditDiscovery(config);
+  const routePath = options.routePath || DISCOVERY_AUDIT_PATH;
 
   return {
     ...discovery,
+    input: options.input || discovery.input,
     output: {
       ...discovery.output,
       example: buildDiscoveryAuditQuickExampleOutput(config)
     },
     service: {
       ...discovery.service,
-      route: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
+      route: absoluteUrl(config, routePath),
       price: config.siteAuditPrice
     }
   };
+}
+
+function buildAgent402RouteVisibilityDiscovery(config) {
+  return buildDiscoveryAuditQuickDiscovery(config, {
+    routePath: AGENT402_ROUTE_VISIBILITY_PATH,
+    input: buildDiscoveryAuditBuyerVisibleInput(buildDiscoveryAuditInputFromQuery({
+      searchQuery: "Agent402 route visibility",
+      agent402Query: "Agent402 route visibility"
+    }))
+  });
 }
 
 function inferPaymentHintIntentRouteKey(path, method = "GET") {
@@ -2543,6 +2572,7 @@ function inferPaymentHintIntentRouteKey(path, method = "GET") {
     [`GET ${PREFLIGHT_ALIAS_PATHS[1]}`]: "x402SiteAudit",
     [`GET ${PREFLIGHT_ALIAS_PATHS[2]}`]: "x402SiteAudit",
     [`GET ${DISCOVERY_AUDIT_PATH}`]: "discoveryAuditQuick",
+    [`GET ${AGENT402_ROUTE_VISIBILITY_PATH}`]: "agent402RouteVisibility",
     [`POST ${DISCOVERY_AUDIT_PATH}`]: "discoveryAudit",
     [`POST ${SCORE_PATH}`]: "listingScore",
     "GET /api/marketplace-listing-score": "marketplaceListingScore",
@@ -2695,6 +2725,11 @@ function buildLocalDiscoverySearchExamples(config) {
     {
       query: "x402 discovery audit",
       expectedFirstPath: DISCOVERY_AUDIT_PATH,
+      expectedAmount: DISCOVERY_AUDIT_QUICK_AMOUNT
+    },
+    {
+      query: "Agent402 route visibility",
+      expectedFirstPath: AGENT402_ROUTE_VISIBILITY_PATH,
       expectedAmount: DISCOVERY_AUDIT_QUICK_AMOUNT
     },
     {
@@ -3097,6 +3132,13 @@ function buildPayNowActions(config) {
       maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
       reason: "Use this when the buyer asks to fix x402 Bazaar listing visibility, Agent402 route visibility, stale pricing, search visibility, route health, or wants the cheapest exact-path discovery audit before the full custom audit."
     }),
+    agent402RouteVisibility: buildRoutePaymentAction(config, {
+      path: AGENT402_ROUTE_VISIBILITY_PATH,
+      method: "GET",
+      price: config.siteAuditPrice,
+      maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
+      reason: "Use this exact-path alias when the buyer or router asks for Agent402 route visibility, Agent402 router ranking, or why Agent402 is not routing to an x402 endpoint."
+    }),
     apiEntry: buildRoutePaymentAction(config, {
       path: API_ENTRY_PATH,
       method: "GET",
@@ -3186,6 +3228,7 @@ const SELECTED_FOLLOWUP_ACTION_BY_KEY = {
   agentListingConversion: "fullRoast",
   x402Ping: "indexedQuickScore",
   x402SiteAudit: "discoveryAuditQuick",
+  agent402RouteVisibility: "discoveryAudit",
   discoveryAuditQuick: "discoveryAudit",
   listingScore: "fullRoast"
 };
@@ -3318,6 +3361,7 @@ const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   agent_listing_conversion_score: "agentListingConversion",
   x402_ping: "x402Ping",
   x402_site_audit: "x402SiteAudit",
+  agent402_route_visibility_audit: "agent402RouteVisibility",
   paid_api_preflight: "x402SiteAudit",
   api_v1_paid_api_preflight: "x402SiteAudit",
   root_paid_api_preflight: "x402SiteAudit",
@@ -3701,6 +3745,10 @@ function commandActionKeyForIntent(intent = "") {
     return { intent: rawIntent, selectedActionKey: "x402Ping" };
   }
 
+  if (includesAny(normalizedIntent, ["agent402 route visibility", "agent402 router", "agent402 routing", "agent402 route"])) {
+    return { intent: rawIntent, selectedActionKey: "agent402RouteVisibility" };
+  }
+
   if (normalizedIntent.includes("discovery audit") || normalizedIntent.includes("stale") || normalizedIntent.includes("bazaar") || normalizedIntent.includes("search visibility") || normalizedIntent.includes("route health")) {
     return { intent: rawIntent, selectedActionKey: "discoveryAuditQuick" };
   }
@@ -3862,6 +3910,7 @@ function paidCompletionRouteKeyFromSettlement(method, pathname) {
     [`GET ${PING_PATH}`]: "x402Ping",
     [`GET ${SITE_AUDIT_PATH}`]: "x402SiteAudit",
     [`GET ${DISCOVERY_AUDIT_PATH}`]: "x402DiscoveryAuditQuick",
+    [`GET ${AGENT402_ROUTE_VISIBILITY_PATH}`]: "x402DiscoveryAuditQuick",
     [`POST ${DISCOVERY_AUDIT_PATH}`]: "x402DiscoveryAudit"
   };
 
@@ -3990,6 +4039,10 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
       includes: ["stale pricing check", "Agent402 route visibility", "search visibility", "route health", "next actions"],
       example: () => buildDiscoveryAuditQuickExampleOutput(config)
     },
+    agent402RouteVisibility: {
+      includes: ["Agent402 route visibility", "Agent402 router ranking", "search visibility", "route health", "next actions"],
+      example: () => buildDiscoveryAuditQuickExampleOutput(config)
+    },
     listingScore: {
       includes: ["custom score", "first fix", "upgrade path"],
       example: () => buildListingScoreWithUpgrade(requestExample, config)
@@ -4054,6 +4107,7 @@ function payNowIntentForSelection(intentRouteKey = "indexedQuickScore", selected
     indexedQuickScore: "Listing Roast Quick Score",
     x402Ping: "x402 ping",
     x402SiteAudit: "x402 site audit",
+    agent402RouteVisibility: "Agent402 route visibility",
     discoveryAuditQuick: "x402 discovery audit",
     discoveryAudit: "x402 discovery audit",
     fullRoast: "full listing roast"
@@ -4469,6 +4523,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
     [`GET ${PING_PATH}`]: "x402Ping",
     [`GET ${SITE_AUDIT_PATH}`]: "x402SiteAudit",
     [`GET ${DISCOVERY_AUDIT_PATH}`]: "discoveryAuditQuick",
+    [`GET ${AGENT402_ROUTE_VISIBILITY_PATH}`]: "agent402RouteVisibility",
     [`POST ${DISCOVERY_AUDIT_PATH}`]: "discoveryAudit",
     "POST /api/listing-score": "listingScore",
     [`GET ${ROAST_PATH}`]: "indexedQuickScore",
@@ -5253,6 +5308,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       pingRoute: absoluteUrl(config, PING_PATH),
       siteAuditRoute: absoluteUrl(config, SITE_AUDIT_PATH),
       discoveryAuditRoute: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
+      agent402RouteVisibilityRoute: absoluteUrl(config, AGENT402_ROUTE_VISIBILITY_PATH),
       scoreRoute: absoluteUrl(config, "/api/listing-score"),
       roastRoute: absoluteUrl(config, ROAST_PATH),
       apiEntryPrice: config.instantScorePrice,
@@ -5311,6 +5367,24 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       }
     };
   }
+
+  document.paths[AGENT402_ROUTE_VISIBILITY_PATH] = {
+    get: {
+      ...document.paths[DISCOVERY_AUDIT_PATH].get,
+      operationId: "getAgent402RouteVisibilityAudit",
+      tags: ["Agent402 route visibility", "Agent402 router", "x402 discovery audit", "x402 route health check", "paid API preflight", "stale Bazaar price", "paid API listing"],
+      summary: "Paid $0.001 Agent402 route visibility audit",
+      description: "Exact-path GET alias for agents and Agent402-style routers that ask specifically for Agent402 route visibility, Agent402 router ranking, stale Bazaar pricing, search visibility, route health, paid API preflight, and direct 402 metadata. Returns the same quick x402 discovery-audit output as GET /api/x402-discovery-audit.",
+      responses: { ...document.paths[DISCOVERY_AUDIT_PATH].get.responses },
+      "x-payment": buildPaymentHint(config, {
+        path: AGENT402_ROUTE_VISIBILITY_PATH,
+        method: "GET",
+        price: config.siteAuditPrice,
+        maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
+        buyerAction: "Pay $0.001 for an exact Agent402 route visibility audit before buying the full custom discovery audit."
+      })
+    }
+  };
 
   for (const [pathname, pathItem] of Object.entries(document.paths)) {
     for (const method of ["get", "post", "put", "patch", "delete"]) {
@@ -5746,6 +5820,21 @@ function buildX402Manifest(config, cashRegister = {}) {
         schema: absoluteUrl(config, "/api/discovery-audit-schema")
       },
       ...buildPreflightAliasManifestResources(config),
+      {
+        id: "agent402_route_visibility_audit",
+        name: "agent402_route_visibility",
+        method: "GET",
+        path: AGENT402_ROUTE_VISIBILITY_PATH,
+        url: absoluteUrl(config, AGENT402_ROUTE_VISIBILITY_PATH),
+        price: config.siteAuditPrice,
+        maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
+        description: "One-tenth-cent GET Agent402 route visibility audit for agents probing Agent402 router ranking, Agent402 route visibility, stale Bazaar pricing, search visibility, route health, paid API preflight, direct 402 metadata, and no-spend next actions before buying the full custom audit.",
+        keywords: ["Agent402 route visibility", "Agent402 router", "Agent402 routing", "Agent402 route visibility audit", "x402 discovery audit", "x402 bazaar discovery audit", "x402 service discoverability audit", "paid API preflight", "x402 route health check", "bazaar search visibility", "x402 listing stale price", "stale Bazaar price", "GET paid API"],
+        command: buildGetPayCommand(config, AGENT402_ROUTE_VISIBILITY_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT),
+        input: buildAgent402RouteVisibilityDiscovery(config).input,
+        outputExample: buildDiscoveryAuditQuickExampleOutput(config),
+        schema: absoluteUrl(config, "/api/discovery-audit-schema")
+      },
       {
         id: "x402_discovery_audit_quick",
         name: "x402_discovery_audit_quick",
@@ -6601,6 +6690,7 @@ function scoreCatalogResource(resource, query) {
   }
 
   if (wantsDiscoveryFix || includesAny(normalizedQuery, ["route health"])) {
+    if (resource.id === "agent402_route_visibility_audit" && includesAny(normalizedQuery, ["agent402 route visibility", "agent402 router", "agent402 routing", "agent402 route"])) score += 360;
     if (resource.id === "x402_discovery_audit_quick") score += 130;
     if (resource.id === "x402_discovery_audit") score += 80;
     if (resource.path === SITE_AUDIT_PATH) score += 55;
@@ -6613,6 +6703,7 @@ function scoreCatalogResource(resource, query) {
   }
 
   if (includesAny(normalizedQuery, ["discovery audit", "bazaar discovery", "x402 discovery"])) {
+    if (resource.id === "agent402_route_visibility_audit" && includesAny(normalizedQuery, ["agent402"])) score += 140;
     if (resource.id === "x402_discovery_audit_quick") score += 70;
     if (resource.id === "x402_discovery_audit") score += 35;
   }
@@ -7123,6 +7214,17 @@ function buildAgentCard(config, cashRegister = {}) {
         price: config.siteAuditPrice,
         maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
         buyerAction: "Pay $0.001 for the exact x402 discovery audit path before buying the full custom audit."
+      }),
+      buildAgentSkill(config, {
+        id: "agent402-route-visibility-audit",
+        name: "Agent402 route visibility audit",
+        description: "$0.001 GET exact Agent402 route visibility audit for Agent402 router ranking, stale pricing, search visibility, route health, paid API preflight, and direct 402 metadata.",
+        tags: ["Agent402 route visibility", "Agent402 router", "Agent402 routing", "x402 discovery audit", "x402 route health", "paid API preflight", "stale price"],
+        method: "GET",
+        path: AGENT402_ROUTE_VISIBILITY_PATH,
+        price: config.siteAuditPrice,
+        maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
+        buyerAction: "Pay $0.001 for the exact Agent402 route visibility audit before buying the full custom audit."
       }),
       buildAgentSkill(config, {
         id: "x402-discovery-audit",
@@ -8131,7 +8233,7 @@ function paymentRouteMetadataKey(intentRouteKey, selected) {
     return "x402SiteAudit";
   }
 
-  if (method === "GET" && pathname === DISCOVERY_AUDIT_PATH) {
+  if (method === "GET" && DISCOVERY_AUDIT_QUICK_PATHS.includes(pathname)) {
     return "discoveryAuditQuick";
   }
 
@@ -8198,6 +8300,26 @@ function createX402Middleware(config) {
     unpaidResponseBody: unpaidPaymentPreview(config, "x402SiteAudit"),
     extensions: declareChallengeDiscoveryExtension(buildSiteAuditDiscovery(config))
   });
+  const buildDiscoveryAuditQuickPaymentRoute = (routePath) => {
+    const isAgent402Alias = routePath === AGENT402_ROUTE_VISIBILITY_PATH;
+    return {
+      resource: resourceUrl(routePath),
+      ...challengeRouteServiceMetadata("discoveryAuditQuick"),
+      accepts: acceptsForRoute(routePath, config.siteAuditPrice),
+      description: withPaidUseProofDescription(config, isAgent402Alias
+        ? "Listing Roast Agent402 Route Visibility Audit: $0.001 GET exact Agent402 route visibility check for Agent402 router ranking, stale Bazaar pricing, search visibility, route health, paid API preflight, and direct 402 metadata."
+        : "Listing Roast x402 Discovery Audit Quick: $0.001 GET x402 discovery audit on the exact audit path for stale Bazaar pricing, Agent402 route visibility, search visibility, route health, paid API preflight, and direct 402 metadata."),
+      mimeType: "application/json",
+      customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAuditQuick"),
+      unpaidResponseBody: unpaidPaymentPreview(config, "discoveryAuditQuick", {
+        path: routePath,
+        method: "GET",
+        price: config.siteAuditPrice,
+        maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT
+      }),
+      extensions: declareChallengeDiscoveryExtension(isAgent402Alias ? buildAgent402RouteVisibilityDiscovery(config) : buildDiscoveryAuditQuickDiscovery(config))
+    };
+  };
 
   return paymentMiddleware(
     {
@@ -8323,16 +8445,7 @@ function createX402Middleware(config) {
         extensions: declareChallengeDiscoveryExtension(buildPingDiscovery(config))
       },
       ...Object.fromEntries(SITE_AUDIT_PAID_PATHS.map((routePath) => [`GET ${routePath}`, buildSiteAuditPaymentRoute(routePath)])),
-      [`GET ${DISCOVERY_AUDIT_PATH}`]: {
-        resource: resourceUrl(DISCOVERY_AUDIT_PATH),
-        ...challengeRouteServiceMetadata("discoveryAuditQuick"),
-        accepts: acceptsForRoute(DISCOVERY_AUDIT_PATH, config.siteAuditPrice),
-        description: withPaidUseProofDescription(config, "Listing Roast x402 Discovery Audit Quick: $0.001 GET x402 discovery audit on the exact audit path for stale Bazaar pricing, Agent402 route visibility, search visibility, route health, paid API preflight, and direct 402 metadata."),
-        mimeType: "application/json",
-        customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAuditQuick"),
-        unpaidResponseBody: unpaidPaymentPreview(config, "discoveryAuditQuick"),
-        extensions: declareChallengeDiscoveryExtension(buildDiscoveryAuditQuickDiscovery(config))
-      },
+      ...Object.fromEntries(DISCOVERY_AUDIT_QUICK_PATHS.map((routePath) => [`GET ${routePath}`, buildDiscoveryAuditQuickPaymentRoute(routePath)])),
       [`POST ${DISCOVERY_AUDIT_PATH}`]: {
         resource: resourceUrl(DISCOVERY_AUDIT_PATH),
         ...challengeRouteServiceMetadata("discoveryAudit"),
@@ -8462,7 +8575,7 @@ function validUnpaidSignalForPath(pathname) {
     return "siteAuditValidUnpaidChallenges";
   }
 
-  if (pathname === DISCOVERY_AUDIT_PATH) {
+  if (DISCOVERY_AUDIT_QUICK_PATHS.includes(pathname)) {
     return "discoveryAuditValidUnpaidChallenges";
   }
 
@@ -9009,7 +9122,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", API_SAMPLE_PATH, PAY_NOW_PATH, COMMANDS_PATH, PAID_USAGE_PROOF_PATH, ...PAID_USAGE_PROOF_ALIAS_PATHS, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, API_SAMPLE_SCORE_PATH, ...OPENAPI_JSON_PATHS, ...OPENAPI_YAML_PATHS, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, ...PAYMENT_MANIFEST_PATHS, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, MCP_SERVER_CARD_PATH, "/api/schema", SCHEMA_JSON_PATH, "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", API_SAMPLE_PATH, PAY_NOW_PATH, COMMANDS_PATH, PAID_USAGE_PROOF_PATH, ...PAID_USAGE_PROOF_ALIAS_PATHS, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, ...DISCOVERY_AUDIT_QUICK_PATHS, API_SAMPLE_SCORE_PATH, ...OPENAPI_JSON_PATHS, ...OPENAPI_YAML_PATHS, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, ...PAYMENT_MANIFEST_PATHS, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, MCP_SERVER_CARD_PATH, "/api/schema", SCHEMA_JSON_PATH, "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -10185,6 +10298,25 @@ ${copyScript("Copy command")}
           input: buildSiteAuditDiscovery(config).input
         },
         {
+          name: "agent402_route_visibility",
+          method: "GET",
+          path: AGENT402_ROUTE_VISIBILITY_PATH,
+          url: absoluteUrl(config, AGENT402_ROUTE_VISIBILITY_PATH),
+          price: config.siteAuditPrice,
+          network: config.network,
+          command: buildGetPayCommand(config, AGENT402_ROUTE_VISIBILITY_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT),
+          description: "one-tenth-cent GET exact Agent402 route visibility audit for Agent402 router ranking, stale Bazaar pricing, search visibility, route health, paid API preflight, and direct 402 metadata.",
+          payment: buildPaymentHint(config, {
+            path: AGENT402_ROUTE_VISIBILITY_PATH,
+            method: "GET",
+            price: config.siteAuditPrice,
+            maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
+            buyerAction: "Pay $0.001 for an exact Agent402 route visibility audit before buying the full custom audit."
+          }),
+          keywords: ["Agent402 route visibility", "Agent402 router", "Agent402 routing", "x402 discovery audit", "x402 listing stale price", "bazaar search visibility", "paid API preflight", "x402 route health check"],
+          input: buildAgent402RouteVisibilityDiscovery(config).input
+        },
+        {
           name: "x402_discovery_audit",
           method: "GET",
           path: DISCOVERY_AUDIT_PATH,
@@ -10336,12 +10468,12 @@ ${copyScript("Copy command")}
   });
 
   app.head([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], rejectHeadPaidRoute);
-  app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ...QUICK_SCORE_PAID_PATHS, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, "/api/listing-score"], rejectHeadPaidRoute);
+  app.use([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ...QUICK_SCORE_PAID_PATHS, PING_PATH, ...SITE_AUDIT_PAID_PATHS, ...DISCOVERY_AUDIT_QUICK_PATHS, "/api/listing-score"], rejectHeadPaidRoute);
   app.post(ROOT_DIRECTORY_POST_PATH, recordDirectoryPostProbe);
   app.get([API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH], recordApiEntryProbe);
   app.get([INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, ...QUICK_SCORE_PAID_PATHS], recordGetScoreProbe);
   app.get(PING_PATH, recordPingProbe);
-  app.get([...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH], recordAuditProbe);
+  app.get([...SITE_AUDIT_PAID_PATHS, ...DISCOVERY_AUDIT_QUICK_PATHS], recordAuditProbe);
   app.post(ROAST_PATH, validateListingRoastRequest);
   app.post("/api/listing-score", validateListingRoastRequest);
   app.post(DISCOVERY_AUDIT_PATH, validateDiscoveryAuditRequest);
@@ -10413,7 +10545,7 @@ ${copyScript("Copy command")}
     response.json({ ...result, cashRegister });
   });
 
-  app.get(DISCOVERY_AUDIT_PATH, async (request, response) => {
+  app.get(DISCOVERY_AUDIT_QUICK_PATHS, async (request, response) => {
     const parsed = discoveryAuditRequestSchema.safeParse(buildDiscoveryAuditInputFromQuery(request.query));
     if (!parsed.success) {
       response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });

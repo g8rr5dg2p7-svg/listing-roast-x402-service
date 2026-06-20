@@ -13,6 +13,7 @@ Live production service:
 - Paid x402 ping route: https://listing-roast-x402-service-production.up.railway.app/api/x402-ping
 - x402 site audit route: GET https://listing-roast-x402-service-production.up.railway.app/api/x402-site-audit
 - x402 discovery audit quick route: GET https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
+- Agent402 route visibility audit route: GET https://listing-roast-x402-service-production.up.railway.app/api/agent402-route-visibility
 - Full x402 discovery audit route: POST https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
 - Full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
@@ -35,6 +36,7 @@ Current verified state:
 - Instant score route: HTTP 402, amount 1000 USDC units.
 - x402 site audit route: HTTP 402, amount 1000 USDC units.
 - x402 discovery audit quick route: HTTP 402, amount 1000 USDC units.
+- Agent402 route visibility audit route: HTTP 402, amount 1000 USDC units.
 - Full x402 discovery audit route: HTTP 402, amount 10000 USDC units.
 - Score route: HTTP 402, amount 5000 USDC units.
 - Full roast route: HTTP 402, amount 10000 USDC units.
