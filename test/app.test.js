@@ -3844,6 +3844,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("agent service listing clarity");
       expect(challenge.resource.description).toContain("Listing Roast");
       expect(challenge.resource.description).toContain("buyer-agent skip reasons");
+      expect(response.json.resource.description).toBe(challenge.resource.description);
       expect(challenge.extensions.bazaar.info.input.queryParams.currentCheckoutPath).toBe("/api/agent-listing-conversion-score");
       expect(challenge.extensions.bazaar.info.output.example.route).toBe("/api/agent-listing-conversion-score");
       expect(challenge.accepts[0].network).toBe("eip155:84532");
@@ -4111,6 +4112,7 @@ describe("Listing Roast x402 service", () => {
         expect(response.json.error).toBe("payment_required");
         expect(response.json.x402Version).toBe(challenge.x402Version);
         expect(response.json.resource.url).toBe(challenge.resource.url);
+        expect(response.json.resource.description).toBe(challenge.resource.description);
         expect(response.json.resource.mimeType).toBe(challenge.resource.mimeType);
         expect(response.json.resource.serviceName).toBe(challenge.resource.serviceName);
         expect(response.json.resource.tags).toEqual(challenge.resource.tags);

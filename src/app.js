@@ -4286,12 +4286,13 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
       reason: selectedOverride.reason || selectedBase.reason
     })
     : selectedBase;
+  const resourceDescription = selectedOverride?.resourceDescription || selected.reason;
   const paidUseProof = buildPaidUseProofLinks(config);
   const settlementProof = buildSettlementProof(config);
   const paymentRouteKey = paymentRouteMetadataKey(intentRouteKey, selected);
   const paymentResource = {
     url: absoluteUrl(config, selected.path),
-    description: selected.reason,
+    description: resourceDescription,
     mimeType: "application/json",
     ...challengeRouteServiceMetadata(paymentRouteKey)
   };
@@ -8596,7 +8597,8 @@ function createX402Middleware(config) {
           path: routePath,
           method: "GET",
           price: config.instantScorePrice,
-          maxAmountRequired: INSTANT_SCORE_AMOUNT
+          maxAmountRequired: INSTANT_SCORE_AMOUNT,
+          resourceDescription: withPaidUseProofDescription(config, AGENT_LISTING_CONVERSION_DESCRIPTION)
         }),
         extensions: declareChallengeDiscoveryExtension(buildAgentListingConversionDiscovery(config, routePath))
       }])),
@@ -8624,7 +8626,8 @@ function createX402Middleware(config) {
             path: routePath,
             method: "GET",
             price: config.instantScorePrice,
-            maxAmountRequired: INSTANT_SCORE_AMOUNT
+            maxAmountRequired: INSTANT_SCORE_AMOUNT,
+            resourceDescription: withPaidUseProofDescription(config, metadata.description)
           }),
           extensions: declareChallengeDiscoveryExtension(buildIndexedRoastGetDiscovery(config, {
             routePath,
