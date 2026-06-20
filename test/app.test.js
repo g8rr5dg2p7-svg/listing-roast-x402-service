@@ -143,14 +143,17 @@ describe("Listing Roast x402 service", () => {
       expect(health.headers.get("link")).toContain("/api/pricing");
       expect(health.headers.get("link")).toContain("/api/find");
       expect(health.headers.get("link")).toContain("/api/route");
+      expect(health.headers.get("link")).toContain("/api/sample");
       expect(health.headers.get("link")).toContain("/openapi.json");
       expect(health.headers.get("link")).toContain("/.well-known/openapi.json");
+      expect(health.headers.get("link")).toContain("/schema.json");
       expect(health.headers.get("link")).toContain("/.well-known/agent-card.json");
       expect(health.headers.get("link")).toContain("/api/x402.json");
       expect(health.headers.get("link")).toContain("/api/agent-card");
       expect(health.headers.get("link")).toContain("/api/agent.json");
       expect(health.headers.get("link")).toContain("/.well-known/ai-plugin.json");
       expect(health.headers.get("link")).toContain("/.well-known/api-catalog");
+      expect(health.headers.get("link")).toContain("/.well-known/api-catalog.json");
       expect(health.headers.get("link")).toContain("/.well-known/agent-tools.json");
       expect(health.headers.get("link")).toContain("/.well-known/agent-skills/index.json");
       expect(health.headers.get("link")).toContain("/.well-known/llms.txt");
@@ -162,6 +165,8 @@ describe("Listing Roast x402 service", () => {
       expect(health.headers.get("link")).toContain("/.well-known/auth.md");
       expect(health.headers.get("link")).toContain("/.well-known/mcp");
       expect(health.headers.get("link")).toContain("/.well-known/mcp-server");
+      expect(health.headers.get("link")).toContain("/.well-known/mcp-server.json");
+      expect(health.headers.get("link")).toContain("/mcp");
       expect(health.headers.get("link")).toContain("/.well-known/mcp/server-card.json");
 
       const home = await fetchJson(server, "/");
@@ -303,7 +308,9 @@ describe("Listing Roast x402 service", () => {
 
       const sampleScore = await fetchJson(server, "/api/sample-score");
       expect(sampleScore.status).toBe(200);
+      expectFreshDiscoveryHeaders(sampleScore.headers);
       expect(sampleScore.json.price).toBe("$0.001");
+      expect(sampleScore.json.aliases[0]).toContain("/api/sample");
       expect(sampleScore.json.paidRoute).toContain("/api/listing-roast");
       expect(sampleScore.json.command).toContain("/api/listing-roast");
       expect(sampleScore.json.command).toContain("--max-amount 1000");
@@ -326,9 +333,18 @@ describe("Listing Roast x402 service", () => {
       expect(sampleScore.json.output.nextPaidAction.route).toContain("/api/listing-roast");
       expect(sampleScore.json.output.nextPaidAction.command).toContain("--max-amount 10000");
 
+      const sampleAlias = await fetchJson(server, "/api/sample");
+      expect(sampleAlias.status).toBe(200);
+      expect(sampleAlias.json.paidRoute).toContain("/api/listing-roast");
+      expect(sampleAlias.json.command).toContain("--max-amount 1000");
+
       const schema = await fetchJson(server, "/api/schema");
       expect(schema.status).toBe(200);
       expect(schema.json.service.price).toBe("$0.01");
+
+      const rootSchemaAlias = await fetchJson(server, "/schema.json");
+      expect(rootSchemaAlias.status).toBe(200);
+      expect(rootSchemaAlias.json.service.price).toBe("$0.01");
 
       const scoreSchema = await fetchJson(server, "/api/score-schema");
       expect(scoreSchema.status).toBe(200);
@@ -351,6 +367,8 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.iconUrl).toContain("/icon.svg");
       expect(mcp.json.openApi).toContain("/openapi.json");
       expect(mcp.json.openApiAliases[0]).toContain("/.well-known/openapi.json");
+      expect(mcp.json.openApiAliases).toContain("http://localhost:8787/api/v1/openapi.json");
+      expect(mcp.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(mcp.json.llms).toContain("/llms.txt");
       expect(mcp.json.llmsAliases[0]).toContain("/.well-known/llms.txt");
       expect(mcp.json.x402Manifest).toContain("/x402.json");
@@ -358,6 +376,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.agentCardAliases[0]).toContain("/.well-known/agent.json");
       expect(mcp.json.aiPlugin).toContain("/.well-known/ai-plugin.json");
       expect(mcp.json.apiCatalog).toContain("/.well-known/api-catalog");
+      expect(mcp.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
       expect(mcp.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(mcp.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
       expect(mcp.json.agentSkill).toContain("/.well-known/agent-skills/listing-roast-x402/SKILL.md");
@@ -365,6 +384,8 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.llmsFullAliases[0]).toContain("/.well-known/llms-full.txt");
       expect(mcp.json.markdown).toContain("/index.md");
       expect(mcp.json.mcpAliases[0]).toContain("/.well-known/mcp");
+      expect(mcp.json.mcpAliases).toContain("http://localhost:8787/.well-known/mcp-server.json");
+      expect(mcp.json.mcpAliases).toContain("http://localhost:8787/mcp");
       expect(mcp.json.mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(mcp.json.payNow).toContain("/api/pay-now");
       expect(mcp.json.commands).toContain("/api/commands");
@@ -430,6 +451,14 @@ describe("Listing Roast x402 service", () => {
       expect(mcpServerAlias.status).toBe(200);
       expect(mcpServerAlias.json.payNow).toContain("/api/pay-now");
 
+      const mcpServerJsonAlias = await fetchJson(server, "/.well-known/mcp-server.json");
+      expect(mcpServerJsonAlias.status).toBe(200);
+      expect(mcpServerJsonAlias.json.payNow).toContain("/api/pay-now");
+
+      const mcpRootAlias = await fetchJson(server, "/mcp");
+      expect(mcpRootAlias.status).toBe(200);
+      expect(mcpRootAlias.json.commands).toContain("/api/commands");
+
       const mcpServerCard = await fetchJson(server, "/.well-known/mcp/server-card.json");
       expect(mcpServerCard.status).toBe(200);
       expect(mcpServerCard.json.serverInfo.name).toBe("Listing Roast x402");
@@ -484,8 +513,13 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-helper-command-links-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T01:05:00.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-crawler-aliases-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T01:25:00.000Z");
+      expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
+      expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
+      expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
+      expect(x402Manifest.json.mcpAliases).toContain("http://localhost:8787/.well-known/mcp-server.json");
+      expect(x402Manifest.json.mcpAliases).toContain("http://localhost:8787/mcp");
       expect(x402Manifest.json.commands).toContain("/api/commands");
       expect(x402Manifest.json.compactCommandHandoff.firstPaidAction.path).toBe("/api/listing-roast");
       expect(x402Manifest.json.compactCommandHandoff.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
@@ -751,8 +785,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-helper-command-links-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T01:05:00.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-crawler-aliases-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T01:25:00.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -970,6 +1004,16 @@ describe("Listing Roast x402 service", () => {
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/v2/x402/discovery/merchant");
       expect(apiCatalog.json.linkset[0].status[0].href).toContain("/health");
       expect(apiCatalog.json.linkset[0].status.map((item) => item.href)).toContain("http://localhost:8787/api/cash-register");
+
+      const apiCatalogJsonAlias = await fetchJson(server, "/.well-known/api-catalog.json");
+      expect(apiCatalogJsonAlias.status).toBe(200);
+      expectFreshDiscoveryHeaders(apiCatalogJsonAlias.headers);
+      expect(apiCatalogJsonAlias.headers.get("content-type")).toContain("application/linkset+json");
+      expect(apiCatalogJsonAlias.json.linkset[0].item.map((item) => item.href)).toContain("http://localhost:8787/api/sample");
+      expect(apiCatalogJsonAlias.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/schema.json");
+      expect(apiCatalogJsonAlias.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/.well-known/api-catalog.json");
+      expect(apiCatalogJsonAlias.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/.well-known/mcp-server.json");
+      expect(apiCatalogJsonAlias.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/mcp");
 
       const agentSkillsHead = await fetch(`http://127.0.0.1:${server.address().port}/.well-known/agent-skills/index.json`, { method: "HEAD" });
       expect(agentSkillsHead.status).toBe(200);
@@ -2204,8 +2248,8 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.builderCommandBuilds).toBe(1);
       expect(cashRegister.json.signals.llmsViews).toBe(5);
       expect(cashRegister.json.signals.openApiViews).toBe(2);
-      expect(cashRegister.json.signals.sampleViews).toBe(2);
-      expect(cashRegister.json.signals.schemaViews).toBe(3);
+      expect(cashRegister.json.signals.sampleViews).toBe(3);
+      expect(cashRegister.json.signals.schemaViews).toBe(4);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
       expect(cashRegister.json.signals.commandsViews).toBe(1);
       expect(cashRegister.json.signals.payNowViews).toBe(15);
@@ -2213,11 +2257,11 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.findViews).toBe(6);
       expect(cashRegister.json.signals.routeViews).toBe(13);
       expect(cashRegister.json.signals.localDiscoveryViews).toBe(11);
-      expect(cashRegister.json.signals.mcpViews).toBe(4);
+      expect(cashRegister.json.signals.mcpViews).toBe(6);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(4);
       expect(cashRegister.json.signals.agentCardViews).toBe(4);
       expect(cashRegister.json.signals.aiPluginViews).toBe(1);
-      expect(cashRegister.json.signals.apiCatalogViews).toBe(1);
+      expect(cashRegister.json.signals.apiCatalogViews).toBe(2);
       expect(cashRegister.json.signals.agentSkillsViews).toBe(1);
       expect(cashRegister.json.signals.agentSkillViews).toBe(1);
       expect(cashRegister.json.signals.commandCopyClicks).toBe(1);
