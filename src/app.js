@@ -346,8 +346,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-402-body-mirror-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T05:15:48.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-primary-call-aliases-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T05:19:38.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -5161,6 +5161,35 @@ function buildPrimaryResourceSample(primaryEndpoint) {
   };
 }
 
+function buildShallowPrimaryCallAliases(primaryEndpoint) {
+  return {
+    url: primaryEndpoint.url,
+    apiUrl: primaryEndpoint.url,
+    api_url: primaryEndpoint.url,
+    endpoint: primaryEndpoint.url,
+    endpointUrl: primaryEndpoint.url,
+    endpoint_url: primaryEndpoint.url,
+    resource: primaryEndpoint.url,
+    resourceUrl: primaryEndpoint.url,
+    resource_url: primaryEndpoint.url,
+    method: primaryEndpoint.method,
+    path: primaryEndpoint.path,
+    x402Route: primaryEndpoint.path,
+    x402_route: primaryEndpoint.path,
+    price: primaryEndpoint.price,
+    priceUsd: priceToUsd(primaryEndpoint.price),
+    price_usd: priceToUsd(primaryEndpoint.price),
+    maxAmountRequired: primaryEndpoint.maxAmountRequired,
+    max_amount_required: primaryEndpoint.maxAmountRequired,
+    command: primaryEndpoint.command,
+    callCommand: primaryEndpoint.command,
+    call_command: primaryEndpoint.command,
+    curl: `curl -X ${primaryEndpoint.method} ${primaryEndpoint.url}`,
+    callNote: primaryEndpoint.note,
+    call_note: primaryEndpoint.note
+  };
+}
+
 function buildX402Manifest(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const primaryEndpoint = buildPrimaryEndpointHandoff(config, intentRoutes);
@@ -5397,6 +5426,9 @@ function buildX402Manifest(config, cashRegister = {}) {
     providerUrl: config.serviceUrl,
     iconUrl: absoluteUrl(config, ICON_SVG_PATH),
     icon: absoluteUrl(config, ICON_SVG_PATH),
+    ...buildShallowPrimaryCallAliases(primaryEndpoint),
+    primaryCall: buildShallowPrimaryCallAliases(primaryEndpoint),
+    primary_call: buildShallowPrimaryCallAliases(primaryEndpoint),
     category: SERVICE_CATEGORY,
     tags: SERVICE_TAGS,
     keywords: DISCOVERY_KEYWORDS,
@@ -5565,6 +5597,9 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
     category: SERVICE_CATEGORY,
     tags: SERVICE_TAGS,
     base_url: x402Manifest.baseUrl,
+    ...buildShallowPrimaryCallAliases(primaryEndpoint),
+    primaryCall: buildShallowPrimaryCallAliases(primaryEndpoint),
+    primary_call: buildShallowPrimaryCallAliases(primaryEndpoint),
     payment,
     commands,
     paidUsageProof,
