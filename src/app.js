@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-terminal-handoff-v34";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T22:45:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-post-roast-handoff-v35";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T22:55:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -4165,10 +4165,16 @@ function buildUpgradeAfterQuickScoreShortcut(intentRoutes = {}) {
   };
 }
 
+function isQuickScorePaidAction(action = {}) {
+  return action.method === "GET"
+    && action.maxAmountRequired === "1000"
+    && QUICK_SCORE_PAID_PATHS.includes(action.path);
+}
+
 function buildPaymentShortcutForAction(config, selectedPaidAction, firstPaidAction, intentRouteKey = "indexedQuickScore", intentRoutes = {}) {
   const selectedAgentPaymentRequest = buildAgentPaymentRequest(selectedPaidAction);
   const firstAgentPaymentRequest = buildAgentPaymentRequest(firstPaidAction);
-  const upgradeAfterQuickScore = QUICK_SCORE_PAID_PATHS.includes(firstPaidAction.path)
+  const upgradeAfterQuickScore = isQuickScorePaidAction(firstPaidAction)
     ? buildUpgradeAfterQuickScoreShortcut(intentRoutes)
     : null;
 
@@ -4646,7 +4652,7 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
   };
   const preview = previewByIntent[intentRouteKey] || previewByIntent.indexedQuickScore;
   const action = selectedPaidAction || {};
-  const upgradeAfterQuickScore = action.path && QUICK_SCORE_PAID_PATHS.includes(action.path)
+  const upgradeAfterQuickScore = isQuickScorePaidAction(action)
     ? buildUpgradeAfterQuickScoreShortcut(buildPayNowActions(config))
     : null;
 
@@ -4767,7 +4773,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
   const firstPaidUrl = selectedFirstPaidAction?.path
     ? absoluteUrl(config, selectedFirstPaidAction.path)
     : selectedPaidUrl;
-  const upgradeAfterQuickScore = QUICK_SCORE_PAID_PATHS.includes(selectedFirstPaidAction.path)
+  const upgradeAfterQuickScore = isQuickScorePaidAction(selectedFirstPaidAction)
     ? buildUpgradeAfterQuickScoreShortcut(payNow.intentRoutes)
     : null;
   const payableRoute = {

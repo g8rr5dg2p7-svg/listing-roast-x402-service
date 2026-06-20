@@ -777,7 +777,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcpInitialize.json.jsonrpc).toBe("2.0");
       expect(mcpInitialize.json.id).toBe(1);
       expect(mcpInitialize.json.result.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-20-terminal-handoff-v34");
+      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-20-post-roast-handoff-v35");
       expect(mcpInitialize.json.result.capabilities.tools).toEqual({});
 
       const mcpTools = await fetchJson(server, "/.well-known/mcp.json", {
@@ -921,7 +921,7 @@ describe("Listing Roast x402 service", () => {
       const mcpServerCard = await fetchJson(server, "/.well-known/mcp/server-card.json");
       expect(mcpServerCard.status).toBe(200);
       expect(mcpServerCard.json.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-20-terminal-handoff-v34");
+      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-20-post-roast-handoff-v35");
       expect(mcpServerCard.json.transport).toBe("http");
       expect(mcpServerCard.json.jsonRpcEndpoint).toContain("/mcp");
       expect(mcpServerCard.json.payment.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
@@ -951,7 +951,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(compressedX402Manifest.status).toBe(200);
       expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
-      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-terminal-handoff-v34");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-post-roast-handoff-v35");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -987,8 +987,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-terminal-handoff-v34");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T22:45:00.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-post-roast-handoff-v35");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T22:55:00.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -1419,8 +1419,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-terminal-handoff-v34");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T22:45:00.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-post-roast-handoff-v35");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T22:55:00.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -1762,7 +1762,7 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
-      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-terminal-handoff-v34");
+      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-post-roast-handoff-v35");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -1924,7 +1924,7 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.routeExamples.fullRewrite.results[0].path).toBe("/api/full-listing-roast");
       expect(examples.json.payNow.route).toContain("/api/listing-roast");
       expect(examples.json.payNow.command).toContain("--max-amount 1000");
-      expect(examples.json.payNow.metadataVersion).toBe("2026-06-20-terminal-handoff-v34");
+      expect(examples.json.payNow.metadataVersion).toBe("2026-06-20-post-roast-handoff-v35");
       expect(examples.json.payNow.paymentShortcut.selectedPaidPath).toBe("/api/listing-roast");
       expect(examples.json.payNow.paymentShortcut.upgradeAfterQuickScore.selectedPaidPath).toBe("/api/full-listing-roast");
       expect(examples.json.compactCommandHandoff.paymentShortcut.firstPaidPath).toBe("/api/listing-roast");
@@ -2891,7 +2891,7 @@ describe("Listing Roast x402 service", () => {
       expect(payNowPaidApiListingQuality.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(payNowPaidApiListingQuality.json.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
       expect(payNowPaidApiListingQuality.json.selectedFirstPaidAction.path).toBe("/api/listing-roast");
-      expect(payNowPaidApiListingQuality.json.metadataVersion).toBe("2026-06-20-terminal-handoff-v34");
+      expect(payNowPaidApiListingQuality.json.metadataVersion).toBe("2026-06-20-post-roast-handoff-v35");
       expect(payNowPaidApiListingQuality.json.paymentShortcut.selectedPaidPath).toBe("/api/listing-roast");
       expect(payNowPaidApiListingQuality.json.paymentShortcut.firstPaidPath).toBe("/api/listing-roast");
       expect(payNowPaidApiListingQuality.json.paymentShortcut.upgradeAfterQuickScore.selectedPaidPath).toBe("/api/full-listing-roast");
@@ -4112,7 +4112,7 @@ describe("Listing Roast x402 service", () => {
 
       const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
       expect(paymentAlias.status).toBe(200);
-      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-terminal-handoff-v34");
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-post-roast-handoff-v35");
       expect(paymentAlias.json.commands).toContain("/api/commands");
 
       const mcpJsonAlias = await fetchJson(server, "/mcp.json");
@@ -4757,6 +4757,47 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.roastValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.scoreValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.emptyDiscoveryProbes).toBe(0);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  }, 15000);
+
+  it("keeps POST listing-roast terminal handoffs free of quick-score upgrade hints", async () => {
+    mockFacilitatorSupportedKinds();
+    const app = createApp({
+      payTo: "0x000000000000000000000000000000000000dEaD",
+      serviceUrl: "https://listing-roast-x402-service-production.up.railway.app"
+    });
+    const server = await listen(app);
+    try {
+      const response = await fetchJson(server, "/api/listing-roast", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          agentName: "Example x402 API",
+          listingText: "Score marketplace product listing quality and buyer-agent skip reasons.",
+          targetBuyer: "x402 and MCP builders",
+          currentPrice: "$0.01",
+          goal: "Improve paid conversion"
+        })
+      });
+
+      expect(response.status).toBe(402);
+      const challenge = readPaymentRequiredHeader(response.headers);
+      expect(challenge.accepts[0].amount).toBe("10000");
+      expect(challenge.accepts[0].network).toBe("eip155:84532");
+      expect(response.json.selectedPaidPath).toBe("/api/listing-roast");
+      expect(response.json.selectedPaidMethod).toBe("POST");
+      expect(response.json.selectedPaidMaxAmountRequired).toBe("10000");
+      expect(response.json.firstPaidPath).toBe("/api/listing-roast");
+      expect(response.json.firstPaidMethod).toBe("POST");
+      expect(response.json.firstPaidMaxAmountRequired).toBe("10000");
+      expect(response.json.paymentShortcut.firstPaidPath).toBe("/api/listing-roast");
+      expect(response.json.paymentShortcut.firstPaidMethod).toBe("POST");
+      expect(response.json.paymentShortcut.upgradeAfterQuickScore).toBeUndefined();
+      expect(response.json.payableRoute.upgradeAfterQuickScore).toBeUndefined();
+      expect(response.json.paidResponsePreview.upgradeAfterQuickScore).toBeUndefined();
+      expect(response.json.payableRoute.instruction).toContain("selectedPaidUrl");
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
