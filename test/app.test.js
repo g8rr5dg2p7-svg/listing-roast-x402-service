@@ -1435,13 +1435,16 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.name).toBe("Listing Roast x402");
       expect(agentTools.json.type).toBe("x402-paid-api-service");
       expect(agentTools.json.version).toBe("0.3");
+      expect(agentTools.json.service).toBe("Listing Roast x402");
       expect(agentTools.json.serviceName).toBe("Listing Roast x402");
       expect(agentTools.json.provider_url).toBe("http://localhost:8787");
       expect(agentTools.json.iconUrl).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
+      expect(agentTools.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(agentTools.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(agentTools.json.metadataUpdatedAt).toBe("2026-06-21T02:45:00.000Z");
       expect(agentTools.json.metadata_updated_at).toBe("2026-06-21T02:45:00.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
@@ -1490,6 +1493,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.curl).toBe("curl -X GET http://localhost:8787/api/listing-roast");
       expect(agentTools.json.primary_call.endpoint_url).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.primaryCall.method).toBe("GET");
+      expect(agentTools.json.primaryEndpoint.path).toBe("/api/listing-roast");
+      expect(agentTools.json.primaryEndpoint.method).toBe("GET");
       expect(agentTools.json.primary_endpoint.path).toBe("/api/listing-roast");
       expect(agentTools.json.primary_endpoint.method).toBe("GET");
       expect(agentTools.json.primary_endpoint.serviceName).toBe("Listing Roast x402 Paid API Listing Quality Score");
@@ -1520,6 +1525,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.intent_landing_pages[8].primaryPaidAction.path).toBe("/api/listing-roast");
       expect(agentTools.json.intent_landing_pages[8].supportingPaidAction.path).toBe("/api/agent-service-clarity");
       expect(agentTools.json.tools.map((tool) => tool.name)).toContain("indexed_roast_quick_score");
+      expect(agentTools.json.tools[0].path).toBe("/api/listing-roast");
+      expect(agentTools.json.tools[0].route).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.tools[0].x402_route).toBe("/api/listing-roast");
       expect(agentTools.json.tools[0].price_usd).toBe("0.001");
       expect(agentTools.json.tools[0].agentPaymentRequest.maxPayment).toBe("0.001");
