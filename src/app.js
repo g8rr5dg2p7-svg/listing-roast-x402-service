@@ -1788,13 +1788,26 @@ function buildNextPaidAction(config, input, options = {}) {
   const path = options.path || ROAST_PATH;
   const maxAmountRequired = options.maxAmountRequired || "10000";
   const body = buildUpgradeRequestBody(input, options.source || "score-upgrade");
+  const route = absoluteUrl(config, path);
+  const method = "POST";
+  const price = options.price || config.price;
+  const agentPaymentRequest = buildAgentPaymentRequest({
+    route,
+    path,
+    method,
+    price,
+    maxAmountRequired
+  });
 
   return {
-    route: absoluteUrl(config, path),
+    route,
     path,
-    method: "POST",
-    price: options.price || config.price,
+    method,
+    price,
     maxAmountRequired,
+    maxPaymentUsd: agentPaymentRequest.maxPayment,
+    agentPaymentRequest,
+    agentPaymentPrompt: agentPaymentRequest.prompt,
     body,
     command: buildPayCommand(config, path, maxAmountRequired, body),
     reason: options.reason || "Buy the full roast when you want the rewritten listing, top fixes, and stop-or-upgrade guidance."
@@ -1807,13 +1820,26 @@ function buildGetNextPaidAction(config, path, options = {}) {
   }
 
   const maxAmountRequired = options.maxAmountRequired || INSTANT_SCORE_AMOUNT;
+  const route = absoluteUrl(config, path);
+  const method = "GET";
+  const price = options.price || config.instantScorePrice;
+  const agentPaymentRequest = buildAgentPaymentRequest({
+    route,
+    path,
+    method,
+    price,
+    maxAmountRequired
+  });
 
   return {
-    route: absoluteUrl(config, path),
+    route,
     path,
-    method: "GET",
-    price: options.price || config.instantScorePrice,
+    method,
+    price,
     maxAmountRequired,
+    maxPaymentUsd: agentPaymentRequest.maxPayment,
+    agentPaymentRequest,
+    agentPaymentPrompt: agentPaymentRequest.prompt,
     command: buildGetPayCommand(config, path, maxAmountRequired),
     reason: options.reason || "Buy the next GET check when the quick score confirms this route matches the buyer intent."
   };
@@ -1876,6 +1902,9 @@ function indexedQuickScoreIntentHandoffs(config, input, options = {}) {
     method: action.method,
     price: action.price,
     maxAmountRequired: action.maxAmountRequired,
+    ...(options.includeCommands && action.maxPaymentUsd !== undefined ? { maxPaymentUsd: action.maxPaymentUsd } : {}),
+    ...(options.includeCommands && action.agentPaymentRequest ? { agentPaymentRequest: action.agentPaymentRequest } : {}),
+    ...(options.includeCommands && action.agentPaymentPrompt ? { agentPaymentPrompt: action.agentPaymentPrompt } : {}),
     ...(options.includeCommands && action.command ? { command: action.command } : {}),
     ...(options.includeCommands && action.body ? { body: action.body } : {}),
     reason: action.reason
@@ -1919,6 +1948,9 @@ function indexedQuickScoreNextPaidActions(config, input) {
     method: handoff.method,
     price: handoff.price,
     maxAmountRequired: handoff.maxAmountRequired,
+    maxPaymentUsd: handoff.maxPaymentUsd,
+    agentPaymentRequest: handoff.agentPaymentRequest,
+    agentPaymentPrompt: handoff.agentPaymentPrompt,
     command: handoff.command,
     ...(handoff.body ? { body: handoff.body } : {}),
     reason: handoff.reason
@@ -1937,6 +1969,7 @@ function buildFullRoastUpgradeDecision(nextPaidActions = []) {
     buyWhen: "Buy this after the $0.001 quick score when the buyer wants rewritten listing copy, top fixes, buyer-agent skip reasons, and a stop-or-upgrade call.",
     holdWhen: "Do not upgrade if the quick score only proves route health or the buyer only needed the low-cost score.",
     expectedOutput: ["buyerAgentSkipReasons", "topFixes", "rewrittenListing", "stopOrUpgrade"],
+    agentPaymentPrompt: fullRoastAction.agentPaymentPrompt,
     action: fullRoastAction
   };
 }

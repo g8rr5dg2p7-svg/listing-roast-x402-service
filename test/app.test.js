@@ -417,11 +417,13 @@ describe("Listing Roast x402 service", () => {
       expect(sampleScore.json.exactIntentActions.discoveryAuditQuick.maxAmountRequired).toBe("1000");
       expect(sampleScore.json.firstPaidOutput.endpoint).toBe("listing-roast-quick-score");
       expect(sampleScore.json.firstPaidOutput.nextPaidActions.find((action) => action.path === "/api/x402-discovery-audit").maxAmountRequired).toBe("1000");
+      expect(sampleScore.json.firstPaidOutput.nextPaidActions.find((action) => action.path === "/api/listing-roast").agentPaymentPrompt).toContain("pay up to 0.01 USDC");
       expect(sampleScore.json.output.endpoint).toBe("listing-score");
       expect(sampleScore.json.output.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(sampleScore.json.output.nextPaidAction.path).toBe("/api/listing-roast");
       expect(sampleScore.json.output.nextPaidAction.route).toContain("/api/listing-roast");
       expect(sampleScore.json.output.nextPaidAction.command).toContain("--max-amount 10000");
+      expect(sampleScore.json.output.nextPaidAction.agentPaymentPrompt).toContain("pay up to 0.01 USDC");
 
       const sampleAlias = await fetchJson(server, "/api/sample");
       expect(sampleAlias.status).toBe(200);
@@ -1484,13 +1486,17 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.indexedRoastGetOutput.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(examples.json.indexedRoastGetOutput.nextPaidAction.command).toContain("/api/listing-roast");
       expect(examples.json.indexedRoastGetOutput.nextPaidAction.command).toContain("--max-amount 10000");
+      expect(examples.json.indexedRoastGetOutput.nextPaidAction.agentPaymentPrompt).toContain("pay up to 0.01 USDC");
       expect(examples.json.indexedRoastGetOutput.fullRoastUpgradeDecision.revenueStep).toBe("$0.01 full roast upgrade");
+      expect(examples.json.indexedRoastGetOutput.fullRoastUpgradeDecision.agentPaymentPrompt).toContain("pay up to 0.01 USDC");
       expect(examples.json.indexedRoastGetOutput.fullRoastUpgradeDecision.action.command).toContain("--max-amount 10000");
+      expect(examples.json.indexedRoastGetOutput.fullRoastUpgradeDecision.action.agentPaymentPrompt).toContain("pay up to 0.01 USDC");
       expect(examples.json.indexedRoastGetOutput.fullRoastUpgradeDecision.expectedOutput).toContain("rewrittenListing");
       expect(examples.json.indexedRoastGetOutput.buyerIntentHandoffs.find((handoff) => handoff.path === "/api/listing-roast").maxAmountRequired).toBe("10000");
       expect(examples.json.indexedRoastGetOutput.nextPaidActions).toHaveLength(3);
       expect(examples.json.indexedRoastGetOutput.nextPaidActions[0].path).toBe("/api/listing-roast");
       expect(examples.json.indexedRoastGetOutput.nextPaidActions[0].maxAmountRequired).toBe("10000");
+      expect(examples.json.indexedRoastGetOutput.nextPaidActions[0].agentPaymentPrompt).toContain("pay up to 0.01 USDC");
       expect(examples.json.indexedRoastGetOutput.nextPaidActions.find((action) => action.path === "/api/x402-discovery-audit").command).toContain("--max-amount 1000");
       expect(examples.json.indexedRoastGetOutput.nextPaidActions.find((action) => action.path === "/api/x402-site-audit").command).toContain("--max-amount 1000");
       expect(examples.json.indexedRoastGetOutput.nextPaidActions.find((action) => action.path === "/api/listing-roast").command).toContain("--max-amount 10000");
@@ -1714,9 +1720,12 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.command).toContain("/api/listing-roast");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.command).toContain("--max-amount 10000");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidAction.agentPaymentPrompt).toContain("pay up to 0.01 USDC");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.fullRoastUpgradeDecision.action.path).toBe("/api/listing-roast");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.fullRoastUpgradeDecision.action.maxAmountRequired).toBe("10000");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.fullRoastUpgradeDecision.agentPaymentPrompt).toContain("pay up to 0.01 USDC");
       expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidActions.find((action) => action.path === "/api/listing-roast").command).toContain("--max-amount 10000");
+      expect(openApi.json.paths["/api/listing-roast"].get.responses[200].content["application/json"].example.nextPaidActions.find((action) => action.path === "/api/listing-roast").agentPaymentPrompt).toContain("pay up to 0.01 USDC");
       expect(scoreAgent402OpenApiOperation(openApi.json.paths["/api/listing-roast"].get, "paid API listing quality")).toBeGreaterThan(scoreAgent402OpenApiOperation(openApi.json.paths["/api/x402-site-audit"].get, "paid API listing quality"));
       expect(scoreAgent402OpenApiOperation(openApi.json.paths["/api/listing-roast"].get, "buyer-agent skip reasons")).toBeGreaterThan(scoreAgent402OpenApiOperation(openApi.json.paths["/api/agent-listing-conversion"].get, "buyer-agent skip reasons"));
       expect(scoreAgent402OpenApiOperation(openApi.json.paths["/api/listing-roast"].get, "listing roast")).toBeGreaterThan(scoreAgent402OpenApiOperation(openApi.json.paths["/api/listing-roast"].post, "listing roast"));
