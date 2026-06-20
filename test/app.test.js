@@ -1337,7 +1337,8 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.compactCommandHandoff.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
       expect(examples.json.compactCommandHandoff.buyerPhraseCommandPack[0].exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality-score");
       expect(examples.json.buyerPhraseCommandPack[0].firstPaidAction.path).toBe("/api/listing-roast");
-      expect(examples.json.buyerPhraseCommandPack[0].command).toContain("/api/paid-api-listing-quality-score");
+      expect(examples.json.buyerPhraseCommandPack[0].command).toContain("/api/listing-roast");
+      expect(examples.json.buyerPhraseCommandPack[0].exactIntentCommand).toContain("/api/paid-api-listing-quality-score");
       expect(examples.json.payNowUrl).toContain("/api/pay-now");
       expect(examples.json.paidUsageProofUrl).toContain("/api/paid-usage-proof");
       expect(examples.json.cashRegister).toContain("/api/cash-register");
@@ -2032,7 +2033,8 @@ describe("Listing Roast x402 service", () => {
       ]);
       expect(payNow.json.buyerPhraseCommandPack[0].firstPaidAction.path).toBe("/api/listing-roast");
       expect(payNow.json.buyerPhraseCommandPack[0].exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality-score");
-      expect(payNow.json.buyerPhraseCommandPack[0].command).toContain("/api/paid-api-listing-quality-score");
+      expect(payNow.json.buyerPhraseCommandPack[0].command).toContain("/api/listing-roast");
+      expect(payNow.json.buyerPhraseCommandPack[0].exactIntentCommand).toContain("/api/paid-api-listing-quality-score");
       expect(payNow.json.buyerPhraseCommandPack[1].exactIntentPaidAction.path).toBe("/api/listing-quality-score-api");
       expect(payNow.json.buyerPhraseCommandPack[2].exactIntentPaidAction.path).toBe("/api/x402-listing-quality");
       expect(payNow.json.buyerPhraseCommandPack[3].exactIntentPaidAction.path).toBe("/api/marketplace-listing-conversion-api");
@@ -2055,7 +2057,8 @@ describe("Listing Roast x402 service", () => {
       expect(paidUsageProof.json.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
       expect(paidUsageProof.json.buyerPhraseCommandPack[0].firstPaidAction.path).toBe("/api/listing-roast");
       expect(paidUsageProof.json.buyerPhraseCommandPack[0].exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality-score");
-      expect(paidUsageProof.json.buyerPhraseCommandPack[0].command).toContain("/api/paid-api-listing-quality-score");
+      expect(paidUsageProof.json.buyerPhraseCommandPack[0].command).toContain("/api/listing-roast");
+      expect(paidUsageProof.json.buyerPhraseCommandPack[0].exactIntentCommand).toContain("/api/paid-api-listing-quality-score");
       expect(paidUsageProof.json.commands).toContain("/api/commands");
       expect(paidUsageProof.json.payNow).toContain("/api/pay-now");
       expect(paidUsageProof.json.cashRegister).toContain("/api/cash-register");

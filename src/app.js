@@ -3486,7 +3486,9 @@ function buildBuyerPhraseCommandPack(config) {
       exactIntentPaidAction: compactPaidAction(exactAction),
       recommendedPaidSequence,
       upgradeAfterFit,
-      command: exactAction.command,
+      command: intentRoutes.indexedQuickScore.command,
+      firstPaidCommand: intentRoutes.indexedQuickScore.command,
+      exactIntentCommand: exactAction.command,
       commandHandoff: `${absoluteUrl(config, COMMANDS_PATH)}?intent=${encodeURIComponent(entry.intent)}`,
       payNow: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent(entry.intent)}`,
       note: "Use the proven /api/listing-roast route first for generic marketplace traffic; use this exact alias when the buyer or crawler needs the paid URL to match the phrase."
