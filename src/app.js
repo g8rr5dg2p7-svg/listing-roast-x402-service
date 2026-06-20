@@ -376,7 +376,7 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
 });
 const CHALLENGE_ROUTE_SERVICE_TAGS = Object.freeze({
   indexedQuickScore: ["x402", "paid API listing quality score", "marketplace listing score", "marketplace listing conversion API", "buyer-agent skip reasons", "x402 marketplace conversion"],
-  x402SiteAudit: ["x402", "x402 site audit", "paid API preflight", "route health", "Bazaar visibility", "stale Bazaar price"],
+  x402SiteAudit: ["x402", "x402 site audit", "x402 seller growth checklist", "x402 listing SEO audit", "paid API preflight", "route health", "Bazaar visibility", "stale Bazaar price"],
   discoveryAuditQuick: ["x402", "x402 discovery audit", "Bazaar visibility", "paid API preflight", "route health"],
   discoveryAudit: ["x402", "x402 discovery audit", "Bazaar visibility", "stale Bazaar price", "paid API preflight"]
 });

@@ -3808,6 +3808,8 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.tags).toEqual([
         "x402",
         "x402 site audit",
+        "x402 seller growth checklist",
+        "x402 listing SEO audit",
         "paid API preflight",
         "route health",
         "Bazaar visibility",
