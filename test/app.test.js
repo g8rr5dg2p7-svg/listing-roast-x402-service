@@ -2077,9 +2077,17 @@ describe("Listing Roast x402 service", () => {
       expect(commands.json.kind).toBe("compact-pay-command-handoff");
       expect(commands.json.firstPaidAction.path).toBe("/api/listing-roast");
       expect(commands.json.firstPaidAction.command).toContain("--max-amount 1000");
+      expect(commands.json.recommendedPaidSequence[0].action.path).toBe("/api/listing-roast");
+      expect(commands.json.recommendedPaidSequence[0].action.method).toBe("GET");
+      expect(commands.json.recommendedPaidSequence[1].action.path).toBe("/api/listing-roast");
+      expect(commands.json.recommendedPaidSequence[1].action.method).toBe("POST");
+      expect(commands.json.recommendedPaidSequence[1].action.command).toContain("--max-amount 10000");
+      expect(commands.json.genericRecommendedPaidSequence[1].action.method).toBe("POST");
       expect(commands.json.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
       expect(commands.json.buyerPhraseCommandPack[0].firstPaidAction.path).toBe("/api/listing-roast");
       expect(commands.json.buyerPhraseCommandPack[0].exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality-score");
+      expect(commands.json.buyerPhraseCommandPack[0].recommendedPaidSequence[1].action.path).toBe("/api/listing-roast");
+      expect(commands.json.buyerPhraseCommandPack[0].upgradeAfterFit.command).toContain("-X POST");
       expect(commands.json.buyerPhraseCommandPack[0].commandHandoff).toContain("paid%20API%20listing%20quality%20score");
       expect(commands.json.bazaarCataloging.noSelfPay).toBe(true);
       expect(commands.json.bazaarCataloging.note).toContain("extensions.bazaar metadata");

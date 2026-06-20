@@ -3430,6 +3430,15 @@ function compactPaidAction(action) {
   };
 }
 
+function compactPaidSequence(sequence = []) {
+  return sequence.map((step) => ({
+    step: step.step,
+    use: step.use,
+    action: compactPaidAction(step.action),
+    reason: step.reason
+  }));
+}
+
 function buildBuyerPhraseCommandPack(config) {
   const intentRoutes = buildPayNowActions(config);
   const entries = [
@@ -3467,11 +3476,16 @@ function buildBuyerPhraseCommandPack(config) {
 
   return entries.map((entry) => {
     const exactAction = intentRoutes[entry.actionKey];
+    const recommendedPaidSequence = compactPaidSequence(buildSelectedPaidSequence(intentRoutes, entry.actionKey, exactAction));
+    const upgradeAfterFit = recommendedPaidSequence.find((step) => step.step === 2)?.action || compactPaidAction(intentRoutes.fullRoast);
+
     return {
       intent: entry.intent,
       landingPage: absoluteUrl(config, entry.landingPage),
       firstPaidAction: compactPaidAction(intentRoutes.indexedQuickScore),
       exactIntentPaidAction: compactPaidAction(exactAction),
+      recommendedPaidSequence,
+      upgradeAfterFit,
       command: exactAction.command,
       commandHandoff: `${absoluteUrl(config, COMMANDS_PATH)}?intent=${encodeURIComponent(entry.intent)}`,
       payNow: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent(entry.intent)}`,
@@ -3544,6 +3558,8 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
   const firstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
+  const compactSelectedPaidSequence = compactPaidSequence(selectedPaidSequence);
+  const compactGenericRecommendedPaidSequence = compactPaidSequence(buildRecommendedPaidSequence(intentRoutes));
   const upgradeAction = selectedPaidSequence.find((step) => step.step === 2)?.action || intentRoutes.fullRoast;
 
   return {
@@ -3556,6 +3572,9 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
     paidUseProof: compactPaidUseProof(proof),
     firstPaidAction: compactPaidAction(firstPaidAction),
     ...(exactIntentPaidAction ? { exactIntentPaidAction: compactPaidAction(exactIntentPaidAction) } : {}),
+    selectedPaidSequence: compactSelectedPaidSequence,
+    recommendedPaidSequence: compactSelectedPaidSequence,
+    genericRecommendedPaidSequence: compactGenericRecommendedPaidSequence,
     buyerPhraseCommandPack: buildBuyerPhraseCommandPack(config),
     expectedChallenge: {
       status: 402,
