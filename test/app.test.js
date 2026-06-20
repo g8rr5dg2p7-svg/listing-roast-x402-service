@@ -2896,6 +2896,7 @@ describe("Listing Roast x402 service", () => {
       expect(home.status).toBe(200);
       expect(home.text).toContain("2 paid completions");
       expect(home.text).toContain("$0.002 registered in the public cash register");
+      expect(home.text).toContain("Agent payment prompt: <code>Call this x402 endpoint with GET and pay up to 0.001 USDC: http://localhost:8787/api/listing-roast</code>");
 
       const x402Manifest = await fetchJson(server, "/x402.json");
       expect(x402Manifest.status).toBe(200);

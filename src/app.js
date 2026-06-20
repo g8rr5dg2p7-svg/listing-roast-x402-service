@@ -8200,6 +8200,7 @@ export function createApp(overrides = {}) {
     const listingQualityScoreApiCommand = buildGetPayCommand(config, "/api/listing-quality-score-api", INSTANT_SCORE_AMOUNT);
     const x402ListingQualityCommand = buildGetPayCommand(config, "/api/x402-listing-quality", INSTANT_SCORE_AMOUNT);
     const marketplaceProductListingQualityCommand = buildGetPayCommand(config, "/api/marketplace-product-listing-quality", INSTANT_SCORE_AMOUNT);
+    const homepageAgentPaymentPrompt = formatIndexedQuickScoreAgentPaymentPrompt(config);
     const scoreOutput = buildListingScoreWithUpgrade(requestExample, config);
     const sampleOutput = buildListingRoast(requestExample);
     const cashRegister = await getCashRegister();
@@ -8395,6 +8396,7 @@ score: 4/5</div>
         <div>
           <h2>Pay the indexed ${config.instantScorePrice} route first, then upgrade when the score is promising.</h2>
           <p>All paid endpoints are protected by x402. The already-indexed <code>GET ${ROAST_PATH}</code> route is the preferred first paid action for Bazaar traffic, x402 marketplace conversion checks, and agent listing conversion score buyers; <code>POST ${ROAST_PATH}</code> is the full one-cent roast. The exact <code>GET ${DISCOVERY_AUDIT_PATH}</code> route is the lowest-friction discovery audit for agents that do not want to assemble a body first.</p>
+          <p class="muted">Agent payment prompt: <code>${escapeHtml(homepageAgentPaymentPrompt)}</code></p>
           <p>
             <span class="tag">Base mainnet</span>
             <span class="tag">USDC</span>
