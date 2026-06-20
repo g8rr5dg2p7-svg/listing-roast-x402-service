@@ -31,11 +31,11 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: c495d0a7-f14d-428b-a736-f75741d2df38.
-- Latest live code commit: bd4bb42 Expand CDP search hints.
-- Latest GitHub release: expanded-cdp-search-hints-v1.
-- Latest metadata version: 2026-06-20-expanded-cdp-search-hints-v24.
-- Latest repo docs refresh: CDP/Bazaar price-filtered search, indexed-route handoffs, stale cached-card normalization proof, and expanded buyer-search hints aligned with the live payment metadata.
+- Railway deploy: successful. Latest verified deployment: b5e74830-2f35-468f-be92-4dbb4e61661b.
+- Latest live code commit: c8f9973 Add Bazaar MCP compatibility handoffs.
+- Latest GitHub release: bazaar-mcp-compat-v1.
+- Latest metadata version: 2026-06-20-bazaar-mcp-compat-v25.
+- Latest repo docs refresh: CDP/Bazaar price-filtered search, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
@@ -58,6 +58,7 @@ Current verified state:
 - Discovery-audit output includes direct 402 metadata, public Bazaar visibility, Agent402 route visibility, and catalog-refresh settlement guidance without paying the audited endpoint.
 - Direct full-roast route: verified in `/x402.json`, `/api/find`, `/api/commands`, and direct x402 details as `GET /api/full-listing-roast` with amount 10000.
 - AgentCore handoff: verified in `/x402.json`, `/llms.txt`, `/sitemap.xml`, and direct page render; it points AgentCore Gateway and Bazaar-MCP buyers to the already-indexed $0.001 GET `/api/listing-roast` first paid action.
+- MCP JSON-RPC handoff: verified live on `POST /mcp`; no-spend `search_resources` and `proxy_tool_call` compatibility aliases return Listing Roast route commands, price caps, and proof links only. They do not execute paid calls.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
 - Receiver wallet balance is the durable revenue check across deploys.
@@ -65,7 +66,7 @@ Current verified state:
 - The cash register baseline is preserved through Railway env import; use `/api/cash-register` plus the receiver wallet balance to distinguish register-confirmed and wallet-settled revenue.
 - First settlement transaction: 0x59f6d99257170dd796419a7d8a50dab7d113acb2198f0fafa993f6f30490fbf0.
 - Second settlement transaction: 0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71 for 1000 USDC units on the indexed GET `/api/listing-roast` route.
-- CDP Bazaar merchant discovery: indexed for the receiver wallet. The external search card may remain cached until another real settlement refreshes Bazaar metadata; direct live payment metadata is current. Latest official search evidence with `max-price 0.001`: `marketplace listing score`, `paid api listing quality`, `listing quality score API`, and `x402 listing quality` return Listing Roast; `marketplace listing conversion API`, `agent listing conversion score`, `agent-service listing score`, and `agent service listing score` include Listing Roast but may rank behind other resources; `buyer-agent skip reasons`, `agent service clarity`, `x402 discovery audit`, `x402 site audit`, `AgentCore x402 payments`, and `Coinbase x402 Bazaar MCP server` do not yet return the already-indexed card until another real settlement refreshes broader cached metadata.
+- CDP Bazaar merchant discovery: indexed for the receiver wallet. The external search card may remain cached until another real settlement refreshes Bazaar metadata; direct live payment metadata is current. Latest official search evidence with `max-price 0.001` on 2026-06-20T19:27Z: `marketplace listing score`, `paid api listing quality`, `listing quality score API`, and `x402 listing quality` return Listing Roast. `buyer-agent skip reasons`, `x402 discovery audit`, `AgentCore x402 payments`, and `Coinbase x402 Bazaar MCP server` do not yet return the already-indexed card until another real settlement refreshes broader cached metadata.
 - Local seller-hosted discovery now returns top-level `url`, `route`, `path`, `method`, `price`, `priceUsd`, `maxAmountRequired`, `max_amount_required`, and `command` fields for buyer agents that do not inspect nested metadata.
 
 Current production environment:
