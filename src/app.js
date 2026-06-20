@@ -3946,8 +3946,11 @@ function buildPayNow(config, intent = "", cashRegister = {}, receiverWallet = nu
 
   return {
     service: config.serviceName,
+    serviceName: config.serviceName,
     metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadata_version: DISCOVERY_METADATA_VERSION,
     metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
     paidUsageProof: buildPaidUsageProof(config, cashRegister, receiverWallet),
     settlementProof: buildSettlementProof(config, cashRegister),
     officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
@@ -6327,6 +6330,12 @@ function buildPaidUsageProof(config, cashRegister = {}, receiverWallet = null) {
     : `${paidCompletions} paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered`;
 
   return {
+    service: config.serviceName,
+    serviceName: config.serviceName,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadata_version: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
     paidCompletions,
     estimatedGrossRevenueUsd,
     proofText,
@@ -6375,6 +6384,11 @@ function buildPaidUsageProofResponse(config, cashRegister = {}, receiverWallet =
 
   return {
     service: config.serviceName,
+    serviceName: config.serviceName,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadata_version: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
     noSpend: true,
     purpose: "Compact public proof that Listing Roast x402 has wallet-confirmed paid usage and the first paid route is still the low-friction indexed GET.",
     paidCompletions: proof.paidCompletions,
@@ -7248,6 +7262,11 @@ function buildPricingCatalog(config, cashRegister = {}) {
 
   return {
     service: config.serviceName,
+    serviceName: config.serviceName,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadata_version: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
     noSpend: true,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
     paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),

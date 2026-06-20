@@ -2696,6 +2696,12 @@ describe("Listing Roast x402 service", () => {
 
       const payNow = await fetchJson(server, "/api/pay-now");
       expect(payNow.status).toBe(200);
+      expect(payNow.json.service).toBe("Listing Roast x402");
+      expect(payNow.json.serviceName).toBe("Listing Roast x402");
+      expect(payNow.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(payNow.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(payNow.json.metadataUpdatedAt).toBe("2026-06-21T02:45:00.000Z");
+      expect(payNow.json.metadata_updated_at).toBe("2026-06-21T02:45:00.000Z");
       expect(payNow.json.route).toContain("/api/listing-roast");
       expect(payNow.json.intent).toBeNull();
       expect(payNow.json.selectedActionKey).toBe("indexedQuickScore");
@@ -2771,6 +2777,12 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.buyerPhraseCommandPack[4].exactIntentPaidAction.path).toBe("/api/marketplace-product-listing-quality");
       expect(payNow.json.buyerPhraseCommandPack[6].exactIntentPaidAction.path).toBe("/api/marketplace-listing-score");
       expect(payNow.json.expectedChallenge.status).toBe(402);
+      expect(payNow.json.paidUsageProof.service).toBe("Listing Roast x402");
+      expect(payNow.json.paidUsageProof.serviceName).toBe("Listing Roast x402");
+      expect(payNow.json.paidUsageProof.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(payNow.json.paidUsageProof.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(payNow.json.paidUsageProof.metadataUpdatedAt).toBe("2026-06-21T02:45:00.000Z");
+      expect(payNow.json.paidUsageProof.metadata_updated_at).toBe("2026-06-21T02:45:00.000Z");
       expect(payNow.json.paidUsageProof.paidCompletions).toBe(0);
       expect(payNow.json.paidUsageProof.noSpend).toBe(true);
       expect(payNow.json.bazaarCataloging.noSelfPay).toBe(true);
@@ -2784,10 +2796,22 @@ describe("Listing Roast x402 service", () => {
       const paidUsageProof = await fetchJson(server, "/api/paid-usage-proof");
       expect(paidUsageProof.status).toBe(200);
       expect(paidUsageProof.headers.get("payment-required")).toBeNull();
+      expect(paidUsageProof.json.service).toBe("Listing Roast x402");
+      expect(paidUsageProof.json.serviceName).toBe("Listing Roast x402");
+      expect(paidUsageProof.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(paidUsageProof.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(paidUsageProof.json.metadataUpdatedAt).toBe("2026-06-21T02:45:00.000Z");
+      expect(paidUsageProof.json.metadata_updated_at).toBe("2026-06-21T02:45:00.000Z");
       expect(paidUsageProof.json.noSpend).toBe(true);
       expect(paidUsageProof.json.paidCompletions).toBe(0);
       expect(paidUsageProof.json.estimatedGrossRevenueUsd).toBe("0.00");
       expect(paidUsageProof.json.proofText).toContain("0 paid completions");
+      expect(paidUsageProof.json.paidUsageProof.service).toBe("Listing Roast x402");
+      expect(paidUsageProof.json.paidUsageProof.serviceName).toBe("Listing Roast x402");
+      expect(paidUsageProof.json.paidUsageProof.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(paidUsageProof.json.paidUsageProof.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(paidUsageProof.json.paidUsageProof.metadataUpdatedAt).toBe("2026-06-21T02:45:00.000Z");
+      expect(paidUsageProof.json.paidUsageProof.metadata_updated_at).toBe("2026-06-21T02:45:00.000Z");
       expect(paidUsageProof.json.paidUsageProof.paidCompletions).toBe(0);
       expect(paidUsageProof.json.paidUsageProof.noSpend).toBe(true);
       expect(paidUsageProof.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
@@ -3106,7 +3130,15 @@ describe("Listing Roast x402 service", () => {
       const pricing = await fetchJson(server, "/api/pricing");
       expect(pricing.status).toBe(200);
       expect(pricing.headers.get("payment-required")).toBeNull();
+      expect(pricing.json.service).toBe("Listing Roast x402");
+      expect(pricing.json.serviceName).toBe("Listing Roast x402");
+      expect(pricing.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(pricing.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(pricing.json.metadataUpdatedAt).toBe("2026-06-21T02:45:00.000Z");
+      expect(pricing.json.metadata_updated_at).toBe("2026-06-21T02:45:00.000Z");
       expect(pricing.json.noSpend).toBe(true);
+      expect(pricing.json.paidUsageProof.serviceName).toBe("Listing Roast x402");
+      expect(pricing.json.paidUsageProof.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(pricing.json.paidUsageProof.paidCompletions).toBe(0);
       expect(pricing.json.paidUsageProof.cashRegister).toContain("/api/cash-register");
       expect(pricing.json.commands).toContain("/api/commands");
@@ -3977,10 +4009,14 @@ describe("Listing Roast x402 service", () => {
       const proof = await fetchJson(server, "/api/paid-usage-proof");
       expect(proof.status).toBe(200);
       expect(proof.headers.get("payment-required")).toBeNull();
+      expect(proof.json.serviceName).toBe("Listing Roast x402");
+      expect(proof.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(proof.json.paidCompletions).toBe(2);
       expect(proof.json.estimatedGrossRevenueUsd).toBe("0.002");
       expect(proof.json.proofText).toBe("2 wallet-confirmed paid completions; $0.002 registered; receiver wallet 1.001 USDC");
       expect(proof.json.settlementStatus).toBe("wallet-confirmed");
+      expect(proof.json.paidUsageProof.serviceName).toBe("Listing Roast x402");
+      expect(proof.json.paidUsageProof.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(proof.json.paidUsageProof.settlementStatus).toBe("wallet-confirmed");
       expect(proof.json.paidUsageProof.proofText).toBe("2 wallet-confirmed paid completions; $0.002 registered; receiver wallet 1.001 USDC");
       expect(proof.json.paidUsageProof.receiverWallet.usdcUnits).toBe("1001000");
@@ -3997,6 +4033,8 @@ describe("Listing Roast x402 service", () => {
 
       const payNowFirstPaid = await fetchJson(server, "/api/pay-now?intent=buyer-agent%20skip%20reasons");
       expect(payNowFirstPaid.status).toBe(200);
+      expect(payNowFirstPaid.json.serviceName).toBe("Listing Roast x402");
+      expect(payNowFirstPaid.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(payNowFirstPaid.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(payNowFirstPaid.json.paymentShortcut.firstPaidPath).toBe("/api/listing-roast");
       expect(payNowFirstPaid.json.paidUsageProof.settlementStatus).toBe("wallet-confirmed");
