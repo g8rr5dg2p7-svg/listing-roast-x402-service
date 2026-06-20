@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-cheap-cap-discovery-handoff-v41";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T01:05:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-full-roast-direct-handoff-v43";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:15:00.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
 const ROUTE_SERVICE_NAMES = Object.freeze({
@@ -6282,6 +6282,7 @@ function buildPaidUsageProofResponse(config, cashRegister = {}, receiverWallet =
       knownWorkingSearchQueries: officialCdpDiscovery.knownWorkingSearchQueries,
       notYetRankingSearchQueries: officialCdpDiscovery.notYetRankingSearchQueries,
       cheapCapSearchStrategy: officialCdpDiscovery.cheapCapSearchStrategy,
+      fullRoastDirectHandoff: officialCdpDiscovery.fullRoastDirectHandoff,
       competitiveCapRisks: officialCdpDiscovery.competitiveCapRisks,
       rule: officialCdpDiscovery.searchRealityRule
     },
@@ -7387,6 +7388,19 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     domainRestrictedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${domainSearchParams.toString()}`,
     noSpend: true
   };
+  const fullRoastDirectHandoff = {
+    query: "full listing roast",
+    publicCdpSearchState: "Public CDP search can rank Listing Roast first for full listing roast while still returning the already-indexed $0.001 /api/listing-roast card. Use this direct handoff when the buyer wants the $0.01 full-roast output immediately.",
+    publicCdpSearchUrl: buildSearchUrl("full listing roast", "0.01"),
+    directRoute: absoluteUrl(config, FULL_ROAST_GET_PATH),
+    directRouteMethod: "GET",
+    directRoutePrice: config.price,
+    directRouteMaxAmountRequired: "10000",
+    directPayNow: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("full roast rewrite top fixes")}`,
+    localDiscoverySearchUrl: `${absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0])}?${new URLSearchParams({ query: "full listing roast", limit: "3" }).toString()}`,
+    expectedOutput: ["rewrittenListing", "topFixes", "buyerAgentSkipReasons", "stopOrUpgrade"],
+    noSpend: true
+  };
   const competitiveCapRisks = [
     {
       query: "marketplace listing score",
@@ -7421,6 +7435,7 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     domainRestrictedRecommendedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${domainRecommendedSearchParams.toString()}`,
     domainRestrictedUrlSubstring: serviceDomain,
     cheapCapSearchStrategy,
+    fullRoastDirectHandoff,
     competitiveCapRisks,
     workingSearchQueries,
     knownWorkingSearchQueries: workingSearchQueries,
