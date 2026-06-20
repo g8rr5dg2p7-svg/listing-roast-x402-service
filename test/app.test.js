@@ -3598,11 +3598,11 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
       expect(challenge.resource.description).toMatch(/^Score API marketplace listing quality/);
-      expect(challenge.resource.description).toContain("Score marketplace listings for conversion");
       expect(challenge.resource.description).toContain("Agentic.Market listing score");
       expect(challenge.resource.description).toContain("paid API listing quality score");
       expect(challenge.resource.description).toContain("x402 seller growth checklist");
-      expect(challenge.resource.description).toContain("marketplace product listing quality");
+      expect(challenge.resource.description).toContain("x402 site audit");
+      expect(challenge.resource.description).toContain("paid API preflight");
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("buyer-agent skip reasons");
       expect(challenge.resource.description).toContain("Commands");
@@ -3617,7 +3617,8 @@ describe("Listing Roast x402 service", () => {
         "marketplace listing score",
         "marketplace listing conversion API",
         "buyer-agent skip reasons",
-        "x402 marketplace conversion"
+        "x402 marketplace conversion",
+        "x402 seller growth checklist"
       ]);
       expect(challenge.extensions.bazaar.info.input.queryParams.agentName).toBe("Listing Roast x402");
       expect(challenge.extensions.bazaar.info.input.queryParams.listingText).toMatch(/^Score marketplace product listing quality/);
