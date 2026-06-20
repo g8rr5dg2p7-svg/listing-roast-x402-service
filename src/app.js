@@ -4300,6 +4300,7 @@ function buildOpenApiPaymentRequiredResponse(config, intentRouteKey = "indexedQu
 function buildOpenApiDocument(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+  const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
   const paymentActionByRoute = {
     [`GET ${API_ENTRY_PATH}`]: "apiEntry",
     [`GET ${API_V1_ENTRY_PATH}`]: "apiV1Entry",
@@ -4336,6 +4337,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
         manifest: absoluteUrl(config, "/x402.json"),
         payNow: absoluteUrl(config, PAY_NOW_PATH),
         paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+        officialCdpDiscovery,
         preferredFirstPaidAction: intentRoutes.indexedQuickScore,
         recommendedPaidSequence
       },
@@ -4353,6 +4355,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       manifest: absoluteUrl(config, "/x402.json"),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      officialCdpDiscovery,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
       buyerInstruction: "If the buyer intends to spend USDC, start with GET /api/listing-roast at $0.001 / max 1000 USDC units; read the 402 Payment-Required header, complete x402 payment, then retry with X-PAYMENT."
@@ -5063,6 +5066,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       commands: absoluteUrl(config, COMMANDS_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       payNowExamples: buildPayNowIntentExamples(config),
+      officialCdpDiscovery,
       cashRegister: absoluteUrl(config, "/api/cash-register"),
       paidUsageProof: buildPaidUsageProof(config, cashRegister),
       settlementProof: buildSettlementProof(config),
@@ -5073,6 +5077,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
         resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
         search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
         merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+        officialCdpDiscovery,
         searchExamples: buildLocalDiscoverySearchExamples(config)
       },
       apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
@@ -7759,6 +7764,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
   const metadataUrl = absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH);
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+  const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
 
   return {
     mcp_version: "2025-06-18",
@@ -7798,6 +7804,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       commands: absoluteUrl(config, COMMANDS_PATH),
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      officialCdpDiscovery,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
       payNowExamples: buildPayNowIntentExamples(config),
@@ -7826,6 +7833,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
       preflightAliases: preflightAliasUrls(config),
       markdown: absoluteUrl(config, INDEX_MARKDOWN_PATH)
     },
+    officialCdpDiscovery,
     categories: ["x402", "paid-api", "agent-commerce", "api-discovery"],
     crawl: true,
     last_updated: "2026-06-19"
@@ -8768,6 +8776,7 @@ ${webMcpScript(config)}
     await recordSignal("examplesViews");
     const cashRegister = await getCashRegister();
     const payNow = buildPayNow(config, "", cashRegister);
+    const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
 
     response.json({
       service: config.serviceName,
@@ -8806,6 +8815,7 @@ ${webMcpScript(config)}
       commands: absoluteUrl(config, COMMANDS_PATH),
       compactCommandHandoff: buildCommandHandoff(config, "paid API listing quality", cashRegister),
       payNow,
+      officialCdpDiscovery,
       buyerPhraseCommandPack: buildBuyerPhraseCommandPack(config),
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
@@ -8936,6 +8946,7 @@ ${webMcpScript(config)}
         resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
         search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
         merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+        officialCdpDiscovery,
         searchExamples: buildLocalDiscoverySearchExamples(config),
         resourceExample: buildLocalDiscoveryResources(config, { limit: 2 }),
         searchExample: buildLocalDiscoverySearch(config, { query: "x402 discovery audit" }),
@@ -8978,6 +8989,7 @@ ${webMcpScript(config)}
     const cashRegister = await getCashRegister();
     const sampleScoreOutput = buildListingScoreWithUpgrade(requestExample, config);
     const indexedQuickScoreOutput = buildIndexedRoastQuickScore(buildInstantScoreInput(), config);
+    const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
 
     setFreshDiscoveryHeaders(response).json({
       service: config.serviceName,
@@ -8989,6 +9001,7 @@ ${webMcpScript(config)}
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
       x402Manifest: absoluteUrl(config, "/x402.json"),
+      officialCdpDiscovery,
       paidRoute: intentRoutes.indexedQuickScore.route,
       price: intentRoutes.indexedQuickScore.price,
       network: config.network,
@@ -9664,6 +9677,7 @@ ${copyScript("Copy command")}
     const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
     const payNowExamples = buildPayNowIntentExamples(config);
     const cashRegister = await getCashRegister();
+    const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
 
     setFreshDiscoveryHeaders(response).json({
       name: config.serviceName,
@@ -9700,6 +9714,7 @@ ${copyScript("Copy command")}
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       commands: absoluteUrl(config, COMMANDS_PATH),
       payNowExamples,
+      officialCdpDiscovery,
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
       paidUsageProof: buildPaidUsageProof(config, cashRegister),
@@ -9717,6 +9732,7 @@ ${copyScript("Copy command")}
         payNow: absoluteUrl(config, PAY_NOW_PATH),
         commands: absoluteUrl(config, COMMANDS_PATH),
         paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+        officialCdpDiscovery,
         preferredFirstPaidAction: intentRoutes.indexedQuickScore,
         recommendedPaidSequence,
         payNowExamples,

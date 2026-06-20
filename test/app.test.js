@@ -402,6 +402,8 @@ describe("Listing Roast x402 service", () => {
       expect(sampleScore.json.paidRoute).toContain("/api/listing-roast");
       expect(sampleScore.json.command).toContain("/api/listing-roast");
       expect(sampleScore.json.command).toContain("--max-amount 1000");
+      expect(sampleScore.json.officialCdpDiscovery.indexedRoute).toBe("http://localhost:8787/api/listing-roast");
+      expect(sampleScore.json.officialCdpDiscovery.refreshRule).toContain("real settlement");
       expect(sampleScore.json.provenFirstPaidAction.path).toBe("/api/listing-roast");
       expect(sampleScore.json.provenFirstPaidAction.maxAmountRequired).toBe("1000");
       expect(sampleScore.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
@@ -506,6 +508,8 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.paidUsageProof.paidCompletions).toBe(0);
       expect(mcp.json.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.00");
       expect(mcp.json.paidUsageProof.noSpend).toBe(true);
+      expect(mcp.json.officialCdpDiscovery.indexedRoute).toBe("http://localhost:8787/api/listing-roast");
+      expect(mcp.json.payment.officialCdpDiscovery.recommendedSearchUrl).toContain("maxUsdPrice=0.01");
       expect(mcp.json.settlementProof.evidenceFields).toContain("receiverWallet.usdcBalance");
       expect(mcp.json.pricing).toContain("/api/pricing");
       expect(mcp.json.find).toContain("/api/find");
@@ -574,6 +578,8 @@ describe("Listing Roast x402 service", () => {
       expect(mcpServerCard.json.payment.payNowExamples.skipReasons.paidResponsePreview.route).toBe("/api/buyer-agent-skip-reasons");
       expect(mcpServerCard.json.payment.settlementProof.evidenceFields).toContain("paidCompletions");
       expect(mcpServerCard.json.payment.paidUsageProof.paidCompletions).toBe(0);
+      expect(mcpServerCard.json.officialCdpDiscovery.indexedRoute).toBe("http://localhost:8787/api/listing-roast");
+      expect(mcpServerCard.json.payment.officialCdpDiscovery.refreshRule).toContain("unpaid probes do not refresh");
       expect(mcpServerCard.json.iconUrl).toContain("/icon.svg");
       expect(mcpServerCard.json.links.cashRegister).toContain("/api/cash-register");
       expect(mcpServerCard.json.links.commands).toContain("/api/commands");
@@ -1401,6 +1407,8 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.compactCommandHandoff.firstPaidAction.path).toBe("/api/listing-roast");
       expect(examples.json.compactCommandHandoff.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
       expect(examples.json.compactCommandHandoff.buyerPhraseCommandPack[0].exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality-score");
+      expect(examples.json.officialCdpDiscovery.indexedRoute).toBe("http://localhost:8787/api/listing-roast");
+      expect(examples.json.officialCdpDiscovery.recommendedSearchUrl).toContain("maxUsdPrice=0.01");
       expect(examples.json.buyerPhraseCommandPack[0].firstPaidAction.path).toBe("/api/listing-roast");
       expect(examples.json.buyerPhraseCommandPack[0].command).toContain("/api/listing-roast");
       expect(examples.json.buyerPhraseCommandPack[0].exactIntentCommand).toContain("/api/paid-api-listing-quality-score");
@@ -1429,6 +1437,7 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.recommendedPaidSequence[1].use).toBe("fullRoast");
       expect(examples.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(examples.json.localDiscovery.resources).toContain("/v2/x402/discovery/resources");
+      expect(examples.json.localDiscovery.officialCdpDiscovery.recommendedSearchQuery).toBe("listing roast");
       expect(examples.json.localDiscovery.searchExample.resources[0].metadata.path).toBe("/api/x402-discovery-audit");
       expect(examples.json.localDiscovery.merchantExample.resources).toHaveLength(PAID_RESOURCE_COUNT);
       expect(examples.json.pricingCatalog.count).toBe(PAID_RESOURCE_COUNT);
@@ -1784,6 +1793,10 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json["x-listing-roast"].find).toContain("/api/find");
       expect(openApi.json["x-listing-roast"].route).toContain("/api/route");
       expect(openApi.json["x-listing-roast"].localDiscovery.resources).toContain("/v2/x402/discovery/resources");
+      expect(openApi.json.info.x402.officialCdpDiscovery.indexedRoute).toBe("http://localhost:8787/api/listing-roast");
+      expect(openApi.json.x402.officialCdpDiscovery.recommendedSearchUrl).toContain("query=listing+roast");
+      expect(openApi.json["x-listing-roast"].officialCdpDiscovery.refreshRule).toContain("real settlement");
+      expect(openApi.json["x-listing-roast"].localDiscovery.officialCdpDiscovery.indexedRouteReason).toContain("already-settled");
       expect(openApi.json["x-listing-roast"].localDiscovery.searchExamples.find((example) => example.query === "agent service clarity").expectedFirstPath).toBe("/api/listing-roast");
       expect(openApi.json["x-listing-roast"].localDiscovery.searchExamples.find((example) => example.query === "agent service clarity").exactIntentPath).toBe("/api/agent-service-clarity");
       expect(openApi.json["x-listing-roast"].localDiscovery.searchExamples.find((example) => example.query === "x402 route health check").expectedFirstPath).toBe("/api/x402-discovery-audit");
