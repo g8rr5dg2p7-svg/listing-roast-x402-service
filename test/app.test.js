@@ -3906,6 +3906,18 @@ describe("Listing Roast x402 service", () => {
       "/api/buyer-agent-skip-reasons": "Buyer-agent skip reasons and buyer agent skip reasons x402",
       "/api/agent-service-clarity": "Agent service clarity and agent-service listing score x402"
     };
+    const expectedPayNowIntentByPath = {
+      "/api/marketplace-listing-score": "marketplace listing score",
+      "/api/marketplace-listing-conversion-api": "marketplace listing conversion API",
+      "/api/marketplace-listing-conversion": "marketplace listing conversion API",
+      "/api/marketplace-product-listing-quality": "marketplace product listing quality",
+      "/api/paid-api-listing-quality": "paid API listing quality",
+      "/api/paid-api-listing-quality-score": "paid API listing quality score",
+      "/api/listing-quality-score-api": "listing quality score API",
+      "/api/x402-listing-quality": "x402 listing quality",
+      "/api/buyer-agent-skip-reasons": "buyer-agent skip reasons",
+      "/api/agent-service-clarity": "agent service clarity"
+    };
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
     const server = await listen(app);
     try {
@@ -3937,6 +3949,10 @@ describe("Listing Roast x402 service", () => {
         expect(response.json.accepts[0].extra.resource).toBe(response.json.resource.url);
         expect(response.json.catalogRefreshHint.resource).toBe(response.json.resource.url);
         expect(response.json.paymentRequirementsSource.authoritative).toBe("Payment-Required response header");
+        const freeHandoff = new URL(response.json.freeHandoff);
+        expect(freeHandoff.pathname).toBe("/api/pay-now");
+        expect(freeHandoff.searchParams.get("intent")).toBe(expectedPayNowIntentByPath[routePath]);
+        expect(response.json.payNow).toBe(response.json.freeHandoff);
         expect(response.json.selectedPaidAction.path).toBe(routePath);
         expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
         expect(response.json.selectedPaidAction.command).toContain(routePath);

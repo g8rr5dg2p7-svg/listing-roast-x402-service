@@ -3942,6 +3942,40 @@ function buildAgentPaymentRequest(selected) {
   };
 }
 
+function payNowIntentForSelection(intentRouteKey = "indexedQuickScore", selected = null) {
+  if (selected?.path && QUICK_SCORE_ALIAS_METADATA[selected.path]) {
+    return QUICK_SCORE_ALIAS_METADATA[selected.path].keywords[0];
+  }
+
+  if (selected?.path && PREFLIGHT_ALIAS_PATHS.includes(selected.path)) {
+    return "paid API preflight";
+  }
+
+  const intentByRouteKey = {
+    directoryPost: "directory handoff",
+    apiEntry: "API entrypoint",
+    listingScore: "custom listing score",
+    instantScore: "instant listing score",
+    conversionScore: "x402 marketplace conversion",
+    agentListingConversion: "agent listing conversion",
+    indexedQuickScore: "Listing Roast Quick Score",
+    x402Ping: "x402 ping",
+    x402SiteAudit: "x402 site audit",
+    discoveryAuditQuick: "x402 discovery audit",
+    discoveryAudit: "x402 discovery audit",
+    fullRoast: "full listing roast"
+  };
+
+  return intentByRouteKey[intentRouteKey] || "";
+}
+
+function payNowUrlForSelection(config, intentRouteKey = "indexedQuickScore", selected = null) {
+  const baseUrl = absoluteUrl(config, PAY_NOW_PATH);
+  const intent = payNowIntentForSelection(intentRouteKey, selected);
+
+  return intent ? `${baseUrl}?intent=${encodeURIComponent(intent)}` : baseUrl;
+}
+
 function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore", selectedOverride = null) {
   const payNow = buildPayNow(config);
   const selectedBase = payNow.intentRoutes[intentRouteKey] || payNow.preferredFirstPaidAction;
@@ -3975,6 +4009,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
   }];
   const paidResponsePreview = buildPaidResponsePreview(config, intentRouteKey, selected);
   const agentPaymentRequest = buildAgentPaymentRequest(selected);
+  const payNowUrl = payNowUrlForSelection(config, intentRouteKey, selected);
   const sampleQueryInputs = selected.method === "GET" && QUICK_SCORE_PAID_PATHS.includes(selected.path)
     ? quickScoreAliasInputDefaults(selected.path)
     : null;
@@ -4009,7 +4044,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
       ...(sampleQueryPayCommand ? { withSampleInputs: sampleQueryPayCommand } : {})
     },
     ...(sampleQueryPayCommand ? { sampleQueryPayCommand, sampleQueryInputs } : {}),
-    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    payNow: payNowUrl,
     commandHandoff: absoluteUrl(config, COMMANDS_PATH),
     whyPay: paidResponsePreview.whyPay,
     paidResponsePreview,
@@ -4017,7 +4052,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     recommendedPaidSequence: payNow.recommendedPaidSequence,
     routeSelector: payNow.routeSelector,
     intentRoutes: payNow.intentRoutes,
-    freeHandoff: absoluteUrl(config, PAY_NOW_PATH),
+    freeHandoff: payNowUrl,
     commands: absoluteUrl(config, COMMANDS_PATH),
     paidUsageProof: paidUseProof.paidUsageProof,
     cashRegister: paidUseProof.cashRegister,
