@@ -3588,11 +3588,12 @@ describe("Listing Roast x402 service", () => {
     await recordPaidCompletion("x402SiteAudit", 0.001);
     await recordPaidCompletion("x402DiscoveryAudit", 0.01);
     await recordPaidCompletion("x402Ping", 0.001);
+    await recordPaidCompletion("fullRoastGet", 0.01);
     await recordPaidCompletion("listingRoast", 0.01);
 
     const cashRegister = await getCashRegister();
-    expect(cashRegister.paidCompletions).toBe(11);
-    expect(cashRegister.estimatedGrossRevenueUsd).toBe("0.033");
+    expect(cashRegister.paidCompletions).toBe(12);
+    expect(cashRegister.estimatedGrossRevenueUsd).toBe("0.043");
     expect(cashRegister.listingScoreCompletions).toBe(5);
     expect(cashRegister.listingScoreEstimatedRevenueUsd).toBe("$0.009");
     expect(cashRegister.directoryPostCompletions).toBe(1);
@@ -3601,6 +3602,8 @@ describe("Listing Roast x402 service", () => {
     expect(cashRegister.apiEntryEstimatedRevenueUsd).toBe("$0.001");
     expect(cashRegister.instantScoreCompletions).toBe(3);
     expect(cashRegister.indexedRoastGetCompletions).toBe(1);
+    expect(cashRegister.fullRoastGetCompletions).toBe(1);
+    expect(cashRegister.fullRoastGetEstimatedRevenueUsd).toBe("$0.01");
     expect(cashRegister.listingScorePostCompletions).toBe(1);
     expect(cashRegister.x402SiteAuditCompletions).toBe(1);
     expect(cashRegister.x402DiscoveryAuditCompletions).toBe(2);
@@ -3610,12 +3613,14 @@ describe("Listing Roast x402 service", () => {
     expect(cashRegister.lastPaidCompletion.routeKey).toBe("listingRoast");
     expect(cashRegister.lastPaidCompletion.path).toBe("/api/listing-roast");
     expect(cashRegister.lastPaidCompletion.method).toBe("POST");
-    expect(cashRegister.recentPaidCompletions).toHaveLength(11);
+    expect(cashRegister.recentPaidCompletions).toHaveLength(12);
     expect(cashRegister.recentPaidCompletions.map((event) => event.routeKey)).toContain("directoryPost");
     expect(cashRegister.recentPaidCompletions.find((event) => event.routeKey === "directoryPost").path).toBe("/");
     expect(cashRegister.recentPaidCompletions.map((event) => event.routeKey)).toContain("conversionScore");
     expect(cashRegister.recentPaidCompletions.map((event) => event.routeKey)).toContain("agentListingConversion");
     expect(cashRegister.recentPaidCompletions.find((event) => event.routeKey === "agentListingConversion").path).toBe("/api/agent-listing-conversion");
+    expect(cashRegister.recentPaidCompletions.map((event) => event.routeKey)).toContain("fullRoastGet");
+    expect(cashRegister.recentPaidCompletions.find((event) => event.routeKey === "fullRoastGet").path).toBe("/api/full-listing-roast");
   });
 
   it("protects the public directory root POST handoff with a one-tenth-cent x402 challenge", async () => {
