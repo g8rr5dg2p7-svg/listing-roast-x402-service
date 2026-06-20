@@ -3885,6 +3885,8 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.sampleQueryInputs.listingText).toContain("marketplace product listing quality");
       expect(response.json.payNow).toContain("/api/pay-now");
       expect(response.json.commandHandoff).toContain("/api/commands");
+      expect(response.json.commandHandoff).toContain("intent=Listing%20Roast%20Quick%20Score");
+      expect(response.json.commands).toBe(response.json.commandHandoff);
       expect(response.json.whyPay).toContain("$0.001");
       expect(response.json.paidResponsePreview.noSpendPreview).toBe(true);
       expect(response.json.paidResponsePreview.route).toBe("/api/listing-roast");

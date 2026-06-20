@@ -4023,6 +4023,13 @@ function payNowUrlForSelection(config, intentRouteKey = "indexedQuickScore", sel
   return intent ? `${baseUrl}?intent=${encodeURIComponent(intent)}` : baseUrl;
 }
 
+function commandUrlForSelection(config, intentRouteKey = "indexedQuickScore", selected = null) {
+  const baseUrl = absoluteUrl(config, COMMANDS_PATH);
+  const intent = payNowIntentForSelection(intentRouteKey, selected);
+
+  return intent ? `${baseUrl}?intent=${encodeURIComponent(intent)}` : baseUrl;
+}
+
 function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore", selectedOverride = null) {
   const payNow = buildPayNow(config);
   const selectedBase = payNow.intentRoutes[intentRouteKey] || payNow.preferredFirstPaidAction;
@@ -4057,6 +4064,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
   const paidResponsePreview = buildPaidResponsePreview(config, intentRouteKey, selected);
   const agentPaymentRequest = buildAgentPaymentRequest(selected);
   const payNowUrl = payNowUrlForSelection(config, intentRouteKey, selected);
+  const commandHandoffUrl = commandUrlForSelection(config, intentRouteKey, selected);
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(payNow.intentRoutes, intentRouteKey, selected);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(payNow.intentRoutes, intentRouteKey, selected);
   const selectedPaidSequence = buildSelectedPaidSequence(payNow.intentRoutes, intentRouteKey, selected);
@@ -4104,7 +4112,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     },
     ...(sampleQueryPayCommand ? { sampleQueryPayCommand, sampleQueryInputs } : {}),
     payNow: payNowUrl,
-    commandHandoff: absoluteUrl(config, COMMANDS_PATH),
+    commandHandoff: commandHandoffUrl,
     whyPay: paidResponsePreview.whyPay,
     paidResponsePreview,
     selectedFirstPaidResponsePreview,
@@ -4114,7 +4122,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     routeSelector: payNow.routeSelector,
     intentRoutes: payNow.intentRoutes,
     freeHandoff: payNowUrl,
-    commands: absoluteUrl(config, COMMANDS_PATH),
+    commands: commandHandoffUrl,
     paidUsageProof: paidUseProof.paidUsageProof,
     cashRegister: paidUseProof.cashRegister,
     paidUseProof,
