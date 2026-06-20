@@ -113,6 +113,7 @@ npm run smoke
 
 SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
 SMOKE_PATH=/api/full-listing-roast \
+SMOKE_METHOD=GET \
 EXPECTED_X402_NETWORK=eip155:8453 \
 EXPECTED_X402_AMOUNT=10000 \
 npm run smoke
