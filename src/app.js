@@ -215,6 +215,9 @@ const DISCOVERY_AUDIT_QUICK_PATHS = Object.freeze([DISCOVERY_AUDIT_PATH, AGENT40
 const PAY_NOW_PATH = "/api/pay-now";
 const PAY_NOW_ALIAS_PATHS = Object.freeze(["/api/checkout", "/checkout", "/api/buy", "/buy", "/api/pay", "/pay", "/api/start", "/start"]);
 const PAY_NOW_INTENT_FIELDS = Object.freeze(["intent", "q", "query", "task"]);
+const CORS_ALLOWED_METHODS = "GET,POST,OPTIONS";
+const CORS_ALLOWED_HEADERS = "Content-Type, X-PAYMENT, Authorization";
+const CORS_EXPOSED_HEADERS = "Payment-Required, X-PAYMENT-RESPONSE, Link";
 const COMMANDS_PATH = "/api/commands";
 const PAID_USAGE_PROOF_PATH = "/api/paid-usage-proof";
 const PAID_USAGE_PROOF_ALIAS_PATHS = Object.freeze(["/api/proof", "/proof", "/paid-usage-proof"]);
@@ -460,8 +463,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-post-checkout-handoff-v45";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T23:38:55.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-browser-payment-cors-v46";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T23:45:12.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
 const ROUTE_SERVICE_NAMES = Object.freeze({
@@ -10633,6 +10636,15 @@ function rejectHeadPaidRoute(request, response, next) {
   response.set("Allow", allow).status(405).end();
 }
 
+function setCorsHeaders(request, response) {
+  response.set("Access-Control-Allow-Origin", "*");
+  response.set("Access-Control-Allow-Methods", CORS_ALLOWED_METHODS);
+  response.set("Access-Control-Allow-Headers", request.get("access-control-request-headers") || CORS_ALLOWED_HEADERS);
+  response.set("Access-Control-Expose-Headers", CORS_EXPOSED_HEADERS);
+  response.vary("Origin");
+  response.vary("Access-Control-Request-Headers");
+}
+
 async function recordGetScoreProbe(request, _response, next) {
   if (!hasPaymentHeader(request)) {
     const pathname = new URL(request.originalUrl, "http://local").pathname;
@@ -10723,6 +10735,14 @@ export function createApp(overrides = {}) {
   app.set("trust proxy", 1);
   app.use(gzipLargeTextResponses);
   app.use(express.json({ limit: "32kb" }));
+  app.use((request, response, next) => {
+    setCorsHeaders(request, response);
+    if (request.method === "OPTIONS") {
+      response.status(204).end();
+      return;
+    }
+    next();
+  });
   app.use((request, response, next) => {
     const pathname = new URL(request.originalUrl, "http://local").pathname;
     response.set("Link", isPaidRouteRequest(request.method, pathname) ? buildCompactPaidRouteLinks(config, pathname) : buildDiscoveryLinks(config));
