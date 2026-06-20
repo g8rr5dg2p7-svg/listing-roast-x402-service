@@ -8241,6 +8241,8 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
     const pingRoute = absoluteUrl(config, PING_PATH);
     const siteAuditRoute = absoluteUrl(config, SITE_AUDIT_PATH);
     const discoveryAuditRoute = absoluteUrl(config, DISCOVERY_AUDIT_PATH);
+    const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
+    const cashRegisterUrl = absoluteUrl(config, "/api/cash-register");
     const scoreRoute = absoluteUrl(config, "/api/listing-score");
     const roastRoute = absoluteUrl(config, ROAST_PATH);
     const sampleUrl = absoluteUrl(config, "/sample");
@@ -8254,6 +8256,14 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
     const discoveryAuditCommand = buildGetPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const roastCommand = buildPayCommand(config);
+    const cashRegister = await getCashRegister();
+    const paidCompletionCount = Number(cashRegister.paidCompletions || 0);
+    const paidCompletionLabel = `${paidCompletionCount} paid ${paidCompletionCount === 1 ? "completion" : "completions"}`;
+    const grossRevenueUsd = String(cashRegister.estimatedGrossRevenueUsd || "0.00").replace(/^\$/, "");
+    const indexedPaidCount = Number(cashRegister.indexedRoastGetCompletions || 0);
+    const indexedPaidLabel = indexedPaidCount > 0
+      ? `${indexedPaidCount} indexed GET paid use${indexedPaidCount === 1 ? "" : "s"}`
+      : "Indexed GET route";
 
     response.type("html").send(`<!doctype html>
 <html lang="en">
@@ -8279,6 +8289,9 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
     .lead { font-size: 1.14rem; color: #333c47; }
     .grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(340px, 1.1fr); gap: 20px; align-items: start; margin-top: 24px; }
     .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; min-width: 0; }
+    .proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 18px; max-width: 900px; }
+    .proof div { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 12px; min-width: 0; }
+    .proof strong { display: block; font-size: 1.08rem; }
     label { display: block; font-weight: 700; margin: 0 0 6px; }
     input, textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font: inherit; padding: 10px 12px; margin: 0 0 14px; }
     textarea { min-height: 150px; resize: vertical; }
@@ -8291,20 +8304,25 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
     code, pre { background: #fff; border: 1px solid var(--line); border-radius: 8px; }
     code { padding: 2px 6px; overflow-wrap: anywhere; word-break: break-word; }
     pre { padding: 16px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; margin: 0 0 16px; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } .nav { align-items: flex-start; flex-direction: column; padding: 14px 0; } }
+    @media (max-width: 860px) { .grid, .proof { grid-template-columns: 1fr; } .nav { align-items: flex-start; flex-direction: column; padding: 14px 0; } }
   </style>
 </head>
 <body>
   <header>
     <div class="wrap nav">
       <div class="brand">Listing Roast x402</div>
-      <nav><a href="${escapeHtml(config.serviceUrl)}">Home</a> · <a href="${sampleUrl}">Sample</a> · <a href="${sampleScoreApi}">Sample JSON</a></nav>
+      <nav><a href="${escapeHtml(config.serviceUrl)}">Home</a> · <a href="${sampleUrl}">Sample</a> · <a href="${sampleScoreApi}">Sample JSON</a> · <a href="${paidUsageProofUrl}">Proof</a></nav>
     </div>
   </header>
   <main>
     <div class="wrap">
       <h1>Build a paid score command from your listing.</h1>
       <p class="lead">Paste the offer you are trying to sell. This page leads with the already-indexed ${config.instantScorePrice} GET command, then gives exact $0.001 commands for buyer-agent skip reasons, discovery audit, site audit, instant scoring, the ${config.scorePrice} score route, and optional ${config.price} full roast route.</p>
+      <div class="proof" aria-label="Paid-use proof">
+        <div><strong class="metric">${escapeHtml(paidCompletionLabel)}</strong><span class="muted">$${escapeHtml(grossRevenueUsd)} registered in the public cash register</span></div>
+        <div><strong class="metric">${escapeHtml(indexedPaidLabel)}</strong><span class="muted">Preferred route that already converted</span></div>
+        <div><strong>Verify before paying</strong><span class="muted"><a href="${paidUsageProofUrl}">Paid-use proof</a> · <a href="${cashRegisterUrl}">Cash register</a></span></div>
+      </div>
       <div class="grid">
         <form class="card" id="builder-form">
           <label for="agentName">Service name</label>

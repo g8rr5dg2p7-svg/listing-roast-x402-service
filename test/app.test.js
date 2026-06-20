@@ -281,10 +281,16 @@ describe("Listing Roast x402 service", () => {
       const builder = await fetchJson(server, "/builder");
       expect(builder.status).toBe(200);
       expect(builder.text).toContain("Build a paid score command from your listing.");
+      expect(builder.text).toContain("Paid-use proof");
+      expect(builder.text).toContain("registered in the public cash register");
+      expect(builder.text).toContain("Preferred route that already converted");
+      expect(builder.text).toContain("Verify before paying");
       expect(builder.text).toContain("Preferred indexed GET command");
       expect(builder.text).toContain("Copy agent-listing command");
       expect(builder.text).toContain("Copy buyer-skip command");
       expect(builder.text).toContain("Copy discovery-audit command");
+      expect(builder.text).toContain("/api/paid-usage-proof");
+      expect(builder.text).toContain("/api/cash-register");
       expect(builder.text).toContain("/api/agent-listing-conversion");
       expect(builder.text).toContain("/api/buyer-agent-skip-reasons");
       expect(builder.text).toContain("/api/listing-score");
