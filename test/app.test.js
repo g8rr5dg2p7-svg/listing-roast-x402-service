@@ -2885,6 +2885,8 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("agent clarity");
       expect(challenge.resource.description).toContain("preflight");
       expect(challenge.resource.description).toContain("Bazaar visibility");
+      expect(challenge.resource.description).toContain("Commands");
+      expect(challenge.resource.description).toContain("/api/commands");
       expect(challenge.resource.description).toContain("Proof before payment");
       expect(challenge.resource.description).toContain("/api/paid-usage-proof");
       expect(challenge.resource.description).toContain("/api/cash-register");

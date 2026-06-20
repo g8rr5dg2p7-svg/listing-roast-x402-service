@@ -2170,7 +2170,7 @@ function buildLocalDiscoverySearchExamples(config) {
 
 function withPaidUseProofDescription(config, description) {
   const proof = buildPaidUseProofLinks(config);
-  return `${description} Proof before payment: ${proof.paidUsageProof}; register: ${proof.cashRegister}.`;
+  return `${description} Commands: ${absoluteUrl(config, COMMANDS_PATH)}. Proof before payment: ${proof.paidUsageProof}; register: ${proof.cashRegister}.`;
 }
 
 function pickDefined(source, keys) {
