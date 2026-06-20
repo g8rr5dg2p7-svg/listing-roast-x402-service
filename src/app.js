@@ -374,8 +374,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-agentcore-x402-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T15:55:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-agentcore-route-metadata-v2";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T16:00:03.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -386,7 +386,7 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   instantScore: ["x402", "paid API listing quality", "marketplace listing score", "agent service clarity", "discoverability"],
   conversionScore: ["x402", "marketplace conversion", "paid API listing quality", "buyer-agent", "listing quality"],
   agentListingConversion: ["x402", "agent listing conversion score", "agent listing conversion", "buyer-agent skip reasons", "buyer agent skip reasons", "agent service clarity", "agent service promotion readiness", "listing conversion", "paid API"],
-  indexedQuickScore: ["x402", "listing quality score API", "marketplace product listing quality", "paid API listing quality score", "paid API listing quality", "marketplace listing score", "marketplace listing conversion API", "x402 marketplace conversion", "agent listing conversion", "buyer-agent skip reasons", "agent-service listing score", "x402 site audit", "x402 discovery audit", "paid API preflight", "agent service clarity", "route health"],
+  indexedQuickScore: ["x402", "listing quality score API", "marketplace product listing quality", "paid API listing quality score", "paid API listing quality", "AgentCore x402 payments", "Coinbase x402 Bazaar MCP server", "marketplace listing score", "marketplace listing conversion API", "x402 marketplace conversion", "agent listing conversion", "buyer-agent skip reasons", "agent-service listing score", "x402 site audit", "x402 discovery audit", "paid API preflight", "agent service clarity", "route health"],
   x402Ping: ["x402", "payment rail", "paid API", "route health", "Base USDC"],
   x402SiteAudit: ["x402", "x402 site audit", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
   discoveryAuditQuick: ["x402", "Bazaar visibility", "Agent402 route visibility", "Agent402 router", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 listing SEO audit", "x402 listing rank doctor", "paid API preflight", "route health"],
@@ -394,7 +394,7 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   fullRoast: ["x402", "listing roast", "full listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons", "top fixes", "rewritten listing"]
 });
 const CHALLENGE_ROUTE_SERVICE_TAGS = Object.freeze({
-  indexedQuickScore: ["x402", "paid API listing quality score", "marketplace listing score", "buyer agent skip reasons", "x402 marketplace conversion", "x402 discovery audit", "paid API preflight", "stale Bazaar price"],
+  indexedQuickScore: ["x402", "paid API listing quality score", "AgentCore x402 payments", "Coinbase x402 Bazaar MCP server", "marketplace listing score", "buyer agent skip reasons", "x402 marketplace conversion", "x402 discovery audit", "paid API preflight", "stale Bazaar price"],
   x402SiteAudit: ["x402", "x402 site audit", "x402 marketplace SEO audit", "x402 seller growth checklist", "x402 listing SEO audit", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
   discoveryAuditQuick: ["x402", "x402 discovery audit", "Bazaar visibility", "Agent402 route visibility", "paid API preflight", "route health"],
   discoveryAudit: ["x402", "x402 discovery audit", "Bazaar visibility", "Agent402 route visibility", "stale Bazaar price", "paid API preflight"]
@@ -8611,7 +8611,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
     officialCdpDiscovery,
     categories: ["x402", "paid-api", "agent-commerce", "api-discovery"],
     crawl: true,
-    last_updated: "2026-06-19"
+    last_updated: DISCOVERY_METADATA_UPDATED_AT
   };
 }
 
