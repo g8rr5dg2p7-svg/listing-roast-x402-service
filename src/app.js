@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-upgrade-shortcut-v32";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T21:55:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-upgrade-handoff-v33";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T22:20:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -2970,6 +2970,7 @@ function buildPaymentHint(config, options) {
   const firstAgentPaymentRequest = buildAgentPaymentRequest(selectedFirstPaidAction);
   const commandHandoffUrl = commandUrlForSelection(config, intentRouteKey, paidAction);
   const freeHandoffUrl = payNowUrlForSelection(config, intentRouteKey, paidAction);
+  const paymentShortcut = buildPaymentShortcutForAction(config, paidAction, selectedFirstPaidAction, intentRouteKey, intentRoutes);
 
   return {
     protocol: "x402",
@@ -2981,6 +2982,8 @@ function buildPaymentHint(config, options) {
     method: options.method,
     route,
     selectedActionKey: intentRouteKey,
+    paymentShortcut,
+    ...(paymentShortcut.upgradeAfterQuickScore ? { upgradeAfterQuickScore: paymentShortcut.upgradeAfterQuickScore } : {}),
     selectedPaidAction: paidAction,
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     selectedFirstPaidAction,
@@ -3879,14 +3882,24 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
-  const selectedPaidRoute = compactPaidAction(handoffSelectedPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction));
+  const handoffSelectedPaidAction = handoffSelectedPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction);
+  const selectedPaidRoute = compactPaidAction(handoffSelectedPaidAction);
   const firstPaidRoute = compactPaidAction(selectedFirstPaidAction);
   const exactIntentPaidRoute = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
   const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const recommendedPaidSequence = buildIntentRecommendedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
+  const paymentShortcut = buildPaymentShortcutForAction(
+    config,
+    handoffSelectedPaidAction,
+    selectedFirstPaidAction,
+    selection.selectedActionKey,
+    intentRoutes
+  );
 
   return {
     service: config.serviceName,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
     settlementProof: buildSettlementProof(config, cashRegister),
     officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
@@ -3902,13 +3915,15 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     },
     intent: selection.intent || null,
     selectedActionKey: selection.selectedActionKey,
+    paymentShortcut,
+    ...(paymentShortcut.upgradeAfterQuickScore ? { upgradeAfterQuickScore: paymentShortcut.upgradeAfterQuickScore } : {}),
     selectedPaidRoute,
     selectedPaidUrl: selectedPaidRoute.route,
     selectedPaidPath: selectedPaidRoute.path,
     selectedPaidMethod: selectedPaidRoute.method,
     selectedPaidPrice: selectedPaidRoute.price,
     selectedPaidMaxAmountRequired: selectedPaidRoute.maxAmountRequired,
-    selectedPaidAction: handoffSelectedPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction),
+    selectedPaidAction: handoffSelectedPaidAction,
     firstPaidRoute,
     firstPaidUrl: firstPaidRoute.route,
     firstPaidPath: firstPaidRoute.path,
@@ -4055,12 +4070,24 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
   const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const recommendedPaidSequence = buildIntentRecommendedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction);
+  const handoffSelectedPaidAction = handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
+  const paymentShortcut = buildPaymentShortcutForAction(
+    config,
+    handoffSelectedPaidAction,
+    selectedFirstPaidAction,
+    selectedActionKey,
+    intentRoutes
+  );
 
   return {
     service: config.serviceName,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
     intent,
     selectedActionKey,
-    selectedPaidAction: handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction),
+    paymentShortcut,
+    ...(paymentShortcut.upgradeAfterQuickScore ? { upgradeAfterQuickScore: paymentShortcut.upgradeAfterQuickScore } : {}),
+    selectedPaidAction: handoffSelectedPaidAction,
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     selectedFirstPaidAction,
     selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
@@ -4113,6 +4140,60 @@ function compactPaidAction(action) {
     command: action.command,
     reason: action.reason,
     ...(action.body ? { body: action.body } : {})
+  };
+}
+
+function buildUpgradeAfterQuickScoreShortcut(intentRoutes = {}) {
+  const fullRoastUpgrade = intentRoutes.fullRoastGet || intentRoutes.fullRoast;
+  if (!fullRoastUpgrade) {
+    return null;
+  }
+
+  return {
+    selectedPaidUrl: fullRoastUpgrade.route,
+    selectedPaidPath: fullRoastUpgrade.path,
+    selectedPaidMethod: fullRoastUpgrade.method,
+    selectedPaidPrice: fullRoastUpgrade.price,
+    selectedPaidMaxAmountRequired: fullRoastUpgrade.maxAmountRequired,
+    maxPaymentUsd: fullRoastUpgrade.maxPaymentUsd,
+    paymentRequiredHeader: "Payment-Required",
+    paymentHeader: "X-PAYMENT",
+    agentPaymentPrompt: fullRoastUpgrade.agentPaymentPrompt,
+    command: fullRoastUpgrade.command,
+    expectedOutput: ["rewrittenListing", "topFixes", "buyerAgentSkipReasons", "stopOrUpgrade"],
+    instruction: "Use this after the $0.001 quick score when the buyer wants the full rewrite, top fixes, buyer-agent skip reasons, and launch guidance."
+  };
+}
+
+function buildPaymentShortcutForAction(config, selectedPaidAction, firstPaidAction, intentRouteKey = "indexedQuickScore", intentRoutes = {}) {
+  const selectedAgentPaymentRequest = buildAgentPaymentRequest(selectedPaidAction);
+  const firstAgentPaymentRequest = buildAgentPaymentRequest(firstPaidAction);
+  const upgradeAfterQuickScore = QUICK_SCORE_PAID_PATHS.includes(firstPaidAction.path)
+    ? buildUpgradeAfterQuickScoreShortcut(intentRoutes)
+    : null;
+
+  return {
+    selectedPaidUrl: selectedPaidAction.route,
+    selectedPaidPath: selectedPaidAction.path,
+    selectedPaidMethod: selectedPaidAction.method,
+    selectedPaidPrice: selectedPaidAction.price,
+    selectedPaidMaxAmountRequired: selectedPaidAction.maxAmountRequired,
+    firstPaidUrl: firstPaidAction.route,
+    firstPaidPath: firstPaidAction.path,
+    firstPaidMethod: firstPaidAction.method,
+    firstPaidPrice: firstPaidAction.price,
+    firstPaidMaxAmountRequired: firstPaidAction.maxAmountRequired,
+    maxPaymentUsd: selectedAgentPaymentRequest.maxPayment,
+    maxAmountRequired: selectedPaidAction.maxAmountRequired,
+    firstMaxPaymentUsd: firstAgentPaymentRequest.maxPayment,
+    paymentRequiredHeader: "Payment-Required",
+    paymentHeader: "X-PAYMENT",
+    payNow: payNowUrlForSelection(config, intentRouteKey, selectedPaidAction),
+    commands: commandUrlForSelection(config, intentRouteKey, selectedPaidAction),
+    command: firstPaidAction.command,
+    noSpend: true,
+    ...(upgradeAfterQuickScore ? { upgradeAfterQuickScore } : {}),
+    instruction: "Use the firstPaidUrl for the proven first paid action. Use upgradeAfterQuickScore only after the quick score shows enough fit."
   };
 }
 
@@ -4258,8 +4339,16 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
   const compactSelectedPaidSequence = compactPaidSequence(selectedPaidSequence);
   const compactGenericRecommendedPaidSequence = compactPaidSequence(buildRecommendedPaidSequence(intentRoutes));
   const compactFirstPaidAction = compactPaidAction(firstPaidAction);
-  const compactSelectedPaidAction = compactPaidAction(handoffSelectedPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction));
+  const handoffSelectedPaidAction = handoffSelectedPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction);
+  const compactSelectedPaidAction = compactPaidAction(handoffSelectedPaidAction);
   const compactExactIntentPaidAction = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
+  const paymentShortcut = buildPaymentShortcutForAction(
+    config,
+    handoffSelectedPaidAction,
+    firstPaidAction,
+    selection.selectedActionKey,
+    intentRoutes
+  );
   const upgradeAction = isTerminalPaidActionKey(selection.selectedActionKey)
     ? null
     : selectedPaidSequence.find((step) => step.step === 2)?.action || intentRoutes.fullRoast;
@@ -4273,6 +4362,8 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
     intent: selection.intent || null,
     selectedActionKey: selection.selectedActionKey,
     summary: "Compact command-first handoff for buyer agents. Fetching this JSON is free; payment happens only when the buyer calls the returned x402 route with a valid payment header.",
+    paymentShortcut,
+    ...(paymentShortcut.upgradeAfterQuickScore ? { upgradeAfterQuickScore: paymentShortcut.upgradeAfterQuickScore } : {}),
     selectedPaidAction: compactSelectedPaidAction,
     selectedFirstPaidAction: compactFirstPaidAction,
     ...(compactExactIntentPaidAction ? { exactIntentPaidAction: compactExactIntentPaidAction } : {}),
@@ -4553,6 +4644,9 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
   };
   const preview = previewByIntent[intentRouteKey] || previewByIntent.indexedQuickScore;
   const action = selectedPaidAction || {};
+  const upgradeAfterQuickScore = action.path && QUICK_SCORE_PAID_PATHS.includes(action.path)
+    ? buildUpgradeAfterQuickScoreShortcut(buildPayNowActions(config))
+    : null;
 
   return {
     noSpendPreview: true,
@@ -4562,6 +4656,7 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
     price: action.price,
     maxAmountRequired: action.maxAmountRequired,
     whyPay: `Pay ${action.price || config.instantScorePrice} to receive this JSON output immediately after retrying with X-PAYMENT.`,
+    ...(upgradeAfterQuickScore ? { upgradeAfterQuickScore } : {}),
     includes: preview.includes,
     example: compactChallengeOutputExample(preview.example())
   };
@@ -4670,20 +4765,8 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
   const firstPaidUrl = selectedFirstPaidAction?.path
     ? absoluteUrl(config, selectedFirstPaidAction.path)
     : selectedPaidUrl;
-  const fullRoastUpgrade = payNow.intentRoutes.fullRoastGet || payNow.intentRoutes.fullRoast;
-  const upgradeAfterQuickScore = fullRoastUpgrade
-    ? {
-      selectedPaidUrl: fullRoastUpgrade.route,
-      selectedPaidPath: fullRoastUpgrade.path,
-      selectedPaidMethod: fullRoastUpgrade.method,
-      selectedPaidPrice: fullRoastUpgrade.price,
-      selectedPaidMaxAmountRequired: fullRoastUpgrade.maxAmountRequired,
-      maxPaymentUsd: fullRoastUpgrade.maxPaymentUsd,
-      paymentRequiredHeader: "Payment-Required",
-      paymentHeader: "X-PAYMENT",
-      command: fullRoastUpgrade.command,
-      instruction: "Use this after the quick score when the buyer wants the full rewrite, top fixes, buyer-agent skip reasons, and launch guidance."
-    }
+  const upgradeAfterQuickScore = QUICK_SCORE_PAID_PATHS.includes(selectedFirstPaidAction.path)
+    ? buildUpgradeAfterQuickScoreShortcut(payNow.intentRoutes)
     : null;
   const payableRoute = {
     selectedPaidUrl,

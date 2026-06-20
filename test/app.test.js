@@ -777,7 +777,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcpInitialize.json.jsonrpc).toBe("2.0");
       expect(mcpInitialize.json.id).toBe(1);
       expect(mcpInitialize.json.result.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-20-upgrade-shortcut-v32");
+      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-20-upgrade-handoff-v33");
       expect(mcpInitialize.json.result.capabilities.tools).toEqual({});
 
       const mcpTools = await fetchJson(server, "/.well-known/mcp.json", {
@@ -921,7 +921,7 @@ describe("Listing Roast x402 service", () => {
       const mcpServerCard = await fetchJson(server, "/.well-known/mcp/server-card.json");
       expect(mcpServerCard.status).toBe(200);
       expect(mcpServerCard.json.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-20-upgrade-shortcut-v32");
+      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-20-upgrade-handoff-v33");
       expect(mcpServerCard.json.transport).toBe("http");
       expect(mcpServerCard.json.jsonRpcEndpoint).toContain("/mcp");
       expect(mcpServerCard.json.payment.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
@@ -951,7 +951,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(compressedX402Manifest.status).toBe(200);
       expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
-      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-upgrade-shortcut-v32");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-upgrade-handoff-v33");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -987,8 +987,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-upgrade-shortcut-v32");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T21:55:00.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-upgrade-handoff-v33");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T22:20:00.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -1000,6 +1000,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.commands).toContain("/api/commands");
       expect(x402Manifest.json.compactCommandHandoff.firstPaidAction.path).toBe("/api/listing-roast");
       expect(x402Manifest.json.compactCommandHandoff.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
+      expect(x402Manifest.json.compactCommandHandoff.paymentShortcut.upgradeAfterQuickScore.selectedPaidPath).toBe("/api/full-listing-roast");
       expect(x402Manifest.json.resources.find((resource) => resource.path === "/api/listing-roast").description).toContain("score API marketplace listing quality and discoverability");
       expect(x402Manifest.json.payNow).toContain("/api/pay-now");
       expect(x402Manifest.json.startHere.path).toBe("/api/listing-roast");
@@ -1418,8 +1419,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-upgrade-shortcut-v32");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T21:55:00.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-upgrade-handoff-v33");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T22:20:00.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -1761,7 +1762,7 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
-      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-upgrade-shortcut-v32");
+      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-upgrade-handoff-v33");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -1879,6 +1880,9 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.payNowExamples.skipReasons.route).toContain("/api/listing-roast");
       expect(examples.json.payNowExamples.skipReasons.selectedFirstPaidAction.path).toBe("/api/listing-roast");
       expect(examples.json.payNowExamples.skipReasons.paidResponsePreview.route).toBe("/api/listing-roast");
+      expect(examples.json.payNowExamples.skipReasons.paymentShortcut.firstPaidPath).toBe("/api/listing-roast");
+      expect(examples.json.payNowExamples.skipReasons.paymentShortcut.upgradeAfterQuickScore.selectedPaidPath).toBe("/api/full-listing-roast");
+      expect(examples.json.payNowExamples.skipReasons.paidResponsePreview.upgradeAfterQuickScore.selectedPaidMaxAmountRequired).toBe("10000");
       expect(examples.json.payNowExamples.skipReasons.paidUsageProof.noSpend).toBe(true);
       expect(examples.json.payNowExamples.discoveryAudit.selectedActionKey).toBe("discoveryAuditQuick");
       expect(examples.json.payNowExamples.discoveryAudit.route).toContain("/api/x402-discovery-audit");
@@ -1920,6 +1924,11 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.routeExamples.fullRewrite.results[0].path).toBe("/api/full-listing-roast");
       expect(examples.json.payNow.route).toContain("/api/listing-roast");
       expect(examples.json.payNow.command).toContain("--max-amount 1000");
+      expect(examples.json.payNow.metadataVersion).toBe("2026-06-20-upgrade-handoff-v33");
+      expect(examples.json.payNow.paymentShortcut.selectedPaidPath).toBe("/api/listing-roast");
+      expect(examples.json.payNow.paymentShortcut.upgradeAfterQuickScore.selectedPaidPath).toBe("/api/full-listing-roast");
+      expect(examples.json.compactCommandHandoff.paymentShortcut.firstPaidPath).toBe("/api/listing-roast");
+      expect(examples.json.compactCommandHandoff.paymentShortcut.upgradeAfterQuickScore.selectedPaidMaxAmountRequired).toBe("10000");
       expect(examples.json.payNow.noSpendNote).toContain("Fetching this endpoint is free");
       expect(examples.json.apiEntryRoute).toContain("/api");
       expect(examples.json.apiV1EntryRoute).toContain("/api/v1");
@@ -1942,6 +1951,8 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.paymentHints.apiV1Entry.maxAmountRequired).toBe("1000");
       expect(examples.json.paymentHints.v1Entry.maxAmountRequired).toBe("1000");
       expect(examples.json.paymentHints.indexedRoastGet.preferredFirstPaidAction).toBe(true);
+      expect(examples.json.paymentHints.indexedRoastGet.paymentShortcut.firstPaidPath).toBe("/api/listing-roast");
+      expect(examples.json.paymentHints.indexedRoastGet.paymentShortcut.upgradeAfterQuickScore.selectedPaidPath).toBe("/api/full-listing-roast");
       expect(examples.json.paymentHints.instantScore.preferredFirstPaidAction).toBe(false);
       expect(examples.json.paymentHints.conversionScore.maxAmountRequired).toBe("1000");
       expect(examples.json.paymentHints.agentListingConversion.maxAmountRequired).toBe("1000");
@@ -2880,6 +2891,12 @@ describe("Listing Roast x402 service", () => {
       expect(payNowPaidApiListingQuality.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(payNowPaidApiListingQuality.json.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
       expect(payNowPaidApiListingQuality.json.selectedFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(payNowPaidApiListingQuality.json.metadataVersion).toBe("2026-06-20-upgrade-handoff-v33");
+      expect(payNowPaidApiListingQuality.json.paymentShortcut.selectedPaidPath).toBe("/api/listing-roast");
+      expect(payNowPaidApiListingQuality.json.paymentShortcut.firstPaidPath).toBe("/api/listing-roast");
+      expect(payNowPaidApiListingQuality.json.paymentShortcut.upgradeAfterQuickScore.selectedPaidPath).toBe("/api/full-listing-roast");
+      expect(payNowPaidApiListingQuality.json.paymentShortcut.upgradeAfterQuickScore.selectedPaidMaxAmountRequired).toBe("10000");
+      expect(payNowPaidApiListingQuality.json.paidResponsePreview.upgradeAfterQuickScore.command).toContain("/api/full-listing-roast");
       expect(payNowPaidApiListingQuality.json.provenFirstPaidAction.path).toBe("/api/listing-roast");
       expect(payNowPaidApiListingQuality.json.rankedPaidRoutes[0].id).toBe("indexed_roast_quick_score");
       expect(payNowPaidApiListingQuality.json.rankedPaidRoutes.map((route) => route.id)).toContain("paid_api_listing_quality_alias");
@@ -4092,7 +4109,7 @@ describe("Listing Roast x402 service", () => {
 
       const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
       expect(paymentAlias.status).toBe(200);
-      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-upgrade-shortcut-v32");
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-upgrade-handoff-v33");
       expect(paymentAlias.json.commands).toContain("/api/commands");
 
       const mcpJsonAlias = await fetchJson(server, "/mcp.json");

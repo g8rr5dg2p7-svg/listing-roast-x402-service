@@ -34,7 +34,7 @@ Current verified state:
 - Railway deploy: successful. Latest verified deployment: e25e67a7-6f5d-43ce-8115-7894f3abce48.
 - Latest live code commit: dc883d4 Expose full-roast upgrade in payment shortcut.
 - Latest GitHub release: upgrade-shortcut-v1.
-- Latest metadata version: 2026-06-20-upgrade-shortcut-v32.
+- Latest metadata version: 2026-06-20-upgrade-handoff-v33.
 - Latest repo docs refresh: early `paymentShortcut.upgradeAfterQuickScore` for the $0.01 full-roast route, early `paymentShortcut` fields before bulky unpaid 402 metadata, compact top-level payable-route fields in unpaid 402 JSON bodies, aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/pay-now`, `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
