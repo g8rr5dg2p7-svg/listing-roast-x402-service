@@ -31,9 +31,9 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: 70d39f95-e996-484f-b768-057d9b9f58a5.
-- Latest live code commit: pending deploy for the route-finder payable-route handoff.
-- Latest GitHub release: cdp-domain-discovery-v1.
+- Railway deploy: successful. Latest verified deployment: 6ebb31f3-97dd-489b-8c9f-4cbc9dba7b1e.
+- Latest live code commit: f48e065 Clarify route finder paid handoff.
+- Latest GitHub release: find-paid-route-v1.
 - Latest metadata version: 2026-06-20-find-paid-route-v27.
 - Latest repo docs refresh: CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, explicit `/api/find` payable-route fields, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
 - Homepage: HTTP 200.
