@@ -3208,6 +3208,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore")
     routeSelector: payNow.routeSelector,
     intentRoutes: payNow.intentRoutes,
     freeHandoff: absoluteUrl(config, PAY_NOW_PATH),
+    commands: absoluteUrl(config, COMMANDS_PATH),
     paidUsageProof: paidUseProof.paidUsageProof,
     cashRegister: paidUseProof.cashRegister,
     paidUseProof,

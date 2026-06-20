@@ -2950,6 +2950,7 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.paidResponsePreview.example.endpoint).toBe("listing-roast-quick-score");
       expect(response.json.paidResponsePreview.example.nextPaidAction.path).toBe("/api/listing-roast");
       expect(response.json.paidUsageProof).toContain("/api/paid-usage-proof");
+      expect(response.json.commands).toContain("/api/commands");
       expect(response.json.cashRegister).toContain("/api/cash-register");
       expect(response.json.settlementProof.cashRegister).toContain("/api/cash-register");
       expect(response.json.settlementProof.evidenceFields).toContain("receiverWallet.usdcUnits");
