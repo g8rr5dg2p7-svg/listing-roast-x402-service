@@ -933,20 +933,20 @@ function buildStructuredData(config) {
 }
 
 function buildPayCommand(config, pathname = ROAST_PATH, maxAmount = "10000", body = requestExample) {
-  return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, pathname)} \\
+  return `npx awal@2.8.0 x402 pay ${shellQuote(absoluteUrl(config, pathname))} \\
   -X POST \\
   -d ${shellQuote(JSON.stringify(body))} \\
   --max-amount ${maxAmount}`;
 }
 
 function buildPostPayCommand(config, pathname = ROOT_DIRECTORY_POST_PATH, maxAmount = INSTANT_SCORE_AMOUNT) {
-  return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, pathname)} \\
+  return `npx awal@2.8.0 x402 pay ${shellQuote(absoluteUrl(config, pathname))} \\
   -X POST \\
   --max-amount ${maxAmount}`;
 }
 
 function buildGetPayCommand(config, pathname = INSTANT_SCORE_PATH, maxAmount = INSTANT_SCORE_AMOUNT) {
-  return `npx awal@2.8.0 x402 pay ${absoluteUrl(config, pathname)} \\
+  return `npx awal@2.8.0 x402 pay ${shellQuote(absoluteUrl(config, pathname))} \\
   -X GET \\
   --max-amount ${maxAmount}`;
 }

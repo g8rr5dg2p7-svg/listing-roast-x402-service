@@ -691,7 +691,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.x402_route).toBe("/api/listing-roast");
       expect(x402Manifest.json.price_usd).toBe("0.001");
       expect(x402Manifest.json.max_amount_required).toBe("1000");
-      expect(x402Manifest.json.call_command).toContain("x402 pay http://localhost:8787/api/listing-roast");
+      expect(x402Manifest.json.call_command).toContain("x402 pay 'http://localhost:8787/api/listing-roast'");
       expect(x402Manifest.json.curl).toBe("curl -X GET http://localhost:8787/api/listing-roast");
       expect(x402Manifest.json.primary_call.endpoint_url).toBe("http://localhost:8787/api/listing-roast");
       expect(x402Manifest.json.primaryCall.method).toBe("GET");
@@ -995,7 +995,7 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.x402_route).toBe("/api/listing-roast");
       expect(agentTools.json.price_usd).toBe("0.001");
       expect(agentTools.json.max_amount_required).toBe("1000");
-      expect(agentTools.json.call_command).toContain("x402 pay http://localhost:8787/api/listing-roast");
+      expect(agentTools.json.call_command).toContain("x402 pay 'http://localhost:8787/api/listing-roast'");
       expect(agentTools.json.curl).toBe("curl -X GET http://localhost:8787/api/listing-roast");
       expect(agentTools.json.primary_call.endpoint_url).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.primaryCall.method).toBe("GET");
@@ -1412,11 +1412,11 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.conversionScoreCommand).toContain("--max-amount 1000");
       expect(examples.json.agentListingConversionCommand).toContain("/api/agent-listing-conversion");
       expect(examples.json.agentListingConversionCommand).toContain("--max-amount 1000");
-      expect(examples.json.apiEntryCommand).toContain("x402 pay http://localhost:8787/api");
+      expect(examples.json.apiEntryCommand).toContain("x402 pay 'http://localhost:8787/api'");
       expect(examples.json.apiEntryCommand).toContain("--max-amount 1000");
-      expect(examples.json.apiV1EntryCommand).toContain("x402 pay http://localhost:8787/api/v1");
+      expect(examples.json.apiV1EntryCommand).toContain("x402 pay 'http://localhost:8787/api/v1'");
       expect(examples.json.apiV1EntryCommand).toContain("--max-amount 1000");
-      expect(examples.json.v1EntryCommand).toContain("x402 pay http://localhost:8787/v1");
+      expect(examples.json.v1EntryCommand).toContain("x402 pay 'http://localhost:8787/v1'");
       expect(examples.json.v1EntryCommand).toContain("--max-amount 1000");
       expect(examples.json.indexedRoastGetCommand).toContain("--max-amount 1000");
       expect(examples.json.pingCommand).toContain("--max-amount 1000");
@@ -1787,10 +1787,10 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/.well-known/mcp-server");
       expect(llms.text).toContain("/.well-known/mcp/server-card.json");
       expect(llms.text).toContain("npx awal@2.8.0 x402 pay");
-      expect(llms.text).toContain("x402 pay http://localhost:8787/api");
-      expect(llms.text).toContain("x402 pay http://localhost:8787/api/v1");
-      expect(llms.text).toContain("x402 pay http://localhost:8787/v1");
-      expect(llms.text).toContain("x402 pay http://localhost:8787/api/listing-roast");
+      expect(llms.text).toContain("x402 pay 'http://localhost:8787/api'");
+      expect(llms.text).toContain("x402 pay 'http://localhost:8787/api/v1'");
+      expect(llms.text).toContain("x402 pay 'http://localhost:8787/v1'");
+      expect(llms.text).toContain("x402 pay 'http://localhost:8787/api/listing-roast'");
       expect(llms.text).toContain("/api/agent-listing-conversion");
       expect(llms.text).toContain("--max-amount 1000");
       expect(llms.text).toContain("--max-amount 10000");
@@ -3010,7 +3010,7 @@ describe("Listing Roast x402 service", () => {
       expect(indexed.headers.get("content-type")).toContain("text/html");
       expect(indexed.text).toContain("Pay Listing Roast x402");
       expect(indexed.text).toContain("/api/listing-roast");
-      expect(indexed.text).toContain("x402 pay http://localhost:8787/api/listing-roast");
+      expect(indexed.text).toContain("x402 pay &#39;http://localhost:8787/api/listing-roast&#39;");
       expect(indexed.text).toContain("Choose A Different Route");
 
       const siteAudit = await fetchJson(server, "/api/x402-site-audit", { headers: browserHeaders });
@@ -3568,10 +3568,14 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(response.json.selectedPaidAction.command).toContain("--max-amount 1000");
       expect(response.json.payCommand).toContain("/api/listing-roast");
+      expect(response.json.payCommand).toMatch(/x402 pay '.*\/api\/listing-roast'/);
       expect(response.json.payCommand).toContain("--max-amount 1000");
       expect(response.json.pay_command).toBe(response.json.payCommand);
       expect(response.json.payCommandExamples.bareRoute).toBe(response.json.payCommand);
+      expect(response.json.payCommandExamples.withSampleInputs).toMatch(/x402 pay '.*\/api\/listing-roast\?agentName=/);
       expect(response.json.payCommandExamples.withSampleInputs).toContain("/api/listing-roast?agentName=");
+      expect(response.json.payCommandExamples.withSampleInputs).toContain("&listingText=");
+      expect(response.json.payCommandExamples.withSampleInputs).toContain("' \\\n  -X GET");
       expect(response.json.payCommandExamples.withSampleInputs).toContain("listingText=");
       expect(response.json.payCommandExamples.withSampleInputs).toContain("--max-amount 1000");
       expect(response.json.sampleQueryPayCommand).toBe(response.json.payCommandExamples.withSampleInputs);
