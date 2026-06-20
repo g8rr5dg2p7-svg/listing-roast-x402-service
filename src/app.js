@@ -3005,6 +3005,10 @@ function buildRecommendedPaidSequence(intentRoutes) {
   ];
 }
 
+function buildIntentRecommendedPaidSequence(intentRoutes, selectedActionKey = "indexedQuickScore", selectedPaidAction = null) {
+  return buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction);
+}
+
 const SELECTED_FOLLOWUP_ACTION_BY_KEY = {
   directoryPost: "indexedQuickScore",
   apiEntry: "indexedQuickScore",
@@ -3216,6 +3220,8 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
+  const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+  const recommendedPaidSequence = buildIntentRecommendedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
 
   return {
     service: config.serviceName,
@@ -3260,7 +3266,8 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     ),
     selectedPaidSequence,
     buyerInstruction: buildSelectedBuyerInstruction(selection.selectedActionKey, selectedPaidAction, provenFirstPaidAction),
-    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
+    recommendedPaidSequence,
+    genericRecommendedPaidSequence,
     routeSelector: [
       {
         when: "Generic Marketplace or Bazaar result with no more specific buyer phrase",
@@ -3353,6 +3360,8 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
   const provenFirstPaidAction = intentRoutes.indexedQuickScore;
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
+  const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+  const recommendedPaidSequence = buildIntentRecommendedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction);
 
   return {
     service: config.serviceName,
@@ -3381,7 +3390,8 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
       selectedFirstPaidAction
     ),
     buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, provenFirstPaidAction),
-    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes)
+    recommendedPaidSequence,
+    genericRecommendedPaidSequence
   };
 }
 
@@ -5908,6 +5918,8 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
   const selectedIntentPaidAction = intentRoutes[selectedActionKey] || selectedPaidAction;
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedIntentPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedIntentPaidAction);
+  const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedIntentPaidAction);
+  const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
 
   return {
     x402Version: 2,
@@ -5934,7 +5946,7 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     selectedPaidAction: selectedIntentPaidAction,
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     selectedFirstPaidAction,
-    selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedIntentPaidAction),
+    selectedPaidSequence,
     buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedIntentPaidAction, intentRoutes.indexedQuickScore),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     provenFirstPaidAction: intentRoutes.indexedQuickScore,
@@ -5944,7 +5956,8 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
       isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
       selectedFirstPaidAction
     ),
-    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
+    recommendedPaidSequence: selectedPaidSequence,
+    genericRecommendedPaidSequence,
     resources,
     partialResults: false,
     searchMethod: "local-hybrid",
@@ -6248,6 +6261,8 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
   const selectedPaidAction = intentRoutes[selectedActionKey] || selected?.selectedPaidAction || provenFirstPaidAction;
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
+  const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction);
+  const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
 
   return {
     service: config.serviceName,
@@ -6291,9 +6306,10 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
       isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
       selectedFirstPaidAction
     ),
-    selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
+    selectedPaidSequence,
     buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, provenFirstPaidAction),
-    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
+    recommendedPaidSequence: selectedPaidSequence,
+    genericRecommendedPaidSequence,
     paymentRule: "Do not call the recommended paid route unless the buyer explicitly intends to pay USDC through x402.",
     note: "This endpoint is free. It maps a buyer task to the best existing paid route, price, max amount, schema, and copy-ready command."
   };
@@ -6348,6 +6364,8 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
   const selectedPaidAction = intentRoutes[selectedActionKey] || selected?.selectedPaidAction || provenFirstPaidAction;
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
+  const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction);
+  const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
 
   return {
     service: config.serviceName,
@@ -6403,9 +6421,10 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
       isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
       selectedFirstPaidAction
     ),
-    selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
+    selectedPaidSequence,
     buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, provenFirstPaidAction),
-    recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
+    recommendedPaidSequence: selectedPaidSequence,
+    genericRecommendedPaidSequence,
     paymentRule: "This router is free. Do not call a returned paid route unless the buyer explicitly intends to pay USDC through x402.",
     note: externalOnly
       ? "include=external is accepted for Agent402-style clients, but this seller-hosted router only ranks owned Listing Roast routes and does not proxy third-party sellers."
