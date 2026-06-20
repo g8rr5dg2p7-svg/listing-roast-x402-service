@@ -214,6 +214,7 @@ const AGENT402_ROUTE_VISIBILITY_PATH = "/api/agent402-route-visibility";
 const DISCOVERY_AUDIT_QUICK_PATHS = Object.freeze([DISCOVERY_AUDIT_PATH, AGENT402_ROUTE_VISIBILITY_PATH]);
 const PAY_NOW_PATH = "/api/pay-now";
 const PAY_NOW_ALIAS_PATHS = Object.freeze(["/api/checkout", "/checkout", "/api/buy", "/buy", "/api/pay", "/pay", "/api/start", "/start"]);
+const PAY_NOW_INTENT_FIELDS = Object.freeze(["intent", "q", "query", "task"]);
 const COMMANDS_PATH = "/api/commands";
 const PAID_USAGE_PROOF_PATH = "/api/paid-usage-proof";
 const PAID_USAGE_PROOF_ALIAS_PATHS = Object.freeze(["/api/proof", "/proof", "/paid-usage-proof"]);
@@ -459,8 +460,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-quick-route-conversion-handoff-v44";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:45:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-post-checkout-handoff-v45";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T23:38:55.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
 const ROUTE_SERVICE_NAMES = Object.freeze({
@@ -4193,6 +4194,22 @@ function buildPayNowIntentExamples(config) {
   };
 }
 
+function firstPayNowIntentValue(source = {}) {
+  for (const field of PAY_NOW_INTENT_FIELDS) {
+    const rawValue = source?.[field];
+    const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
+function payNowIntentFromRequest(request) {
+  return firstPayNowIntentValue(request.body) || firstPayNowIntentValue(request.query);
+}
+
 function compactPaidAction(action) {
   return {
     route: action.route,
@@ -5891,6 +5908,28 @@ function buildOpenApiDocument(config, cashRegister = {}) {
             { name: "query", in: "query", required: false, schema: { type: "string" }, description: "Alias for intent." },
             { name: "task", in: "query", required: false, schema: { type: "string" }, description: "Alias for intent." }
           ],
+          responses: {
+            200: {
+              description: "Direct pay-now handoff for the selected paid route"
+            }
+          }
+        },
+        post: {
+          operationId: "postPayNow",
+          summary: "Free intent-aware POST pay-now handoff",
+          description: "Compact no-spend JSON for buyer agents that submit checkout, buy, pay, or start intents as JSON before making a paid x402 call.",
+          requestBody: {
+            required: false,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: Object.fromEntries(PAY_NOW_INTENT_FIELDS.map((field) => [field, { type: "string" }]))
+                },
+                example: { intent: "buyer-agent skip reasons" }
+              }
+            }
+          },
           responses: {
             200: {
               description: "Direct pay-now handoff for the selected paid route"
@@ -12448,17 +12487,22 @@ ${copyScript("Copy command")}
     response.json(buildPublicCashRegister(config, cashRegister, receiverWallet));
   });
 
-  app.get([PAY_NOW_PATH, ...PAY_NOW_ALIAS_PATHS], async (request, response) => {
+  const sendPayNowHandoff = async (request, response) => {
     await recordSignal("payNowViews");
     const cashRegister = await getCashRegister();
     const receiverWallet = await getReceiverBalanceSnapshot(config);
-    const payNow = buildPayNow(config, request.query.intent || request.query.q || request.query.query || request.query.task || "", cashRegister, receiverWallet);
+    const payNow = buildPayNow(config, payNowIntentFromRequest(request), cashRegister, receiverWallet);
     await recordIntentSignal("payNow", payNow.selectedActionKey);
     setFreshDiscoveryHeaders(response).json({
       ...payNow,
+      handoffMethod: request.method,
+      acceptedIntentFields: PAY_NOW_INTENT_FIELDS,
       intentSignal: buildIntentSignalNotice("payNow", payNow.selectedActionKey)
     });
-  });
+  };
+
+  app.get([PAY_NOW_PATH, ...PAY_NOW_ALIAS_PATHS], sendPayNowHandoff);
+  app.post([PAY_NOW_PATH, ...PAY_NOW_ALIAS_PATHS], sendPayNowHandoff);
 
   app.get([PAID_USAGE_PROOF_PATH, ...PAID_USAGE_PROOF_ALIAS_PATHS], async (_request, response) => {
     await recordSignal("proofViews");
