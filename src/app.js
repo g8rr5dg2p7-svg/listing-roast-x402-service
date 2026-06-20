@@ -317,6 +317,12 @@ const SERVICE_TAGS = Object.freeze([
   "marketplace listing conversion API",
   "marketplace listing conversion",
   "x402 marketplace conversion",
+  "API marketplace listing quality",
+  "listing discoverability",
+  "metadata quality",
+  "pricing clarity",
+  "buyer intent",
+  "keyword coverage",
   "buyer-agent skip reasons",
   "buyer agent skip reasons",
   "agent listing conversion",
@@ -327,7 +333,7 @@ const SERVICE_TAGS = Object.freeze([
   "route health"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Listing quality score API for paid API listing quality score, marketplace product listing quality, buyer-agent skip reasons, marketplace listing score, marketplace listing conversion API, x402 marketplace conversion, agent listing conversion score, agent service clarity, x402 discovery audit, x402 site audit, paid API preflight, fix x402 Bazaar listing, and stale price. $0.001 GET /api/listing-roast; POST upgrade.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality and discoverability. Score marketplace listings for conversion, metadata quality, pricing clarity, buyer intent, SEO, keyword coverage, paid API listing quality score, marketplace listing score, marketplace product listing quality, marketplace listing conversion API, buyer-agent skip reasons, and x402 marketplace conversion. $0.001 GET /api/listing-roast; POST upgrade.";
 const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
   "listing quality score API",
   "marketplace product listing quality",
@@ -346,8 +352,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-primary-call-aliases-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T05:19:38.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-bazaar-keyword-refresh-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T05:28:32.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -2822,7 +2828,7 @@ function buildPayNowActions(config) {
       method: "GET",
       price: config.instantScorePrice,
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
-      reason: "Use this first when a marketplace or Bazaar result points to Listing Roast; it is the already-indexed URL and the lowest-friction paid score."
+      reason: INDEXED_QUICK_SCORE_DESCRIPTION
     }),
     marketplaceListingScore: buildRoutePaymentAction(config, {
       path: "/api/marketplace-listing-score",
