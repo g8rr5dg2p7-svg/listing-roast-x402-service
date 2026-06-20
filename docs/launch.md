@@ -31,10 +31,11 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: f3d77c9f-a991-40cc-bed1-1bfffcb054fa.
-- Latest live code commit: c0ae66e Expose CDP handoff in examples.
-- Latest metadata version: 2026-06-20-cdp-handoff-in-examples-v21.
-- Latest repo docs refresh: CDP/Bazaar price-filtered search and indexed-route handoffs aligned with the live payment metadata.
+- Railway deploy: successful. Latest verified deployment: 4317c1f7-a8c9-41a1-8c6f-3ef06923f788.
+- Latest live code commit: f5063f2 Expose stale card normalization proof.
+- Latest GitHub release: stale-card-normalization-proof-v1.
+- Latest metadata version: 2026-06-20-stale-card-normalization-proof-v23.
+- Latest repo docs refresh: CDP/Bazaar price-filtered search, indexed-route handoffs, and stale cached-card normalization proof aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
@@ -43,7 +44,8 @@ Current verified state:
 - llms.txt: HTTP 200.
 - x402 manifest: HTTP 200.
 - `/api/examples`: HTTP 200; indexed quick-score sample exposes the full official CDP Bazaar handoff with `maxUsdPrice=0.001`.
-- `npx awal@2.8.0 x402 details` on `GET /api/listing-roast`: HTTP 402; payment metadata exposes `officialCdpDiscovery` with `marketplace listing score`, `maxUsdPrice=0.001`, and alternate searches `paid api listing quality` / `listing roast`.
+- `npx awal@2.8.0 x402 details` on `GET /api/listing-roast`: HTTP 402; payment metadata exposes `officialCdpDiscovery` with `marketplace listing score`, `maxUsdPrice=0.001`, alternate searches `paid api listing quality` / `listing roast`, amount 1000, Base USDC, and the indexed `/api/listing-roast` resource.
+- `GET /api/listing-roast` with stale cached `$1.00` query params: HTTP 402; payment header amount remains 1000, header has no `$1.00`, body exposes `staleCachedDirectoryInputGuard`, and paid scoring normalizes stale directory inputs to the current `$0.001 GET /api/listing-roast` defaults.
 - AgentCore handoff page: HTTP 200.
 - Instant score route: HTTP 402, amount 1000 USDC units.
 - x402 site audit route: HTTP 402, amount 1000 USDC units.
@@ -63,7 +65,7 @@ Current verified state:
 - The cash register baseline is preserved through Railway env import; use `/api/cash-register` plus the receiver wallet balance to distinguish register-confirmed and wallet-settled revenue.
 - First settlement transaction: 0x59f6d99257170dd796419a7d8a50dab7d113acb2198f0fafa993f6f30490fbf0.
 - Second settlement transaction: 0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71 for 1000 USDC units on the indexed GET `/api/listing-roast` route.
-- CDP Bazaar merchant discovery: indexed for the receiver wallet. The external search card may remain cached until another real settlement refreshes Bazaar metadata; direct live payment metadata is current. Latest official search evidence: `marketplace listing score` ranks first with `maxUsdPrice=0.001`, `paid api listing quality` ranks first with `maxUsdPrice=0.001`, and `listing roast` ranks first with `maxUsdPrice=0.001`; broader unfiltered results can still rank lower or show stale extension defaults.
+- CDP Bazaar merchant discovery: indexed for the receiver wallet. The external search card may remain cached until another real settlement refreshes Bazaar metadata; direct live payment metadata is current. Latest official search evidence with `max-price 0.001`: `marketplace listing score`, `paid api listing quality`, `listing quality score API`, and `x402 listing quality` return Listing Roast; `marketplace listing conversion API`, `agent listing conversion score`, `agent-service listing score`, and `agent service listing score` include Listing Roast but may rank behind other resources; `buyer-agent skip reasons`, `agent service clarity`, `x402 discovery audit`, `x402 site audit`, `AgentCore x402 payments`, and `Coinbase x402 Bazaar MCP server` do not yet return the already-indexed card until another real settlement refreshes broader cached metadata.
 - Local seller-hosted discovery now returns top-level `url`, `route`, `path`, `method`, `price`, `priceUsd`, `maxAmountRequired`, `max_amount_required`, and `command` fields for buyer agents that do not inspect nested metadata.
 
 Current production environment:
