@@ -31,7 +31,7 @@ npx awal@2.8.0 x402 pay 'https://listing-roast-x402-service-production.up.railwa
 
 Do not pay just to refresh marketplace metadata. Bazaar search metadata refreshes after real buyer settlement, while unpaid probes only prove route health.
 
-If an external marketplace card looks stale, parse the live `Payment-Required` header on `GET /api/listing-roast`. The standard x402 details view exposes the current amount, network, and `officialCdpDiscovery` hint: search for `marketplace listing score` with `maxUsdPrice=0.001`, or try `paid api listing quality` and `listing roast`.
+If an external marketplace card looks stale, parse the live `Payment-Required` header on `GET /api/listing-roast`. The standard x402 details view exposes the current amount, network, and `officialCdpDiscovery` hint: search for `marketplace listing score` with `maxUsdPrice=0.001`, or try `paid api listing quality`, `buyer-agent skip reasons`, `AgentCore x402 payments`, `x402 discovery audit`, `x402 site audit`, and `listing roast`.
 
 ## Routes
 

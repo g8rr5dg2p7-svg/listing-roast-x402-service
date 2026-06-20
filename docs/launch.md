@@ -34,7 +34,7 @@ Current verified state:
 - Railway deploy: successful. Latest verified deployment: 4317c1f7-a8c9-41a1-8c6f-3ef06923f788.
 - Latest live code commit: f5063f2 Expose stale card normalization proof.
 - Latest GitHub release: stale-card-normalization-proof-v1.
-- Latest metadata version: 2026-06-20-stale-card-normalization-proof-v23.
+- Latest metadata version: 2026-06-20-expanded-cdp-search-hints-v24.
 - Latest repo docs refresh: CDP/Bazaar price-filtered search, indexed-route handoffs, and stale cached-card normalization proof aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
@@ -44,7 +44,7 @@ Current verified state:
 - llms.txt: HTTP 200.
 - x402 manifest: HTTP 200.
 - `/api/examples`: HTTP 200; indexed quick-score sample exposes the full official CDP Bazaar handoff with `maxUsdPrice=0.001`.
-- `npx awal@2.8.0 x402 details` on `GET /api/listing-roast`: HTTP 402; payment metadata exposes `officialCdpDiscovery` with `marketplace listing score`, `maxUsdPrice=0.001`, alternate searches `paid api listing quality` / `listing roast`, amount 1000, Base USDC, and the indexed `/api/listing-roast` resource.
+- `npx awal@2.8.0 x402 details` on `GET /api/listing-roast`: HTTP 402; payment metadata exposes `officialCdpDiscovery` with `marketplace listing score`, `maxUsdPrice=0.001`, expanded alternate searches including `paid api listing quality`, `buyer-agent skip reasons`, `AgentCore x402 payments`, `Coinbase x402 Bazaar MCP server`, `x402 site audit`, `x402 discovery audit`, and `listing roast`, amount 1000, Base USDC, and the indexed `/api/listing-roast` resource.
 - `GET /api/listing-roast` with stale cached `$1.00` query params: HTTP 402; payment header amount remains 1000, header has no `$1.00`, body exposes `staleCachedDirectoryInputGuard`, and paid scoring normalizes stale directory inputs to the current `$0.001 GET /api/listing-roast` defaults.
 - AgentCore handoff page: HTTP 200.
 - Instant score route: HTTP 402, amount 1000 USDC units.

@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-stale-card-normalization-proof-v23";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T18:58:12.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-expanded-cdp-search-hints-v24";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T19:18:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -7056,7 +7056,16 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     recommendedSearchQuery: OFFICIAL_CDP_DISCOVERY_SEARCH_QUERY,
     recommendedMaxUsdPrice: "0.001",
     recommendedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${searchParams.toString()}`,
-    alternateSearchQueries: ["paid api listing quality", "listing roast"],
+    alternateSearchQueries: [
+      "paid api listing quality",
+      "buyer-agent skip reasons",
+      "agent service clarity",
+      "AgentCore x402 payments",
+      "Coinbase x402 Bazaar MCP server",
+      "x402 site audit",
+      "x402 discovery audit",
+      "listing roast"
+    ],
     merchantDiscoveryUrl: `${CDP_DISCOVERY_BASE_URL}/merchant?${merchantParams.toString()}`,
     indexedRouteReason: "Use the already-settled GET /api/listing-roast route first when external marketplace search metadata is stale.",
     priceFilterReason: "Use maxUsdPrice=0.001 for cheap-route discovery; current live checks show this finds the indexed route ahead of broader unfiltered marketplace results.",
