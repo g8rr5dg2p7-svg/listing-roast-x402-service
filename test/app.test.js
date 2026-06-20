@@ -984,6 +984,10 @@ describe("Listing Roast x402 service", () => {
       expect(resourcesById.listing_score.maxAmountRequired).toBe("5000");
       expect(resourcesById.listing_roast.price).toBe("$0.01");
       expect(resourcesById.listing_roast.maxAmountRequired).toBe("10000");
+      expect(resourcesById.listing_roast.description).toContain("omitted bodies use safe defaults");
+      expect(resourcesById.listing_roast.description).toContain("Prefer GET /api/full-listing-roast");
+      expect(resourcesById.listing_roast.keywords).toContain("custom-body full roast");
+      expect(resourcesById.listing_roast.keywords).toContain("stale directory card");
 
       const wellKnownX402Manifest = await fetchJson(server, "/.well-known/x402.json");
       expect(wellKnownX402Manifest.status).toBe(200);
@@ -1983,7 +1987,7 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/x402-site-audit");
       expect(llms.text).toContain("Primary paid action: GET http://localhost:8787/api/listing-roast ($0.001, max 1000)");
       expect(llms.text).toContain("Exact intent fallback: GET http://localhost:8787/api/paid-api-listing-quality ($0.001, max 1000)");
-      expect(llms.text).toContain("Upgrade paid action: POST http://localhost:8787/api/listing-roast ($0.01, max 10000)");
+      expect(llms.text).toContain("Upgrade paid action: GET http://localhost:8787/api/full-listing-roast ($0.01, max 10000)");
       expect(llms.text).toContain("/api/listing-score");
       expect(llms.text).toContain("/api/pay-now");
       expect(llms.text).toContain("/api/pricing");
@@ -3428,7 +3432,9 @@ describe("Listing Roast x402 service", () => {
       expect(agentsMarkdown.text).toContain("Agent payment prompt: Call this x402 endpoint with GET and pay up to 0.001 USDC: http://localhost:8787/api/listing-roast");
       expect(agentsMarkdown.text).toContain("Recommended Paid Sequence");
       expect(agentsMarkdown.text).toContain("Full roast command");
+      expect(agentsMarkdown.text).toContain("GET http://localhost:8787/api/full-listing-roast");
       expect(agentsMarkdown.text).toContain("POST http://localhost:8787/api/listing-roast");
+      expect(agentsMarkdown.text).toContain("custom-body full listing roast; omitted bodies use safe defaults");
       expect(agentsMarkdown.text).toContain("--max-amount 10000");
       expect(agentsMarkdown.text).toContain("/api/paid-usage-proof");
       expect(agentsMarkdown.text).toContain("/api/cash-register");

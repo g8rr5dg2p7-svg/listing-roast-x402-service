@@ -1272,9 +1272,10 @@ ${buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000")}
 - GET ${absoluteUrl(config, AGENT_LISTING_SCORE_PATH)} — ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT}; exact agent listing conversion score alias, buyer-agent skip reasons, and listing clarity. Canonical route: ${absoluteUrl(config, AGENT_LISTING_PATH)}.
 - GET ${absoluteUrl(config, SITE_AUDIT_PATH)} — ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT}; x402 route and discovery preflight.
 - GET ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)} — ${config.siteAuditPrice}, max ${DISCOVERY_AUDIT_QUICK_AMOUNT}; exact-path quick x402 discovery audit.
+- GET ${absoluteUrl(config, FULL_ROAST_GET_PATH)} — ${config.price}, max 10000; direct full listing roast and rewrite without assembling a POST body.
 - POST ${absoluteUrl(config, "/api/listing-score")} — ${config.scorePrice}, max 5000; structured listing quality score.
 - POST ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)} — ${config.discoveryAuditPrice}, max ${DISCOVERY_AUDIT_AMOUNT}; full x402 discovery audit.
-- POST ${absoluteUrl(config, ROAST_PATH)} — ${config.price}, max 10000; full listing roast and rewrite.
+- POST ${absoluteUrl(config, ROAST_PATH)} — ${config.price}, max 10000; custom-body full listing roast; omitted bodies use safe defaults for stale directory cards.
 
 ## Guardrails For Agents
 
@@ -4850,7 +4851,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
             method: "POST",
             price: config.price,
             maxAmountRequired: "10000",
-            buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
+            buyerAction: "Pay $0.01 for a custom-body full listing roast; omitted bodies use safe defaults for stale directory cards. Prefer GET /api/full-listing-roast for direct no-body checkout."
           }),
           requestBody: {
             required: false,
@@ -6221,8 +6222,8 @@ function buildX402Manifest(config, cashRegister = {}) {
         url: absoluteUrl(config, ROAST_PATH),
         price: config.price,
         maxAmountRequired: "10000",
-        description: "One-cent marketplace listing conversion API roast for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and launch guidance.",
-        keywords: ["marketplace listing conversion API", "marketplace listing conversion", "paid API listing quality", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "x402 marketplace conversion"],
+        description: "Custom-body Listing Roast POST: one-cent marketplace listing conversion API roast for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and launch guidance. JSON body is optional for stale directory cards; omitted bodies use safe defaults. Prefer GET /api/full-listing-roast for the direct full roast.",
+        keywords: ["marketplace listing conversion API", "marketplace listing conversion", "paid API listing quality", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "x402 marketplace conversion", "custom-body full roast", "stale directory card", "safe defaults"],
         command: buildPayCommand(config),
         input: requestExample,
         outputExample: buildListingRoast(requestExample),
@@ -7965,8 +7966,9 @@ ${buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000")}
 - GET ${formatPreflightAliasUrls(config)} for common paid API preflight aliases that return the same x402 site-audit output. Price: ${config.siteAuditPrice}. Max amount: ${SITE_AUDIT_AMOUNT}.
 - GET ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)} for the exact-path quick x402 discovery audit. Price: ${config.siteAuditPrice}. Max amount: ${DISCOVERY_AUDIT_QUICK_AMOUNT}.
 - POST ${absoluteUrl(config, "/api/listing-score")} for a custom-body listing score. Price: ${config.scorePrice}. Max amount: 5000.
+- GET ${absoluteUrl(config, FULL_ROAST_GET_PATH)} for the direct full listing roast, rewrite, top fixes, and stop-or-upgrade guidance without assembling a POST body. Price: ${config.price}. Max amount: 10000.
 - POST ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)} for a custom-body x402 discovery audit. Price: ${config.discoveryAuditPrice}. Max amount: ${DISCOVERY_AUDIT_AMOUNT}.
-- POST ${absoluteUrl(config, ROAST_PATH)} for the full listing roast, rewrite, top fixes, and stop-or-upgrade guidance. Price: ${config.price}. Max amount: 10000.
+- POST ${absoluteUrl(config, ROAST_PATH)} for a custom-body full listing roast; omitted bodies use safe defaults for stale directory cards. Price: ${config.price}. Max amount: 10000.
 
 ## Keywords
 
@@ -8069,8 +8071,9 @@ Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_A
 - GET ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)} for the exact-path quick x402 discovery audit.
 - GET ${absoluteUrl(config, PING_PATH)} for a paid x402 rail ping.
 - POST ${absoluteUrl(config, "/api/listing-score")} for a custom-body listing score.
+- GET ${absoluteUrl(config, FULL_ROAST_GET_PATH)} for the direct full listing roast.
 - POST ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)} for a custom-body x402 discovery audit.
-- POST ${absoluteUrl(config, ROAST_PATH)} for the full listing roast.
+- POST ${absoluteUrl(config, ROAST_PATH)} for a custom-body full listing roast; omitted bodies use safe defaults for stale directory cards.
 `;
 }
 
@@ -9684,7 +9687,7 @@ ${webMcpScript(config)}
           method: "POST",
           price: config.price,
           maxAmountRequired: "10000",
-          buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
+          buyerAction: "Pay $0.01 for a custom-body full listing roast; omitted bodies use safe defaults for stale directory cards. Prefer GET /api/full-listing-roast for direct no-body checkout."
         })
       },
       localDiscovery: {
@@ -10748,15 +10751,15 @@ ${copyScript("Copy command")}
           price: config.price,
           network: config.network,
           command: buildPayCommand(config),
-          description: "marketplace listing conversion API roast for paid API listing quality, agent service listing clarity, and buyer-agent skip reasons.",
+          description: "custom-body marketplace listing conversion API roast for paid API listing quality, agent service listing clarity, and buyer-agent skip reasons. JSON body is optional for stale directory cards; prefer GET /api/full-listing-roast for direct no-body checkout.",
           payment: buildPaymentHint(config, {
             path: ROAST_PATH,
             method: "POST",
             price: config.price,
             maxAmountRequired: "10000",
-            buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
+            buyerAction: "Pay $0.01 for a custom-body full listing roast; omitted bodies use safe defaults for stale directory cards. Prefer GET /api/full-listing-roast for direct no-body checkout."
           }),
-          keywords: ["marketplace listing conversion API", "marketplace listing conversion", "paid API listing quality", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score"],
+          keywords: ["marketplace listing conversion API", "marketplace listing conversion", "paid API listing quality", "agent service listing clarity", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "custom-body full roast", "stale directory card", "safe defaults"],
           input: requestExample
         }
       ]
