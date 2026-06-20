@@ -355,10 +355,10 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
   "x402 site audit",
   "x402 discovery audit"
 ]);
-const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
+const AGENT_LISTING_CONVERSION_DESCRIPTION = "agent listing conversion score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-site-audit-search-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T11:31:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-agent-conversion-search-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T11:36:12.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -368,7 +368,7 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   listingScore: ["x402", "paid API listing quality", "agent service clarity", "marketplace conversion", "discoverability"],
   instantScore: ["x402", "paid API listing quality", "marketplace listing score", "agent service clarity", "discoverability"],
   conversionScore: ["x402", "marketplace conversion", "paid API listing quality", "buyer-agent", "listing quality"],
-  agentListingConversion: ["x402", "buyer-agent skip reasons", "agent service clarity", "agent service promotion readiness", "listing conversion", "paid API"],
+  agentListingConversion: ["x402", "agent listing conversion score", "agent listing conversion", "buyer-agent skip reasons", "buyer agent skip reasons", "agent service clarity", "agent service promotion readiness", "listing conversion", "paid API"],
   indexedQuickScore: ["x402", "listing quality score API", "marketplace product listing quality", "paid API listing quality score", "paid API listing quality", "marketplace listing score", "marketplace listing conversion API", "x402 marketplace conversion", "agent listing conversion", "buyer-agent skip reasons", "agent-service listing score", "x402 site audit", "x402 discovery audit", "paid API preflight", "agent service clarity", "route health"],
   x402Ping: ["x402", "payment rail", "paid API", "route health", "Base USDC"],
   x402SiteAudit: ["x402", "x402 site audit", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
@@ -3063,7 +3063,7 @@ function buildPayNowActions(config) {
       method: "GET",
       price: config.instantScorePrice,
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
-      reason: "Use this after the indexed quick score when the buyer specifically wants the agent-listing conversion deep dive."
+      reason: "Use this when the buyer asks for an agent listing conversion score, agent listing conversion, buyer-agent skip reasons, or agent service listing clarity."
     }),
     x402Ping: buildRoutePaymentAction(config, {
       path: PING_PATH,
@@ -4706,8 +4706,8 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       [AGENT_LISTING_PATH]: {
         get: {
           operationId: "getAgentListingConversionScore",
-          tags: ["agent listing conversion", "agent service listing clarity", "agent service promotion readiness", "buyer-agent skip reasons", "x402 listing", "paid API listing", "paid API listing quality"],
-          summary: "buyer-agent skip reasons, agent service promotion readiness, agent service listing clarity, and agent listing conversion score by Listing Roast",
+          tags: ["agent listing conversion score", "agent listing conversion", "agent service listing clarity", "agent service promotion readiness", "buyer-agent skip reasons", "buyer agent skip reasons", "x402 listing", "paid API listing", "paid API listing quality"],
+          summary: "Paid $0.001 agent listing conversion score, agent listing conversion, buyer-agent skip reasons, agent service listing clarity, and agent service promotion readiness by Listing Roast",
           description: `${AGENT_LISTING_CONVERSION_DESCRIPTION} Optional query params: agentName, listingText, targetBuyer, currentPrice, currentCheckoutPath, goal.`,
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
@@ -5672,7 +5672,7 @@ function buildX402Manifest(config, cashRegister = {}) {
         price: config.instantScorePrice,
         maxAmountRequired: INSTANT_SCORE_AMOUNT,
         description: AGENT_LISTING_CONVERSION_DESCRIPTION,
-        keywords: ["agent service listing clarity", "agent service listing clarity x402", "agent listing conversion score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "marketplace listing conversion API", "marketplace listing conversion", "GET paid API"],
+        keywords: ["agent listing conversion score", "agent listing conversion", "agent service listing clarity", "agent service listing clarity x402", "buyer-agent skip reasons", "buyer agent skip reasons", "agent listing clarity", "buyer intent", "paid API listing quality", "agent-service listing score", "marketplace listing conversion API", "marketplace listing conversion", "GET paid API"],
         command: buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT),
         input: buildInstantScoreDiscovery(config).input,
         outputExample: buildAgentListingConversionScore(buildInstantScoreInput(), config),
