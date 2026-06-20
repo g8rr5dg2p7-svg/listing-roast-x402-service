@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-cdp-handoff-in-payment-header-v20";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T19:07:52.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-cdp-handoff-in-examples-v21";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T18:33:10.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -2331,6 +2331,7 @@ function buildIndexedRoastQuickScore(input, config) {
     buyerIntentHandoffs,
     nextPaidActions,
     ...(fullRoastUpgradeDecision ? { fullRoastUpgradeDecision } : {}),
+    officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     settlementRefreshNote,
     nextStep: followup.nextStep,
     upgradeEndpoint: followup.upgradeEndpoint
