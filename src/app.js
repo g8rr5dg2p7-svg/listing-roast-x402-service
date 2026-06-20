@@ -10362,6 +10362,10 @@ function validUnpaidSignalForPath(pathname) {
     return "discoveryAuditValidUnpaidChallenges";
   }
 
+  if (pathname === FULL_ROAST_GET_PATH) {
+    return "fullRoastGetValidUnpaidChallenges";
+  }
+
   return pathname === "/api/listing-score" ? "scoreValidUnpaidChallenges" : "roastValidUnpaidChallenges";
 }
 
