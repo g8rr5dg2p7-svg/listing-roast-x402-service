@@ -808,13 +808,21 @@ function isPaidRouteRequest(method, pathname) {
 function buildCompactPaidRouteLinks(config, pathname) {
   const routePath = pathname || ROAST_PATH;
   const routeTitle = QUICK_SCORE_ALIAS_METADATA[routePath]?.catalogTitle || (routePath === ROAST_PATH ? "GET $0.001 indexed listing-roast quick score" : "x402 paid route");
+  const routeMethod = routePath === ROOT_DIRECTORY_POST_PATH ? "POST" : "GET";
+  const intentRouteKey = inferPaymentHintIntentRouteKey(routePath, routeMethod);
+  const selectedRoute = { path: routePath };
+  const payNowIntent = payNowIntentForSelection(intentRouteKey, selectedRoute);
+  const payNowUrl = payNowUrlForSelection(config, intentRouteKey, selectedRoute);
+  const commandsUrl = payNowIntent
+    ? `${absoluteUrl(config, COMMANDS_PATH)}?intent=${encodeURIComponent(payNowIntent)}`
+    : absoluteUrl(config, COMMANDS_PATH);
 
   return [
     `<${absoluteUrl(config, routePath)}>; rel="payment"; type="application/json"; title="${routeTitle}"`,
     `<${absoluteUrl(config, "/x402.json")}>; rel="payment"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
-    `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
-    `<${absoluteUrl(config, COMMANDS_PATH)}>; rel="help"; type="application/json"`,
+    `<${payNowUrl}>; rel="help"; type="application/json"`,
+    `<${commandsUrl}>; rel="help"; type="application/json"`,
     `<${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}>; rel="service-meta"; type="application/json"`,
     `<${absoluteUrl(config, "/openapi.json")}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH)}>; rel="service-desc"; type="application/json"`

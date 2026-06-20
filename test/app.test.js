@@ -3953,6 +3953,8 @@ describe("Listing Roast x402 service", () => {
         expect(freeHandoff.pathname).toBe("/api/pay-now");
         expect(freeHandoff.searchParams.get("intent")).toBe(expectedPayNowIntentByPath[routePath]);
         expect(response.json.payNow).toBe(response.json.freeHandoff);
+        expect(response.headers.get("link")).toContain(`/api/pay-now?intent=${encodeURIComponent(expectedPayNowIntentByPath[routePath])}`);
+        expect(response.headers.get("link")).toContain(`/api/commands?intent=${encodeURIComponent(expectedPayNowIntentByPath[routePath])}`);
         expect(response.json.selectedPaidAction.path).toBe(routePath);
         expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
         expect(response.json.selectedPaidAction.command).toContain(routePath);
