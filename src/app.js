@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-cached-discovery-wallet-proof-v40";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T00:35:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-cheap-cap-discovery-handoff-v41";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T01:05:00.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
 const ROUTE_SERVICE_NAMES = Object.freeze({
@@ -6281,6 +6281,8 @@ function buildPaidUsageProofResponse(config, cashRegister = {}, receiverWallet =
     searchReality: {
       knownWorkingSearchQueries: officialCdpDiscovery.knownWorkingSearchQueries,
       notYetRankingSearchQueries: officialCdpDiscovery.notYetRankingSearchQueries,
+      cheapCapSearchStrategy: officialCdpDiscovery.cheapCapSearchStrategy,
+      competitiveCapRisks: officialCdpDiscovery.competitiveCapRisks,
       rule: officialCdpDiscovery.searchRealityRule
     },
     preferredFirstPaidAction,
@@ -7373,6 +7375,40 @@ function buildOfficialCdpDiscoveryHandoff(config) {
       currentPublicSearchState: "Can return unrelated Base/CDP services first in CDP search. Use /api/pay-now?intent=Coinbase%20x402%20Bazaar%20MCP%20server for the owned route."
     }
   ];
+  const cheapCapSearchStrategy = {
+    rule: "Search public CDP/Bazaar with maxUsdPrice=0.001 first, or use the direct proven route. Broader 0.005/0.01 caps can rank higher-priced generic competitors above Listing Roast.",
+    recommendedQuery: OFFICIAL_CDP_DISCOVERY_SEARCH_QUERY,
+    recommendedMaxUsdPrice: "0.001",
+    recommendedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${searchParams.toString()}`,
+    directRoute: absoluteUrl(config, ROAST_PATH),
+    directRouteMethod: "GET",
+    directRouteMaxAmountRequired: "1000",
+    directPayNow: absoluteUrl(config, PAY_NOW_PATH),
+    domainRestrictedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${domainSearchParams.toString()}`,
+    noSpend: true
+  };
+  const competitiveCapRisks = [
+    {
+      query: "marketplace listing score",
+      riskAtMaxUsdPrice: "0.005 or 0.01",
+      observedPublicSearchState: "Higher-priced generic marketplace listing-score cards can rank above Listing Roast; use maxUsdPrice=0.001 or urlSubstring to reach the proven $0.001 route."
+    },
+    {
+      query: "paid api listing quality",
+      riskAtMaxUsdPrice: "0.005 or 0.01",
+      observedPublicSearchState: "Higher-priced listing-quality cards can rank above Listing Roast; use maxUsdPrice=0.001 or the direct pay-now handoff."
+    },
+    {
+      query: "buyer-agent skip reasons",
+      riskAtMaxUsdPrice: "0.001, 0.005, or 0.01",
+      observedPublicSearchState: "Listing Roast can still be absent or below unrelated agent services; use /api/pay-now?intent=buyer-agent%20skip%20reasons or local discovery."
+    },
+    {
+      query: "x402 discovery audit",
+      riskAtMaxUsdPrice: "0.001, 0.005, or 0.01",
+      observedPublicSearchState: "Other x402 audit tools can rank above Listing Roast; use /api/pay-now?intent=x402%20discovery%20audit or the exact owned route."
+    }
+  ];
 
   return {
     source: "coinbase-cdp-bazaar",
@@ -7384,6 +7420,8 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     domainRestrictedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${domainSearchParams.toString()}`,
     domainRestrictedRecommendedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${domainRecommendedSearchParams.toString()}`,
     domainRestrictedUrlSubstring: serviceDomain,
+    cheapCapSearchStrategy,
+    competitiveCapRisks,
     workingSearchQueries,
     knownWorkingSearchQueries: workingSearchQueries,
     staleOrNotYetRankingQueries,
@@ -7403,7 +7441,7 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     domainRestrictedSearchReason: "Use urlSubstring when broad CDP search is stale or noisy; it narrows discovery to this exact seller domain without payment.",
     priceFilterReason: "Use maxUsdPrice=0.001 for cheap-route discovery; current live checks show this finds the indexed route ahead of broader unfiltered marketplace results.",
     merchantDiscoveryStaleMetadataNote: "Merchant discovery can show cached Bazaar extension fields from the last real settlement; use the live 402 challenge for current price before payment.",
-    searchRealityRule: "Prefer knownWorkingSearchQueries for public CDP discovery until a real buyer settlement updates the cached public search card for broader terms.",
+    searchRealityRule: "Use maxUsdPrice=0.001 for public CDP discovery first, or the direct proven route, because broader caps can rank higher-priced generic competitors above Listing Roast until another real settlement refreshes the public card.",
     refreshRule: "CDP Bazaar refreshes catalog metadata after real settlement; unpaid probes do not refresh search."
   };
 }
@@ -7425,8 +7463,10 @@ function formatOfficialCdpDiscoveryMarkdown(config) {
 - Official CDP merchant lookup: ${handoff.merchantDiscoveryUrl}
 - Recommended search query: ${handoff.recommendedSearchQuery}
 - Recommended maxUsdPrice: ${handoff.recommendedMaxUsdPrice}
+- Cheap-cap search rule: ${handoff.cheapCapSearchStrategy.rule}
 - Known working public CDP queries: ${handoff.knownWorkingSearchQueries.map((entry) => `${entry.query} (max ${entry.maxUsdPrice})`).join(", ")}
 - Not-yet-ranking public CDP queries: ${handoff.notYetRankingSearchQueries.map((entry) => entry.query).join(", ")}
+- Broader-cap risk queries: ${handoff.competitiveCapRisks.map((entry) => `${entry.query} (${entry.riskAtMaxUsdPrice})`).join(", ")}
 - Alternate search queries: ${handoff.alternateSearchQueries.join(", ")}
 - Start paid use with the already-settled indexed route: ${handoff.indexedRoute}
 - Domain-restricted search reason: ${handoff.domainRestrictedSearchReason}
