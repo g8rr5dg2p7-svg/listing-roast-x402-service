@@ -5039,13 +5039,14 @@ function priceToUsd(price) {
   return String(price || "").replace(/^\$/, "");
 }
 
-function buildAgentToolsManifest(config) {
+function buildAgentToolsManifest(config, cashRegister = {}) {
   const x402Manifest = buildX402Manifest(config);
   const intentRoutes = buildPayNowActions(config);
   const primaryEndpoint = buildPrimaryEndpointHandoff(config, intentRoutes);
   const primaryResourceSample = buildPrimaryResourceSample(primaryEndpoint);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const commands = absoluteUrl(config, COMMANDS_PATH);
+  const paidUsageProof = buildPaidUsageProof(config, cashRegister);
   const payment = {
     asset: config.network === BASE_MAINNET_NETWORK ? BASE_USDC_CONTRACT : "USDC",
     assetName: config.network === BASE_MAINNET_NETWORK ? "Base mainnet USDC" : "USDC",
@@ -5101,6 +5102,16 @@ function buildAgentToolsManifest(config) {
     base_url: x402Manifest.baseUrl,
     payment,
     commands,
+    paidUsageProof,
+    paid_usage_proof_summary: {
+      proofText: paidUsageProof.proofText,
+      paidCompletions: paidUsageProof.paidCompletions,
+      estimatedGrossRevenueUsd: paidUsageProof.estimatedGrossRevenueUsd,
+      lastPaidAt: paidUsageProof.lastPaidAt,
+      preferredConvertedRoute: paidUsageProof.preferredConvertedRoute,
+      cashRegister: paidUsageProof.cashRegister,
+      paidUsageProof: paidUsageProof.paidUsageProof
+    },
     links: {
       commands,
       payNow: absoluteUrl(config, PAY_NOW_PATH),
@@ -6203,7 +6214,8 @@ function buildAiPluginManifest(config, cashRegister = {}) {
   };
 }
 
-function buildApiCatalog(config) {
+function buildApiCatalog(config, cashRegister = {}) {
+  const paidUsageProof = buildPaidUsageProof(config, cashRegister);
   const item = [
     { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET preferred first $0.001 indexed x402 marketplace listing score and POST $0.01 full roast" },
     ...QUICK_SCORE_ALIAS_PATHS.map((pathname) => ({ href: absoluteUrl(config, pathname), type: "application/json", title: QUICK_SCORE_ALIAS_METADATA[pathname].catalogTitle })),
@@ -6284,9 +6296,21 @@ function buildApiCatalog(config) {
           { href: absoluteUrl(config, SCHEMA_JSON_PATH), type: "application/json", title: "Root schema JSON alias" },
           { href: absoluteUrl(config, WELL_KNOWN_API_CATALOG_JSON_PATH), type: API_CATALOG_CONTENT_TYPE, title: "API catalog JSON alias" }
         ],
+        "paid-use-proof": [
+          {
+            href: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+            type: "application/json",
+            title: paidUsageProof.proofText,
+            paidCompletions: paidUsageProof.paidCompletions,
+            estimatedGrossRevenueUsd: paidUsageProof.estimatedGrossRevenueUsd,
+            lastPaidAt: paidUsageProof.lastPaidAt,
+            preferredConvertedRoute: paidUsageProof.preferredConvertedRoute,
+            cashRegister: paidUsageProof.cashRegister
+          }
+        ],
         status: [
           { href: absoluteUrl(config, "/health"), type: "application/json", title: "Service health" },
-          { href: absoluteUrl(config, "/api/cash-register"), type: "application/json", title: "Paid completion and receiver wallet proof" }
+          { href: absoluteUrl(config, "/api/cash-register"), type: "application/json", title: `Paid completion and receiver wallet proof: ${paidUsageProof.proofText}` }
         ]
       }
     ]
@@ -8193,12 +8217,14 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get([WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH], async (_request, response) => {
     await recordSignal("apiCatalogViews");
-    setFreshDiscoveryHeaders(response).set("Content-Type", API_CATALOG_CONTENT_TYPE).send(prettyJson(buildApiCatalog(config)));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).set("Content-Type", API_CATALOG_CONTENT_TYPE).send(prettyJson(buildApiCatalog(config, cashRegister)));
   });
 
   app.get(WELL_KNOWN_AGENT_TOOLS_PATH, async (_request, response) => {
     await recordSignal("agentToolsViews");
-    setFreshDiscoveryHeaders(response).json(buildAgentToolsManifest(config));
+    const cashRegister = await getCashRegister();
+    setFreshDiscoveryHeaders(response).json(buildAgentToolsManifest(config, cashRegister));
   });
 
   app.head(WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, (_request, response) => {

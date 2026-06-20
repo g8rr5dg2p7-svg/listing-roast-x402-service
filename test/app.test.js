@@ -817,6 +817,12 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.payment.commands).toContain("/api/commands");
       expect(agentTools.json.payment.preferredFirstPaidAction.path).toBe("/api/listing-roast");
       expect(agentTools.json.payment.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
+      expect(agentTools.json.paidUsageProof.paidCompletions).toBe(0);
+      expect(agentTools.json.paidUsageProof.estimatedGrossRevenueUsd).toBe("0.00");
+      expect(agentTools.json.paidUsageProof.proofText).toContain("0 paid completions");
+      expect(agentTools.json.paidUsageProof.preferredConvertedRoute.path).toBe("/api/listing-roast");
+      expect(agentTools.json.paid_usage_proof_summary.proofText).toContain("0 paid completions");
+      expect(agentTools.json.paid_usage_proof_summary.cashRegister).toContain("/api/cash-register");
       expect(agentTools.json.resource_samples[0].url).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].resource).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].method).toBe("GET");
@@ -1027,8 +1033,14 @@ describe("Listing Roast x402 service", () => {
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/v2/x402/discovery/resources");
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/v2/x402/discovery/search");
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/v2/x402/discovery/merchant");
+      expect(apiCatalog.json.linkset[0]["paid-use-proof"][0].href).toBe("http://localhost:8787/api/paid-usage-proof");
+      expect(apiCatalog.json.linkset[0]["paid-use-proof"][0].title).toContain("0 paid completions");
+      expect(apiCatalog.json.linkset[0]["paid-use-proof"][0].paidCompletions).toBe(0);
+      expect(apiCatalog.json.linkset[0]["paid-use-proof"][0].estimatedGrossRevenueUsd).toBe("0.00");
+      expect(apiCatalog.json.linkset[0]["paid-use-proof"][0].preferredConvertedRoute.path).toBe("/api/listing-roast");
       expect(apiCatalog.json.linkset[0].status[0].href).toContain("/health");
       expect(apiCatalog.json.linkset[0].status.map((item) => item.href)).toContain("http://localhost:8787/api/cash-register");
+      expect(apiCatalog.json.linkset[0].status.find((item) => item.href === "http://localhost:8787/api/cash-register").title).toContain("0 paid completions");
 
       const apiCatalogJsonAlias = await fetchJson(server, "/.well-known/api-catalog.json");
       expect(apiCatalogJsonAlias.status).toBe(200);
