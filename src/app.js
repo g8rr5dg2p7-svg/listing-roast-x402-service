@@ -335,8 +335,8 @@ const SERVICE_TAGS = Object.freeze([
   "route health"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools snippets; returns an included quick score, route map, indexed /api/listing-roast handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality. Score marketplace listings for conversion, Agentic.Market listing score, paid API listing quality score, marketplace listing score, marketplace product listing quality, marketplace listing conversion API, buyer-agent skip reasons, and x402 marketplace conversion. $0.001 GET /api/listing-roast; POST upgrade.";
-const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Score API marketplace listing quality. Score marketplace listings for conversion: Agentic.Market listing score, paid API listing quality score, marketplace listing score, marketplace product listing quality, buyer-agent skip reasons. $0.001 GET /api/listing-roast; POST upgrade.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality. Score marketplace listings for conversion, Agentic.Market listing score, paid API listing quality score, marketplace listing score, marketplace product listing quality, marketplace listing conversion API, buyer-agent skip reasons, x402 marketplace conversion, and x402 seller growth checklist. $0.001 GET /api/listing-roast; POST upgrade.";
+const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Score API marketplace listing quality. Score marketplace listings for conversion: Agentic.Market listing score, paid API listing quality score, x402 seller growth checklist, marketplace product listing quality, buyer-agent skip reasons. $0.001 GET /api/listing-roast; POST upgrade.";
 const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
   "listing quality score API",
   "marketplace product listing quality",

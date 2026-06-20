@@ -3572,6 +3572,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.description).toContain("Score marketplace listings for conversion");
       expect(challenge.resource.description).toContain("Agentic.Market listing score");
       expect(challenge.resource.description).toContain("paid API listing quality score");
+      expect(challenge.resource.description).toContain("x402 seller growth checklist");
       expect(challenge.resource.description).toContain("marketplace product listing quality");
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("buyer-agent skip reasons");
@@ -3634,6 +3635,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.accepts[0].extra.version).toBe("2");
       expect(response.json.error).toBe("payment_required");
       expect(response.json.accepts[0].extra.resource).toBe(response.json.resource.url);
+      expect(response.json.resource.description).toContain("x402 seller growth checklist");
       expect(response.json.catalogRefreshHint.resource).toBe(response.json.resource.url);
       expect(response.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(response.json.selectedPaidAction.command).toContain("--max-amount 1000");
