@@ -19,6 +19,7 @@ Free checks before payment:
 - Route matcher: `GET /api/route?query=paid%20API%20listing%20quality`
 - Pay command handoff: `GET /api/pay-now?intent=paid%20API%20listing%20quality`
 - Local discovery search: `GET /v2/x402/discovery/search?query=paid%20API%20listing%20quality&limit=3`
+- Official CDP Bazaar search: `GET https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=marketplace+listing+score&network=eip155%3A8453&maxUsdPrice=0.001&limit=10`
 
 First paid action when the buyer intends to spend:
 
@@ -29,6 +30,8 @@ npx awal@2.8.0 x402 pay 'https://listing-roast-x402-service-production.up.railwa
 ```
 
 Do not pay just to refresh marketplace metadata. Bazaar search metadata refreshes after real buyer settlement, while unpaid probes only prove route health.
+
+If an external marketplace card looks stale, parse the live `Payment-Required` header on `GET /api/listing-roast`. The standard x402 details view exposes the current amount, network, and `officialCdpDiscovery` hint: search for `marketplace listing score` with `maxUsdPrice=0.001`, or try `paid api listing quality` and `listing roast`.
 
 ## Routes
 
@@ -54,7 +57,7 @@ Do not pay just to refresh marketplace metadata. Bazaar search metadata refreshe
 - `GET /api/schema` and `GET /schema.json` - full-roast request/response shape.
 - `GET /api/score-schema` - score request/response shape.
 - `GET /api/discovery-audit-schema` - x402 discovery-audit request/response shape.
-- `GET /api/examples` - copy-ready request, command, sample output, and public paid-use proof.
+- `GET /api/examples` - copy-ready request, command, sample output, official CDP Bazaar search handoff, and public paid-use proof.
 - `GET /robots.txt` - public crawl hints with AI/search agent access, content-signal preferences, and direct discovery links.
 - `GET /sitemap.xml` - public discovery URLs.
 - `GET /.well-known/mcp.json`, `GET /.well-known/mcp`, `GET /.well-known/mcp-server`, `GET /.well-known/mcp-server.json`, `GET /mcp`, `GET /mcp.json`, `GET /.well-known/mcp/server-card.json`, and `GET /mcp/server-card.json` - MCP-style discovery metadata and server-card aliases for agent-readiness scanners and MCP-aware clients.

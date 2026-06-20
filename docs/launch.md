@@ -25,14 +25,16 @@ Live production service:
 - Paid-use proof: https://listing-roast-x402-service-production.up.railway.app/api/paid-usage-proof
 - Pay command handoff: https://listing-roast-x402-service-production.up.railway.app/api/pay-now?intent=paid%20API%20listing%20quality
 - Local x402 discovery search: https://listing-roast-x402-service-production.up.railway.app/v2/x402/discovery/search?query=paid%20API%20listing%20quality&limit=3
+- Official CDP Bazaar price-filtered search: https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=marketplace+listing+score&network=eip155%3A8453&maxUsdPrice=0.001&limit=10
 - Cash register and receiver wallet balance: https://listing-roast-x402-service-production.up.railway.app/api/cash-register
 - GitHub: https://github.com/g8rr5dg2p7-svg/listing-roast-x402-service
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: d916c457-beeb-40bf-9f8a-4528b1add6ea.
-- Latest live code commit: 7a20528 Add AgentCore x402 buyer handoff.
-- Latest repo docs refresh: AgentCore promotion materials aligned with the live handoff.
+- Railway deploy: successful. Latest verified deployment: f3d77c9f-a991-40cc-bed1-1bfffcb054fa.
+- Latest live code commit: c0ae66e Expose CDP handoff in examples.
+- Latest metadata version: 2026-06-20-cdp-handoff-in-examples-v21.
+- Latest repo docs refresh: CDP/Bazaar price-filtered search and indexed-route handoffs aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
@@ -40,6 +42,8 @@ Current verified state:
 - OpenAPI: HTTP 200.
 - llms.txt: HTTP 200.
 - x402 manifest: HTTP 200.
+- `/api/examples`: HTTP 200; indexed quick-score sample exposes the full official CDP Bazaar handoff with `maxUsdPrice=0.001`.
+- `npx awal@2.8.0 x402 details` on `GET /api/listing-roast`: HTTP 402; payment metadata exposes `officialCdpDiscovery` with `marketplace listing score`, `maxUsdPrice=0.001`, and alternate searches `paid api listing quality` / `listing roast`.
 - AgentCore handoff page: HTTP 200.
 - Instant score route: HTTP 402, amount 1000 USDC units.
 - x402 site audit route: HTTP 402, amount 1000 USDC units.
@@ -59,7 +63,7 @@ Current verified state:
 - The cash register baseline is preserved through Railway env import; use `/api/cash-register` plus the receiver wallet balance to distinguish register-confirmed and wallet-settled revenue.
 - First settlement transaction: 0x59f6d99257170dd796419a7d8a50dab7d113acb2198f0fafa993f6f30490fbf0.
 - Second settlement transaction: 0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71 for 1000 USDC units on the indexed GET `/api/listing-roast` route.
-- CDP Bazaar merchant discovery: indexed for the receiver wallet. The external search card may remain cached until another real settlement refreshes Bazaar metadata; after the AgentCore handoff deploy, direct unpaid challenge metadata includes AgentCore/Bazaar-MCP language, while central Bazaar search still ranks Listing Roast 11 for `paid API listing quality` and absent for AgentCore-specific queries.
+- CDP Bazaar merchant discovery: indexed for the receiver wallet. The external search card may remain cached until another real settlement refreshes Bazaar metadata; direct live payment metadata is current. Latest official search evidence: `marketplace listing score` ranks first with `maxUsdPrice=0.001`, `paid api listing quality` ranks first with `maxUsdPrice=0.001`, and `listing roast` ranks first with `maxUsdPrice=0.001`; broader unfiltered results can still rank lower or show stale extension defaults.
 - Local seller-hosted discovery now returns top-level `url`, `route`, `path`, `method`, `price`, `priceUsd`, `maxAmountRequired`, `max_amount_required`, and `command` fields for buyer agents that do not inspect nested metadata.
 
 Current production environment:
