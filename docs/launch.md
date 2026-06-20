@@ -31,11 +31,11 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: 43b2cb4e-dc50-4ee0-9a38-52977e0958d6.
-- Latest live code commit: 3bf8d8b Add cheap-cap discovery handoff.
-- Latest GitHub release: cheap-cap-discovery-handoff-v1.
+- Railway deploy: successful. Latest verified deployment: 86f66f75-3b08-43a2-a8df-9a87f62a2d7f.
+- Latest live code commit: 1020dff Track full roast unpaid challenges.
+- Latest GitHub release: full-roast-funnel-signal-v1.
 - Latest metadata version: 2026-06-20-cheap-cap-discovery-handoff-v41.
-- Latest repo docs refresh: direct terminal `paymentShortcut` guidance for the $0.01 full-roast route and stale-card `POST /api/listing-roast` path, early `paymentShortcut.upgradeAfterQuickScore` for true quick-score-to-full-roast upgrades, compact upgrade shortcuts in `/api/pay-now`, `/api/examples`, `/api/commands`, and payment hints, early `paymentShortcut` fields before bulky unpaid 402 metadata, compact top-level payable-route fields in unpaid 402 JSON bodies, aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, Bazaar-style MCP compatibility handoffs aligned with the live payment metadata, explicit public CDP search-reality fields that separate currently working marketplace queries from terms that should use owned pay-now or local discovery until the cached public card refreshes, top-level first-paid-action fields on `/api/paid-usage-proof`, receiver-wallet-confirmed paid-use proof embedded directly in `/api/pay-now` buyer handoffs, cached receiver-wallet proof shared across free discovery handoffs, and v41 `cheapCapSearchStrategy` fields that tell buyer agents to search public CDP/Bazaar with `maxUsdPrice=0.001` or use the direct proven route when broader caps surface generic competitors.
+- Latest repo docs refresh: direct terminal `paymentShortcut` guidance for the $0.01 full-roast route and stale-card `POST /api/listing-roast` path, early `paymentShortcut.upgradeAfterQuickScore` for true quick-score-to-full-roast upgrades, compact upgrade shortcuts in `/api/pay-now`, `/api/examples`, `/api/commands`, and payment hints, early `paymentShortcut` fields before bulky unpaid 402 metadata, compact top-level payable-route fields in unpaid 402 JSON bodies, aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, Bazaar-style MCP compatibility handoffs aligned with the live payment metadata, explicit public CDP search-reality fields that separate currently working marketplace queries from terms that should use owned pay-now or local discovery until the cached public card refreshes, top-level first-paid-action fields on `/api/paid-usage-proof`, receiver-wallet-confirmed paid-use proof embedded directly in `/api/pay-now` buyer handoffs, cached receiver-wallet proof shared across free discovery handoffs, v41 `cheapCapSearchStrategy` fields that tell buyer agents to search public CDP/Bazaar with `maxUsdPrice=0.001` or use the direct proven route when broader caps surface generic competitors, and a dedicated `signals.fullRoastGetValidUnpaidChallenges` counter for buyers who reach the direct $0.01 full-roast route but stop at payment.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
@@ -57,7 +57,7 @@ Current verified state:
 - Agent402 route visibility audit route: HTTP 402, amount 1000 USDC units.
 - Full x402 discovery audit route: HTTP 402, amount 10000 USDC units.
 - Score route: HTTP 402, amount 5000 USDC units.
-- Direct full roast route: HTTP 402, amount 10000 USDC units.
+- Direct full roast route: HTTP 402, amount 10000 USDC units. Live no-spend verification on 2026-06-20T21:55Z moved `signals.fullRoastGetValidUnpaidChallenges` from 0 to 1 while `paidCompletions` stayed 2 and the receiver wallet stayed 1.001 USDC.
 - Custom-body full roast route: HTTP 402, amount 10000 USDC units. Empty-body and `{}` stale-card POST probes return the same valid x402 challenge; invalid non-empty bodies return 400 before payment.
 - Discovery-audit output includes direct 402 metadata, public Bazaar visibility, Agent402 route visibility, and catalog-refresh settlement guidance without paying the audited endpoint.
 - Direct full-roast route: verified in `/x402.json`, `/api/find`, `/api/commands`, and direct x402 details as `GET /api/full-listing-roast` with amount 10000.
@@ -68,7 +68,7 @@ Current verified state:
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
 - Receiver wallet balance is the durable revenue check across deploys.
-- Current public paid-use proof: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. Post-deploy no-spend verification confirmed the v41 cheap-cap discovery handoff, v40 cached discovery wallet-proof handoff, v38 pay-now wallet-proof handoff, v37 proof-action handoff, v36 search-reality handoff, manifest, health route, and unpaid `GET /api/listing-roast` 402 body and did not create a new paid completion.
+- Current public paid-use proof: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. Post-deploy no-spend verification confirmed the v42 full-roast unpaid-challenge signal, v41 cheap-cap discovery handoff, v40 cached discovery wallet-proof handoff, v38 pay-now wallet-proof handoff, v37 proof-action handoff, v36 search-reality handoff, manifest, health route, and unpaid full-roast 402 body and did not create a new paid completion.
 - The cash register baseline is preserved through Railway env import; use `/api/cash-register` plus the receiver wallet balance to distinguish register-confirmed and wallet-settled revenue.
 - First settlement transaction: 0x59f6d99257170dd796419a7d8a50dab7d113acb2198f0fafa993f6f30490fbf0.
 - Second settlement transaction: 0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71 for 1000 USDC units on the indexed GET `/api/listing-roast` route.
