@@ -5709,8 +5709,11 @@ function buildPaidUsageProof(config, cashRegister = {}, receiverWallet = null) {
   const hasReceiverWalletSnapshot = receiverWallet && typeof receiverWallet === "object" && receiverWallet.address;
   const receiverWalletHasBalance = hasReceiverWalletSnapshot && receiverWallet.usdcUnits && /^\d+$/.test(String(receiverWallet.usdcUnits));
   const isWalletConfirmed = Boolean(paidCompletions > 0 && latestWalletSettlement && receiverWalletHasBalance);
+  const isWalletSettlementLinked = Boolean(paidCompletions > 0 && latestWalletSettlement);
   const proofText = isWalletConfirmed
     ? `${paidCompletions} wallet-confirmed paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered; receiver wallet ${receiverWallet.usdcBalance} USDC`
+    : isWalletSettlementLinked
+      ? `${paidCompletions} wallet-settlement-linked paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered; latest settlement ${latestWalletSettlement.usdc || latestWalletSettlement.usdcUnits} USDC`
     : `${paidCompletions} paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered`;
 
   return {

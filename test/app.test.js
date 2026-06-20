@@ -3277,6 +3277,7 @@ describe("Listing Roast x402 service", () => {
     try {
       const x402Manifest = await fetchJson(server, "/x402.json");
       expect(x402Manifest.status).toBe(200);
+      expect(x402Manifest.json.paidUsageProof.proofText).toBe("1 wallet-settlement-linked paid completion; $0.001 registered; latest settlement 0.001 USDC");
       expect(x402Manifest.json.paidUsageProof.latestWalletSettlement.txHash).toBe(process.env.BASELINE_LAST_SETTLEMENT_TX_HASH);
       expect(x402Manifest.json.paidUsageProof.latestWalletSettlement.usdcUnits).toBe("1000");
       expect(x402Manifest.json.paidUsageProof.latestWalletSettlement.usdc).toBe("0.001");
