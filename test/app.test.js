@@ -1214,6 +1214,16 @@ describe("Listing Roast x402 service", () => {
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/v2/x402/discovery/resources");
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/v2/x402/discovery/search");
       expect(apiCatalog.json.linkset[0]["service-meta"].map((item) => item.href)).toContain("http://localhost:8787/v2/x402/discovery/merchant");
+      expect(apiCatalog.json.linkset[0]["payment-handoff"].map((item) => item.href)).toContain("http://localhost:8787/api/pay-now?intent=paid%20API%20listing%20quality%20score");
+      expect(apiCatalog.json.linkset[0]["payment-handoff"].map((item) => item.href)).toContain("http://localhost:8787/api/pay-now?intent=x402%20discovery%20audit");
+      expect(apiCatalog.json.linkset[0]["command-handoff"].map((item) => item.href)).toContain("http://localhost:8787/api/commands?intent=marketplace%20listing%20score");
+      expect(apiCatalog.json.linkset[0]["command-handoff"].map((item) => item.href)).toContain("http://localhost:8787/api/commands?intent=buyer-agent%20skip%20reasons");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].href).toBe("http://localhost:8787/api/listing-roast");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].method).toBe("GET");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][0].maxAmountRequired).toBe("1000");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].href).toBe("http://localhost:8787/api/listing-roast");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].method).toBe("POST");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].maxAmountRequired).toBe("10000");
       expect(apiCatalog.json.linkset[0]["paid-use-proof"][0].href).toBe("http://localhost:8787/api/paid-usage-proof");
       expect(apiCatalog.json.linkset[0]["paid-use-proof"][0].title).toContain("0 paid completions");
       expect(apiCatalog.json.linkset[0]["paid-use-proof"][0].paidCompletions).toBe(0);

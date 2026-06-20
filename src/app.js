@@ -6838,6 +6838,33 @@ function buildAiPluginManifest(config, cashRegister = {}) {
 
 function buildApiCatalog(config, cashRegister = {}) {
   const paidUsageProof = buildPaidUsageProof(config, cashRegister);
+  const intentRoutes = buildPayNowActions(config);
+  const intentHandoffs = [
+    "marketplace listing score",
+    "paid API listing quality score",
+    "buyer-agent skip reasons",
+    "x402 discovery audit"
+  ];
+  const paymentHandoffLinks = intentHandoffs.map((intent) => ({
+    href: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent(intent)}`,
+    type: "application/json",
+    title: `No-spend pay-now handoff for ${intent}`
+  }));
+  const commandHandoffLinks = intentHandoffs.map((intent) => ({
+    href: `${absoluteUrl(config, COMMANDS_PATH)}?intent=${encodeURIComponent(intent)}`,
+    type: "application/json",
+    title: `No-spend command handoff for ${intent}`
+  }));
+  const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes).map((step) => ({
+    href: step.action.route,
+    type: "application/json",
+    title: `${step.step === 1 ? "Start" : "Upgrade"}: ${step.action.method} ${step.action.path} ${step.action.price}, max ${step.action.maxAmountRequired} USDC units`,
+    step: step.step,
+    use: step.use,
+    method: step.action.method,
+    price: step.action.price,
+    maxAmountRequired: step.action.maxAmountRequired
+  }));
   const item = [
     { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET preferred first $0.001 indexed x402 marketplace listing score and POST $0.01 full roast" },
     ...QUICK_SCORE_ALIAS_PATHS.map((pathname) => ({ href: absoluteUrl(config, pathname), type: "application/json", title: QUICK_SCORE_ALIAS_METADATA[pathname].catalogTitle })),
@@ -6918,6 +6945,9 @@ function buildApiCatalog(config, cashRegister = {}) {
           { href: absoluteUrl(config, SCHEMA_JSON_PATH), type: "application/json", title: "Root schema JSON alias" },
           { href: absoluteUrl(config, WELL_KNOWN_API_CATALOG_JSON_PATH), type: API_CATALOG_CONTENT_TYPE, title: "API catalog JSON alias" }
         ],
+        "payment-handoff": paymentHandoffLinks,
+        "command-handoff": commandHandoffLinks,
+        "recommended-paid-sequence": recommendedPaidSequence,
         "paid-use-proof": [
           {
             href: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
