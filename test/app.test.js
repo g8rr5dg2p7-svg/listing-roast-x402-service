@@ -3567,7 +3567,11 @@ describe("Listing Roast x402 service", () => {
       expect(indexedOutputSchema.additionalProperties).toBe(true);
       expect(challenge.accepts[0].network).toBe("eip155:84532");
       expect(challenge.accepts[0].amount).toBe("1000");
+      expect(challenge.accepts[0].extra.resource).toBe(challenge.resource.url);
+      expect(challenge.accepts[0].extra.version).toBe("2");
       expect(response.json.error).toBe("payment_required");
+      expect(response.json.accepts[0].extra.resource).toBe(response.json.resource.url);
+      expect(response.json.catalogRefreshHint.resource).toBe(response.json.resource.url);
       expect(response.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(response.json.selectedPaidAction.command).toContain("--max-amount 1000");
       expect(response.json.payCommand).toContain("/api/listing-roast");
@@ -3662,6 +3666,7 @@ describe("Listing Roast x402 service", () => {
         expect(challenge.extensions.bazaar.info.input.queryParams.goal).toContain(routePath);
         expect(challenge.accepts[0].network).toBe("eip155:84532");
         expect(challenge.accepts[0].amount).toBe("1000");
+        expect(challenge.accepts[0].extra.resource).toBe(challenge.resource.url);
         expect(response.json.error).toBe("payment_required");
         expect(response.json.x402Version).toBe(challenge.x402Version);
         expect(response.json.resource.url).toBe(challenge.resource.url);
@@ -3672,6 +3677,8 @@ describe("Listing Roast x402 service", () => {
         expect(response.json.accepts[0].amount).toBe(challenge.accepts[0].amount);
         expect(response.json.accepts[0].asset).toBe(challenge.accepts[0].asset);
         expect(response.json.accepts[0].payTo).toBe(challenge.accepts[0].payTo);
+        expect(response.json.accepts[0].extra.resource).toBe(response.json.resource.url);
+        expect(response.json.catalogRefreshHint.resource).toBe(response.json.resource.url);
         expect(response.json.paymentRequirementsSource.authoritative).toBe("Payment-Required response header");
         expect(response.json.selectedPaidAction.path).toBe(routePath);
         expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");

@@ -334,6 +334,7 @@ const SERVICE_TAGS = Object.freeze([
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality and discoverability. Score marketplace listings for conversion, metadata quality, pricing clarity, buyer intent, SEO, keyword coverage, paid API listing quality score, marketplace listing score, marketplace product listing quality, marketplace listing conversion API, buyer-agent skip reasons, and x402 marketplace conversion. $0.001 GET /api/listing-roast; POST upgrade.";
+const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Score API marketplace listing quality and discoverability. Score marketplace listings for conversion: metadata quality, pricing clarity, buyer intent, keyword coverage, marketplace listing score, marketplace product listing quality, buyer-agent skip reasons. $0.001 GET /api/listing-roast; POST upgrade.";
 const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
   "listing quality score API",
   "marketplace product listing quality",
@@ -3831,7 +3832,8 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     amount: selected.maxAmountRequired,
     asset: usdcAssetForNetwork(config.network),
     payTo: config.payTo,
-    maxTimeoutSeconds: 300
+    maxTimeoutSeconds: 300,
+    extra: usdcPaymentExtra(config.network, paymentResource.url)
   }];
   const paidResponsePreview = buildPaidResponsePreview(config, intentRouteKey, selected);
   const sampleQueryInputs = selected.method === "GET" && QUICK_SCORE_PAID_PATHS.includes(selected.path)
@@ -3850,6 +3852,10 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
       authoritative: "Payment-Required response header",
       bodyMirror: true,
       note: "The Payment-Required header remains the source of truth. These body fields mirror the stable x402 amount, network, receiver, and resource for agents that inspect JSON first."
+    },
+    catalogRefreshHint: {
+      resource: paymentResource.url,
+      note: "Use the live Payment-Required header for payment; stale directory snippets may lag the current route metadata."
     },
     service: config.serviceName,
     noSpendPreview: true,
@@ -7538,6 +7544,14 @@ function usdcAssetForNetwork(network) {
   return "USDC";
 }
 
+function usdcPaymentExtra(network, resource) {
+  return {
+    name: network === BASE_MAINNET_NETWORK ? "USD Coin" : "USDC",
+    version: "2",
+    resource
+  };
+}
+
 function createX402Middleware(config) {
   const facilitator = new HTTPFacilitatorClient({
     url: config.facilitatorUrl,
@@ -7560,16 +7574,18 @@ function createX402Middleware(config) {
   });
 
   const resourceUrl = (routePath) => absoluteUrl(config, routePath);
+  const acceptsForRoute = (routePath, price) => ({
+    scheme: "exact",
+    price,
+    network: config.network,
+    payTo: config.payTo,
+    maxTimeoutSeconds: 300,
+    extra: usdcPaymentExtra(config.network, resourceUrl(routePath))
+  });
   const buildSiteAuditPaymentRoute = (routePath) => ({
     resource: resourceUrl(routePath),
     ...challengeRouteServiceMetadata("x402SiteAudit"),
-    accepts: {
-      scheme: "exact",
-      price: config.siteAuditPrice,
-      network: config.network,
-      payTo: config.payTo,
-      maxTimeoutSeconds: 300
-    },
+    accepts: acceptsForRoute(routePath, config.siteAuditPrice),
     description: withPaidUseProofDescription(config, "Listing Roast x402 Site Audit: $0.001 GET listing SEO audit, listing rank doctor, seller growth checklist, service discoverability audit, paid API preflight before paying more, route health check, direct 402 metadata, Bazaar pricing, search visibility, and no-spend fix steps."),
     mimeType: "application/json",
     customPaywallHtml: buildCustomPaywallHtml(config, "x402SiteAudit"),
@@ -7582,13 +7598,7 @@ function createX402Middleware(config) {
       [`POST ${ROOT_DIRECTORY_POST_PATH}`]: {
         resource: resourceUrl(ROOT_DIRECTORY_POST_PATH),
         ...challengeRouteServiceMetadata("directoryPost"),
-        accepts: {
-          scheme: "exact",
-          price: config.instantScorePrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(ROOT_DIRECTORY_POST_PATH, config.instantScorePrice),
         description: withPaidUseProofDescription(config, DIRECTORY_POST_DESCRIPTION),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "directoryPost"),
@@ -7597,13 +7607,7 @@ function createX402Middleware(config) {
       [`GET ${API_ENTRY_PATH}`]: {
         resource: resourceUrl(API_ENTRY_PATH),
         ...challengeRouteServiceMetadata("apiEntry"),
-        accepts: {
-          scheme: "exact",
-          price: config.instantScorePrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(API_ENTRY_PATH, config.instantScorePrice),
         description: withPaidUseProofDescription(config, "Listing Roast API Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /api first."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
@@ -7613,13 +7617,7 @@ function createX402Middleware(config) {
       [`GET ${API_V1_ENTRY_PATH}`]: {
         resource: resourceUrl(API_V1_ENTRY_PATH),
         ...challengeRouteServiceMetadata("apiEntry"),
-        accepts: {
-          scheme: "exact",
-          price: config.instantScorePrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(API_V1_ENTRY_PATH, config.instantScorePrice),
         description: withPaidUseProofDescription(config, "Listing Roast API v1 Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /api/v1 first."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
@@ -7629,13 +7627,7 @@ function createX402Middleware(config) {
       [`GET ${V1_ENTRY_PATH}`]: {
         resource: resourceUrl(V1_ENTRY_PATH),
         ...challengeRouteServiceMetadata("apiEntry"),
-        accepts: {
-          scheme: "exact",
-          price: config.instantScorePrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(V1_ENTRY_PATH, config.instantScorePrice),
         description: withPaidUseProofDescription(config, "Listing Roast v1 Entry: $0.001 paid GET x402 navigation endpoint and route map for agents that start at /v1 first."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "apiEntry"),
@@ -7645,13 +7637,7 @@ function createX402Middleware(config) {
       "POST /api/listing-score": {
         resource: resourceUrl(SCORE_PATH),
         ...challengeRouteServiceMetadata("listingScore"),
-        accepts: {
-          scheme: "exact",
-          price: config.scorePrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(SCORE_PATH, config.scorePrice),
         description: withPaidUseProofDescription(config, "Listing Score x402: $0.005 paid API listing quality score for agent-service listing clarity, marketplace conversion, x402 service discoverability, first missing signal, and upgrade guidance."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "listingScore"),
@@ -7661,13 +7647,7 @@ function createX402Middleware(config) {
       [`GET ${INSTANT_SCORE_PATH}`]: {
         resource: resourceUrl(INSTANT_SCORE_PATH),
         ...challengeRouteServiceMetadata("instantScore"),
-        accepts: {
-          scheme: "exact",
-          price: config.instantScorePrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(INSTANT_SCORE_PATH, config.instantScorePrice),
         description: withPaidUseProofDescription(config, "Instant Listing Score x402: $0.001 GET marketplace listing score and paid API listing quality score for agent-service listing clarity, marketplace conversion, and x402 service discoverability."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "instantScore"),
@@ -7677,13 +7657,7 @@ function createX402Middleware(config) {
       [`GET ${CONVERSION_SCORE_PATH}`]: {
         resource: resourceUrl(CONVERSION_SCORE_PATH),
         ...challengeRouteServiceMetadata("conversionScore"),
-        accepts: {
-          scheme: "exact",
-          price: config.instantScorePrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(CONVERSION_SCORE_PATH, config.instantScorePrice),
         description: withPaidUseProofDescription(config, "x402 Marketplace Conversion Score: $0.001 GET marketplace conversion score for paid API listing quality, agent-service listing clarity, and buyer-agent conversion checks."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "conversionScore"),
@@ -7693,13 +7667,7 @@ function createX402Middleware(config) {
       [`GET ${AGENT_LISTING_PATH}`]: {
         resource: resourceUrl(AGENT_LISTING_PATH),
         ...challengeRouteServiceMetadata("agentListingConversion"),
-        accepts: {
-          scheme: "exact",
-          price: config.instantScorePrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(AGENT_LISTING_PATH, config.instantScorePrice),
         description: withPaidUseProofDescription(config, AGENT_LISTING_CONVERSION_DESCRIPTION),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "agentListingConversion"),
@@ -7709,14 +7677,8 @@ function createX402Middleware(config) {
       [`GET ${ROAST_PATH}`]: {
         resource: resourceUrl(ROAST_PATH),
         ...challengeRouteServiceMetadata("indexedQuickScore"),
-        accepts: {
-          scheme: "exact",
-          price: config.instantScorePrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
-        description: withPaidUseProofDescription(config, INDEXED_QUICK_SCORE_DESCRIPTION),
+        accepts: acceptsForRoute(ROAST_PATH, config.instantScorePrice),
+        description: withPaidUseProofDescription(config, INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "indexedQuickScore"),
         unpaidResponseBody: unpaidPaymentPreview(config, "indexedQuickScore"),
@@ -7728,13 +7690,7 @@ function createX402Middleware(config) {
         return [`GET ${routePath}`, {
           resource: resourceUrl(routePath),
           ...challengeRouteServiceMetadata("indexedQuickScore"),
-          accepts: {
-            scheme: "exact",
-            price: config.instantScorePrice,
-            network: config.network,
-            payTo: config.payTo,
-            maxTimeoutSeconds: 300
-          },
+          accepts: acceptsForRoute(routePath, config.instantScorePrice),
           description: withPaidUseProofDescription(config, metadata.description),
           mimeType: "application/json",
           customPaywallHtml: buildCustomPaywallHtml(config, intentRouteKey),
@@ -7753,13 +7709,7 @@ function createX402Middleware(config) {
       [`GET ${PING_PATH}`]: {
         resource: resourceUrl(PING_PATH),
         ...challengeRouteServiceMetadata("x402Ping"),
-        accepts: {
-          scheme: "exact",
-          price: config.instantScorePrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(PING_PATH, config.instantScorePrice),
         description: withPaidUseProofDescription(config, "Listing Roast x402 Ping: $0.001 paid GET ping to verify the Base x402 rail before buying a score or roast."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "x402Ping"),
@@ -7770,13 +7720,7 @@ function createX402Middleware(config) {
       [`GET ${DISCOVERY_AUDIT_PATH}`]: {
         resource: resourceUrl(DISCOVERY_AUDIT_PATH),
         ...challengeRouteServiceMetadata("discoveryAuditQuick"),
-        accepts: {
-          scheme: "exact",
-          price: config.siteAuditPrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(DISCOVERY_AUDIT_PATH, config.siteAuditPrice),
         description: withPaidUseProofDescription(config, "Listing Roast x402 Discovery Audit Quick: $0.001 GET x402 discovery audit on the exact audit path for stale Bazaar pricing, search visibility, route health, paid API preflight, and direct 402 metadata."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAuditQuick"),
@@ -7786,13 +7730,7 @@ function createX402Middleware(config) {
       [`POST ${DISCOVERY_AUDIT_PATH}`]: {
         resource: resourceUrl(DISCOVERY_AUDIT_PATH),
         ...challengeRouteServiceMetadata("discoveryAudit"),
-        accepts: {
-          scheme: "exact",
-          price: config.discoveryAuditPrice,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(DISCOVERY_AUDIT_PATH, config.discoveryAuditPrice),
         description: withPaidUseProofDescription(config, "Listing Roast x402 Discovery Audit: $0.01 Bazaar visibility audit for stale indexed pricing, direct 402 metadata, search position, and no-spend fix steps."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAudit"),
@@ -7802,13 +7740,7 @@ function createX402Middleware(config) {
       [`POST ${ROAST_PATH}`]: {
         resource: resourceUrl(ROAST_PATH),
         ...challengeRouteServiceMetadata("fullRoast"),
-        accepts: {
-          scheme: "exact",
-          price: config.price,
-          network: config.network,
-          payTo: config.payTo,
-          maxTimeoutSeconds: 300
-        },
+        accepts: acceptsForRoute(ROAST_PATH, config.price),
         description: withPaidUseProofDescription(config, "Listing Roast x402: $0.01 marketplace listing conversion API roast for paid API listing quality, agent service listing clarity, buyer-agent skip reasons, top fixes, rewrite, and stop-or-upgrade guidance."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "fullRoast"),
