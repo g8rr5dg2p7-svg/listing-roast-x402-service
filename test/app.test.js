@@ -1810,8 +1810,11 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/x402-discovery-audit"].post.requestBody.content["application/json"].schema.properties.base_url.description).toContain("Alias for endpointUrl");
       expect(openApi.json.paths["/api/listing-roast"].get.operationId).toBe("getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("paid API listing quality score");
+      expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("AgentCore x402 payments");
       expect(openApi.json.paths["/api/listing-roast"].get.tags[0]).toBe("listing roast quick score");
       expect(openApi.json.paths["/api/listing-roast"].get.tags).toContain("paid API listing quality");
+      expect(openApi.json.paths["/api/listing-roast"].get.tags).toContain("AgentCore x402 payments");
+      expect(openApi.json.paths["/api/listing-roast"].get.tags).toContain("Coinbase x402 Bazaar MCP server");
       expect(openApi.json.paths["/api/listing-roast"].get.security).toEqual([{ x402: [] }]);
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].maxAmountRequired).toBe("1000");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].preferredFirstPaidAction).toBe(true);
@@ -1865,6 +1868,8 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("buyer-agent skip reasons");
       expect(openApi.json.paths["/api/listing-roast"].get.summary).toContain("listing quality");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Listing quality score API for paid API listing quality score");
+      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("AgentCore x402 payments readiness");
+      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Coinbase x402 Bazaar MCP server buyers");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("marketplace product listing quality");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent listing conversion score");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent service listing clarity");

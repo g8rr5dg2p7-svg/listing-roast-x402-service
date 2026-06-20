@@ -4822,9 +4822,9 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       [ROAST_PATH]: {
         get: {
           operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
-          tags: ["listing roast quick score", "paid API listing quality", "paid API listing quality score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "agent service listing clarity", "x402 listing", "paid API listing"],
-          summary: "Paid $0.001 paid API listing quality score, Listing Roast quick score, and buyer-agent skip reasons",
-          description: "Listing quality score API for paid API listing quality score, marketplace product listing quality, buyer-agent skip reasons, marketplace listing score, marketplace listing conversion API, agent service clarity, and agent service listing clarity. Lowest-price $0.001 score from indexed /api/listing-roast for agent listing conversion score, x402 marketplace conversion, x402 discovery audit, x402 site audit, paid API preflight, fix x402 Bazaar listing, stale price, route health, Bazaar search visibility, and conversion checks; GET /api/full-listing-roast is the $0.01 direct full-roast upgrade.",
+          tags: ["listing roast quick score", "paid API listing quality", "paid API listing quality score", "AgentCore x402 payments", "Coinbase x402 Bazaar MCP server", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "agent service listing clarity", "x402 listing", "paid API listing"],
+          summary: "Paid $0.001 paid API listing quality score, AgentCore x402 payments route, Listing Roast quick score, and buyer-agent skip reasons",
+          description: "Listing quality score API for paid API listing quality score, AgentCore x402 payments readiness, Coinbase x402 Bazaar MCP server buyers, marketplace product listing quality, buyer-agent skip reasons, marketplace listing score, marketplace listing conversion API, agent service clarity, and agent service listing clarity. Lowest-price $0.001 score from indexed /api/listing-roast for AgentCore Gateway discovery, agent listing conversion score, x402 marketplace conversion, x402 discovery audit, x402 site audit, paid API preflight, fix x402 Bazaar listing, stale price, route health, Bazaar search visibility, and conversion checks; GET /api/full-listing-roast is the $0.01 direct full-roast upgrade.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
