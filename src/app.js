@@ -253,8 +253,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-service-name-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T02:24:56.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-manifest-service-label-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T02:31:43.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -466,9 +466,10 @@ function routeTags(routeKey) {
 }
 
 function enrichManifestResource(resource) {
-  const tags = routeTags(MANIFEST_RESOURCE_ROUTE_KEYS[resource.id]);
+  const routeKey = MANIFEST_RESOURCE_ROUTE_KEYS[resource.id];
+  const { serviceName, tags } = routeServiceMetadata(routeKey);
   return {
-    serviceName: X402_SERVICE_NAME,
+    serviceName,
     ...resource,
     tags,
     keywords: uniqueTerms([...(resource.keywords || []), ...tags])
@@ -4679,7 +4680,7 @@ function buildPrimaryEndpointHandoff(config, intentRoutes = buildPayNowActions(c
     id: "indexed_roast_quick_score",
     name: "indexed_roast_quick_score",
     title: "GET $0.001 indexed listing-roast quick score",
-    serviceName: X402_SERVICE_NAME,
+    serviceName: routeServiceMetadata("indexedQuickScore").serviceName,
     method: action.method,
     path: action.path,
     url: action.route,
