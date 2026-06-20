@@ -8212,6 +8212,11 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
 
   return {
     service: config.serviceName,
+    serviceName: config.serviceName,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadata_version: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
     query,
     noSpend: true,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
@@ -8325,6 +8330,11 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
       url: route.url,
       price: route.price,
       maxAmountRequired: route.maxAmountRequired,
+      serviceName: config.serviceName,
+      metadataVersion: DISCOVERY_METADATA_VERSION,
+      metadata_version: DISCOVERY_METADATA_VERSION,
+      metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+      metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
       schema: route.schema,
       command: route.command,
       description: route.description,
@@ -8357,6 +8367,11 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
 
   return {
     service: config.serviceName,
+    serviceName: config.serviceName,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadata_version: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
     router: "local-owned-x402-router",
     query,
     include,

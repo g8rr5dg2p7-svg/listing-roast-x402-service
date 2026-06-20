@@ -189,6 +189,10 @@ describe("Listing Roast x402 service", () => {
       const findDiscovery = await fetchJson(server, "/api/find?q=x402%20discovery%20audit");
       expect(findDiscovery.status).toBe(200);
       expect(findDiscovery.headers.get("payment-required")).toBeNull();
+      expect(findDiscovery.json.service).toBe("Listing Roast x402");
+      expect(findDiscovery.json.serviceName).toBe("Listing Roast x402");
+      expect(findDiscovery.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(findDiscovery.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(findDiscovery.json.selectedActionKey).toBe("discoveryAuditQuick");
       expect(findDiscovery.json.selectedPaidUrl).toContain("/api/x402-discovery-audit");
       expect(findDiscovery.json.intentSignal.source).toBe("find");
@@ -197,9 +201,15 @@ describe("Listing Roast x402 service", () => {
       const routeFullRoast = await fetchJson(server, "/api/route?query=full%20roast%20rewrite%20top%20fixes");
       expect(routeFullRoast.status).toBe(200);
       expect(routeFullRoast.headers.get("payment-required")).toBeNull();
+      expect(routeFullRoast.json.service).toBe("Listing Roast x402");
+      expect(routeFullRoast.json.serviceName).toBe("Listing Roast x402");
+      expect(routeFullRoast.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(routeFullRoast.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(routeFullRoast.json.selectedActionKey).toBe("fullRoastGet");
       expect(routeFullRoast.json.selectedPaidUrl).toContain("/api/full-listing-roast");
       expect(routeFullRoast.json.payableRoute.path).toBe("/api/full-listing-roast");
+      expect(routeFullRoast.json.results[0].serviceName).toBe("Listing Roast x402");
+      expect(routeFullRoast.json.results[0].metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(routeFullRoast.json.intentSignal.source).toBe("route");
 
       const routePreflight = await fetchJson(server, "/api/route", {
@@ -208,6 +218,8 @@ describe("Listing Roast x402 service", () => {
         body: JSON.stringify({ query: "paid API preflight before paying" })
       });
       expect(routePreflight.status).toBe(200);
+      expect(routePreflight.json.serviceName).toBe("Listing Roast x402");
+      expect(routePreflight.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(routePreflight.json.selectedActionKey).toBe("x402SiteAudit");
       expect(routePreflight.json.intentSignal.rawQueryStored).toBe(false);
 
@@ -3173,6 +3185,10 @@ describe("Listing Roast x402 service", () => {
       const findDiscovery = await fetchJson(server, "/api/find?q=x402%20discovery%20audit");
       expect(findDiscovery.status).toBe(200);
       expect(findDiscovery.headers.get("payment-required")).toBeNull();
+      expect(findDiscovery.json.service).toBe("Listing Roast x402");
+      expect(findDiscovery.json.serviceName).toBe("Listing Roast x402");
+      expect(findDiscovery.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(findDiscovery.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(findDiscovery.json.noSpend).toBe(true);
       expect(findDiscovery.json.paidUsageProof.paidCompletions).toBe(0);
       expect(findDiscovery.json.commands).toContain("/api/commands");
@@ -3322,6 +3338,10 @@ describe("Listing Roast x402 service", () => {
       const routeDiscovery = await fetchJson(server, "/api/route?query=x402%20discovery%20audit&top=3");
       expect(routeDiscovery.status).toBe(200);
       expect(routeDiscovery.headers.get("payment-required")).toBeNull();
+      expect(routeDiscovery.json.service).toBe("Listing Roast x402");
+      expect(routeDiscovery.json.serviceName).toBe("Listing Roast x402");
+      expect(routeDiscovery.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(routeDiscovery.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(routeDiscovery.json.noSpend).toBe(true);
       expect(routeDiscovery.json.paidUsageProof.paidCompletions).toBe(0);
       expect(routeDiscovery.json.startHere.use).toBe("discoveryAuditQuick");
@@ -3331,6 +3351,9 @@ describe("Listing Roast x402 service", () => {
       expect(routeDiscovery.json.startHere.upgradeAfterFit.maxAmountRequired).toBe("10000");
       expect(routeDiscovery.json.scope).toBe("owned-routes-only");
       expect(routeDiscovery.json.results).toHaveLength(3);
+      expect(routeDiscovery.json.results[0].serviceName).toBe("Listing Roast x402");
+      expect(routeDiscovery.json.results[0].metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(routeDiscovery.json.results[0].metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(routeDiscovery.json.best.path).toBe("/api/x402-discovery-audit");
       expect(routeDiscovery.json.selectedActionKey).toBe("discoveryAuditQuick");
       expect(routeDiscovery.json.selectedPaidAction.path).toBe("/api/x402-discovery-audit");
