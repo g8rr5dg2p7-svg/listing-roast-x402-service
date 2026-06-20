@@ -357,7 +357,7 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-resource-search-phrases-v1";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-command-handoff-aliases-v1";
 const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T10:56:30.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
@@ -3692,7 +3692,11 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const compactSelectedPaidSequence = compactPaidSequence(selectedPaidSequence);
   const compactGenericRecommendedPaidSequence = compactPaidSequence(buildRecommendedPaidSequence(intentRoutes));
+  const compactSelectedPaidAction = compactPaidAction(selectedPaidAction);
+  const compactFirstPaidAction = compactPaidAction(firstPaidAction);
+  const compactExactIntentPaidAction = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
   const upgradeAction = selectedPaidSequence.find((step) => step.step === 2)?.action || intentRoutes.fullRoast;
+  const commandIntentSuffix = selection.intent ? `?intent=${encodeURIComponent(selection.intent)}` : "";
 
   return {
     service: config.serviceName,
@@ -3700,10 +3704,23 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
     metadataVersion: DISCOVERY_METADATA_VERSION,
     noSpend: true,
     intent: selection.intent || null,
+    selectedActionKey: selection.selectedActionKey,
     summary: "Compact command-first handoff for buyer agents. Fetching this JSON is free; payment happens only when the buyer calls the returned x402 route with a valid payment header.",
+    selectedPaidAction: compactSelectedPaidAction,
+    selectedFirstPaidAction: compactFirstPaidAction,
+    ...(compactExactIntentPaidAction ? { exactIntentPaidAction: compactExactIntentPaidAction } : {}),
+    agentPaymentRequest: firstPaidAction.agentPaymentRequest,
+    agentPaymentPrompt: firstPaidAction.agentPaymentPrompt,
+    maxPaymentUsd: firstPaidAction.maxPaymentUsd,
+    maxAmountRequired: firstPaidAction.maxAmountRequired,
+    command: firstPaidAction.command,
+    firstPaidCommand: firstPaidAction.command,
+    payCommand: firstPaidAction.command,
+    pay_command: firstPaidAction.command,
+    commandHandoff: `${absoluteUrl(config, COMMANDS_PATH)}${commandIntentSuffix}`,
+    freeHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}${commandIntentSuffix}`,
     paidUseProof: compactPaidUseProof(proof),
-    firstPaidAction: compactPaidAction(firstPaidAction),
-    ...(exactIntentPaidAction ? { exactIntentPaidAction: compactPaidAction(exactIntentPaidAction) } : {}),
+    firstPaidAction: compactFirstPaidAction,
     selectedPaidSequence: compactSelectedPaidSequence,
     recommendedPaidSequence: compactSelectedPaidSequence,
     genericRecommendedPaidSequence: compactGenericRecommendedPaidSequence,
