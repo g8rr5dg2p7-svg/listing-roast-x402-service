@@ -375,7 +375,10 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.iconUrl).toContain("/icon.svg");
       expect(mcp.json.openApi).toContain("/openapi.json");
       expect(mcp.json.openApiAliases[0]).toContain("/.well-known/openapi.json");
+      expect(mcp.json.openApiAliases).toContain("http://localhost:8787/api/openapi.json");
+      expect(mcp.json.openApiAliases).toContain("http://localhost:8787/api-docs/openapi.json");
       expect(mcp.json.openApiAliases).toContain("http://localhost:8787/api/v1/openapi.json");
+      expect(mcp.json.openApiYamlAliases).toContain("http://localhost:8787/.well-known/openapi.yaml");
       expect(mcp.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(mcp.json.llms).toContain("/llms.txt");
       expect(mcp.json.llmsAliases[0]).toContain("/.well-known/llms.txt");
@@ -394,7 +397,9 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.mcpAliases[0]).toContain("/.well-known/mcp");
       expect(mcp.json.mcpAliases).toContain("http://localhost:8787/.well-known/mcp-server.json");
       expect(mcp.json.mcpAliases).toContain("http://localhost:8787/mcp");
+      expect(mcp.json.mcpAliases).toContain("http://localhost:8787/mcp.json");
       expect(mcp.json.mcpServerCard).toContain("/.well-known/mcp/server-card.json");
+      expect(mcp.json.mcpServerCardAliases).toContain("http://localhost:8787/mcp/server-card.json");
       expect(mcp.json.payNow).toContain("/api/pay-now");
       expect(mcp.json.commands).toContain("/api/commands");
       expect(mcp.json.payNowExamples.skipReasons.selectedActionKey).toBe("buyerAgentSkipReasons");
@@ -513,6 +518,9 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.keywords).toContain("paid API listing");
       expect(x402Manifest.json.keywords).toContain("x402 bazaar discovery audit");
       expect(x402Manifest.json.openApiAliases[0]).toContain("/.well-known/openapi.json");
+      expect(x402Manifest.json.openApiAliases).toContain("http://localhost:8787/api/openapi.json");
+      expect(x402Manifest.json.openApiAliases).toContain("http://localhost:8787/api-docs/openapi.json");
+      expect(x402Manifest.json.openApiYamlAliases).toContain("http://localhost:8787/.well-known/openapi.yaml");
       expect(x402Manifest.json.agentCard).toContain("/.well-known/agent-card.json");
       expect(x402Manifest.json.agentCardAliases[0]).toContain("/.well-known/agent.json");
       expect(x402Manifest.json.agentCardAliases).toContain("http://localhost:8787/api/agent-card");
@@ -521,13 +529,16 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-crawler-alias-command-links-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T01:40:00.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-payment-openapi-mcp-aliases-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T02:20:00.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
       expect(x402Manifest.json.mcpAliases).toContain("http://localhost:8787/.well-known/mcp-server.json");
       expect(x402Manifest.json.mcpAliases).toContain("http://localhost:8787/mcp");
+      expect(x402Manifest.json.mcpAliases).toContain("http://localhost:8787/mcp.json");
+      expect(x402Manifest.json.mcpServerCardAliases).toContain("http://localhost:8787/mcp/server-card.json");
+      expect(x402Manifest.json.aliases).toContain("http://localhost:8787/.well-known/payments.json");
       expect(x402Manifest.json.commands).toContain("/api/commands");
       expect(x402Manifest.json.compactCommandHandoff.firstPaidAction.path).toBe("/api/listing-roast");
       expect(x402Manifest.json.compactCommandHandoff.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
@@ -793,8 +804,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-crawler-alias-command-links-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T01:40:00.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-payment-openapi-mcp-aliases-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T02:20:00.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -2570,15 +2581,41 @@ describe("Listing Roast x402 service", () => {
       expect(swaggerJson.status).toBe(200);
       expect(swaggerJson.json.info.title).toBe("Listing Roast x402");
 
+      const apiOpenApi = await fetchJson(server, "/api/openapi.json");
+      expect(apiOpenApi.status).toBe(200);
+      expect(apiOpenApi.json.info.title).toBe("Listing Roast x402");
+
+      const apiDocsOpenApi = await fetchJson(server, "/api-docs/openapi.json");
+      expect(apiDocsOpenApi.status).toBe(200);
+      expect(apiDocsOpenApi.json.info.title).toBe("Listing Roast x402");
+
       const redirect = await fetch(`http://127.0.0.1:${server.address().port}/openapi.yaml`, { redirect: "manual" });
       expect(redirect.status).toBe(302);
       expect(redirect.headers.get("location")).toContain("/openapi.json");
       expect(redirect.headers.get("payment-required")).toBeNull();
 
+      const wellKnownRedirect = await fetch(`http://127.0.0.1:${server.address().port}/.well-known/openapi.yaml`, { redirect: "manual" });
+      expect(wellKnownRedirect.status).toBe(302);
+      expect(wellKnownRedirect.headers.get("location")).toContain("/openapi.json");
+      expect(wellKnownRedirect.headers.get("payment-required")).toBeNull();
+
+      const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
+      expect(paymentAlias.status).toBe(200);
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-payment-openapi-mcp-aliases-v1");
+      expect(paymentAlias.json.commands).toContain("/api/commands");
+
+      const mcpJsonAlias = await fetchJson(server, "/mcp.json");
+      expect(mcpJsonAlias.status).toBe(200);
+      expect(mcpJsonAlias.json.commands).toContain("/api/commands");
+
+      const mcpServerCardAlias = await fetchJson(server, "/mcp/server-card.json");
+      expect(mcpServerCardAlias.status).toBe(200);
+      expect(mcpServerCardAlias.json.payment.commands).toContain("/api/commands");
+
       const cashRegister = await fetchJson(server, "/api/cash-register");
       expect(cashRegister.json.paidCompletions).toBe(0);
       expect(cashRegister.json.signals.llmsViews).toBe(3);
-      expect(cashRegister.json.signals.openApiViews).toBe(2);
+      expect(cashRegister.json.signals.openApiViews).toBe(4);
       expect(cashRegister.json.signals.unpaidChallenges).toBe(0);
     } finally {
       await new Promise((resolve) => server.close(resolve));

@@ -109,9 +109,18 @@ const LOCAL_DISCOVERY_MERCHANT_PATHS = [
 const WELL_KNOWN_X402_PATH = "/.well-known/x402";
 const WELL_KNOWN_X402_JSON_PATH = "/.well-known/x402.json";
 const WELL_KNOWN_OPENAPI_JSON_PATH = "/.well-known/openapi.json";
+const WELL_KNOWN_OPENAPI_YAML_PATH = "/.well-known/openapi.yaml";
+const API_OPENAPI_JSON_PATH = "/api/openapi.json";
+const API_DOCS_OPENAPI_JSON_PATH = "/api-docs/openapi.json";
 const WELL_KNOWN_AGENT_CARD_PATH = "/.well-known/agent-card.json";
 const WELL_KNOWN_AGENT_JSON_PATH = "/.well-known/agent.json";
 const API_X402_JSON_PATH = "/api/x402.json";
+const PAYMENT_MANIFEST_PATHS = [
+  "/payments.json",
+  "/payment.json",
+  "/.well-known/payments.json",
+  "/.well-known/payment.json"
+];
 const API_AGENT_CARD_PATH = "/api/agent-card";
 const API_AGENT_JSON_PATH = "/api/agent.json";
 const WELL_KNOWN_AI_PLUGIN_PATH = "/.well-known/ai-plugin.json";
@@ -128,6 +137,8 @@ const WELL_KNOWN_MCP_SERVER_PATH = "/.well-known/mcp-server";
 const WELL_KNOWN_MCP_SERVER_JSON_PATH = "/.well-known/mcp-server.json";
 const WELL_KNOWN_MCP_SERVER_CARD_PATH = "/.well-known/mcp/server-card.json";
 const MCP_ROOT_PATH = "/mcp";
+const MCP_JSON_PATH = "/mcp.json";
+const MCP_SERVER_CARD_PATH = "/mcp/server-card.json";
 const LLMS_PATH = "/llms.txt";
 const LLMS_FULL_PATH = "/llms-full.txt";
 const INDEX_MARKDOWN_PATH = "/index.md";
@@ -156,6 +167,15 @@ const INTENT_LANDING_PATHS = [
 const API_V1_OPENAPI_JSON_PATH = "/api/v1/openapi.json";
 const SWAGGER_JSON_PATH = "/swagger.json";
 const OPENAPI_YAML_PATH = "/openapi.yaml";
+const OPENAPI_JSON_PATHS = [
+  "/openapi.json",
+  WELL_KNOWN_OPENAPI_JSON_PATH,
+  API_OPENAPI_JSON_PATH,
+  API_DOCS_OPENAPI_JSON_PATH,
+  API_V1_OPENAPI_JSON_PATH,
+  SWAGGER_JSON_PATH
+];
+const OPENAPI_YAML_PATHS = [OPENAPI_YAML_PATH, WELL_KNOWN_OPENAPI_YAML_PATH];
 const SCHEMA_JSON_PATH = "/schema.json";
 const API_SAMPLE_PATH = "/api/sample";
 const API_SAMPLE_SCORE_PATH = "/api/sample-score";
@@ -233,8 +253,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-crawler-alias-command-links-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T01:40:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-payment-openapi-mcp-aliases-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T02:20:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -382,11 +402,27 @@ function formatPreflightAliasUrls(config) {
 }
 
 function x402ManifestAliasUrls(config) {
-  return [WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH].map((pathname) => absoluteUrl(config, pathname));
+  return [WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, ...PAYMENT_MANIFEST_PATHS].map((pathname) => absoluteUrl(config, pathname));
 }
 
 function formatX402ManifestAliasUrls(config) {
   return x402ManifestAliasUrls(config).join(", ");
+}
+
+function openApiAliasUrls(config) {
+  return [WELL_KNOWN_OPENAPI_JSON_PATH, API_OPENAPI_JSON_PATH, API_DOCS_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH].map((pathname) => absoluteUrl(config, pathname));
+}
+
+function openApiYamlAliasUrls(config) {
+  return OPENAPI_YAML_PATHS.map((pathname) => absoluteUrl(config, pathname));
+}
+
+function mcpAliasUrls(config) {
+  return [WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH].map((pathname) => absoluteUrl(config, pathname));
+}
+
+function mcpServerCardAliasUrls(config) {
+  return [MCP_SERVER_CARD_PATH].map((pathname) => absoluteUrl(config, pathname));
 }
 
 function agentCardAliasUrls(config) {
@@ -3369,6 +3405,7 @@ function buildWebMcpHandoff(config) {
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+      mcpServerCardAliases: mcpServerCardAliasUrls(config),
       examples: absoluteUrl(config, "/api/examples"),
       payNow: absoluteUrl(config, PAY_NOW_PATH)
     },
@@ -4296,8 +4333,9 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       agentTools: absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
-      mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
+      mcpAliases: mcpAliasUrls(config),
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+      mcpServerCardAliases: mcpServerCardAliasUrls(config),
       commands: absoluteUrl(config, COMMANDS_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       payNowExamples: buildPayNowIntentExamples(config),
@@ -4845,7 +4883,9 @@ function buildX402Manifest(config, cashRegister = {}) {
     sampleJson: absoluteUrl(config, API_SAMPLE_SCORE_PATH),
     sampleAliases: [absoluteUrl(config, API_SAMPLE_PATH)],
     openApi: absoluteUrl(config, "/openapi.json"),
-    openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH), absoluteUrl(config, API_V1_OPENAPI_JSON_PATH), absoluteUrl(config, SWAGGER_JSON_PATH)],
+    openApiAliases: openApiAliasUrls(config),
+    openApiYaml: absoluteUrl(config, OPENAPI_YAML_PATH),
+    openApiYamlAliases: openApiYamlAliasUrls(config),
     schema: absoluteUrl(config, "/api/schema"),
     schemaAliases: [absoluteUrl(config, SCHEMA_JSON_PATH)],
     llms: absoluteUrl(config, LLMS_PATH),
@@ -4861,8 +4901,9 @@ function buildX402Manifest(config, cashRegister = {}) {
     agentTools: absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH),
     agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
     mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
-    mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_JSON_PATH), absoluteUrl(config, MCP_ROOT_PATH)],
+    mcpAliases: mcpAliasUrls(config),
     mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+    mcpServerCardAliases: mcpServerCardAliasUrls(config),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     commands: absoluteUrl(config, COMMANDS_PATH),
     compactCommandHandoff: buildCommandHandoff(config, "paid API listing quality", cashRegister),
@@ -6005,8 +6046,9 @@ function buildAgentCard(config, cashRegister = {}) {
       llmsFull: absoluteUrl(config, LLMS_FULL_PATH),
       llmsFullAliases: [absoluteUrl(config, WELL_KNOWN_LLMS_FULL_PATH)],
       mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
-      mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH)],
+      mcpAliases: mcpAliasUrls(config),
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+      mcpServerCardAliases: mcpServerCardAliasUrls(config),
       quickScoreAliases: quickScoreAliasUrls(config),
       preflightAliases: preflightAliasUrls(config),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
@@ -7574,7 +7616,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", API_SAMPLE_PATH, PAY_NOW_PATH, COMMANDS_PATH, PAID_USAGE_PROOF_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, API_SAMPLE_SCORE_PATH, "/openapi.json", WELL_KNOWN_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH, OPENAPI_YAML_PATH, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, "/api/schema", SCHEMA_JSON_PATH, "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", API_SAMPLE_PATH, PAY_NOW_PATH, COMMANDS_PATH, PAID_USAGE_PROOF_PATH, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, AGENT_LISTING_PATH, PING_PATH, ...SITE_AUDIT_PAID_PATHS, DISCOVERY_AUDIT_PATH, API_SAMPLE_SCORE_PATH, ...OPENAPI_JSON_PATHS, ...OPENAPI_YAML_PATHS, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, ...PAYMENT_MANIFEST_PATHS, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, MCP_SERVER_CARD_PATH, "/api/schema", SCHEMA_JSON_PATH, "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -7613,10 +7655,11 @@ ${webMcpScript(config)}
       sampleScore: absoluteUrl(config, API_SAMPLE_SCORE_PATH),
       sampleScoreAliases: [absoluteUrl(config, API_SAMPLE_PATH)],
       openApi: absoluteUrl(config, "/openapi.json"),
-      openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH), absoluteUrl(config, API_V1_OPENAPI_JSON_PATH), absoluteUrl(config, SWAGGER_JSON_PATH)],
+      openApiAliases: openApiAliasUrls(config),
       schema: absoluteUrl(config, "/api/schema"),
       schemaAliases: [absoluteUrl(config, SCHEMA_JSON_PATH)],
       openApiYaml: absoluteUrl(config, OPENAPI_YAML_PATH),
+      openApiYamlAliases: openApiYamlAliasUrls(config),
       docs: absoluteUrl(config, DOCS_PATH),
       apiDocs: absoluteUrl(config, API_DOCS_PATH),
       agentsMarkdown: absoluteUrl(config, AGENTS_MARKDOWN_PATH),
@@ -7634,8 +7677,9 @@ ${webMcpScript(config)}
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       agentSkill: absoluteUrl(config, WELL_KNOWN_AGENT_SKILL_PATH),
       mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
-      mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_JSON_PATH), absoluteUrl(config, MCP_ROOT_PATH)],
+      mcpAliases: mcpAliasUrls(config),
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+      mcpServerCardAliases: mcpServerCardAliasUrls(config),
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
       commands: absoluteUrl(config, COMMANDS_PATH),
       compactCommandHandoff: buildCommandHandoff(config, "paid API listing quality", cashRegister),
@@ -8050,11 +8094,8 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
     setFreshDiscoveryHeaders(response).json(buildOpenApiDocument(config, cashRegister));
   }
 
-  app.get("/openapi.json", serveOpenApiDocument);
-  app.get(WELL_KNOWN_OPENAPI_JSON_PATH, serveOpenApiDocument);
-  app.get(API_V1_OPENAPI_JSON_PATH, serveOpenApiDocument);
-  app.get(SWAGGER_JSON_PATH, serveOpenApiDocument);
-  app.get(OPENAPI_YAML_PATH, (_request, response) => {
+  app.get(OPENAPI_JSON_PATHS, serveOpenApiDocument);
+  app.get(OPENAPI_YAML_PATHS, (_request, response) => {
     response.redirect(302, absoluteUrl(config, "/openapi.json"));
   });
 
@@ -8069,10 +8110,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
     setFreshDiscoveryHeaders(response).json(buildX402Manifest(config, cashRegister));
   }
 
-  app.get("/x402.json", serveX402Manifest);
-  app.get(WELL_KNOWN_X402_JSON_PATH, serveX402Manifest);
-  app.get(WELL_KNOWN_X402_PATH, serveX402Manifest);
-  app.get(API_X402_JSON_PATH, serveX402Manifest);
+  app.get(["/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, ...PAYMENT_MANIFEST_PATHS], serveX402Manifest);
 
   async function serveAgentCard(_request, response) {
     await recordSignal("agentCardViews");
@@ -8455,13 +8493,13 @@ ${copyScript("Copy command")}
     setFreshDiscoveryHeaders(response).json(buildDiscoveryAuditDiscovery(config));
   });
 
-  app.get(WELL_KNOWN_MCP_SERVER_CARD_PATH, async (_request, response) => {
+  app.get([WELL_KNOWN_MCP_SERVER_CARD_PATH, MCP_SERVER_CARD_PATH], async (_request, response) => {
     await recordSignal("mcpViews");
     const cashRegister = await getCashRegister();
     setFreshDiscoveryHeaders(response).json(buildMcpServerCard(config, cashRegister));
   });
 
-  app.get([WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH], async (_request, response) => {
+  app.get([WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH], async (_request, response) => {
     await recordSignal("mcpViews");
     const intentRoutes = buildPayNowActions(config);
     const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
@@ -8477,7 +8515,9 @@ ${copyScript("Copy command")}
       sampleJson: absoluteUrl(config, API_SAMPLE_SCORE_PATH),
       sampleAliases: [absoluteUrl(config, API_SAMPLE_PATH)],
       openApi: absoluteUrl(config, "/openapi.json"),
-      openApiAliases: [absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH), absoluteUrl(config, API_V1_OPENAPI_JSON_PATH), absoluteUrl(config, SWAGGER_JSON_PATH)],
+      openApiAliases: openApiAliasUrls(config),
+      openApiYaml: absoluteUrl(config, OPENAPI_YAML_PATH),
+      openApiYamlAliases: openApiYamlAliasUrls(config),
       schema: absoluteUrl(config, "/api/schema"),
       schemaAliases: [absoluteUrl(config, SCHEMA_JSON_PATH)],
       llms: absoluteUrl(config, LLMS_PATH),
@@ -8495,8 +8535,9 @@ ${copyScript("Copy command")}
       agentTools: absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
       agentSkill: absoluteUrl(config, WELL_KNOWN_AGENT_SKILL_PATH),
-      mcpAliases: [absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_PATH), absoluteUrl(config, WELL_KNOWN_MCP_SERVER_JSON_PATH), absoluteUrl(config, MCP_ROOT_PATH)],
+      mcpAliases: mcpAliasUrls(config),
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+      mcpServerCardAliases: mcpServerCardAliasUrls(config),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       commands: absoluteUrl(config, COMMANDS_PATH),
       payNowExamples,
