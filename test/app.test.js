@@ -734,6 +734,7 @@ describe("Listing Roast x402 service", () => {
         "paid API listing quality score",
         "paid API listing quality",
         "marketplace listing score",
+        "marketplace listing conversion",
         "x402 marketplace conversion",
         "agent listing conversion",
         "buyer-agent skip reasons",
@@ -1595,7 +1596,7 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("marketplace product listing quality");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent listing conversion score");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("agent service listing clarity");
-      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("x402 discovery audit triage");
+      expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("x402 discovery audit");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("Bazaar search visibility");
       expect(openApi.json.paths["/api/listing-roast"].get.description).toContain("paid API preflight");
       const indexedRoastGetParameters = Object.fromEntries(openApi.json.paths["/api/listing-roast"].get.parameters.map((parameter) => [parameter.name, parameter]));
@@ -2490,6 +2491,7 @@ describe("Listing Roast x402 service", () => {
         "paid API listing quality score",
         "paid API listing quality",
         "marketplace listing score",
+        "marketplace listing conversion",
         "x402 marketplace conversion",
         "agent listing conversion",
         "buyer-agent skip reasons",
@@ -3453,6 +3455,7 @@ describe("Listing Roast x402 service", () => {
         "paid API listing quality score",
         "paid API listing quality",
         "marketplace listing score",
+        "marketplace listing conversion",
         "x402 marketplace conversion",
         "agent listing conversion",
         "buyer-agent skip reasons",
