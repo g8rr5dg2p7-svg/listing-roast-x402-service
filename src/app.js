@@ -357,8 +357,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-paid-challenge-first-route-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T10:33:55.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-openapi-first-route-hints-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T10:41:33.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -2553,15 +2553,23 @@ function buildPaymentHint(config, options) {
   const paidUseProof = buildPaidUseProofLinks(config);
   const route = absoluteUrl(config, options.path);
   const intentRouteKey = options.intentRouteKey || inferPaymentHintIntentRouteKey(options.path, options.method);
+  const intentRoutes = buildPayNowActions(config);
   const paidAction = {
-    route,
-    url: route,
-    path: options.path,
-    method: options.method,
-    price: options.price,
-    maxAmountRequired: options.maxAmountRequired
+    ...buildRoutePaymentAction(config, {
+      path: options.path,
+      method: options.method,
+      price: options.price,
+      maxAmountRequired: options.maxAmountRequired,
+      body: options.body,
+      reason: options.buyerAction
+    }),
+    url: route
   };
   const agentPaymentRequest = buildAgentPaymentRequest(paidAction);
+  const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, intentRouteKey, paidAction);
+  const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, intentRouteKey, paidAction);
+  const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, intentRouteKey, paidAction);
+  const firstAgentPaymentRequest = buildAgentPaymentRequest(selectedFirstPaidAction);
 
   return {
     protocol: "x402",
@@ -2572,12 +2580,26 @@ function buildPaymentHint(config, options) {
     payTo: config.payTo,
     method: options.method,
     route,
+    selectedActionKey: intentRouteKey,
+    selectedPaidAction: paidAction,
+    ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
+    selectedFirstPaidAction,
+    selectedPaidSequence,
     preferredFirstPaidAction: Boolean(options.preferredFirstPaidAction),
     buyerAction: options.buyerAction,
     agentPaymentRequest,
     agentPaymentPrompt: agentPaymentRequest.prompt,
     maxPaymentUsd: agentPaymentRequest.maxPayment,
+    firstAgentPaymentRequest,
+    firstAgentPaymentPrompt: firstAgentPaymentRequest.prompt,
+    firstPayCommand: selectedFirstPaidAction.command,
+    buyerInstruction: buildSelectedBuyerInstruction(intentRouteKey, paidAction, intentRoutes.indexedQuickScore),
     paidResponsePreview: buildPaidResponsePreview(config, intentRouteKey, paidAction),
+    selectedFirstPaidResponsePreview: buildPaidResponsePreview(
+      config,
+      isQuickScoreExactAliasActionKey(intentRouteKey) && !shouldUseExactAliasFirst(intentRouteKey) ? "indexedQuickScore" : intentRouteKey,
+      selectedFirstPaidAction
+    ),
     paidUsageProof: paidUseProof.paidUsageProof,
     cashRegister: paidUseProof.cashRegister,
     paidUseProof,
