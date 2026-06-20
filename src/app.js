@@ -8262,7 +8262,7 @@ function buildIntentLandingPages(config) {
       selectedActionKey: "agentListingConversion",
       primaryAction: intentRoutes.agentListingConversion,
       primaryLabel: "Use the $0.001 agent listing conversion route",
-      supportingAction: intentRoutes.fullRoast,
+      supportingAction: intentRoutes.fullRoastGet,
       supportingLabel: "Upgrade to the $0.01 full roast for rewritten listing copy and launch guidance.",
       keywords: ["agent listing conversion", "agent service listing clarity", "buyer-agent skip reasons", "buyer intent", "paid API listing quality"]
     },
@@ -8354,7 +8354,7 @@ function buildIntentLandingPage(config, page) {
   const firstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, page.selectedActionKey, page.primaryAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, page.selectedActionKey, page.primaryAction);
   const upgradePaidAction = upgradePaidActionForLandingPage(intentRoutes, page, exactIntentPaidAction);
-  const upgradeLabel = exactIntentPaidAction && upgradePaidAction.path === intentRoutes.fullRoast.path && upgradePaidAction.method === intentRoutes.fullRoast.method
+  const upgradeLabel = exactIntentPaidAction && upgradePaidAction.path === intentRoutes.fullRoastGet.path && upgradePaidAction.method === intentRoutes.fullRoastGet.method
     ? "Upgrade to the $0.01 full roast for rewritten listing copy and launch guidance."
     : page.supportingLabel;
   const firstPaidLabel = firstPaidAction.path === page.primaryAction.path && firstPaidAction.method === page.primaryAction.method
@@ -9972,13 +9972,23 @@ ${indentText(buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUN
 ${indentText(buildPayCommand(config, "/api/listing-score", "5000"))}
   - Output: paid API listing quality score, checked signals, first fix, next step, upgrade endpoint
 
+- GET ${absoluteUrl(config, FULL_ROAST_GET_PATH)}
+  - Price: ${config.price}
+  - Network: ${config.network}
+  - Max amount: 10000 USDC units
+  - Command:
+${indentText(buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000"))}
+  - Output: direct full listing roast, buyer-agent skip reasons, top fixes, rewritten listing, stop-or-upgrade guidance
+  - Use when the buyer wants the full roast without assembling a POST body
+
 - POST ${absoluteUrl(config, ROAST_PATH)}
   - Price: ${config.price}
   - Network: ${config.network}
   - Max amount: 10000 USDC units
   - Command:
 ${indentText(buildPayCommand(config))}
-  - Output: buyer-agent skip reasons, top fixes, rewritten listing, stop-or-upgrade guidance
+  - Output: custom-body full listing roast, buyer-agent skip reasons, top fixes, rewritten listing, stop-or-upgrade guidance
+  - Use when the buyer has custom listing text to send; omitted bodies use safe defaults for stale directory cards
 
 Request body JSON:
 

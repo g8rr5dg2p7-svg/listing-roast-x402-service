@@ -1988,7 +1988,11 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("Primary paid action: GET http://localhost:8787/api/listing-roast ($0.001, max 1000)");
       expect(llms.text).toContain("Exact intent fallback: GET http://localhost:8787/api/paid-api-listing-quality ($0.001, max 1000)");
       expect(llms.text).toContain("Upgrade paid action: GET http://localhost:8787/api/full-listing-roast ($0.01, max 10000)");
+      expect(llms.text).not.toContain("Upgrade paid action: POST http://localhost:8787/api/listing-roast ($0.01, max 10000)");
       expect(llms.text).toContain("/api/listing-score");
+      expect(llms.text).toContain("GET http://localhost:8787/api/full-listing-roast");
+      expect(llms.text).toContain("custom-body full listing roast");
+      expect(llms.text).toContain("omitted bodies use safe defaults for stale directory cards");
       expect(llms.text).toContain("/api/pay-now");
       expect(llms.text).toContain("/api/pricing");
       expect(llms.text).toContain("/api/route");
