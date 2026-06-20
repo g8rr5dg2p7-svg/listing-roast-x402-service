@@ -253,8 +253,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-alias-input-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T02:03:46.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-lean-402-schema-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T02:11:26.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -2531,6 +2531,27 @@ function compactChallengeOutputSchema(example) {
   };
 }
 
+function compactChallengeInputSchema(schema) {
+  if (Array.isArray(schema)) {
+    return schema.map(compactChallengeInputSchema);
+  }
+
+  if (!schema || typeof schema !== "object") {
+    return schema;
+  }
+
+  const compact = {};
+  for (const [key, value] of Object.entries(schema)) {
+    if (key === "example" || key === "default") {
+      continue;
+    }
+
+    compact[key] = compactChallengeInputSchema(value);
+  }
+
+  return compact;
+}
+
 function compactDiscoveryForChallenge(discovery) {
   if (!discovery?.output?.example) {
     return discovery;
@@ -2540,6 +2561,7 @@ function compactDiscoveryForChallenge(discovery) {
 
   return {
     ...discovery,
+    inputSchema: compactChallengeInputSchema(discovery.inputSchema),
     output: {
       ...discovery.output,
       example,
