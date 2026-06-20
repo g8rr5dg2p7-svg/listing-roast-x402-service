@@ -1416,8 +1416,11 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
   return {
     $schema: AGENT_SKILLS_SCHEMA,
     service: X402_SERVICE_NAME,
+    serviceName: X402_SERVICE_NAME,
     metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadata_version: DISCOVERY_METADATA_VERSION,
     metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
     description: DISCOVERY_DESCRIPTION,
     keywords: DISCOVERY_KEYWORDS,
     commands,

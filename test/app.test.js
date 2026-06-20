@@ -1791,7 +1791,12 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
+      expect(agentSkills.json.service).toBe("Listing Roast x402");
+      expect(agentSkills.json.serviceName).toBe("Listing Roast x402");
       expect(agentSkills.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(agentSkills.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(agentSkills.json.metadataUpdatedAt).toBe("2026-06-21T02:45:00.000Z");
+      expect(agentSkills.json.metadata_updated_at).toBe("2026-06-21T02:45:00.000Z");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
