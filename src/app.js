@@ -345,8 +345,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-conversion-api-path-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T04:54:29.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-conversion-api-page-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T05:06:37.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -7073,6 +7073,17 @@ function buildIntentLandingPages(config) {
       keywords: ["marketplace product listing quality", "score marketplace product listing quality", "listing quality score API", "marketplace listing quality", "paid API listing quality score"]
     },
     {
+      path: MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH,
+      title: "Marketplace listing conversion API | Listing Roast x402",
+      heading: "Marketplace listing conversion API score for paid APIs",
+      summary: "Use this exact landing page when a buyer agent searches for marketplace listing conversion API and needs a no-spend handoff to the $0.001 /api/marketplace-listing-conversion-api paid route.",
+      primaryAction: intentRoutes.marketplaceListingConversion,
+      primaryLabel: "Use the $0.001 marketplace listing conversion API route",
+      supportingAction: intentRoutes.indexedQuickScore,
+      supportingLabel: "Use the indexed /api/listing-roast route first when external marketplace search points there.",
+      keywords: ["marketplace listing conversion API", "marketplace-listing-conversion-api", "marketplace listing conversion", "marketplace conversion score", "x402 marketplace conversion", "paid API listing quality"]
+    },
+    {
       path: MARKETPLACE_LISTING_CONVERSION_PAGE_PATH,
       title: "Marketplace listing conversion API score | Listing Roast x402",
       heading: "Marketplace listing conversion API score for paid APIs",
@@ -8291,17 +8302,6 @@ ${webMcpScript(config)}
       response.type("html").send(buildIntentLandingPage(config, page));
     });
   }
-
-  app.get(MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH, async (_request, response) => {
-    await recordSignal("routeViews");
-    const page = buildIntentLandingPages(config).find((landingPage) => landingPage.path === MARKETPLACE_LISTING_CONVERSION_PAGE_PATH);
-    response.type("html").send(buildIntentLandingPage(config, {
-      ...page,
-      path: MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH,
-      title: "Marketplace listing conversion API | Listing Roast x402",
-      heading: "Marketplace listing conversion API score for paid APIs"
-    }));
-  });
 
   app.get("/robots.txt", (_request, response) => {
     response
