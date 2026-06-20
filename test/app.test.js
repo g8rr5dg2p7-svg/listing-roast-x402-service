@@ -2123,6 +2123,9 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.bazaarCataloging.noSelfPay).toBe(true);
       expect(payNow.json.bazaarCataloging.note).toContain("extensions.bazaar metadata");
       expect(payNow.json.bazaarCataloging.doNot).toContain("Do not pay only to refresh Bazaar search");
+      expect(payNow.json.officialCdpDiscovery.indexedRoute).toBe("http://localhost:8787/api/listing-roast");
+      expect(payNow.json.officialCdpDiscovery.recommendedSearchQuery).toBe("listing roast");
+      expect(payNow.json.officialCdpDiscovery.merchantDiscoveryUrl).toContain("/merchant?payTo=0x000000000000000000000000000000000000dEaD");
       expect(payNow.json.noSpendNote).toContain("Fetching this endpoint is free");
 
       const paidUsageProof = await fetchJson(server, "/api/paid-usage-proof");
@@ -2142,6 +2145,8 @@ describe("Listing Roast x402 service", () => {
       expect(paidUsageProof.json.cashRegister).toContain("/api/cash-register");
       expect(paidUsageProof.json.bazaarCataloging.noSelfPay).toBe(true);
       expect(paidUsageProof.json.bazaarCataloging.note).toContain("extensions.bazaar metadata");
+      expect(paidUsageProof.json.officialCdpDiscovery.recommendedSearchUrl).toContain("query=listing+roast");
+      expect(paidUsageProof.json.officialCdpDiscovery.refreshRule).toContain("real settlement");
       for (const aliasPath of ["/api/proof", "/proof", "/paid-usage-proof"]) {
         const proofAlias = await fetchJson(server, aliasPath);
         expect(proofAlias.status).toBe(200);
@@ -2156,6 +2161,9 @@ describe("Listing Roast x402 service", () => {
       expect(commands.headers.get("payment-required")).toBeNull();
       expect(commands.json.noSpend).toBe(true);
       expect(commands.json.kind).toBe("compact-pay-command-handoff");
+      expect(commands.json.officialCdpDiscovery.source).toBe("coinbase-cdp-bazaar");
+      expect(commands.json.officialCdpDiscovery.indexedRoute).toBe("http://localhost:8787/api/listing-roast");
+      expect(commands.json.officialCdpDiscovery.refreshRule).toContain("unpaid probes do not refresh");
       expect(commands.json.firstPaidAction.path).toBe("/api/listing-roast");
       expect(commands.json.firstPaidAction.command).toContain("--max-amount 1000");
       expect(commands.json.firstPaidAction.agentPaymentRequest.maxPayment).toBe("0.001");

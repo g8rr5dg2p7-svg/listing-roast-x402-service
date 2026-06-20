@@ -3328,6 +3328,7 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     service: config.serviceName,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
     settlementProof: buildSettlementProof(config, cashRegister),
+    officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     commands: absoluteUrl(config, COMMANDS_PATH),
     links: {
       commands: absoluteUrl(config, COMMANDS_PATH),
@@ -3692,6 +3693,7 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
       x402Manifest: absoluteUrl(config, "/x402.json"),
       openApi: absoluteUrl(config, "/openapi.json")
     },
+    officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     marketplaceNote: "CDP Bazaar updates indexed descriptions after a real settled payment; this free handoff reflects the current live route map without spending.",
     bazaarCataloging: buildBazaarCatalogingGuidance(config)
   };
@@ -5200,6 +5202,7 @@ function buildPaidUsageProofResponse(config, cashRegister = {}) {
     purpose: "Compact public proof that Listing Roast x402 has real paid usage and the first paid route is still the low-friction indexed GET.",
     paidUsageProof: proof,
     settlementProof: buildSettlementProof(config),
+    officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
     buyerPhraseCommandPack: buildBuyerPhraseCommandPack(config),
