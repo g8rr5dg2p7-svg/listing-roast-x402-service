@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-bazaar-mcp-compat-v25";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T19:30:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-cdp-domain-discovery-v26";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T19:45:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -7038,6 +7038,12 @@ function buildLocalDiscoveryItems(config) {
 }
 
 function buildOfficialCdpDiscoveryHandoff(config) {
+  let serviceDomain = config.serviceUrl;
+  try {
+    serviceDomain = new URL(config.serviceUrl).hostname;
+  } catch {
+    serviceDomain = String(config.serviceUrl || "").replace(/^https?:\/\//, "").split("/")[0];
+  }
   const merchantParams = new URLSearchParams({
     payTo: config.payTo,
     limit: "100"
@@ -7048,6 +7054,19 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     maxUsdPrice: "0.001",
     limit: "10"
   });
+  const domainSearchParams = new URLSearchParams({
+    network: config.network,
+    maxUsdPrice: "0.001",
+    urlSubstring: serviceDomain,
+    limit: "10"
+  });
+  const domainRecommendedSearchParams = new URLSearchParams({
+    query: OFFICIAL_CDP_DISCOVERY_SEARCH_QUERY,
+    network: config.network,
+    maxUsdPrice: "0.001",
+    urlSubstring: serviceDomain,
+    limit: "10"
+  });
 
   return {
     source: "coinbase-cdp-bazaar",
@@ -7056,6 +7075,9 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     recommendedSearchQuery: OFFICIAL_CDP_DISCOVERY_SEARCH_QUERY,
     recommendedMaxUsdPrice: "0.001",
     recommendedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${searchParams.toString()}`,
+    domainRestrictedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${domainSearchParams.toString()}`,
+    domainRestrictedRecommendedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${domainRecommendedSearchParams.toString()}`,
+    domainRestrictedUrlSubstring: serviceDomain,
     alternateSearchQueries: [
       "paid api listing quality",
       "buyer-agent skip reasons",
@@ -7068,7 +7090,9 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     ],
     merchantDiscoveryUrl: `${CDP_DISCOVERY_BASE_URL}/merchant?${merchantParams.toString()}`,
     indexedRouteReason: "Use the already-settled GET /api/listing-roast route first when external marketplace search metadata is stale.",
+    domainRestrictedSearchReason: "Use urlSubstring when broad CDP search is stale or noisy; it narrows discovery to this exact seller domain without payment.",
     priceFilterReason: "Use maxUsdPrice=0.001 for cheap-route discovery; current live checks show this finds the indexed route ahead of broader unfiltered marketplace results.",
+    merchantDiscoveryStaleMetadataNote: "Merchant discovery can show cached Bazaar extension fields from the last real settlement; use the live 402 challenge for current price before payment.",
     refreshRule: "CDP Bazaar refreshes catalog metadata after real settlement; unpaid probes do not refresh search."
   };
 }
@@ -7086,12 +7110,15 @@ function formatOfficialCdpDiscoveryMarkdown(config) {
   return `Official CDP discovery handoff:
 
 - Official CDP search: ${handoff.recommendedSearchUrl}
+- Official CDP domain-restricted search: ${handoff.domainRestrictedSearchUrl}
 - Official CDP merchant lookup: ${handoff.merchantDiscoveryUrl}
 - Recommended search query: ${handoff.recommendedSearchQuery}
 - Recommended maxUsdPrice: ${handoff.recommendedMaxUsdPrice}
 - Alternate search queries: ${handoff.alternateSearchQueries.join(", ")}
 - Start paid use with the already-settled indexed route: ${handoff.indexedRoute}
+- Domain-restricted search reason: ${handoff.domainRestrictedSearchReason}
 - Price-filter reason: ${handoff.priceFilterReason}
+- Merchant discovery stale metadata note: ${handoff.merchantDiscoveryStaleMetadataNote}
 - Refresh rule: ${handoff.refreshRule}`;
 }
 
@@ -8612,6 +8639,7 @@ Allow: /
 # - ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
 # - ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
 # Official CDP search: ${officialCdpDiscovery.recommendedSearchUrl}
+# Official CDP domain-restricted search: ${officialCdpDiscovery.domainRestrictedSearchUrl}
 # Official CDP merchant lookup: ${officialCdpDiscovery.merchantDiscoveryUrl}
 # Official CDP recommended query: ${officialCdpDiscovery.recommendedSearchQuery}
 # Official CDP indexed paid route: ${officialCdpDiscovery.indexedRoute}
@@ -10253,7 +10281,7 @@ score: 4/5</div>
           <h2>Pay the indexed ${config.instantScorePrice} route first, then upgrade when the score is promising.</h2>
           <p>All paid endpoints are protected by x402. The already-indexed <code>GET ${ROAST_PATH}</code> route is the preferred first paid action for Bazaar traffic, x402 marketplace conversion checks, and agent listing conversion score buyers; <code>GET ${FULL_ROAST_GET_PATH}</code> is the direct full one-cent roast, and <code>POST ${ROAST_PATH}</code> remains available for custom-body full roasts with safe defaults when stale directory cards omit the body. The exact <code>GET ${DISCOVERY_AUDIT_PATH}</code> route is the lowest-friction discovery audit for agents that do not want to assemble a body first.</p>
           <p class="muted">Agent payment prompt: <code>${escapeHtml(homepageAgentPaymentPrompt)}</code></p>
-          <p class="muted">Official CDP discovery: <a href="${escapeHtml(officialCdpDiscovery.recommendedSearchUrl)}">search ${escapeHtml(officialCdpDiscovery.recommendedSearchQuery)} with maxUsdPrice=${escapeHtml(officialCdpDiscovery.recommendedMaxUsdPrice)}</a> · <a href="${escapeHtml(officialCdpDiscovery.merchantDiscoveryUrl)}">merchant lookup</a>. CDP refreshes cached route metadata after real settlement; the live <code>GET ${ROAST_PATH}</code> challenge is the current price source before payment.</p>
+          <p class="muted">Official CDP discovery: <a href="${escapeHtml(officialCdpDiscovery.recommendedSearchUrl)}">search ${escapeHtml(officialCdpDiscovery.recommendedSearchQuery)} with maxUsdPrice=${escapeHtml(officialCdpDiscovery.recommendedMaxUsdPrice)}</a> · <a href="${escapeHtml(officialCdpDiscovery.domainRestrictedSearchUrl)}">domain-restricted search</a> · <a href="${escapeHtml(officialCdpDiscovery.merchantDiscoveryUrl)}">merchant lookup</a>. CDP refreshes cached route metadata after real settlement; the live <code>GET ${ROAST_PATH}</code> challenge is the current price source before payment.</p>
           <p>
             <span class="tag">Base mainnet</span>
             <span class="tag">USDC</span>
