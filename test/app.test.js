@@ -569,6 +569,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
+      expect(x402Manifest.json.description).toContain("x402 marketplace conversion");
+      expect(x402Manifest.json.description).toContain("agent listing conversion score");
       expect(x402Manifest.json.providerUrl).toBe("http://localhost:8787");
       expect(x402Manifest.json.iconUrl).toBe("http://localhost:8787/icon.svg");
       expect(x402Manifest.json.llmsAliases[0]).toContain("/.well-known/llms.txt");
@@ -1046,6 +1048,8 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(aiPlugin.headers);
       expect(aiPlugin.json.schema_version).toBe("v1");
       expect(aiPlugin.json.name_for_model).toBe("listing_roast_x402");
+      expect(aiPlugin.json.description_for_human).toContain("x402 marketplace conversion");
+      expect(aiPlugin.json.description_for_human).toContain("agent listing conversion score");
       expect(aiPlugin.json.description_for_model).toContain("x402 payment");
       expect(aiPlugin.json.description_for_model).toContain("/api/listing-roast");
       expect(aiPlugin.json.description_for_model).toContain("x402 marketplace conversion");

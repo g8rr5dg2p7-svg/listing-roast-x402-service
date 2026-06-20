@@ -279,7 +279,7 @@ const DISCOVERY_KEYWORDS = [
   "x402 marketplace SEO audit",
   "agent service promotion readiness"
 ];
-const DISCOVERY_DESCRIPTION = "Score API marketplace listing quality and discoverability before promotion: paid x402 listing quality score API for marketplace product listing quality, paid API listing quality score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, x402 seller discoverability, listing SEO audit, seller growth checklist, and agent service promotion readiness.";
+const DISCOVERY_DESCRIPTION = "Score paid API listing quality, x402 marketplace conversion, and agent listing conversion before promotion: paid x402 listing quality score API for marketplace product listing quality, paid API listing quality score, agent listing conversion score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, x402 seller discoverability, listing SEO audit, seller growth checklist, and agent service promotion readiness.";
 const SERVICE_CATEGORY = "paid-api-listing";
 const SERVICE_TAGS = Object.freeze([
   "x402",
@@ -6509,7 +6509,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
     schema_version: "v1",
     name_for_human: "Listing Roast x402",
     name_for_model: "listing_roast_x402",
-    description_for_human: "Paid x402 API for listing quality scoring, buyer-agent skip reasons, and x402 discoverability checks.",
+    description_for_human: "Paid x402 API for listing quality scoring, x402 marketplace conversion, agent listing conversion score, buyer-agent skip reasons, and x402 discoverability checks.",
     description_for_model: [
       "Listing Roast x402 is a paid HTTP JSON API for x402, MCP, and agent-service builders.",
       "Use it when a builder needs a paid API listing quality score, buyer-agent skip reasons, x402 marketplace conversion feedback, or x402 service discoverability guidance before promotion.",
