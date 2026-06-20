@@ -1862,6 +1862,13 @@ function indexedQuickScoreIntentHandoffs(config, input, options = {}) {
 
   return [
     {
+      intent: "primary upgrade: full listing rewrite, top fixes, and launch recommendation",
+      action: buildNextPaidAction(config, input, {
+        source: "indexed-quick-score-upgrade",
+        reason: "Buy the full roast from the already-indexed URL when the quick score is promising and you want the rewrite, top fixes, and stop-or-upgrade guidance."
+      })
+    },
+    {
       intent: "fix x402 Bazaar listing, stale price, search visibility, or route health",
       action: buildGetNextPaidAction(config, DISCOVERY_AUDIT_PATH, {
         price: config?.siteAuditPrice || "$0.001",
@@ -1875,13 +1882,6 @@ function indexedQuickScoreIntentHandoffs(config, input, options = {}) {
         price: config?.siteAuditPrice || "$0.001",
         maxAmountRequired: SITE_AUDIT_AMOUNT,
         reason: "Buy the $0.001 x402 site audit when you want live pre-pay checks for OpenAPI, llms.txt, route health, pricing, and buyer-readiness signals before paying more."
-      })
-    },
-    {
-      intent: "full listing rewrite, top fixes, and launch recommendation",
-      action: buildNextPaidAction(config, input, {
-        source: "indexed-quick-score-upgrade",
-        reason: "Buy the full roast from the already-indexed URL when the quick score is promising and you want the rewrite, top fixes, and stop-or-upgrade guidance."
       })
     }
   ].map((handoff) => ({

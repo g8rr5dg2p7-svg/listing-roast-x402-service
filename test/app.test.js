@@ -1452,6 +1452,8 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.indexedRoastGetOutput.fullRoastUpgradeDecision.expectedOutput).toContain("rewrittenListing");
       expect(examples.json.indexedRoastGetOutput.buyerIntentHandoffs.find((handoff) => handoff.path === "/api/listing-roast").maxAmountRequired).toBe("10000");
       expect(examples.json.indexedRoastGetOutput.nextPaidActions).toHaveLength(3);
+      expect(examples.json.indexedRoastGetOutput.nextPaidActions[0].path).toBe("/api/listing-roast");
+      expect(examples.json.indexedRoastGetOutput.nextPaidActions[0].maxAmountRequired).toBe("10000");
       expect(examples.json.indexedRoastGetOutput.nextPaidActions.find((action) => action.path === "/api/x402-discovery-audit").command).toContain("--max-amount 1000");
       expect(examples.json.indexedRoastGetOutput.nextPaidActions.find((action) => action.path === "/api/x402-site-audit").command).toContain("--max-amount 1000");
       expect(examples.json.indexedRoastGetOutput.nextPaidActions.find((action) => action.path === "/api/listing-roast").command).toContain("--max-amount 10000");
@@ -3547,6 +3549,8 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.command).toBeUndefined();
       expect(challenge.extensions.bazaar.info.output.example.fullRoastUpgradeDecision).toBeUndefined();
       expect(challenge.extensions.bazaar.info.output.example.buyerIntentHandoffs).toBeUndefined();
+      expect(challenge.extensions.bazaar.info.output.example.nextPaidActions[0].path).toBe("/api/listing-roast");
+      expect(challenge.extensions.bazaar.info.output.example.nextPaidActions[0].maxAmountRequired).toBe("10000");
       expect(challenge.extensions.bazaar.info.output.example.nextPaidActions.find((action) => action.path === "/api/listing-roast").maxAmountRequired).toBe("10000");
       expect(challenge.extensions.bazaar.info.output.example.nextPaidActions.find((action) => action.path === "/api/listing-roast").command).toBeUndefined();
       const indexedQuerySchema = challenge.extensions.bazaar.schema.properties.input.properties.queryParams.properties;
