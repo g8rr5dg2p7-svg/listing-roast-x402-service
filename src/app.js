@@ -227,7 +227,7 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-19-compact-command-handoff-v1";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-agent-command-links-v1";
 const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T01:05:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
@@ -932,11 +932,36 @@ function buildAgentSkillsIndex(config) {
   const skill = buildAgentSkillMarkdown(config);
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+  const commands = absoluteUrl(config, COMMANDS_PATH);
+  const payNow = absoluteUrl(config, PAY_NOW_PATH);
+  const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
 
   return {
     $schema: AGENT_SKILLS_SCHEMA,
+    commands,
+    payNow,
+    paidUsageProofUrl,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence,
+    payment: {
+      protocol: "x402",
+      network: config.network,
+      asset: "USDC",
+      manifest: absoluteUrl(config, "/x402.json"),
+      commands,
+      payNow,
+      paidUsageProofUrl,
+      preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+      recommendedPaidSequence
+    },
+    links: {
+      commands,
+      payNow,
+      paidUsageProofUrl,
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
     skills: [
       {
         name: "listing-roast-x402",
@@ -944,6 +969,9 @@ function buildAgentSkillsIndex(config) {
         description: "Use Listing Roast x402 when an agent needs a paid API listing quality score, buyer-agent skip reasons, agent-service listing clarity, x402 marketplace conversion feedback, or a discoverability audit before promoting a paid x402/API service. Start with free discovery and only pay when the buyer intends to spend USDC.",
         url: absoluteUrl(config, WELL_KNOWN_AGENT_SKILL_PATH),
         metadata: {
+          commands,
+          payNow,
+          paidUsageProofUrl,
           preferredFirstPaidAction: intentRoutes.indexedQuickScore,
           recommendedPaidSequence
         },
@@ -4886,11 +4914,18 @@ function buildAgentToolsManifest(config) {
   const intentRoutes = buildPayNowActions(config);
   const primaryEndpoint = buildPrimaryEndpointHandoff(config, intentRoutes);
   const primaryResourceSample = buildPrimaryResourceSample(primaryEndpoint);
+  const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+  const commands = absoluteUrl(config, COMMANDS_PATH);
   const payment = {
     asset: config.network === BASE_MAINNET_NETWORK ? BASE_USDC_CONTRACT : "USDC",
     assetName: config.network === BASE_MAINNET_NETWORK ? "Base mainnet USDC" : "USDC",
     network: config.network,
-    payTo: config.payTo
+    payTo: config.payTo,
+    commands,
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+    preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    recommendedPaidSequence
   };
 
   const tools = x402Manifest.resources.map((resource) => ({
@@ -4935,6 +4970,16 @@ function buildAgentToolsManifest(config) {
     tags: SERVICE_TAGS,
     base_url: x402Manifest.baseUrl,
     payment,
+    commands,
+    links: {
+      commands,
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
+      apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
     paid_relay: true,
     resource_count: tools.length,
     resource_samples: [primaryResourceSample],
@@ -4994,7 +5039,7 @@ function buildAgentToolsManifest(config) {
       name: "indexed_roast_quick_score",
       ...intentRoutes.indexedQuickScore
     },
-    recommended_paid_sequence: buildRecommendedPaidSequence(intentRoutes),
+    recommended_paid_sequence: recommendedPaidSequence,
     no_spend_note: "This manifest is free to fetch. Payment happens only when a buyer calls one of the listed x402 routes.",
     tools
   };
@@ -5661,6 +5706,9 @@ function buildAgentCard(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const actionAliases = buildManifestActionAliases(config, buildX402Manifest(config, cashRegister).resources);
+  const commands = absoluteUrl(config, COMMANDS_PATH);
+  const payNow = absoluteUrl(config, PAY_NOW_PATH);
+  const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
   const supportedInterfaces = [
     { url: absoluteUrl(config, ROAST_PATH), transport: "HTTP+JSON" },
     { url: absoluteUrl(config, API_ENTRY_PATH), transport: "HTTP+JSON" },
@@ -5715,12 +5763,40 @@ function buildAgentCard(config, cashRegister = {}) {
     security: [{ x402: [] }],
     defaultInputModes: ["application/json", "text/plain"],
     defaultOutputModes: ["application/json"],
+    commands,
+    payNow,
+    paidUsageProofUrl,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence,
     payNowExamples: buildPayNowIntentExamples(config),
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
     settlementProof: buildSettlementProof(config),
+    payment: {
+      protocol: "x402",
+      network: config.network,
+      asset: "USDC",
+      manifest: absoluteUrl(config, "/x402.json"),
+      commands,
+      payNow,
+      paidUsageProofUrl,
+      preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+      recommendedPaidSequence,
+      payNowExamples: buildPayNowIntentExamples(config),
+      cashRegister: absoluteUrl(config, "/api/cash-register"),
+      paidUsageProof: buildPaidUsageProof(config, cashRegister),
+      settlementProof: buildSettlementProof(config)
+    },
+    links: {
+      commands,
+      payNow,
+      paidUsageProofUrl,
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+      agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
+      mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
+      cashRegister: absoluteUrl(config, "/api/cash-register")
+    },
     actions: actionAliases,
     paidActions: actionAliases,
     tools: actionAliases,
