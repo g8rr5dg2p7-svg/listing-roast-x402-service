@@ -1843,6 +1843,11 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).not.toContain("Paid-use proof before payment: Paid-use proof before payment");
       expect(llms.text).toContain("Bazaar cataloging note");
       expect(llms.text).toContain("extensions.bazaar metadata");
+      expect(llms.text).toContain("Official CDP discovery handoff");
+      expect(llms.text).toContain("Official CDP search: https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=listing+roast");
+      expect(llms.text).toContain("Official CDP merchant lookup: https://api.cdp.coinbase.com/platform/v2/x402/discovery/merchant?payTo=0x000000000000000000000000000000000000dEaD");
+      expect(llms.text).toContain("Start paid use with the already-settled indexed route: http://localhost:8787/api/listing-roast");
+      expect(llms.text).toContain("Refresh rule: CDP Bazaar refreshes catalog metadata after real settlement");
       expect(llms.text).toContain("/api/cash-register");
       expect(llms.text).toContain("/AGENTS.md");
       expect(llms.text).toContain("/docs");
@@ -3263,6 +3268,10 @@ describe("Listing Roast x402 service", () => {
       expect(agentsMarkdown.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
       expect(agentsMarkdown.text).toContain("Bazaar Cataloging Note");
       expect(agentsMarkdown.text).toContain("extensions.bazaar metadata");
+      expect(agentsMarkdown.text).toContain("Official CDP discovery handoff");
+      expect(agentsMarkdown.text).toContain("Official CDP search: https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=listing+roast");
+      expect(agentsMarkdown.text).toContain("Official CDP merchant lookup: https://api.cdp.coinbase.com/platform/v2/x402/discovery/merchant?payTo=0x000000000000000000000000000000000000dEaD");
+      expect(agentsMarkdown.text).toContain("Start paid use with the already-settled indexed route: http://localhost:8787/api/listing-roast");
       expect(agentsMarkdown.text).toContain("x402 marketplace conversion read, agent listing conversion score");
       expect(agentsMarkdown.text).toContain("paid API listing quality, x402 marketplace conversion, or agent listing conversion score");
       expect(agentsMarkdown.text).toContain("Agent payment prompt: Call this x402 endpoint with GET and pay up to 0.001 USDC: http://localhost:8787/api/listing-roast");
@@ -3283,6 +3292,8 @@ describe("Listing Roast x402 service", () => {
       expect(docs.text).toContain("# Listing Roast x402");
       expect(docs.text).toContain("Paid-use proof before payment: 0 paid completions; $0.00 registered.");
       expect(docs.text).toContain("/AGENTS.md");
+      expect(docs.text).toContain("Official CDP discovery handoff");
+      expect(docs.text).toContain("Official CDP search: https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=listing+roast");
       expect(docs.text).toContain("x402 marketplace conversion, agent listing conversion score");
 
       const apiDocs = await fetchJson(server, "/api-docs");

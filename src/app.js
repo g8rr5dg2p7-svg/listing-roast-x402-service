@@ -6093,6 +6093,17 @@ function buildOfficialCdpDiscoveryHandoff(config) {
   };
 }
 
+function formatOfficialCdpDiscoveryMarkdown(config) {
+  const handoff = buildOfficialCdpDiscoveryHandoff(config);
+  return `Official CDP discovery handoff:
+
+- Official CDP search: ${handoff.recommendedSearchUrl}
+- Official CDP merchant lookup: ${handoff.merchantDiscoveryUrl}
+- Recommended search query: ${handoff.recommendedSearchQuery}
+- Start paid use with the already-settled indexed route: ${handoff.indexedRoute}
+- Refresh rule: ${handoff.refreshRule}`;
+}
+
 function buildLocalDiscoveryResources(config, query = {}, cashRegister = {}) {
   const allItems = buildLocalDiscoveryItems(config);
   const intentRoutes = buildPayNowActions(config);
@@ -7277,6 +7288,8 @@ ${formatPaidUseProofMarkdown(config, cashRegister)}
 - Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 - Cash register: ${absoluteUrl(config, "/api/cash-register")}
 
+${formatOfficialCdpDiscoveryMarkdown(config)}
+
 ## Payment Rule
 
 Do not call paid routes unless the buyer explicitly intends to pay USDC through x402. All free discovery routes above are safe to fetch without payment.
@@ -7345,6 +7358,8 @@ Listing Roast x402 is a paid API for agents and builders who need a quick x402 l
 ## Bazaar Cataloging Note
 
 ${formatBazaarCatalogingMarkdown(config)}
+
+${formatOfficialCdpDiscoveryMarkdown(config)}
 
 ## Paid-Use Proof Before Payment
 
@@ -9062,6 +9077,8 @@ Paid API preflight aliases: GET ${formatPreflightAliasUrls(config)}. These alias
 ${formatPaidUseProofMarkdown(config, cashRegister)}
 
 ${formatBazaarCatalogingMarkdown(config)}
+
+${formatOfficialCdpDiscoveryMarkdown(config)}
 
 Homepage: ${absoluteUrl(config, "/")}
 Command builder: ${absoluteUrl(config, "/builder")}
