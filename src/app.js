@@ -1033,6 +1033,13 @@ function buildStructuredData(config) {
         },
         {
           "@type": "Offer",
+          name: "Direct full listing roast",
+          price: "0.01",
+          priceCurrency: "USD",
+          url: absoluteUrl(config, FULL_ROAST_GET_PATH)
+        },
+        {
+          "@type": "Offer",
           name: "Agent API entrypoint",
           price: "0.001",
           priceCurrency: "USD",
@@ -1068,7 +1075,7 @@ function buildStructuredData(config) {
         },
         {
           "@type": "Offer",
-          name: "Listing conversion roast",
+          name: "Custom-body listing conversion roast",
           price: "0.01",
           priceCurrency: "USD",
           url: absoluteUrl(config, ROAST_PATH)

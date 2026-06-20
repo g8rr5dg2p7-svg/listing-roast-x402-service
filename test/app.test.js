@@ -368,6 +368,14 @@ describe("Listing Roast x402 service", () => {
       const structuredOffers = structuredData.hasOfferCatalog.itemListElement;
       expect(structuredOffers.find((offer) => offer.name === "x402 discovery audit quick check").price).toBe("0.001");
       expect(structuredOffers.find((offer) => offer.name === "Full x402 discovery audit").price).toBe("0.01");
+      expect(structuredOffers.find((offer) => offer.name === "Direct full listing roast")).toMatchObject({
+        price: "0.01",
+        url: "http://localhost:8787/api/full-listing-roast"
+      });
+      expect(structuredOffers.find((offer) => offer.name === "Custom-body listing conversion roast")).toMatchObject({
+        price: "0.01",
+        url: "http://localhost:8787/api/listing-roast"
+      });
       expect(home.text).toContain("/llms-full.txt");
       expect(home.text).toContain("/auth.md");
       expect(home.text).toContain("/.well-known/mcp/server-card.json");
