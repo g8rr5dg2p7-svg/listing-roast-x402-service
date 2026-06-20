@@ -342,7 +342,7 @@ const SERVICE_TAGS = Object.freeze([
   "route health"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools snippets; returns an included quick score, route map, indexed /api/listing-roast handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 GET /api/listing-roast quick score on the indexed paid-use-confirmed URL for paid API listing quality score, marketplace product listing quality, Agentic.Market listing score, marketplace listing conversion API, marketplace listing score, x402 marketplace conversion, buyer-agent skip reasons, buyer agent skip reasons, agent listing conversion score, agent service clarity, agent-service listing score, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, Bazaar search visibility, and x402 seller growth checklist; POST upgrade.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 GET /api/listing-roast quick score on the indexed paid-use-confirmed URL for paid API listing quality score, marketplace product listing quality, Agentic.Market listing score, marketplace listing conversion API, marketplace listing score, x402 marketplace conversion, buyer-agent skip reasons, buyer agent skip reasons, agent listing conversion score, agent service clarity, agent-service listing score, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, Bazaar search visibility, and x402 seller growth checklist; direct GET full-roast upgrade.";
 const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 paid API listing quality score; marketplace conversion API; buyer-agent skip reasons; buyer agent skip reasons; agent service clarity; x402 discovery audit; x402 site audit; paid API preflight; route health; stale Bazaar price.";
 const FULL_ROAST_GET_DESCRIPTION = "Full Listing Roast by Listing Roast: $0.01 GET /api/full-listing-roast for high-intent buyers who want buyer-agent skip reasons, top fixes, rewritten listing copy, and stop-or-upgrade guidance without assembling a POST body. Uses query params or safe defaults; POST /api/listing-roast remains the custom-body full roast.";
 const FULL_ROAST_GET_CHALLENGE_DESCRIPTION = "Full Listing Roast x402: $0.01 GET full listing roast, buyer-agent skip reasons, top fixes, rewritten listing copy, stop-or-upgrade guidance, and launch guidance for paid API and x402 marketplace sellers.";
@@ -391,11 +391,11 @@ const CHALLENGE_ROUTE_SERVICE_TAGS = Object.freeze({
 });
 const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
   agentName: "Listing Roast x402",
-  listingText: "Score marketplace product listing quality, Agentic.Market listing score, paid API listing quality, marketplace listing score, marketplace listing conversion API, x402 marketplace conversion, agent listing conversion score, buyer agent skip reasons, x402 listing quality, and agent-service clarity. Start with $0.001 GET /api/listing-roast as the listing quality score API; upgrade to $0.01 POST /api/listing-roast for the full roast when the quick score shows fit.",
+  listingText: "Score marketplace product listing quality, paid API listing quality, marketplace listing score, marketplace listing conversion API, x402 marketplace conversion, agent listing conversion score, buyer-agent skip reasons, and agent-service clarity. Start with $0.001 GET /api/listing-roast; buy $0.01 GET /api/full-listing-roast for the full roast, or POST /api/listing-roast for custom-body input.",
   targetBuyer: "x402 and MCP builders",
-  currentPrice: "$0.001 GET; $0.01 POST upgrade",
+  currentPrice: "$0.001 GET; $0.01 GET/POST roast",
   currentCheckoutPath: "/api/listing-roast",
-  goal: "Convert buyer agents through the lowest-friction paid score, then upgrade promising buyers to the $0.01 full roast while keeping secondary audit handoffs available."
+  goal: "Convert buyer agents through the lowest-friction paid score, then upgrade promising buyers to the $0.01 full roast while keeping custom-body and audit handoffs available."
 });
 const quickScoreRequestExample = Object.freeze({
   ...LISTING_QUERY_PARAMETER_EXAMPLES
@@ -411,10 +411,10 @@ function quickScoreAliasInputDefaults(routePath) {
 
   return {
     ...quickScoreRequestExample,
-    listingText: `A $0.001 x402 quick score for ${primaryIntent}${supportingIntents ? `, ${supportingIntents}` : ""}. Use exact GET ${routePath} when a buyer agent searches that phrase, then upgrade to POST ${ROAST_PATH} for the $0.01 full roast when the score shows enough fit.`,
+    listingText: `A $0.001 x402 quick score for ${primaryIntent}${supportingIntents ? `, ${supportingIntents}` : ""}. Use exact GET ${routePath} when a buyer agent searches that phrase, then buy GET ${FULL_ROAST_GET_PATH} for the $0.01 full roast when the score shows enough fit.`,
     targetBuyer: `buyer agents searching ${primaryIntent}`,
     currentCheckoutPath: routePath,
-    goal: `Convert buyer agents searching "${primaryIntent}" through exact GET ${routePath}; keep the first paid action at $0.001 and hand off to the $0.01 full roast only after fit is proven.`
+    goal: `Convert buyer agents searching "${primaryIntent}" through exact GET ${routePath}; keep the first paid action at $0.001 and hand off to the $0.01 direct full roast only after fit is proven.`
   };
 }
 const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
@@ -1101,12 +1101,12 @@ ${QUICK_SCORE_ALIAS_PATHS.map((pathname) => `- GET ${absoluteUrl(config, pathnam
 ## Recommended Paid Sequence
 
 1. Start with GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units. This is the already-indexed quick score route and the lowest-friction paid test.
-2. Upgrade to POST ${absoluteUrl(config, ROAST_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
+2. Upgrade to GET ${absoluteUrl(config, FULL_ROAST_GET_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
 
 Full roast command:
 
 \`\`\`bash
-${buildPayCommand(config, ROAST_PATH, "10000")}
+${buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000")}
 \`\`\`
 
 ## Other Paid Actions
@@ -1154,7 +1154,7 @@ ${PREFLIGHT_ALIAS_PATHS.map((pathname) => `- GET ${absoluteUrl(config, pathname)
 Full listing roast, rewrite, and stop-or-upgrade guidance:
 
 \`\`\`bash
-${buildPayCommand(config, ROAST_PATH, "10000")}
+${buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000")}
 \`\`\`
 
 ## When To Use
@@ -1255,12 +1255,12 @@ Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT}
 ## Recommended Paid Sequence
 
 1. Start with GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units. This is the already-indexed quick score route and the lowest-friction paid test.
-2. Upgrade to POST ${absoluteUrl(config, ROAST_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
+2. Upgrade to GET ${absoluteUrl(config, FULL_ROAST_GET_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
 
 Full roast command:
 
 \`\`\`bash
-${buildPayCommand(config)}
+${buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000")}
 \`\`\`
 
 ## Paid Routes
@@ -2002,6 +2002,14 @@ function buildGetNextPaidAction(config, path, options = {}) {
   };
 }
 
+function buildFullRoastGetNextPaidAction(config, input, options = {}) {
+  return buildGetNextPaidAction(config, FULL_ROAST_GET_PATH, {
+    price: config?.price || "$0.01",
+    maxAmountRequired: "10000",
+    reason: options.reason || "Buy the direct full roast when you want the rewritten listing, top fixes, buyer-agent skip reasons, and stop-or-upgrade guidance."
+  });
+}
+
 function addNextPaidAction(result, action) {
   return action ? { ...result, nextPaidAction: action } : result;
 }
@@ -2043,11 +2051,10 @@ function indexedQuickScoreFollowup(config, input) {
 
   return {
     matchedBuyerIntent: "paid API listing quality score, marketplace listing score, marketplace listing conversion API, buyer agent skip reasons, agent service clarity, or full listing roast",
-    nextStep: "This indexed $0.001 GET route fits paid API listing quality, paid API listing quality score, x402 listing quality, buyer agent skip reasons, and agent service clarity; use POST /api/listing-roast for the full rewrite.",
-    upgradeEndpoint: ROAST_PATH,
-    action: buildNextPaidAction(config, input, {
-      source: "indexed-quick-score-upgrade",
-      reason: "Buy the full roast from the already-indexed URL when the quick score is promising and you want the rewrite, top fixes, and stop-or-upgrade guidance."
+    nextStep: "This indexed $0.001 GET route fits paid API listing quality, paid API listing quality score, x402 listing quality, buyer agent skip reasons, and agent service clarity; use GET /api/full-listing-roast for the full rewrite.",
+    upgradeEndpoint: FULL_ROAST_GET_PATH,
+    action: buildFullRoastGetNextPaidAction(config, input, {
+      reason: "Buy the direct full roast when the quick score is promising and you want the rewrite, top fixes, buyer-agent skip reasons, and stop-or-upgrade guidance."
     })
   };
 }
@@ -2070,9 +2077,8 @@ function indexedQuickScoreIntentHandoffs(config, input, options = {}) {
   return [
     {
       intent: "primary upgrade: full listing rewrite, top fixes, and launch recommendation",
-      action: buildNextPaidAction(config, input, {
-        source: "indexed-quick-score-upgrade",
-        reason: "Buy the full roast from the already-indexed URL when the quick score is promising and you want the rewrite, top fixes, and stop-or-upgrade guidance."
+      action: buildFullRoastGetNextPaidAction(config, input, {
+        reason: "Buy the direct full roast when the quick score is promising and you want the rewrite, top fixes, buyer-agent skip reasons, and stop-or-upgrade guidance."
       })
     },
     {
@@ -2115,7 +2121,8 @@ function indexedQuickScoreNextPaidActions(config, input) {
 }
 
 function buildFullRoastUpgradeDecision(nextPaidActions = []) {
-  const fullRoastAction = nextPaidActions.find((action) => action.path === ROAST_PATH && action.method === "POST");
+  const fullRoastAction = nextPaidActions.find((action) => action.path === FULL_ROAST_GET_PATH && action.method === "GET")
+    || nextPaidActions.find((action) => action.path === ROAST_PATH && action.method === "POST");
 
   if (!fullRoastAction) {
     return null;
@@ -2143,7 +2150,7 @@ function buildInstantListingScore(input, config) {
     ...buildListingScore(input),
     endpoint: "instant-listing-score",
     price: "$0.001",
-    nextStep: "This GET route is the lowest-friction paid check. Use /api/listing-score for a scored POST payload or /api/listing-roast for the full rewrite.",
+    nextStep: "This GET route is the lowest-friction paid check. Use /api/listing-score for a scored POST payload or /api/full-listing-roast for the direct full rewrite.",
     upgradeEndpoint: "/api/listing-score"
   }, buildNextPaidAction(config, input, {
     path: "/api/listing-score",
@@ -2158,11 +2165,10 @@ function buildConversionScore(input, config) {
   return addNextPaidAction({
     ...buildInstantListingScore(input, config),
     endpoint: "x402-marketplace-conversion-score",
-    nextStep: "This route is optimized for x402 marketplace conversion buyers. Use GET /api/listing-roast when a marketplace result points to the already-indexed URL, or POST /api/listing-roast for the full rewrite.",
-    upgradeEndpoint: ROAST_PATH
-  }, buildNextPaidAction(config, input, {
-    source: "conversion-score-upgrade",
-    reason: "Buy the full roast when the conversion score shows enough buyer intent to justify a rewrite and launch recommendation."
+    nextStep: "This route is optimized for x402 marketplace conversion buyers. Use GET /api/listing-roast when a marketplace result points to the already-indexed URL, or GET /api/full-listing-roast for the full rewrite.",
+    upgradeEndpoint: FULL_ROAST_GET_PATH
+  }, buildFullRoastGetNextPaidAction(config, input, {
+    reason: "Buy the direct full roast when the conversion score shows enough buyer intent to justify a rewrite and launch recommendation."
   }));
 }
 
@@ -2174,11 +2180,10 @@ function buildAgentListingConversionScore(input, config, options = {}) {
     route: routePath,
     exactScoreAlias: AGENT_LISTING_SCORE_PATH,
     canonicalRoute: AGENT_LISTING_PATH,
-    nextStep: "Listing Roast agent-listing-conversion-score is optimized for buyer agents searching agent listing conversion score, agent_listing_conversion_score, agent service listing clarity, or buyer-agent skip reasons. Use POST /api/listing-roast for the full rewrite and launch recommendation.",
-    upgradeEndpoint: ROAST_PATH
-  }, buildNextPaidAction(config, input, {
-    source: "agent-listing-conversion-upgrade",
-    reason: "Buy the full roast when the agent listing conversion score shows enough buyer intent to justify a rewrite and launch recommendation."
+    nextStep: "Listing Roast agent-listing-conversion-score is optimized for buyer agents searching agent listing conversion score, agent_listing_conversion_score, agent service listing clarity, or buyer-agent skip reasons. Use GET /api/full-listing-roast for the full rewrite and launch recommendation.",
+    upgradeEndpoint: FULL_ROAST_GET_PATH
+  }, buildFullRoastGetNextPaidAction(config, input, {
+    reason: "Buy the direct full roast when the agent listing conversion score shows enough buyer intent to justify a rewrite and launch recommendation."
   }));
 }
 
@@ -2273,7 +2278,7 @@ function buildConversionScoreDiscovery(config) {
 function agentListingConversionInputDefaults(routePath = AGENT_LISTING_PATH) {
   return {
     ...quickScoreRequestExample,
-    listingText: `A $0.001 x402 agent listing conversion score for agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, agent service listing clarity, and agent service promotion readiness. Use exact GET ${routePath} for the first paid score, then upgrade to POST ${ROAST_PATH} for the $0.01 full roast when the score shows enough fit.`,
+    listingText: `A $0.001 x402 agent listing conversion score for agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, agent service listing clarity, and agent service promotion readiness. Use exact GET ${routePath} for the first paid score, then buy GET ${FULL_ROAST_GET_PATH} for the $0.01 full roast when the score shows enough fit.`,
     targetBuyer: "buyer agents searching agent listing conversion score",
     currentCheckoutPath: routePath,
     goal: "Convert buyers looking for an agent listing conversion score into a one-tenth-cent paid score, then hand promising listings to the full roast upgrade."
@@ -2472,7 +2477,7 @@ function buildApiEntryOutput(config, query = {}, options = {}) {
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       llms: absoluteUrl(config, "/llms.txt")
     },
-    nextStep: "This paid entrypoint includes a quick score so generic /api buyers get immediate value. Use the preferredFirstPaidAction route directly next time, or use POST /api/listing-roast for the full rewrite."
+    nextStep: "This paid entrypoint includes a quick score so generic /api buyers get immediate value. Use the preferredFirstPaidAction route directly next time, or use GET /api/full-listing-roast for the full rewrite."
   };
 }
 
@@ -2487,7 +2492,7 @@ function buildDirectoryPostOutput(config) {
     endpoint: "directory-root-post",
     purpose: "Paid x402 handoff for buyer agents following generic directory snippets that POST to the service root.",
     directorySource: "root-post",
-    nextStep: "Use the indexed /api/listing-roast GET quick score first; upgrade to POST /api/listing-roast only when a full roast is needed."
+    nextStep: "Use the indexed /api/listing-roast GET quick score first; upgrade to GET /api/full-listing-roast when a full roast is needed."
   };
 }
 
@@ -2549,9 +2554,10 @@ function buildPingOutput(config, query = {}) {
       siteAudit: SITE_AUDIT_PATH,
       discoveryAudit: DISCOVERY_AUDIT_PATH,
       score: "/api/listing-score",
-      fullRoast: ROAST_PATH
+      fullRoast: FULL_ROAST_GET_PATH,
+      customBodyFullRoast: ROAST_PATH
     },
-    nextStep: "Use this paid ping to verify the x402 rail, then call /api/listing-roast with GET for a quick score or POST for the full roast."
+    nextStep: "Use this paid ping to verify the x402 rail, then call /api/listing-roast with GET for a quick score or /api/full-listing-roast with GET for the full roast."
   };
 }
 
@@ -4799,7 +4805,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
           operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
           tags: ["listing roast quick score", "paid API listing quality", "paid API listing quality score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "agent service listing clarity", "x402 listing", "paid API listing"],
           summary: "Paid $0.001 paid API listing quality score, Listing Roast quick score, and buyer-agent skip reasons",
-          description: "Listing quality score API for paid API listing quality score, marketplace product listing quality, buyer-agent skip reasons, marketplace listing score, marketplace listing conversion API, agent service clarity, and agent service listing clarity. Lowest-price $0.001 score from indexed /api/listing-roast for agent listing conversion score, x402 marketplace conversion, x402 discovery audit, x402 site audit, paid API preflight, fix x402 Bazaar listing, stale price, route health, Bazaar search visibility, and conversion checks; POST same URL for $0.01 full roast.",
+          description: "Listing quality score API for paid API listing quality score, marketplace product listing quality, buyer-agent skip reasons, marketplace listing score, marketplace listing conversion API, agent service clarity, and agent service listing clarity. Lowest-price $0.001 score from indexed /api/listing-roast for agent listing conversion score, x402 marketplace conversion, x402 discovery audit, x402 site audit, paid API preflight, fix x402 Bazaar listing, stale price, route health, Bazaar search visibility, and conversion checks; GET /api/full-listing-roast is the $0.01 direct full-roast upgrade.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
@@ -7564,13 +7570,13 @@ function buildAgentCard(config, cashRegister = {}) {
       buildAgentSkill(config, {
         id: "listing-roast-full-review",
         name: "Listing roast full review",
-        description: "$0.01 POST full roast with skip reasons, top fixes, rewritten listing, and stop-or-upgrade guidance.",
+        description: "$0.01 GET direct full roast with skip reasons, top fixes, rewritten listing, and stop-or-upgrade guidance.",
         tags: ["listing roast", "marketplace listing conversion API", "marketplace listing conversion", "paid API listing quality"],
-        method: "POST",
-        path: ROAST_PATH,
+        method: "GET",
+        path: FULL_ROAST_GET_PATH,
         price: config.price,
         maxAmountRequired: "10000",
-        buyerAction: "Pay $0.01 for the full listing roast, rewrite, and stop-or-upgrade guidance."
+        buyerAction: "Pay $0.01 for the direct full listing roast, rewrite, and stop-or-upgrade guidance without assembling a POST body."
       })
     ],
     supportsAuthenticatedExtendedCard: false,
@@ -7735,7 +7741,7 @@ function buildApiCatalog(config, cashRegister = {}) {
     }
   }));
   const item = [
-    { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET preferred first $0.001 indexed x402 marketplace listing score and POST $0.01 full roast" },
+    { href: absoluteUrl(config, ROAST_PATH), type: "application/json", title: "GET preferred first $0.001 indexed listing score" },
     ...QUICK_SCORE_ALIAS_PATHS.map((pathname) => ({ href: absoluteUrl(config, pathname), type: "application/json", title: QUICK_SCORE_ALIAS_METADATA[pathname].catalogTitle })),
     { href: absoluteUrl(config, ROOT_DIRECTORY_POST_PATH), type: "application/json", title: "POST $0.001 root directory handoff for generic agent-tools snippets" },
     { href: absoluteUrl(config, INSTANT_SCORE_PATH), type: "application/json", title: "GET $0.001 instant paid API listing quality score" },
@@ -7932,12 +7938,12 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 ## Recommended Paid Sequence
 
 1. Start with GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units. This is the already-indexed quick score route and the lowest-friction paid test for x402 marketplace conversion and agent listing conversion score buyers.
-2. Upgrade to POST ${absoluteUrl(config, ROAST_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
+2. Upgrade to GET ${absoluteUrl(config, FULL_ROAST_GET_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
 
 Full roast command:
 
 \`\`\`bash
-${buildPayCommand(config)}
+${buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000")}
 \`\`\`
 
 ## Other Paid Routes
@@ -7999,12 +8005,12 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 ## Recommended Paid Sequence
 
 1. Start with GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units. This is the already-indexed quick score route and the lowest-friction paid test.
-2. Upgrade to POST ${absoluteUrl(config, ROAST_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
+2. Upgrade to GET ${absoluteUrl(config, FULL_ROAST_GET_PATH)} for ${config.price}, max 10000 USDC units only when the quick score is promising and the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
 
 Full roast command:
 
 \`\`\`bash
-${buildPayCommand(config)}
+${buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000")}
 \`\`\`
 
 ## Generic Paid Entry Points
@@ -9083,7 +9089,7 @@ export function createApp(overrides = {}) {
     const siteAuditCommand = buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT);
     const discoveryAuditCommand = buildGetPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT);
     const fullDiscoveryAuditCommand = buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample);
-    const payCommand = buildPayCommand(config);
+    const payCommand = buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000");
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
     const paidApiListingQualityScoreCommand = buildGetPayCommand(config, "/api/paid-api-listing-quality-score", INSTANT_SCORE_AMOUNT);
     const listingQualityScoreApiCommand = buildGetPayCommand(config, "/api/listing-quality-score-api", INSTANT_SCORE_AMOUNT);
@@ -9119,7 +9125,7 @@ export function createApp(overrides = {}) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Score paid API listing quality, x402 marketplace conversion, and agent listing conversion before promotion. Start with GET /api/listing-roast at $0.001, then upgrade to POST /api/listing-roast at $0.01." />
+  <meta name="description" content="Score paid API listing quality, x402 marketplace conversion, and agent listing conversion before promotion. Start with GET /api/listing-roast at $0.001, then upgrade to GET /api/full-listing-roast at $0.01." />
   <meta property="og:title" content="${escapeHtml(config.serviceName)}" />
   <meta property="og:description" content="Score paid API listing quality, x402 marketplace conversion, and agent listing conversion before buyer agents skip the listing." />
   <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
@@ -9212,12 +9218,12 @@ export function createApp(overrides = {}) {
       <div class="wrap heroGrid">
         <div>
           <h1>Find out why buyer agents skip your paid API listing.</h1>
-          <p class="lead">Score API marketplace listing quality, x402 marketplace conversion, and agent listing conversion before buyer agents skip the listing. Recommended paid sequence: start with the already-indexed ${config.instantScorePrice} <code>GET ${ROAST_PATH}</code> quick score, then upgrade to <code>POST ${ROAST_PATH}</code> at ${config.price} for the full roast.</p>
+          <p class="lead">Score API marketplace listing quality, x402 marketplace conversion, and agent listing conversion before buyer agents skip the listing. Recommended paid sequence: start with the already-indexed ${config.instantScorePrice} <code>GET ${ROAST_PATH}</code> quick score, then upgrade to <code>GET ${FULL_ROAST_GET_PATH}</code> at ${config.price} for the full roast.</p>
           <div class="proof" aria-label="Proof points">
             <div><strong class="metric">${escapeHtml(paidCompletionLabel)}</strong><span class="muted">${escapeHtml(grossRevenueLabel)} in the public cash register</span></div>
             <div><strong class="metric">${escapeHtml(indexedPaidLabel)}</strong><span class="muted">Preferred route that already converted</span></div>
             <div><strong class="metric">${escapeHtml(settlementLabel)}</strong><span class="muted">${escapeHtml(settlementText)}</span></div>
-            <div><strong>${config.instantScorePrice} -> ${config.price}</strong><span class="muted">GET quick score, then POST full roast</span></div>
+            <div><strong>${config.instantScorePrice} -> ${config.price}</strong><span class="muted">GET quick score, then GET full roast</span></div>
           </div>
           <div class="actions">
             <button class="button" type="button" data-copy-target="indexed-command" data-default-text="Copy $0.001 indexed GET command">Copy $0.001 indexed GET command</button>
@@ -9284,7 +9290,7 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div>
           <h2>Pay the indexed ${config.instantScorePrice} route first, then upgrade when the score is promising.</h2>
-          <p>All paid endpoints are protected by x402. The already-indexed <code>GET ${ROAST_PATH}</code> route is the preferred first paid action for Bazaar traffic, x402 marketplace conversion checks, and agent listing conversion score buyers; <code>POST ${ROAST_PATH}</code> is the full one-cent roast. The exact <code>GET ${DISCOVERY_AUDIT_PATH}</code> route is the lowest-friction discovery audit for agents that do not want to assemble a body first.</p>
+          <p>All paid endpoints are protected by x402. The already-indexed <code>GET ${ROAST_PATH}</code> route is the preferred first paid action for Bazaar traffic, x402 marketplace conversion checks, and agent listing conversion score buyers; <code>GET ${FULL_ROAST_GET_PATH}</code> is the direct full one-cent roast, and <code>POST ${ROAST_PATH}</code> remains available for custom-body full roasts. The exact <code>GET ${DISCOVERY_AUDIT_PATH}</code> route is the lowest-friction discovery audit for agents that do not want to assemble a body first.</p>
           <p class="muted">Agent payment prompt: <code>${escapeHtml(homepageAgentPaymentPrompt)}</code></p>
           <p>
             <span class="tag">Base mainnet</span>
@@ -9296,7 +9302,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Recommended paid sequence</h3>
           <p><code>GET ${ROAST_PATH}</code> first for the ${config.instantScorePrice} quick score.</p>
-          <p><code>POST ${ROAST_PATH}</code> next for the ${config.price} full roast when the buyer wants rewritten copy, top fixes, and launch guidance.</p>
+          <p><code>GET ${FULL_ROAST_GET_PATH}</code> next for the ${config.price} full roast when the buyer wants rewritten copy, top fixes, and launch guidance.</p>
         </div>
         <div class="card">
           <h3>Preferred indexed quick score route</h3>
@@ -9345,8 +9351,8 @@ score: 4/5</div>
         </div>
         <div class="card">
           <h3>Full roast route</h3>
-          <p><code>POST ${escapeHtml(paidRoute)}</code></p>
-          <p class="muted">Maximum payment: <strong>10000</strong> USDC units.</p>
+          <p><code>GET ${escapeHtml(absoluteUrl(config, FULL_ROAST_GET_PATH))}</code></p>
+          <p class="muted">Maximum payment: <strong>10000</strong> USDC units. This is the direct full-roast upgrade; use <code>POST ${escapeHtml(paidRoute)}</code> only when a custom request body is needed.</p>
         </div>
       </div>
       <div class="wrap" style="margin-top: 18px;">
@@ -9436,7 +9442,7 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div class="card">
           <h3>Discovery</h3>
-          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, marketplace listing conversion API, marketplace listing conversion, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/marketplace-listing-conversion</code>, <code>/api/marketplace-product-listing-quality</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/paid-api-listing-quality-score</code>, <code>/api/listing-quality-score-api</code>, <code>/api/x402-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
+          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, marketplace listing conversion API, marketplace listing conversion, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/marketplace-listing-conversion</code>, <code>/api/marketplace-product-listing-quality</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/paid-api-listing-quality-score</code>, <code>/api/listing-quality-score-api</code>, <code>/api/x402-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>GET /api/full-listing-roast</code> returns the direct full $0.01 roast, <code>POST /api/listing-roast</code> remains available for custom-body full roasts, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
           <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_SCORE_PATH)}">Paid API listing quality score</a> · <a href="${absoluteUrl(config, LISTING_QUALITY_SCORE_API_PAGE_PATH)}">Listing quality score API</a> · <a href="${absoluteUrl(config, MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH)}">Marketplace product listing quality</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH)}">Marketplace listing conversion API</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_PAGE_PATH)}">Marketplace listing conversion</a> · <a href="${absoluteUrl(config, X402_LISTING_QUALITY_PAGE_PATH)}">x402 listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
@@ -9850,10 +9856,10 @@ ${indentText(buildGetPayCommand(config, ROAST_PATH))}
 Recommended Paid Sequence:
 
 1. Start with GET ${absoluteUrl(config, ROAST_PATH)} for ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units. This is the already-indexed quick score route for x402 marketplace conversion and agent listing conversion score buyers.
-2. Upgrade to POST ${absoluteUrl(config, ROAST_PATH)} for ${config.price}, max 10000 USDC units only when the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
+2. Upgrade to GET ${absoluteUrl(config, FULL_ROAST_GET_PATH)} for ${config.price}, max 10000 USDC units only when the buyer wants the full rewrite, top fixes, and stop-or-upgrade guidance.
 
 Full roast command:
-${indentText(buildPayCommand(config))}
+${indentText(buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000"))}
 
 Other paid routes:
 
