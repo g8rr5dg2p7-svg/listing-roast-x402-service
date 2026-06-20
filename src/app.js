@@ -1261,6 +1261,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
   const skill = buildAgentSkillMarkdown(config, cashRegister);
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+  const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
   const commands = absoluteUrl(config, COMMANDS_PATH);
   const payNow = absoluteUrl(config, PAY_NOW_PATH);
   const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
@@ -1284,6 +1285,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
     paidUsageProofUrl,
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     paidUsageProof,
+    officialCdpDiscovery,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     exactIntentPaidActions: {
       marketplaceProductListingQuality: intentRoutes.marketplaceProductListingQuality,
@@ -1319,6 +1321,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
       paidUsageProofUrl,
       cashRegister: absoluteUrl(config, "/api/cash-register"),
       paidUsageProof,
+      officialCdpDiscovery,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       exactIntentPaidActions: {
         marketplaceProductListingQuality: intentRoutes.marketplaceProductListingQuality,
@@ -1363,6 +1366,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
           paidUsageProofUrl,
           cashRegister: absoluteUrl(config, "/api/cash-register"),
           paidUsageProof,
+          officialCdpDiscovery,
           x402ManifestAliases,
           openApiAliases,
           mcpAliases,
@@ -5422,6 +5426,7 @@ function buildX402Manifest(config, cashRegister = {}) {
   const primaryEndpoint = buildPrimaryEndpointHandoff(config, intentRoutes);
   const primaryResourceSample = buildPrimaryResourceSample(primaryEndpoint);
   const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
+  const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
   const baseUrl = absoluteUrl(config, "/").replace(/\/$/, "");
   const resources = [
       {
@@ -5693,6 +5698,7 @@ function buildX402Manifest(config, cashRegister = {}) {
     payNowExamples: buildPayNowIntentExamples(config),
     intentLandingPages: buildIntentLandingHandoffs(config),
     paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+    officialCdpDiscovery,
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
     settlementProof: buildSettlementProof(config),
@@ -5703,6 +5709,7 @@ function buildX402Manifest(config, cashRegister = {}) {
       resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
       search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
       merchant: absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0]),
+      officialCdpDiscovery,
       searchExamples: buildLocalDiscoverySearchExamples(config),
       aliases: {
         resources: LOCAL_DISCOVERY_RESOURCE_PATHS.map((path) => absoluteUrl(config, path)),
@@ -5720,11 +5727,13 @@ function buildX402Manifest(config, cashRegister = {}) {
       asset: "USDC",
       payTo: config.payTo,
       commands: absoluteUrl(config, COMMANDS_PATH),
+      officialCdpDiscovery,
       x402: {
         primaryNetwork: "base",
         network: config.network,
         asset: "USDC",
-        payTo: config.payTo
+        payTo: config.payTo,
+        officialCdpDiscovery
       }
     },
     capabilities: {
@@ -5769,6 +5778,7 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
   const primaryEndpoint = buildPrimaryEndpointHandoff(config, intentRoutes);
   const primaryResourceSample = buildPrimaryResourceSample(primaryEndpoint);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+  const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
   const commands = absoluteUrl(config, COMMANDS_PATH);
   const paidUsageProof = buildPaidUsageProof(config, cashRegister);
   const payment = {
@@ -5779,6 +5789,7 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
     commands,
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+    officialCdpDiscovery,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence
   };
@@ -5832,6 +5843,8 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
     primaryCall: buildShallowPrimaryCallAliases(primaryEndpoint),
     primary_call: buildShallowPrimaryCallAliases(primaryEndpoint),
     payment,
+    officialCdpDiscovery,
+    official_cdp_discovery: officialCdpDiscovery,
     commands,
     paidUsageProof,
     paid_usage_proof_summary: {
@@ -6728,6 +6741,7 @@ function buildAgentCard(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const actionAliases = buildManifestActionAliases(config, buildX402Manifest(config, cashRegister).resources);
+  const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
   const commands = absoluteUrl(config, COMMANDS_PATH);
   const payNow = absoluteUrl(config, PAY_NOW_PATH);
   const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
@@ -6788,6 +6802,7 @@ function buildAgentCard(config, cashRegister = {}) {
     commands,
     payNow,
     paidUsageProofUrl,
+    officialCdpDiscovery,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence,
     payNowExamples: buildPayNowIntentExamples(config),
@@ -6802,6 +6817,7 @@ function buildAgentCard(config, cashRegister = {}) {
       commands,
       payNow,
       paidUsageProofUrl,
+      officialCdpDiscovery,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
       payNowExamples: buildPayNowIntentExamples(config),
@@ -6946,6 +6962,7 @@ function buildAgentCard(config, cashRegister = {}) {
       quickScoreAliases: quickScoreAliasUrls(config),
       preflightAliases: preflightAliasUrls(config),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
+      officialCdpDiscovery,
       noSpendDiscovery: true,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
@@ -6963,6 +6980,7 @@ function buildAgentCard(config, cashRegister = {}) {
 function buildAiPluginManifest(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
+  const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
 
   return {
     schema_version: "v1",
@@ -6991,6 +7009,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
     },
     legal_info_url: absoluteUrl(config, "/"),
     commands: absoluteUrl(config, COMMANDS_PATH),
+    officialCdpDiscovery,
     links: {
       commands: absoluteUrl(config, COMMANDS_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
@@ -7011,6 +7030,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
       route: absoluteUrl(config, ROUTE_PATH),
+      officialCdpDiscovery,
       links: {
         commands: absoluteUrl(config, COMMANDS_PATH),
         payNow: absoluteUrl(config, PAY_NOW_PATH),
@@ -7031,6 +7051,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
       recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
       payNowExamples: buildPayNowIntentExamples(config),
+      officialCdpDiscovery,
       cashRegister: absoluteUrl(config, "/api/cash-register"),
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       paidUsageProof: buildPaidUsageProof(config, cashRegister),
@@ -7042,6 +7063,7 @@ function buildAiPluginManifest(config, cashRegister = {}) {
 function buildApiCatalog(config, cashRegister = {}) {
   const paidUsageProof = buildPaidUsageProof(config, cashRegister);
   const intentRoutes = buildPayNowActions(config);
+  const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
   const intentHandoffs = [
     "marketplace listing score",
     "paid API listing quality score",
@@ -7163,6 +7185,30 @@ function buildApiCatalog(config, cashRegister = {}) {
         "payment-handoff": paymentHandoffLinks,
         "command-handoff": commandHandoffLinks,
         "recommended-paid-sequence": recommendedPaidSequence,
+        "official-cdp-discovery": [
+          {
+            href: officialCdpDiscovery.indexedRoute,
+            type: "application/json",
+            title: "Already-settled Listing Roast route to use first",
+            noSpend: officialCdpDiscovery.noSpend,
+            recommendedSearchQuery: officialCdpDiscovery.recommendedSearchQuery,
+            indexedRouteReason: officialCdpDiscovery.indexedRouteReason,
+            refreshRule: officialCdpDiscovery.refreshRule
+          },
+          {
+            href: officialCdpDiscovery.recommendedSearchUrl,
+            type: "application/json",
+            title: "Official CDP Bazaar search for Listing Roast under $0.01",
+            noSpend: officialCdpDiscovery.noSpend,
+            recommendedSearchQuery: officialCdpDiscovery.recommendedSearchQuery
+          },
+          {
+            href: officialCdpDiscovery.merchantDiscoveryUrl,
+            type: "application/json",
+            title: "Official CDP Bazaar merchant lookup for receiver wallet",
+            noSpend: officialCdpDiscovery.noSpend
+          }
+        ],
         "paid-use-proof": [
           {
             href: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
