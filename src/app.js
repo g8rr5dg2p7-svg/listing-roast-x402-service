@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-homepage-cdp-proof-v22";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T18:47:54.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-stale-card-normalization-proof-v23";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T18:58:12.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -494,6 +494,7 @@ const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
 const quickScoreRequestExample = Object.freeze({
   ...LISTING_QUERY_PARAMETER_EXAMPLES
 });
+const INDEXED_QUICK_SCORE_STALE_SOURCE = "indexed-get-score-stale-bazaar-cache-normalized";
 function quickScoreAliasInputDefaults(routePath) {
   const metadata = QUICK_SCORE_ALIAS_METADATA[routePath];
   if (!metadata) {
@@ -2037,7 +2038,7 @@ export function normalizeIndexedQuickScoreQuery(query = {}) {
   return {
     ...query,
     ...quickScoreRequestExample,
-    source: "indexed-get-score-stale-bazaar-cache-normalized"
+    source: INDEXED_QUICK_SCORE_STALE_SOURCE
   };
 }
 
@@ -2267,6 +2268,30 @@ function buildFullRoastUpgradeDecision(nextPaidActions = []) {
   };
 }
 
+function buildCatalogCacheNormalizationProof(input) {
+  if (input.source !== INDEXED_QUICK_SCORE_STALE_SOURCE) {
+    return null;
+  }
+
+  return {
+    applied: true,
+    source: input.source,
+    reason: "Older CDP/Bazaar cards can still forward stale $1.00 example fields; this paid response scored the current $0.001 GET /api/listing-roast offer instead.",
+    staleMatched: {
+      agentName: requestExample.agentName,
+      currentPrice: "$1.00",
+      currentCheckoutPath: ROAST_PATH
+    },
+    normalizedTo: {
+      agentName: quickScoreRequestExample.agentName,
+      currentPrice: quickScoreRequestExample.currentPrice,
+      currentCheckoutPath: quickScoreRequestExample.currentCheckoutPath,
+      firstPaidRoute: ROAST_PATH,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT
+    }
+  };
+}
+
 function buildListingScoreWithUpgrade(input, config) {
   return addNextPaidAction(buildListingScore(input), buildNextPaidAction(config, input, {
     source: "listing-score-upgrade",
@@ -2321,11 +2346,13 @@ function buildIndexedRoastQuickScore(input, config) {
   const buyerIntentHandoffs = indexedQuickScoreIntentHandoffs(config, input);
   const nextPaidActions = indexedQuickScoreNextPaidActions(config, input);
   const fullRoastUpgradeDecision = buildFullRoastUpgradeDecision(nextPaidActions);
+  const catalogCacheNormalization = buildCatalogCacheNormalizationProof(input);
   const settlementRefreshNote = "Bazaar search refreshes after a real settle with paymentPayload.resource; unpaid probes do not refresh search.";
 
   return addNextPaidAction({
     ...buildInstantListingScore(input, config),
     endpoint: "listing-roast-quick-score",
+    ...(catalogCacheNormalization ? { catalogCacheNormalization } : {}),
     matchedBuyerIntent: followup.matchedBuyerIntent,
     buyerSearchPhrases: INDEXED_QUICK_SCORE_SEARCH_PHRASES,
     buyerIntentHandoffs,
@@ -2353,6 +2380,7 @@ function buildIndexedRoastQuickScoreDiscoveryExample(input, config) {
     ...output,
     officialCdpDiscovery: compactOfficialCdpDiscoveryHandoff(buildOfficialCdpDiscoveryHandoff(config)),
     checkedSignals: undefined,
+    catalogCacheNormalization: undefined,
     buyerIntentHandoffs: undefined,
     fullRoastUpgradeDecision: undefined,
     nextPaidAction: compactNextPaidAction,
@@ -4650,6 +4678,16 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
           path: selected.path,
           maxAmountRequired: selected.maxAmountRequired,
           ...sampleQueryInputs
+        }
+      } : {}),
+      ...(sampleQueryInputs && selected.path === ROAST_PATH ? {
+        staleCachedDirectoryInputGuard: {
+          normalizedOnPaidRetry: true,
+          stalePriceExample: "$1.00",
+          livePrice: sampleQueryInputs.currentPrice,
+          livePath: sampleQueryInputs.currentCheckoutPath,
+          maxAmountRequired: selected.maxAmountRequired,
+          note: "If an older CDP/Bazaar card forwards stale $1.00 query params to this route, the paid score normalizes those fields to the current live defaults before scoring."
         }
       } : {})
     },
