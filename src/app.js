@@ -171,6 +171,8 @@ const LOCAL_DISCOVERY_MERCHANT_PATHS = [
   "/.well-known/x402/discovery/merchant",
   "/v1/x402/discovery/merchant"
 ];
+const CDP_DISCOVERY_BASE_URL = "https://api.cdp.coinbase.com/platform/v2/x402/discovery";
+const OFFICIAL_CDP_DISCOVERY_SEARCH_QUERY = "listing roast";
 const WELL_KNOWN_X402_PATH = "/.well-known/x402";
 const WELL_KNOWN_X402_JSON_PATH = "/.well-known/x402.json";
 const WELL_KNOWN_OPENAPI_JSON_PATH = "/.well-known/openapi.json";
@@ -6046,6 +6048,30 @@ function buildLocalDiscoveryItems(config) {
   }));
 }
 
+function buildOfficialCdpDiscoveryHandoff(config) {
+  const merchantParams = new URLSearchParams({
+    payTo: config.payTo,
+    limit: "100"
+  });
+  const searchParams = new URLSearchParams({
+    query: OFFICIAL_CDP_DISCOVERY_SEARCH_QUERY,
+    network: config.network,
+    maxUsdPrice: "0.01",
+    limit: "10"
+  });
+
+  return {
+    source: "coinbase-cdp-bazaar",
+    noSpend: true,
+    indexedRoute: absoluteUrl(config, ROAST_PATH),
+    recommendedSearchQuery: OFFICIAL_CDP_DISCOVERY_SEARCH_QUERY,
+    recommendedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${searchParams.toString()}`,
+    merchantDiscoveryUrl: `${CDP_DISCOVERY_BASE_URL}/merchant?${merchantParams.toString()}`,
+    indexedRouteReason: "Use the already-settled GET /api/listing-roast route first when external marketplace search metadata is stale.",
+    refreshRule: "CDP Bazaar refreshes catalog metadata after real settlement; unpaid probes do not refresh search."
+  };
+}
+
 function buildLocalDiscoveryResources(config, query = {}, cashRegister = {}) {
   const allItems = buildLocalDiscoveryItems(config);
   const intentRoutes = buildPayNowActions(config);
@@ -6074,6 +6100,7 @@ function buildLocalDiscoveryResources(config, query = {}, cashRegister = {}) {
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
     },
     startHere,
+    officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     preferredFirstPaidResponsePreview: buildPaidResponsePreview(config, "indexedQuickScore", intentRoutes.indexedQuickScore),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),
@@ -6150,6 +6177,7 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
     },
     startHere,
+    officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     ...(selected || {}),
     selectedActionKey,
     selectedPaidAction: selectedIntentPaidAction,
@@ -6202,6 +6230,7 @@ function buildLocalDiscoveryMerchant(config, query = {}, cashRegister = {}) {
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
     },
     startHere,
+    officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     preferredFirstPaidResponsePreview: buildPaidResponsePreview(config, "indexedQuickScore", intentRoutes.indexedQuickScore),
     recommendedPaidSequence: buildRecommendedPaidSequence(intentRoutes),

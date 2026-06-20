@@ -2688,6 +2688,12 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscovery.json.links.commands).toContain("/api/commands");
       expect(localDiscovery.json.startHere.path).toBe("/api/listing-roast");
       expect(localDiscovery.json.startHere.method).toBe("GET");
+      expect(localDiscovery.json.officialCdpDiscovery.source).toBe("coinbase-cdp-bazaar");
+      expect(localDiscovery.json.officialCdpDiscovery.indexedRoute).toBe("http://localhost:8787/api/listing-roast");
+      expect(localDiscovery.json.officialCdpDiscovery.recommendedSearchQuery).toBe("listing roast");
+      expect(localDiscovery.json.officialCdpDiscovery.recommendedSearchUrl).toContain("/search?query=listing+roast");
+      expect(localDiscovery.json.officialCdpDiscovery.merchantDiscoveryUrl).toContain("/merchant?payTo=0x000000000000000000000000000000000000dEaD");
+      expect(localDiscovery.json.officialCdpDiscovery.refreshRule).toContain("real settlement");
       expect(localDiscovery.json.items).toHaveLength(2);
       expect(localDiscovery.json.pagination.total).toBe(PAID_RESOURCE_COUNT);
       expect(localDiscovery.json.items[0].resource).toBe("http://localhost:8787/api/listing-roast");
@@ -2737,6 +2743,9 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoverySearch.json.startHere.use).toBe("discoveryAuditQuick");
       expect(localDiscoverySearch.json.startHere.path).toBe("/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.startHere.method).toBe("GET");
+      expect(localDiscoverySearch.json.officialCdpDiscovery.indexedRoute).toBe("http://localhost:8787/api/listing-roast");
+      expect(localDiscoverySearch.json.officialCdpDiscovery.indexedRouteReason).toContain("already-settled");
+      expect(localDiscoverySearch.json.officialCdpDiscovery.recommendedSearchUrl).toContain("maxUsdPrice=0.01");
       expect(localDiscoverySearch.json.startHere.upgradeAfterFit.path).toBe("/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.startHere.upgradeAfterFit.maxAmountRequired).toBe("10000");
       expect(localDiscoverySearch.json.resources[0].resource).toBe("http://localhost:8787/api/x402-discovery-audit");
@@ -2903,6 +2912,9 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoveryMerchant.json.resources.map((resource) => resource.metadata.path)).toContain("/api/preflight");
       expect(localDiscoveryMerchant.json.resources.map((resource) => resource.metadata.path)).toContain("/api/v1/preflight");
       expect(localDiscoveryMerchant.json.resources.map((resource) => resource.metadata.path)).toContain("/preflight");
+      expect(localDiscoveryMerchant.json.officialCdpDiscovery.merchantDiscoveryUrl).toContain("payTo=0x000000000000000000000000000000000000dEaD");
+      expect(localDiscoveryMerchant.json.officialCdpDiscovery.recommendedSearchQuery).toBe("listing roast");
+      expect(localDiscoveryMerchant.json.officialCdpDiscovery.refreshRule).toContain("unpaid probes do not refresh");
       expect(localDiscoveryMerchant.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
       expect(localDiscoveryMerchant.json.preferredFirstPaidResponsePreview.route).toBe("/api/listing-roast");
       expect(localDiscoveryMerchant.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
