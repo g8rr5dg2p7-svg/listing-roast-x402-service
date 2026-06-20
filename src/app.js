@@ -5123,6 +5123,11 @@ function buildCustomPaywallHtml(config, intentRouteKey = "indexedQuickScore") {
 function buildWebMcpHandoff(config) {
   return {
     service: config.serviceName,
+    serviceName: config.serviceName,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadata_version: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
     noSpend: true,
     purpose: "Help browser agents discover Listing Roast x402, inspect free metadata, and choose the lowest-cost paid route only after explicit buyer intent.",
     freeDiscovery: {
@@ -8449,6 +8454,12 @@ function buildAgentCard(config, cashRegister = {}) {
   return {
     protocolVersion: "0.3.0",
     name: config.serviceName,
+    service: config.serviceName,
+    serviceName: config.serviceName,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadata_version: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
     description: "Paid HTTP+JSON x402 service for listing quality, buyer-agent skip reasons, and x402 discoverability audits.",
     url: absoluteUrl(config, ROAST_PATH),
     iconUrl: absoluteUrl(config, ICON_SVG_PATH),
@@ -9614,6 +9625,12 @@ function buildMcpServerCard(config, cashRegister = {}) {
     mcp_version: "2025-06-18",
     protocolVersion: "2025-06-18",
     name: config.serviceName,
+    service: config.serviceName,
+    serviceName: config.serviceName,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadata_version: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
     description: "Public discovery card for Listing Roast x402 paid HTTP+JSON routes. This card points agents to metadata, OpenAPI, x402 payment hints, and free route guides before any paid call.",
     iconUrl: absoluteUrl(config, ICON_SVG_PATH),
     endpoint: metadataUrl,
@@ -11999,6 +12016,12 @@ ${copyScript("Copy command")}
 
     setFreshDiscoveryHeaders(response).json({
       name: config.serviceName,
+      service: config.serviceName,
+      serviceName: config.serviceName,
+      metadataVersion: DISCOVERY_METADATA_VERSION,
+      metadata_version: DISCOVERY_METADATA_VERSION,
+      metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+      metadata_updated_at: DISCOVERY_METADATA_UPDATED_AT,
       iconUrl: absoluteUrl(config, ICON_SVG_PATH),
       homepage: absoluteUrl(config, "/"),
       builder: absoluteUrl(config, "/builder"),

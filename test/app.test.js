@@ -662,6 +662,12 @@ describe("Listing Roast x402 service", () => {
 
       const mcp = await fetchJson(server, "/.well-known/mcp.json");
       expect(mcp.status).toBe(200);
+      expect(mcp.json.service).toBe("Listing Roast x402");
+      expect(mcp.json.serviceName).toBe("Listing Roast x402");
+      expect(mcp.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(mcp.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(mcp.json.metadataUpdatedAt).toBe("2026-06-21T02:45:00.000Z");
+      expect(mcp.json.metadata_updated_at).toBe("2026-06-21T02:45:00.000Z");
       expect(mcp.json.builder).toContain("/builder");
       expect(mcp.json.iconUrl).toContain("/icon.svg");
       expect(mcp.json.openApi).toContain("/openapi.json");
@@ -928,6 +934,12 @@ describe("Listing Roast x402 service", () => {
 
       const mcpServerCard = await fetchJson(server, "/.well-known/mcp/server-card.json");
       expect(mcpServerCard.status).toBe(200);
+      expect(mcpServerCard.json.service).toBe("Listing Roast x402");
+      expect(mcpServerCard.json.serviceName).toBe("Listing Roast x402");
+      expect(mcpServerCard.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(mcpServerCard.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(mcpServerCard.json.metadataUpdatedAt).toBe("2026-06-21T02:45:00.000Z");
+      expect(mcpServerCard.json.metadata_updated_at).toBe("2026-06-21T02:45:00.000Z");
       expect(mcpServerCard.json.serverInfo.name).toBe("Listing Roast x402");
       expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
       expect(mcpServerCard.json.transport).toBe("http");
@@ -1546,6 +1558,12 @@ describe("Listing Roast x402 service", () => {
       const agentCard = await fetchJson(server, "/.well-known/agent-card.json");
       expect(agentCard.status).toBe(200);
       expectFreshDiscoveryHeaders(agentCard.headers);
+      expect(agentCard.json.service).toBe("Listing Roast x402");
+      expect(agentCard.json.serviceName).toBe("Listing Roast x402");
+      expect(agentCard.json.metadataVersion).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(agentCard.json.metadata_version).toBe("2026-06-20-quick-route-conversion-handoff-v44");
+      expect(agentCard.json.metadataUpdatedAt).toBe("2026-06-21T02:45:00.000Z");
+      expect(agentCard.json.metadata_updated_at).toBe("2026-06-21T02:45:00.000Z");
       expect(agentCard.json.protocolVersion).toBe("0.3.0");
       expect(agentCard.json.name).toBe("Listing Roast x402");
       expect(agentCard.json.url).toContain("/api/listing-roast");
