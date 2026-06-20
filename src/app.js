@@ -233,8 +233,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-crawler-aliases-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T01:25:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-crawler-alias-command-links-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T01:40:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -1141,7 +1141,12 @@ function buildDiscovery(config, options = {}) {
       route: absoluteUrl(config, routePath),
       price,
       network: config.network
-    }
+    },
+    commands: absoluteUrl(config, COMMANDS_PATH),
+    payNow: absoluteUrl(config, PAY_NOW_PATH),
+    paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+    cashRegister: absoluteUrl(config, "/api/cash-register"),
+    x402Manifest: absoluteUrl(config, "/x402.json")
   };
 }
 
@@ -7812,6 +7817,11 @@ ${webMcpScript(config)}
       samplePage: absoluteUrl(config, "/sample"),
       sampleJson: absoluteUrl(config, API_SAMPLE_SCORE_PATH),
       aliases: [absoluteUrl(config, API_SAMPLE_PATH)],
+      commands: absoluteUrl(config, COMMANDS_PATH),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      cashRegister: absoluteUrl(config, "/api/cash-register"),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
       paidRoute: intentRoutes.indexedQuickScore.route,
       price: intentRoutes.indexedQuickScore.price,
       network: config.network,
