@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-pay-now-wallet-proof-v38";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T23:35:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-discovery-wallet-proof-v39";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T00:10:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -1630,6 +1630,15 @@ async function getReceiverBalanceSnapshot(config) {
       error: "unavailable"
     };
   }
+}
+
+async function getCashRegisterWithReceiverWallet(config) {
+  const cashRegister = await getCashRegister();
+  const receiverWallet = await getReceiverBalanceSnapshot(config);
+  return {
+    ...cashRegister,
+    receiverWallet
+  };
 }
 
 function buildDiscovery(config, options = {}) {
@@ -6161,6 +6170,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
 }
 
 function buildPaidUsageProof(config, cashRegister = {}, receiverWallet = null) {
+  const effectiveReceiverWallet = receiverWallet || cashRegister.receiverWallet || null;
   const paidCompletions = Number(cashRegister.paidCompletions || 0);
   const estimatedGrossRevenueUsd = String(cashRegister.estimatedGrossRevenueUsd || "0.00").replace(/^\$/, "");
   const indexedRoastGetCompletions = Number(cashRegister.indexedRoastGetCompletions || 0);
@@ -6169,17 +6179,17 @@ function buildPaidUsageProof(config, cashRegister = {}, receiverWallet = null) {
   const recentPaidCompletions = Array.isArray(cashRegister.recentPaidCompletions) ? cashRegister.recentPaidCompletions : [];
   const derivedPaidCompletion = buildDerivedPaidCompletionFromSettlement(cashRegister, latestWalletSettlement);
   const latestPaidCompletion = cashRegister.lastPaidCompletion || (derivedPaidCompletion && recentPaidCompletions.length === 0 ? derivedPaidCompletion : null);
-  const hasReceiverWalletSnapshot = receiverWallet && typeof receiverWallet === "object" && receiverWallet.address;
-  const receiverWalletHasUnits = hasReceiverWalletSnapshot && receiverWallet.usdcUnits && /^\d+$/.test(String(receiverWallet.usdcUnits));
+  const hasReceiverWalletSnapshot = effectiveReceiverWallet && typeof effectiveReceiverWallet === "object" && effectiveReceiverWallet.address;
+  const receiverWalletHasUnits = hasReceiverWalletSnapshot && effectiveReceiverWallet.usdcUnits && /^\d+$/.test(String(effectiveReceiverWallet.usdcUnits));
   const latestSettlementHasUnits = latestWalletSettlement?.usdcUnits && /^\d+$/.test(String(latestWalletSettlement.usdcUnits));
-  const receiverWalletUnits = receiverWalletHasUnits ? BigInt(receiverWallet.usdcUnits) : null;
+  const receiverWalletUnits = receiverWalletHasUnits ? BigInt(effectiveReceiverWallet.usdcUnits) : null;
   const latestSettlementUnits = latestSettlementHasUnits ? BigInt(latestWalletSettlement.usdcUnits) : null;
   const receiverWalletHasBalance = receiverWalletUnits !== null && receiverWalletUnits > 0n;
   const receiverWalletCoversLatestSettlement = latestSettlementUnits === null || (receiverWalletUnits !== null && receiverWalletUnits >= latestSettlementUnits);
   const isWalletConfirmed = Boolean(paidCompletions > 0 && latestWalletSettlement && receiverWalletHasBalance && receiverWalletCoversLatestSettlement);
   const isWalletSettlementLinked = Boolean(paidCompletions > 0 && latestWalletSettlement);
   const proofText = isWalletConfirmed
-    ? `${paidCompletions} wallet-confirmed paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered; receiver wallet ${receiverWallet.usdcBalance} USDC`
+    ? `${paidCompletions} wallet-confirmed paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered; receiver wallet ${effectiveReceiverWallet.usdcBalance} USDC`
     : isWalletSettlementLinked
       ? `${paidCompletions} wallet-settlement-linked paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered; latest settlement ${latestWalletSettlement.usdc || latestWalletSettlement.usdcUnits} USDC`
     : `${paidCompletions} paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered`;
@@ -6205,13 +6215,13 @@ function buildPaidUsageProof(config, cashRegister = {}, receiverWallet = null) {
     },
     ...(latestWalletSettlement ? { latestWalletSettlement } : {}),
     ...(hasReceiverWalletSnapshot ? {
-      receiverWallet,
+      receiverWallet: effectiveReceiverWallet,
       walletProof: {
         status: isWalletConfirmed ? "wallet-confirmed" : "receiver-wallet-snapshot",
-        receiverWalletUsdcBalance: receiverWallet.usdcBalance,
-        receiverWalletUsdcUnits: receiverWallet.usdcUnits || null,
-        checkedAt: receiverWallet.checkedAt,
-        source: receiverWallet.source,
+        receiverWalletUsdcBalance: effectiveReceiverWallet.usdcBalance,
+        receiverWalletUsdcUnits: effectiveReceiverWallet.usdcUnits || null,
+        checkedAt: effectiveReceiverWallet.checkedAt,
+        source: effectiveReceiverWallet.source,
         latestSettlementTxHash: latestWalletSettlement?.txHash || null,
         note: isWalletConfirmed
           ? "The free proof endpoint includes the receiver wallet snapshot plus the latest public settlement transaction before payment."
@@ -10848,25 +10858,25 @@ ${webMcpScript(config)}
   });
 
   app.get([AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH], async (_request, response) => {
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     response.type("text/markdown").send(buildAuthMarkdown(config, cashRegister));
   });
 
   app.get(AGENTS_MARKDOWN_PATH, async (_request, response) => {
     await recordSignal("llmsViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     response.type("text/markdown").send(buildAgentsMarkdown(config, cashRegister));
   });
 
   app.get(COMMANDS_PATH, async (request, response) => {
     await recordSignal("commandsViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response).json(buildCommandHandoff(config, request.query.intent || request.query.q || request.query.query || request.query.task || "", cashRegister));
   });
 
   app.get("/api/examples", async (_request, response) => {
     await recordSignal("examplesViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     const payNow = buildPayNow(config, "", cashRegister);
     const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
 
@@ -11079,7 +11089,7 @@ ${webMcpScript(config)}
     await recordSignal("sampleViews");
     const intentRoutes = buildPayNowActions(config);
     const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     const sampleScoreOutput = buildListingScoreWithUpgrade(requestExample, config);
     const indexedQuickScoreOutput = buildIndexedRoastQuickScore(buildInstantScoreInput(), config);
     const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
@@ -11131,13 +11141,13 @@ ${webMcpScript(config)}
 
   app.get([INDEX_MARKDOWN_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH], async (_request, response) => {
     await recordSignal("llmsViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     response.type("text/markdown").send(buildAgentMarkdownGuide(config, cashRegister));
   });
 
   app.get([LLMS_PATH, WELL_KNOWN_LLMS_PATH], async (_request, response) => {
     await recordSignal("llmsViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     response
       .type("text/plain")
       .send(`# Listing Roast x402
@@ -11347,7 +11357,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   async function serveOpenApiDocument(_request, response) {
     await recordSignal("openApiViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response).json(buildOpenApiDocument(config, cashRegister));
   }
 
@@ -11358,13 +11368,13 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get([DOCS_PATH, API_DOCS_PATH], async (_request, response) => {
     await recordSignal("llmsViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     response.type("text/markdown").send(buildAgentMarkdownGuide(config, cashRegister));
   });
 
   async function serveX402Manifest(_request, response) {
     await recordSignal("x402ManifestViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response).json(buildX402Manifest(config, cashRegister));
   }
 
@@ -11372,7 +11382,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   async function serveAgentCard(_request, response) {
     await recordSignal("agentCardViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response).json(buildAgentCard(config, cashRegister));
   }
 
@@ -11383,7 +11393,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get(WELL_KNOWN_AI_PLUGIN_PATH, async (_request, response) => {
     await recordSignal("aiPluginViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response).json(buildAiPluginManifest(config, cashRegister));
   });
 
@@ -11393,13 +11403,13 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get([WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH], async (_request, response) => {
     await recordSignal("apiCatalogViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response).set("Content-Type", API_CATALOG_CONTENT_TYPE).send(prettyJson(buildApiCatalog(config, cashRegister)));
   });
 
   app.get(WELL_KNOWN_AGENT_TOOLS_PATH, async (_request, response) => {
     await recordSignal("agentToolsViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response).json(buildAgentToolsManifest(config, cashRegister));
   });
 
@@ -11413,7 +11423,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get(WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, async (_request, response) => {
     await recordSignal("agentSkillsViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response)
       .set("Access-Control-Allow-Origin", "*")
       .json(buildAgentSkillsIndex(config, cashRegister));
@@ -11429,7 +11439,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 
   app.get(WELL_KNOWN_AGENT_SKILL_PATH, async (_request, response) => {
     await recordSignal("agentSkillViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response)
       .set("Access-Control-Allow-Origin", "*")
       .type("text/markdown")
@@ -11775,7 +11785,7 @@ ${copyScript("Copy command")}
 
   app.get([WELL_KNOWN_MCP_SERVER_CARD_PATH, MCP_SERVER_CARD_PATH], async (_request, response) => {
     await recordSignal("mcpViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response).json(buildMcpServerCard(config, cashRegister));
   });
 
@@ -11784,7 +11794,7 @@ ${copyScript("Copy command")}
     const intentRoutes = buildPayNowActions(config);
     const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
     const payNowExamples = buildPayNowIntentExamples(config);
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
 
     setFreshDiscoveryHeaders(response).json({
@@ -12130,7 +12140,7 @@ ${copyScript("Copy command")}
 
   app.post([WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH], async (request, response) => {
     await recordSignal("mcpViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     const rpcResponse = buildMcpJsonRpcResponse(config, cashRegister, request.body);
     if (!rpcResponse) {
       setFreshDiscoveryHeaders(response).status(204).end();
@@ -12172,13 +12182,13 @@ ${copyScript("Copy command")}
 
   app.get(PRICING_PATH, async (_request, response) => {
     await recordSignal("pricingViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response).json(buildPricingCatalog(config, cashRegister));
   });
 
   app.get(FIND_PATH, async (request, response) => {
     await recordSignal("findViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     const findResult = buildFindResult(config, request.query.q || request.query.query || request.query.task || "", cashRegister);
     await recordIntentSignal("find", findResult.selectedActionKey);
     setFreshDiscoveryHeaders(response).json({
@@ -12189,7 +12199,7 @@ ${copyScript("Copy command")}
 
   app.get(ROUTE_PATH, async (request, response) => {
     await recordSignal("routeViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     const routeResult = buildRouteResult(config, request.query, cashRegister);
     await recordIntentSignal("route", routeResult.selectedActionKey);
     setFreshDiscoveryHeaders(response).json({
@@ -12200,7 +12210,7 @@ ${copyScript("Copy command")}
 
   app.post(ROUTE_PATH, async (request, response) => {
     await recordSignal("routeViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     const routeResult = buildRouteResult(config, request.body || {}, cashRegister);
     await recordIntentSignal("route", routeResult.selectedActionKey);
     setFreshDiscoveryHeaders(response).json({
@@ -12211,13 +12221,13 @@ ${copyScript("Copy command")}
 
   app.get(LOCAL_DISCOVERY_RESOURCE_PATHS, async (request, response) => {
     await recordSignal("localDiscoveryViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response).json(buildLocalDiscoveryResources(config, request.query, cashRegister));
   });
 
   app.get(LOCAL_DISCOVERY_SEARCH_PATHS, async (request, response) => {
     await recordSignal("localDiscoveryViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     const search = buildLocalDiscoverySearch(config, request.query, cashRegister);
     await recordIntentSignal("localDiscovery", search.selectedActionKey);
     setFreshDiscoveryHeaders(response).json({
@@ -12228,7 +12238,7 @@ ${copyScript("Copy command")}
 
   app.get(LOCAL_DISCOVERY_MERCHANT_PATHS, async (request, response) => {
     await recordSignal("localDiscoveryViews");
-    const cashRegister = await getCashRegister();
+    const cashRegister = await getCashRegisterWithReceiverWallet(config);
     setFreshDiscoveryHeaders(response).json(buildLocalDiscoveryMerchant(config, request.query, cashRegister));
   });
 
