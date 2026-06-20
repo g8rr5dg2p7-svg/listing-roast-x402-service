@@ -33,6 +33,7 @@ const AGENT_LISTING_PATH = "/api/agent-listing-conversion";
 const ROAST_PATH = "/api/listing-roast";
 const QUICK_SCORE_ALIAS_PATHS = Object.freeze([
   "/api/marketplace-listing-score",
+  "/api/marketplace-listing-conversion",
   "/api/marketplace-product-listing-quality",
   "/api/paid-api-listing-quality",
   "/api/paid-api-listing-quality-score",
@@ -51,6 +52,15 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     catalogTitle: "GET $0.001 marketplace listing score quick-score alias",
     description: "Marketplace listing score x402: $0.001 GET alias for marketplace listing score buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and next paid action guidance.",
     keywords: ["marketplace listing score", "marketplace listing quality", "listing quality score", "x402 listing quality", "paid API listing quality"]
+  },
+  "/api/marketplace-listing-conversion": {
+    id: "marketplace_listing_conversion_alias",
+    name: "marketplace_listing_conversion",
+    operationId: "getMarketplaceListingConversionAlias",
+    summary: "Paid $0.001 marketplace listing conversion alias",
+    catalogTitle: "GET $0.001 marketplace listing conversion quick-score alias",
+    description: "Marketplace listing conversion x402: $0.001 GET exact-phrase alias for buyer agents searching marketplace listing conversion, x402 marketplace conversion, or marketplace conversion score. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
+    keywords: ["marketplace listing conversion", "marketplace conversion score", "marketplace conversion check", "x402 marketplace conversion", "paid API listing quality", "agent listing conversion score"]
   },
   "/api/marketplace-product-listing-quality": {
     id: "marketplace_product_listing_quality_alias",
@@ -198,6 +208,7 @@ const PAID_API_LISTING_QUALITY_PATH = "/paid-api-listing-quality";
 const PAID_API_LISTING_QUALITY_SCORE_PATH = "/paid-api-listing-quality-score";
 const LISTING_QUALITY_SCORE_API_PAGE_PATH = "/listing-quality-score-api";
 const MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH = "/marketplace-product-listing-quality";
+const MARKETPLACE_LISTING_CONVERSION_PAGE_PATH = "/marketplace-listing-conversion";
 const X402_LISTING_QUALITY_PAGE_PATH = "/x402-listing-quality";
 const BUYER_AGENT_SKIP_REASONS_PAGE_PATH = "/buyer-agent-skip-reasons";
 const AGENT_SERVICE_CLARITY_PAGE_PATH = "/agent-service-clarity";
@@ -209,6 +220,7 @@ const INTENT_LANDING_PATHS = [
   PAID_API_LISTING_QUALITY_SCORE_PATH,
   LISTING_QUALITY_SCORE_API_PAGE_PATH,
   MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH,
+  MARKETPLACE_LISTING_CONVERSION_PAGE_PATH,
   X402_LISTING_QUALITY_PAGE_PATH,
   BUYER_AGENT_SKIP_REASONS_PAGE_PATH,
   AGENT_SERVICE_CLARITY_PAGE_PATH,
@@ -376,6 +388,7 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   x402_ping: "x402Ping",
   x402_site_audit: "x402SiteAudit",
   marketplace_listing_score_alias: "indexedQuickScore",
+  marketplace_listing_conversion_alias: "indexedQuickScore",
   marketplace_product_listing_quality_alias: "indexedQuickScore",
   paid_api_listing_quality_alias: "indexedQuickScore",
   paid_api_listing_quality_score_alias: "indexedQuickScore",
@@ -2357,6 +2370,7 @@ function inferPaymentHintIntentRouteKey(path, method = "GET") {
     [`POST ${DISCOVERY_AUDIT_PATH}`]: "discoveryAudit",
     [`POST ${SCORE_PATH}`]: "listingScore",
     "GET /api/marketplace-listing-score": "marketplaceListingScore",
+    "GET /api/marketplace-listing-conversion": "marketplaceListingConversion",
     "GET /api/marketplace-product-listing-quality": "marketplaceProductListingQuality",
     "GET /api/paid-api-listing-quality": "paidApiListingQuality",
     "GET /api/paid-api-listing-quality-score": "paidApiListingQualityScore",
@@ -2756,6 +2770,13 @@ function buildPayNowActions(config) {
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
       reason: "Use this when the buyer intent is exactly marketplace listing score or marketplace listing quality."
     }),
+    marketplaceListingConversion: buildRoutePaymentAction(config, {
+      path: "/api/marketplace-listing-conversion",
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer intent is exactly marketplace listing conversion, marketplace conversion score, or x402 marketplace conversion."
+    }),
     marketplaceProductListingQuality: buildRoutePaymentAction(config, {
       path: "/api/marketplace-product-listing-quality",
       method: "GET",
@@ -2919,6 +2940,7 @@ const SELECTED_FOLLOWUP_ACTION_BY_KEY = {
   v1Entry: "indexedQuickScore",
   indexedQuickScore: "fullRoast",
   marketplaceListingScore: "fullRoast",
+  marketplaceListingConversion: "fullRoast",
   marketplaceProductListingQuality: "fullRoast",
   paidApiListingQuality: "fullRoast",
   paidApiListingQualityScore: "fullRoast",
@@ -2937,6 +2959,7 @@ const SELECTED_FOLLOWUP_ACTION_BY_KEY = {
 
 const QUICK_SCORE_EXACT_ALIAS_ACTION_KEYS = new Set([
   "marketplaceListingScore",
+  "marketplaceListingConversion",
   "marketplaceProductListingQuality",
   "paidApiListingQuality",
   "paidApiListingQualityScore",
@@ -3031,6 +3054,7 @@ function buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, pr
 const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   indexed_roast_quick_score: "indexedQuickScore",
   marketplace_listing_score_alias: "marketplaceListingScore",
+  marketplace_listing_conversion_alias: "marketplaceListingConversion",
   marketplace_product_listing_quality_alias: "marketplaceProductListingQuality",
   paid_api_listing_quality_alias: "paidApiListingQuality",
   paid_api_listing_quality_score_alias: "paidApiListingQualityScore",
@@ -3172,6 +3196,10 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
       {
         when: "Buyer asks exactly for marketplace listing score or marketplace listing quality",
         use: "marketplaceListingScore"
+      },
+      {
+        when: "Buyer asks exactly for marketplace listing conversion, marketplace conversion score, or x402 marketplace conversion",
+        use: "marketplaceListingConversion"
       },
       {
         when: "Buyer asks exactly for marketplace product listing quality",
@@ -3324,6 +3352,11 @@ function buildBuyerPhraseCommandPack(config) {
       landingPage: X402_LISTING_QUALITY_PAGE_PATH
     },
     {
+      intent: "marketplace listing conversion",
+      actionKey: "marketplaceListingConversion",
+      landingPage: MARKETPLACE_LISTING_CONVERSION_PAGE_PATH
+    },
+    {
       intent: "marketplace product listing quality",
       actionKey: "marketplaceProductListingQuality",
       landingPage: MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH
@@ -3387,8 +3420,8 @@ function commandActionKeyForIntent(intent = "") {
     return { intent: rawIntent, selectedActionKey: "x402SiteAudit" };
   }
 
-  if (normalizedIntent.includes("marketplace conversion") || normalizedIntent.includes("conversion score")) {
-    return { intent: rawIntent, selectedActionKey: "conversionScore" };
+  if (normalizedIntent.includes("marketplace listing conversion") || normalizedIntent.includes("marketplace conversion") || normalizedIntent.includes("conversion score")) {
+    return { intent: rawIntent, selectedActionKey: "marketplaceListingConversion" };
   }
 
   if (normalizedIntent.includes("agent listing conversion") || normalizedIntent.includes("listing conversion")) {
@@ -5898,6 +5931,10 @@ function quickScoreAliasActionKeyForQuery(query) {
     return "x402ListingQuality";
   }
 
+  if (includesAny(normalizedQuery, ["marketplace listing conversion", "marketplace conversion score", "marketplace conversion check", "x402 marketplace conversion"])) {
+    return "marketplaceListingConversion";
+  }
+
   if (includesAny(normalizedQuery, ["marketplace product listing quality", "score marketplace product listing quality"])) {
     return "marketplaceProductListingQuality";
   }
@@ -5990,7 +6027,8 @@ function scoreCatalogResource(resource, query) {
     if (resource.path === INSTANT_SCORE_PATH) score += 10;
   }
 
-  if (includesAny(normalizedQuery, ["x402 marketplace conversion", "marketplace conversion score", "marketplace conversion check"])) {
+  if (includesAny(normalizedQuery, ["x402 marketplace conversion", "marketplace listing conversion", "marketplace conversion score", "marketplace conversion check"])) {
+    if (resource.id === "marketplace_listing_conversion_alias") score += 470;
     if (resource.path === CONVERSION_SCORE_PATH) score += 140;
     if (isIndexedRoastGet) score += 15;
   }
@@ -6690,7 +6728,7 @@ Listing Roast x402 is a paid HTTP JSON API for builders who need a quick read on
 
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
 
-Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
+Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, marketplace listing conversion, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
 
 ## Paid-Use Proof Before Payment
 
@@ -6814,7 +6852,7 @@ Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_A
 
 ## Quick-Score Buyer Phrase Aliases
 
-- GET ${formatQuickScoreAliasUrls(config)} are direct aliases for marketplace listing score, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
+- GET ${formatQuickScoreAliasUrls(config)} are direct aliases for marketplace listing score, marketplace listing conversion, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
 - Each alias costs ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and returns the same quick-score output as GET ${absoluteUrl(config, ROAST_PATH)}.
 
 ## Paid API Preflight Aliases
@@ -6961,6 +6999,17 @@ function buildIntentLandingPages(config) {
       supportingAction: intentRoutes.indexedQuickScore,
       supportingLabel: "Use the indexed /api/listing-roast route first when external marketplace search points there.",
       keywords: ["marketplace product listing quality", "score marketplace product listing quality", "listing quality score API", "marketplace listing quality", "paid API listing quality score"]
+    },
+    {
+      path: MARKETPLACE_LISTING_CONVERSION_PAGE_PATH,
+      title: "Marketplace listing conversion score | Listing Roast x402",
+      heading: "Marketplace listing conversion score for paid APIs",
+      summary: "Use this when a buyer agent searches for marketplace listing conversion, marketplace conversion score, or x402 marketplace conversion and needs a $0.001 exact-phrase route before a larger paid call.",
+      primaryAction: intentRoutes.marketplaceListingConversion,
+      primaryLabel: "Use the $0.001 marketplace listing conversion route",
+      supportingAction: intentRoutes.indexedQuickScore,
+      supportingLabel: "Use the indexed /api/listing-roast route first when external marketplace search points there.",
+      keywords: ["marketplace listing conversion", "marketplace conversion score", "x402 marketplace conversion", "paid API listing quality", "agent listing conversion score"]
     },
     {
       path: X402_LISTING_QUALITY_PAGE_PATH,
@@ -7779,6 +7828,7 @@ export function createApp(overrides = {}) {
     const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
     const instantCommand = buildGetPayCommand(config);
     const agentListingCommand = buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT);
+    const marketplaceListingConversionCommand = buildGetPayCommand(config, "/api/marketplace-listing-conversion", INSTANT_SCORE_AMOUNT);
     const indexedRoastGetCommand = buildGetPayCommand(config, ROAST_PATH);
     const pingCommand = buildGetPayCommand(config, PING_PATH, PING_AMOUNT);
     const siteAuditCommand = buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT);
@@ -7921,6 +7971,7 @@ export function createApp(overrides = {}) {
           </div>
           <div class="actions">
             <button class="button" type="button" data-copy-target="indexed-command" data-default-text="Copy $0.001 indexed GET command">Copy $0.001 indexed GET command</button>
+            <button class="button" type="button" data-copy-target="marketplace-listing-conversion-command" data-default-text="Copy marketplace conversion command">Copy marketplace conversion command</button>
             <button class="button" type="button" data-copy-target="agent-listing-command" data-default-text="Copy agent-listing command">Copy agent-listing command</button>
             <button class="button secondary" type="button" data-copy-target="instant-command" data-default-text="Copy instant score command">Copy instant score command</button>
             <button class="button secondary" type="button" data-copy-target="ping-command" data-default-text="Copy x402 ping command">Copy x402 ping command</button>
@@ -8012,6 +8063,11 @@ score: 4/5</div>
           <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. Use this after the indexed quick score when the buyer wants the dedicated agent-listing conversion deep dive.</p>
         </div>
         <div class="card">
+          <h3>Marketplace listing conversion route</h3>
+          <p><code>GET ${escapeHtml(absoluteUrl(config, "/api/marketplace-listing-conversion"))}</code></p>
+          <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. Use this exact alias when the buyer searches for marketplace listing conversion, marketplace conversion score, or x402 marketplace conversion.</p>
+        </div>
+        <div class="card">
           <h3>x402 ping route</h3>
           <p><code>GET ${escapeHtml(pingRoute)}</code></p>
           <p class="muted">Maximum payment: <strong>${PING_AMOUNT}</strong> USDC units. Use this to verify the payment rail before buying a score or roast.</p>
@@ -8053,6 +8109,10 @@ score: 4/5</div>
       <div class="wrap" style="margin-top: 18px;">
         <h3>Agent listing conversion command</h3>
         <pre id="agent-listing-command">${escapeHtml(agentListingCommand)}</pre>
+      </div>
+      <div class="wrap" style="margin-top: 18px;">
+        <h3>Marketplace listing conversion command</h3>
+        <pre id="marketplace-listing-conversion-command">${escapeHtml(marketplaceListingConversionCommand)}</pre>
       </div>
       <div class="wrap" style="margin-top: 18px;">
         <h3>x402 ping command</h3>
@@ -8125,8 +8185,8 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div class="card">
           <h3>Discovery</h3>
-          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/marketplace-product-listing-quality</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/paid-api-listing-quality-score</code>, <code>/api/listing-quality-score-api</code>, <code>/api/x402-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
-          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_SCORE_PATH)}">Paid API listing quality score</a> · <a href="${absoluteUrl(config, LISTING_QUALITY_SCORE_API_PAGE_PATH)}">Listing quality score API</a> · <a href="${absoluteUrl(config, MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH)}">Marketplace product listing quality</a> · <a href="${absoluteUrl(config, X402_LISTING_QUALITY_PAGE_PATH)}">x402 listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
+          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, marketplace listing conversion, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/marketplace-listing-conversion</code>, <code>/api/marketplace-product-listing-quality</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/paid-api-listing-quality-score</code>, <code>/api/listing-quality-score-api</code>, <code>/api/x402-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
+          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_SCORE_PATH)}">Paid API listing quality score</a> · <a href="${absoluteUrl(config, LISTING_QUALITY_SCORE_API_PAGE_PATH)}">Listing quality score API</a> · <a href="${absoluteUrl(config, MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH)}">Marketplace product listing quality</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_PAGE_PATH)}">Marketplace listing conversion</a> · <a href="${absoluteUrl(config, X402_LISTING_QUALITY_PAGE_PATH)}">x402 listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
         <div class="card">
@@ -8428,6 +8488,7 @@ ${webMcpScript(config)}
       recommendedPaidSequence,
       exactIntentActions: {
         marketplaceListingScore: intentRoutes.marketplaceListingScore,
+        marketplaceListingConversion: intentRoutes.marketplaceListingConversion,
         marketplaceProductListingQuality: intentRoutes.marketplaceProductListingQuality,
         listingQualityScoreApi: intentRoutes.listingQualityScoreApi,
         paidApiListingQuality: intentRoutes.paidApiListingQuality,
@@ -8466,7 +8527,7 @@ Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who n
 
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
 
-Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
+Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, marketplace listing conversion, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
 
 Paid API preflight aliases: GET ${formatPreflightAliasUrls(config)}. These aliases cost ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT} USDC units, and return the x402 site-audit output for agents that probe common preflight URLs before paying more.
 
