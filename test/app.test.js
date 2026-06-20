@@ -165,6 +165,65 @@ describe("Listing Roast x402 service", () => {
     expect(buildInstantScoreInput(customQuery, { normalizeStaleIndexedDefaults: true }).currentPrice).toBe("$0.02");
   });
 
+  it("records aggregate no-spend intent signals without storing raw queries", async () => {
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      const payNow = await fetchJson(server, "/api/pay-now?intent=buyer-agent%20skip%20reasons");
+      expect(payNow.status).toBe(200);
+      expect(payNow.headers.get("payment-required")).toBeNull();
+      expect(payNow.json.selectedActionKey).toBe("buyerAgentSkipReasons");
+      expect(payNow.json.selectedPaidUrl).toContain("/api/listing-roast");
+      expect(payNow.json.selectedPaidPath).toBe("/api/listing-roast");
+      expect(payNow.json.firstPaidUrl).toContain("/api/listing-roast");
+      expect(payNow.json.payableRoute.path).toBe("/api/listing-roast");
+      expect(payNow.json.exactIntentPaidUrl).toContain("/api/buyer-agent-skip-reasons");
+      expect(payNow.json.intentSignal).toEqual({
+        source: "payNow",
+        selectedActionKey: "buyerAgentSkipReasons",
+        aggregateOnly: true,
+        rawQueryStored: false,
+        cashRegisterPath: "/api/cash-register"
+      });
+
+      const findDiscovery = await fetchJson(server, "/api/find?q=x402%20discovery%20audit");
+      expect(findDiscovery.status).toBe(200);
+      expect(findDiscovery.headers.get("payment-required")).toBeNull();
+      expect(findDiscovery.json.selectedActionKey).toBe("discoveryAuditQuick");
+      expect(findDiscovery.json.selectedPaidUrl).toContain("/api/x402-discovery-audit");
+      expect(findDiscovery.json.intentSignal.source).toBe("find");
+      expect(findDiscovery.json.intentSignal.rawQueryStored).toBe(false);
+
+      const routeFullRoast = await fetchJson(server, "/api/route?query=full%20roast%20rewrite%20top%20fixes");
+      expect(routeFullRoast.status).toBe(200);
+      expect(routeFullRoast.headers.get("payment-required")).toBeNull();
+      expect(routeFullRoast.json.selectedActionKey).toBe("fullRoastGet");
+      expect(routeFullRoast.json.selectedPaidUrl).toContain("/api/full-listing-roast");
+      expect(routeFullRoast.json.payableRoute.path).toBe("/api/full-listing-roast");
+      expect(routeFullRoast.json.intentSignal.source).toBe("route");
+
+      const routePreflight = await fetchJson(server, "/api/route", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: "paid API preflight before paying" })
+      });
+      expect(routePreflight.status).toBe(200);
+      expect(routePreflight.json.selectedActionKey).toBe("x402SiteAudit");
+      expect(routePreflight.json.intentSignal.rawQueryStored).toBe(false);
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.status).toBe(200);
+      expect(cashRegister.json.intentSignals.payNow.buyerAgentSkipReasons).toBe(1);
+      expect(cashRegister.json.intentSignals.find.discoveryAuditQuick).toBe(1);
+      expect(cashRegister.json.intentSignals.route.fullRoastGet).toBe(1);
+      expect(cashRegister.json.intentSignals.route.x402SiteAudit).toBe(1);
+      expect(JSON.stringify(cashRegister.json.intentSignals)).not.toContain("buyer-agent skip reasons");
+      expect(JSON.stringify(cashRegister.json.intentSignals)).not.toContain("paid API preflight before paying");
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
   it("serves public metadata without payment", async () => {
     const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
     const server = await listen(app);
@@ -680,7 +739,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcpInitialize.json.jsonrpc).toBe("2.0");
       expect(mcpInitialize.json.id).toBe(1);
       expect(mcpInitialize.json.result.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-20-find-paid-route-v27");
+      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-20-intent-signal-v28");
       expect(mcpInitialize.json.result.capabilities.tools).toEqual({});
 
       const mcpTools = await fetchJson(server, "/.well-known/mcp.json", {
@@ -824,7 +883,7 @@ describe("Listing Roast x402 service", () => {
       const mcpServerCard = await fetchJson(server, "/.well-known/mcp/server-card.json");
       expect(mcpServerCard.status).toBe(200);
       expect(mcpServerCard.json.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-20-find-paid-route-v27");
+      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-20-intent-signal-v28");
       expect(mcpServerCard.json.transport).toBe("http");
       expect(mcpServerCard.json.jsonRpcEndpoint).toContain("/mcp");
       expect(mcpServerCard.json.payment.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
@@ -854,7 +913,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(compressedX402Manifest.status).toBe(200);
       expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
-      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-find-paid-route-v27");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-intent-signal-v28");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -890,8 +949,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-find-paid-route-v27");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T19:50:00.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-intent-signal-v28");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T20:20:00.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -1321,8 +1380,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-find-paid-route-v27");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T19:50:00.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-intent-signal-v28");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T20:20:00.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -1664,7 +1723,7 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
-      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-find-paid-route-v27");
+      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-intent-signal-v28");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -3995,7 +4054,7 @@ describe("Listing Roast x402 service", () => {
 
       const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
       expect(paymentAlias.status).toBe(200);
-      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-find-paid-route-v27");
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-intent-signal-v28");
       expect(paymentAlias.json.commands).toContain("/api/commands");
 
       const mcpJsonAlias = await fetchJson(server, "/mcp.json");

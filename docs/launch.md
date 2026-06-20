@@ -34,7 +34,7 @@ Current verified state:
 - Railway deploy: successful. Latest verified deployment: 6ebb31f3-97dd-489b-8c9f-4cbc9dba7b1e.
 - Latest live code commit: f48e065 Clarify route finder paid handoff.
 - Latest GitHub release: find-paid-route-v1.
-- Latest metadata version: 2026-06-20-find-paid-route-v27.
+- Latest metadata version: 2026-06-20-intent-signal-v28.
 - Latest repo docs refresh: CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, explicit `/api/find` payable-route fields, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.

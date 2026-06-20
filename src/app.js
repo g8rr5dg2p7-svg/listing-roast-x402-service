@@ -7,7 +7,7 @@ import { registerExactEvmScheme } from "@x402/evm/exact/server";
 import { paymentMiddleware } from "@x402/express";
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from "@x402/extensions/bazaar";
 
-import { getCashRegister, recordPaidCompletion, recordSignal } from "./cashRegister.js";
+import { getCashRegister, recordIntentSignal, recordPaidCompletion, recordSignal } from "./cashRegister.js";
 import {
   buildDiscoveryAuditExampleOutput,
   buildX402DiscoveryAudit,
@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-find-paid-route-v27";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T19:50:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-intent-signal-v28";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T20:20:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -3879,6 +3879,9 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
+  const selectedPaidRoute = compactPaidAction(handoffSelectedPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction));
+  const firstPaidRoute = compactPaidAction(selectedFirstPaidAction);
+  const exactIntentPaidRoute = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
   const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const recommendedPaidSequence = buildIntentRecommendedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
 
@@ -3899,8 +3902,26 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     },
     intent: selection.intent || null,
     selectedActionKey: selection.selectedActionKey,
+    selectedPaidRoute,
+    selectedPaidUrl: selectedPaidRoute.route,
+    selectedPaidPath: selectedPaidRoute.path,
+    selectedPaidMethod: selectedPaidRoute.method,
+    selectedPaidPrice: selectedPaidRoute.price,
+    selectedPaidMaxAmountRequired: selectedPaidRoute.maxAmountRequired,
     selectedPaidAction: handoffSelectedPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction),
-    ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
+    firstPaidRoute,
+    firstPaidUrl: firstPaidRoute.route,
+    firstPaidPath: firstPaidRoute.path,
+    firstPaidMethod: firstPaidRoute.method,
+    firstPaidPrice: firstPaidRoute.price,
+    firstPaidMaxAmountRequired: firstPaidRoute.maxAmountRequired,
+    payableRoute: firstPaidRoute,
+    ...(exactIntentPaidAction ? {
+      exactIntentPaidAction,
+      exactIntentPaidRoute,
+      exactIntentPaidUrl: exactIntentPaidRoute.route,
+      exactIntentPaidPath: exactIntentPaidRoute.path
+    } : {}),
     rankedPaidRoutes: selection.rankedPaidRoutes || [],
     route: selectedFirstPaidAction.route,
     method: selectedFirstPaidAction.method,
@@ -7790,6 +7811,9 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction);
+  const selectedPaidRoute = compactPaidAction(handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction));
+  const firstPaidRoute = compactPaidAction(selectedFirstPaidAction);
+  const exactIntentPaidRoute = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
   const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes, {
     selectedPaidSequence,
     use: selectedPaidSequence[0]?.use || selectedActionKey,
@@ -7811,8 +7835,26 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     best: ranked[0] || null,
     ...(selected || {}),
     selectedActionKey,
+    selectedPaidRoute,
+    selectedPaidUrl: selectedPaidRoute.route,
+    selectedPaidPath: selectedPaidRoute.path,
+    selectedPaidMethod: selectedPaidRoute.method,
+    selectedPaidPrice: selectedPaidRoute.price,
+    selectedPaidMaxAmountRequired: selectedPaidRoute.maxAmountRequired,
     selectedPaidAction: handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction),
-    ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
+    firstPaidRoute,
+    firstPaidUrl: firstPaidRoute.route,
+    firstPaidPath: firstPaidRoute.path,
+    firstPaidMethod: firstPaidRoute.method,
+    firstPaidPrice: firstPaidRoute.price,
+    firstPaidMaxAmountRequired: firstPaidRoute.maxAmountRequired,
+    payableRoute: firstPaidRoute,
+    ...(exactIntentPaidAction ? {
+      exactIntentPaidAction,
+      exactIntentPaidRoute,
+      exactIntentPaidUrl: exactIntentPaidRoute.route,
+      exactIntentPaidPath: exactIntentPaidRoute.path
+    } : {}),
     count: ranked.length,
     totalLocalRoutes: buildPaidRouteCatalog(config).length,
     pricing: absoluteUrl(config, PRICING_PATH),
@@ -9915,6 +9957,16 @@ function isAllowedSignal(value) {
   ].includes(value);
 }
 
+function buildIntentSignalNotice(source, selectedActionKey) {
+  return {
+    source,
+    selectedActionKey,
+    aggregateOnly: true,
+    rawQueryStored: false,
+    cashRegisterPath: "/api/cash-register"
+  };
+}
+
 function validUnpaidSignalForPath(pathname) {
   if (pathname === ROOT_DIRECTORY_POST_PATH) {
     return "directoryPostValidUnpaidChallenges";
@@ -11808,7 +11860,12 @@ ${copyScript("Copy command")}
   app.get(PAY_NOW_PATH, async (request, response) => {
     await recordSignal("payNowViews");
     const cashRegister = await getCashRegister();
-    setFreshDiscoveryHeaders(response).json(buildPayNow(config, request.query.intent || request.query.q || request.query.query || request.query.task || "", cashRegister));
+    const payNow = buildPayNow(config, request.query.intent || request.query.q || request.query.query || request.query.task || "", cashRegister);
+    await recordIntentSignal("payNow", payNow.selectedActionKey);
+    setFreshDiscoveryHeaders(response).json({
+      ...payNow,
+      intentSignal: buildIntentSignalNotice("payNow", payNow.selectedActionKey)
+    });
   });
 
   app.get([PAID_USAGE_PROOF_PATH, ...PAID_USAGE_PROOF_ALIAS_PATHS], async (_request, response) => {
@@ -11827,19 +11884,34 @@ ${copyScript("Copy command")}
   app.get(FIND_PATH, async (request, response) => {
     await recordSignal("findViews");
     const cashRegister = await getCashRegister();
-    setFreshDiscoveryHeaders(response).json(buildFindResult(config, request.query.q || request.query.query || request.query.task || "", cashRegister));
+    const findResult = buildFindResult(config, request.query.q || request.query.query || request.query.task || "", cashRegister);
+    await recordIntentSignal("find", findResult.selectedActionKey);
+    setFreshDiscoveryHeaders(response).json({
+      ...findResult,
+      intentSignal: buildIntentSignalNotice("find", findResult.selectedActionKey)
+    });
   });
 
   app.get(ROUTE_PATH, async (request, response) => {
     await recordSignal("routeViews");
     const cashRegister = await getCashRegister();
-    setFreshDiscoveryHeaders(response).json(buildRouteResult(config, request.query, cashRegister));
+    const routeResult = buildRouteResult(config, request.query, cashRegister);
+    await recordIntentSignal("route", routeResult.selectedActionKey);
+    setFreshDiscoveryHeaders(response).json({
+      ...routeResult,
+      intentSignal: buildIntentSignalNotice("route", routeResult.selectedActionKey)
+    });
   });
 
   app.post(ROUTE_PATH, async (request, response) => {
     await recordSignal("routeViews");
     const cashRegister = await getCashRegister();
-    setFreshDiscoveryHeaders(response).json(buildRouteResult(config, request.body || {}, cashRegister));
+    const routeResult = buildRouteResult(config, request.body || {}, cashRegister);
+    await recordIntentSignal("route", routeResult.selectedActionKey);
+    setFreshDiscoveryHeaders(response).json({
+      ...routeResult,
+      intentSignal: buildIntentSignalNotice("route", routeResult.selectedActionKey)
+    });
   });
 
   app.get(LOCAL_DISCOVERY_RESOURCE_PATHS, async (request, response) => {

@@ -43,6 +43,41 @@ const SIGNAL_KEYS = new Set([
   "invalidRequests"
 ]);
 
+const INTENT_SIGNAL_SOURCES = new Set(["payNow", "find", "route"]);
+const INTENT_SIGNAL_KEYS = new Set([
+  "directoryPost",
+  "apiEntry",
+  "apiV1Entry",
+  "v1Entry",
+  "indexedQuickScore",
+  "marketplaceListingScore",
+  "marketplaceListingConversion",
+  "marketplaceProductListingQuality",
+  "paidApiListingQuality",
+  "paidApiListingQualityScore",
+  "listingQualityScoreApi",
+  "agentCoreX402Payments",
+  "coinbaseX402BazaarMcpServer",
+  "x402ListingQuality",
+  "buyerAgentSkipReasons",
+  "agentServiceClarity",
+  "instantScore",
+  "conversionScore",
+  "agentListingConversion",
+  "x402Ping",
+  "x402SiteAudit",
+  "x402BuyerPrepayRiskScore",
+  "scoreX402EndpointBeforePaying",
+  "x402RouteHealthCheck",
+  "x402ListingRankDoctor",
+  "agent402RouteVisibility",
+  "discoveryAuditQuick",
+  "fullRoastGet",
+  "listingScore",
+  "fullRoast",
+  "discoveryAudit"
+]);
+
 const PAID_COMPLETION_ROUTE_META = {
   directoryPost: { routeKey: "directoryPost", method: "POST", path: "/" },
   apiEntry: { routeKey: "apiEntry", method: "GET", path: "/api" },
@@ -82,6 +117,31 @@ function baselineMoney(name) {
   }
 
   return `$${String(process.env[name]).replace(/^\$/, "")}`;
+}
+
+function initialIntentSignals() {
+  return {
+    payNow: {},
+    find: {},
+    route: {}
+  };
+}
+
+function normalizeIntentSignals(intentSignals = {}) {
+  const normalized = initialIntentSignals();
+
+  for (const source of INTENT_SIGNAL_SOURCES) {
+    const sourceSignals = intentSignals?.[source] || {};
+    for (const [intentKey, count] of Object.entries(sourceSignals)) {
+      if (!INTENT_SIGNAL_KEYS.has(intentKey)) continue;
+      const parsed = Number(count);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        normalized[source][intentKey] = Math.trunc(parsed);
+      }
+    }
+  }
+
+  return normalized;
 }
 
 function initialCash() {
@@ -136,6 +196,7 @@ function initialCash() {
     recentPaidCompletions: [],
     firstSignalAt: null,
     lastSignalAt: null,
+    intentSignals: initialIntentSignals(),
     signals: {
       homepageViews: 0,
       builderViews: 0,
@@ -185,6 +246,7 @@ function normalizeCash(cash = {}) {
   const merged = {
     ...base,
     ...cash,
+    intentSignals: normalizeIntentSignals(cash.intentSignals),
     signals: {
       ...base.signals,
       ...(cash.signals || {})
@@ -300,6 +362,29 @@ export async function recordSignal(signalKey) {
       signals: {
         ...cash.signals,
         [signalKey]: Number(cash.signals[signalKey] || 0) + 1
+      }
+    };
+  });
+}
+
+export async function recordIntentSignal(source, intentKey) {
+  if (!INTENT_SIGNAL_SOURCES.has(source) || !INTENT_SIGNAL_KEYS.has(intentKey)) {
+    return readCash();
+  }
+
+  return updateCash((cash) => {
+    const now = new Date().toISOString();
+    const intentSignals = normalizeIntentSignals(cash.intentSignals);
+    return {
+      ...cash,
+      firstSignalAt: cash.firstSignalAt || now,
+      lastSignalAt: now,
+      intentSignals: {
+        ...intentSignals,
+        [source]: {
+          ...intentSignals[source],
+          [intentKey]: Number(intentSignals[source]?.[intentKey] || 0) + 1
+        }
       }
     };
   });
