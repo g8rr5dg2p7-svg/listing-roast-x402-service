@@ -16,7 +16,8 @@ Live production service:
 - Agent402 route visibility audit route: GET https://listing-roast-x402-service-production.up.railway.app/api/agent402-route-visibility
 - Full x402 discovery audit route: POST https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
 - Score route: https://listing-roast-x402-service-production.up.railway.app/api/listing-score
-- Full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
+- Direct full roast route: GET https://listing-roast-x402-service-production.up.railway.app/api/full-listing-roast
+- Custom-body full roast route: POST https://listing-roast-x402-service-production.up.railway.app/api/listing-roast
 - Schema: https://listing-roast-x402-service-production.up.railway.app/api/schema
 - Score schema: https://listing-roast-x402-service-production.up.railway.app/api/score-schema
 - Discovery audit schema: https://listing-roast-x402-service-production.up.railway.app/api/discovery-audit-schema
@@ -39,9 +40,10 @@ Current verified state:
 - Agent402 route visibility audit route: HTTP 402, amount 1000 USDC units.
 - Full x402 discovery audit route: HTTP 402, amount 10000 USDC units.
 - Score route: HTTP 402, amount 5000 USDC units.
-- Full roast route: HTTP 402, amount 10000 USDC units.
+- Direct full roast route: HTTP 402, amount 10000 USDC units.
+- Custom-body full roast route: HTTP 402, amount 10000 USDC units.
 - Discovery-audit output includes direct 402 metadata, public Bazaar visibility, Agent402 route visibility, and catalog-refresh settlement guidance without paying the audited endpoint.
-- Full-roast upgrade prompt: verified in `/api/examples`, `/api/sample-score`, and the OpenAPI 200 example as `Call this x402 endpoint with POST and pay up to 0.01 USDC: https://listing-roast-x402-service-production.up.railway.app/api/listing-roast`.
+- Direct full-roast route: verified in `/x402.json`, `/api/find`, `/api/commands`, and direct x402 details as `GET /api/full-listing-roast` with amount 10000.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
 - Receiver wallet balance is the durable revenue check across deploys.
@@ -110,7 +112,14 @@ EXPECTED_X402_AMOUNT=10000 \
 npm run smoke
 
 SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
+SMOKE_PATH=/api/full-listing-roast \
+EXPECTED_X402_NETWORK=eip155:8453 \
+EXPECTED_X402_AMOUNT=10000 \
+npm run smoke
+
+SMOKE_BASE_URL=https://listing-roast-x402-service-production.up.railway.app \
 SMOKE_PATH=/api/listing-roast \
+SMOKE_METHOD=POST \
 EXPECTED_X402_NETWORK=eip155:8453 \
 EXPECTED_X402_AMOUNT=10000 \
 npm run smoke
@@ -130,4 +139,4 @@ Expected production result:
 
 Promotion rule:
 
-Promote the Railway homepage, `/builder`, `/sample`, or `/api/pay-now` page above. The service has verified production x402 challenges, two wallet-confirmed paid completions, and an explicit $0.01 full-roast upgrade prompt after the $0.001 quick score.
+Promote the Railway homepage, `/builder`, `/sample`, or `/api/pay-now` page above. The service has verified production x402 challenges, two wallet-confirmed paid completions, and a direct $0.01 GET full-roast route after the $0.001 quick score.
