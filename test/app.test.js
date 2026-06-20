@@ -777,7 +777,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcpInitialize.json.jsonrpc).toBe("2.0");
       expect(mcpInitialize.json.id).toBe(1);
       expect(mcpInitialize.json.result.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-20-payment-shortcut-v30");
+      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-20-early-payment-shortcut-v31");
       expect(mcpInitialize.json.result.capabilities.tools).toEqual({});
 
       const mcpTools = await fetchJson(server, "/.well-known/mcp.json", {
@@ -921,7 +921,7 @@ describe("Listing Roast x402 service", () => {
       const mcpServerCard = await fetchJson(server, "/.well-known/mcp/server-card.json");
       expect(mcpServerCard.status).toBe(200);
       expect(mcpServerCard.json.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-20-payment-shortcut-v30");
+      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-20-early-payment-shortcut-v31");
       expect(mcpServerCard.json.transport).toBe("http");
       expect(mcpServerCard.json.jsonRpcEndpoint).toContain("/mcp");
       expect(mcpServerCard.json.payment.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
@@ -951,7 +951,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(compressedX402Manifest.status).toBe(200);
       expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
-      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-payment-shortcut-v30");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-early-payment-shortcut-v31");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -987,8 +987,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-payment-shortcut-v30");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T21:10:00.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-early-payment-shortcut-v31");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T21:35:00.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -1418,8 +1418,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-payment-shortcut-v30");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T21:10:00.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-early-payment-shortcut-v31");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T21:35:00.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -1761,7 +1761,7 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
-      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-payment-shortcut-v30");
+      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-early-payment-shortcut-v31");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -4092,7 +4092,7 @@ describe("Listing Roast x402 service", () => {
 
       const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
       expect(paymentAlias.status).toBe(200);
-      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-payment-shortcut-v30");
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-early-payment-shortcut-v31");
       expect(paymentAlias.json.commands).toContain("/api/commands");
 
       const mcpJsonAlias = await fetchJson(server, "/mcp.json");
@@ -4620,6 +4620,9 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.accepts[0].extra.resource).toBe(challenge.resource.url);
       expect(challenge.accepts[0].extra.version).toBe("2");
       expect(response.json.error).toBe("payment_required");
+      expect(response.text.indexOf("\"paymentShortcut\"")).toBeGreaterThan(-1);
+      expect(response.text.indexOf("\"paymentShortcut\"")).toBeLessThan(response.text.indexOf("\"resource\""));
+      expect(response.text.indexOf("\"selectedPaidUrl\"")).toBeLessThan(response.text.indexOf("\"resource\""));
       expect(response.json.accepts[0].extra.resource).toBe(response.json.resource.url);
       expect(response.json.resource.description).toContain("x402 seller growth checklist");
       expect(response.json.catalogRefreshHint.resource).toBe(response.json.resource.url);
@@ -4650,6 +4653,7 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.firstPaidPath).toBe("/api/listing-roast");
       expect(response.json.firstPaidMaxAmountRequired).toBe("1000");
       expect(response.json.payableRoute.selectedPaidUrl).toBe(response.json.selectedPaidUrl);
+      expect(response.json.paymentShortcut).toEqual(response.json.payableRoute);
       expect(response.json.payableRoute.selectedPaidPath).toBe("/api/listing-roast");
       expect(response.json.payableRoute.selectedPaidMethod).toBe("GET");
       expect(response.json.payableRoute.selectedPaidMaxAmountRequired).toBe("1000");
@@ -4794,6 +4798,9 @@ describe("Listing Roast x402 service", () => {
         expect(challenge.accepts[0].extra.resource).toBe(challenge.resource.url);
         expect(response.json.error).toBe("payment_required");
         expect(response.json.x402Version).toBe(challenge.x402Version);
+        expect(response.text.indexOf("\"paymentShortcut\"")).toBeGreaterThan(-1);
+        expect(response.text.indexOf("\"paymentShortcut\"")).toBeLessThan(response.text.indexOf("\"resource\""));
+        expect(response.text.indexOf("\"selectedPaidUrl\"")).toBeLessThan(response.text.indexOf("\"resource\""));
         expect(response.json.resource.url).toBe(challenge.resource.url);
         expect(response.json.resource.description).toBe(challenge.resource.description);
         expect(response.json.resource.mimeType).toBe(challenge.resource.mimeType);
@@ -4814,6 +4821,7 @@ describe("Listing Roast x402 service", () => {
         expect(response.json.firstPaidPath).toBe("/api/listing-roast");
         expect(response.json.firstPaidMaxAmountRequired).toBe("1000");
         expect(response.json.payableRoute.selectedPaidUrl).toBe(response.json.selectedPaidUrl);
+        expect(response.json.paymentShortcut).toEqual(response.json.payableRoute);
         expect(response.json.payableRoute.selectedPaidPath).toBe(routePath);
         expect(response.json.payableRoute.selectedPaidMethod).toBe("GET");
         expect(response.json.payableRoute.selectedPaidMaxAmountRequired).toBe("1000");
