@@ -3474,7 +3474,7 @@ describe("Listing Roast x402 service", () => {
       const response = await fetchJson(server, "/api/listing-roast");
 
       expect(response.status).toBe(402);
-      expect(response.headers.get("payment-required").length).toBeLessThan(8200);
+      expect(response.headers.get("payment-required").length).toBeLessThan(7600);
       const challenge = readPaymentRequiredHeader(response.headers);
       expect(challenge.error).toBe("Payment required");
       expect(challenge.resource.url).toContain("/api/listing-roast");
@@ -3495,21 +3495,11 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.serviceName).toBe("Listing Roast x402 Paid API Listing Quality Score");
       expect(challenge.resource.tags).toEqual([
         "x402",
-        "listing quality score API",
-        "marketplace product listing quality",
         "paid API listing quality score",
-        "paid API listing quality",
         "marketplace listing score",
         "marketplace listing conversion API",
-        "x402 marketplace conversion",
-        "agent listing conversion",
         "buyer-agent skip reasons",
-        "agent-service listing score",
-        "x402 site audit",
-        "x402 discovery audit",
-        "paid API preflight",
-        "agent service clarity",
-        "route health"
+        "x402 marketplace conversion"
       ]);
       expect(challenge.extensions.bazaar.info.input.queryParams.agentName).toBe("Listing Roast x402");
       expect(challenge.extensions.bazaar.info.input.queryParams.listingText).toMatch(/^Score marketplace product listing quality/);
@@ -3703,15 +3693,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.serviceName).toBe("Listing Roast x402");
       expect(challenge.resource.tags).toEqual([
         "x402",
-        "discovery audit",
-        "x402 seller discoverability",
-        "fix x402 Bazaar listing",
-        "x402 catalog metadata quality",
-        "x402 listing SEO audit",
-        "x402 listing rank doctor",
-        "x402 seller growth checklist",
-        "x402 seller intelligence",
-        "x402 marketplace SEO audit",
+        "x402 site audit",
         "paid API preflight",
         "route health",
         "Bazaar visibility",
