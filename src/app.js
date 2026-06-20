@@ -234,6 +234,7 @@ const AGENT_SERVICE_CLARITY_PAGE_PATH = "/agent-service-clarity";
 const AGENT_LISTING_CONVERSION_PAGE_PATH = "/agent-listing-conversion";
 const X402_DISCOVERY_AUDIT_PAGE_PATH = "/x402-discovery-audit";
 const X402_SITE_AUDIT_PAGE_PATH = "/x402-site-audit";
+const AGENTCORE_X402_PAYMENTS_PAGE_PATH = "/agentcore-x402-payments";
 const INTENT_LANDING_PATHS = [
   PAID_API_LISTING_QUALITY_PATH,
   PAID_API_LISTING_QUALITY_SCORE_PATH,
@@ -246,7 +247,8 @@ const INTENT_LANDING_PATHS = [
   AGENT_SERVICE_CLARITY_PAGE_PATH,
   AGENT_LISTING_CONVERSION_PAGE_PATH,
   X402_DISCOVERY_AUDIT_PAGE_PATH,
-  X402_SITE_AUDIT_PAGE_PATH
+  X402_SITE_AUDIT_PAGE_PATH,
+  AGENTCORE_X402_PAYMENTS_PAGE_PATH
 ];
 const API_V1_OPENAPI_JSON_PATH = "/api/v1/openapi.json";
 const SWAGGER_JSON_PATH = "/swagger.json";
@@ -291,6 +293,12 @@ const DISCOVERY_KEYWORDS = [
   "paid API preflight",
   "x402 discovery audit",
   "x402 bazaar discovery audit",
+  "AgentCore x402 payments",
+  "Amazon Bedrock AgentCore payments",
+  "AgentCore Gateway",
+  "Coinbase x402 Bazaar MCP server",
+  "x402 Bazaar MCP server",
+  "AgentCore paid API discovery",
   "x402 listing stale price",
   "buyer-agent skip reasons",
   "buyer agent skip reasons",
@@ -313,7 +321,7 @@ const DISCOVERY_KEYWORDS = [
   "x402 marketplace SEO audit",
   "agent service promotion readiness"
 ];
-const DISCOVERY_DESCRIPTION = "Score paid API listing quality, x402 marketplace conversion, Agentic.Market listing score, and agent listing conversion before promotion: paid x402 listing quality score API for marketplace product listing quality, marketplace listing conversion API, paid API listing quality score, agent listing conversion score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, x402 seller discoverability, listing SEO audit, seller growth checklist, and agent service promotion readiness.";
+const DISCOVERY_DESCRIPTION = "Score paid API listing quality, x402 marketplace conversion, Agentic.Market listing score, AgentCore x402 payments readiness, and agent listing conversion before promotion: paid x402 listing quality score API for marketplace product listing quality, marketplace listing conversion API, paid API listing quality score, Coinbase x402 Bazaar MCP server buyers, AgentCore Gateway discovery, agent listing conversion score, agent-service listing clarity, buyer-agent skip reasons, marketplace listing conversion, x402 seller discoverability, listing SEO audit, seller growth checklist, and agent service promotion readiness.";
 const SERVICE_CATEGORY = "paid-api-listing";
 const SERVICE_TAGS = Object.freeze([
   "x402",
@@ -342,8 +350,8 @@ const SERVICE_TAGS = Object.freeze([
   "route health"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools snippets; returns an included quick score, route map, indexed /api/listing-roast handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 GET /api/listing-roast quick score on the indexed paid-use-confirmed URL for paid API listing quality score, marketplace product listing quality, Agentic.Market listing score, marketplace listing conversion API, marketplace listing score, x402 marketplace conversion, buyer-agent skip reasons, buyer agent skip reasons, agent listing conversion score, agent service clarity, agent-service listing score, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, Bazaar search visibility, and x402 seller growth checklist; direct GET full-roast upgrade.";
-const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 paid API listing quality score; marketplace conversion API; buyer-agent skip reasons; buyer agent skip reasons; agent service clarity; x402 discovery audit; x402 site audit; paid API preflight; route health; stale Bazaar price.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 GET /api/listing-roast quick score on the indexed paid-use-confirmed URL for paid API listing quality score, marketplace product listing quality, Agentic.Market listing score, AgentCore x402 payments readiness, Coinbase x402 Bazaar MCP server buyers, marketplace listing conversion API, marketplace listing score, x402 marketplace conversion, buyer-agent skip reasons, buyer agent skip reasons, agent listing conversion score, agent service clarity, agent-service listing score, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, Bazaar search visibility, and x402 seller growth checklist; direct GET full-roast upgrade.";
+const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Paid API Listing Quality Score by Listing Roast: $0.001 paid API listing quality score; AgentCore x402 payments; Bazaar MCP; marketplace conversion API; buyer-agent skip reasons; buyer agent skip reasons; agent service clarity; x402 discovery audit; x402 site audit; paid API preflight; route health; stale Bazaar price.";
 const FULL_ROAST_GET_DESCRIPTION = "Full Listing Roast by Listing Roast: $0.01 GET /api/full-listing-roast for high-intent buyers who want buyer-agent skip reasons, top fixes, rewritten listing copy, and stop-or-upgrade guidance without assembling a POST body. Uses query params or safe defaults; POST /api/listing-roast remains the custom-body full roast.";
 const FULL_ROAST_GET_CHALLENGE_DESCRIPTION = "Full Listing Roast x402: $0.01 GET full listing roast, buyer-agent skip reasons, top fixes, rewritten listing copy, stop-or-upgrade guidance, and launch guidance for paid API and x402 marketplace sellers.";
 const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
@@ -360,12 +368,14 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
   "agent service clarity",
   "agent-service listing score",
   "x402 site audit",
-  "x402 discovery audit"
+  "x402 discovery audit",
+  "AgentCore x402 payments",
+  "Coinbase x402 Bazaar MCP server"
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-full-roast-get-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T14:24:22.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-agentcore-x402-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T15:55:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -7929,13 +7939,13 @@ function formatIndexedQuickScoreAgentPaymentPrompt(config) {
 function buildAgentMarkdownGuide(config, cashRegister = {}) {
   return `# Listing Roast x402
 
-Listing Roast x402 is a paid HTTP JSON API for builders who need a quick read on why buyer agents skip a paid API or x402 marketplace listing.
+Listing Roast x402 is a paid HTTP JSON API for builders, AgentCore Gateway flows, and x402 marketplace buyers who need a quick read on why buyer agents skip a paid API or x402 marketplace listing.
 
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
 
 Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
 
-Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, marketplace listing conversion API, marketplace listing conversion, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
+Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, marketplace listing conversion API, marketplace listing conversion, paid API listing quality, paid API listing quality score, AgentCore x402 payments, Coinbase x402 Bazaar MCP server buyer flows, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
 
 ## Paid-Use Proof Before Payment
 
@@ -7960,6 +7970,7 @@ ${formatPaidUseProofMarkdown(config, cashRegister)}
 - Compact command handoff: ${absoluteUrl(config, COMMANDS_PATH)}?intent=paid%20API%20listing%20quality
 - Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=buyer-agent%20skip%20reasons
 - Paid-use proof: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}
+- AgentCore x402 payments page: ${absoluteUrl(config, AGENTCORE_X402_PAYMENTS_PAGE_PATH)}
 - Pricing catalog: ${absoluteUrl(config, PRICING_PATH)}
 - Route finder: ${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit
 - Cash register: ${absoluteUrl(config, "/api/cash-register")}
@@ -8023,7 +8034,7 @@ ${DISCOVERY_KEYWORDS.join(", ")}
 function buildAgentsMarkdown(config, cashRegister = {}) {
   return `# AGENTS.md
 
-Listing Roast x402 is a paid API for agents and builders who need a quick x402 listing-quality score, x402 marketplace conversion read, agent listing conversion score, buyer-agent skip-reason check, or service-discovery audit.
+Listing Roast x402 is a paid API for agents, AgentCore Gateway buyers, and builders who need a quick x402 listing-quality score, x402 marketplace conversion read, agent listing conversion score, buyer-agent skip-reason check, or service-discovery audit.
 
 ## Safety
 
@@ -8049,7 +8060,7 @@ ${formatPaidUseProofMarkdown(config, cashRegister)}
 - Price: ${config.instantScorePrice}
 - Max amount: ${INSTANT_SCORE_AMOUNT} USDC units
 - Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
-- Use it for the fastest paid score from the already-indexed listing-roast URL when the buyer asks for paid API listing quality, x402 marketplace conversion, or agent listing conversion score.
+- Use it for the fastest paid score from the already-indexed listing-roast URL when the buyer asks for paid API listing quality, AgentCore x402 payments readiness, x402 marketplace conversion, or agent listing conversion score.
 - Exact buyer-phrase aliases: GET ${formatQuickScoreAliasUrls(config)}.
 
 \`\`\`bash
@@ -8077,7 +8088,7 @@ Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_A
 
 ## Quick-Score Buyer Phrase Aliases
 
-- GET ${formatQuickScoreAliasUrls(config)} are direct aliases for marketplace listing score, marketplace listing conversion API, marketplace listing conversion, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
+- GET ${formatQuickScoreAliasUrls(config)} are direct aliases for marketplace listing score, marketplace listing conversion API, marketplace listing conversion, paid API listing quality, paid API listing quality score, AgentCore x402 payments, Coinbase x402 Bazaar MCP server buyer flows, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
 - Each alias costs ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and returns the same quick-score output as GET ${absoluteUrl(config, ROAST_PATH)}.
 
 ## Paid API Preflight Aliases
@@ -8333,6 +8344,18 @@ function buildIntentLandingPages(config) {
       supportingAction: intentRoutes.discoveryAudit,
       supportingLabel: "Use the $0.01 POST discovery audit for a custom-body report.",
       keywords: ["x402 site audit", "paid API preflight", "x402 route health check", "x402 service discoverability audit", "x402 listing SEO audit"]
+    },
+    {
+      path: AGENTCORE_X402_PAYMENTS_PAGE_PATH,
+      title: "AgentCore x402 payments route | Listing Roast x402",
+      heading: "AgentCore x402 payments route for paid API listing quality",
+      summary: "Use this when an AgentCore Gateway, MCP buyer, or Coinbase x402 Bazaar MCP search needs a wallet-confirmed $0.001 paid API listing quality score before a larger paid call.",
+      selectedActionKey: "indexedQuickScore",
+      primaryAction: intentRoutes.indexedQuickScore,
+      primaryLabel: "Use the wallet-confirmed $0.001 indexed Listing Roast route",
+      supportingAction: intentRoutes.fullRoastGet,
+      supportingLabel: "Upgrade to the $0.01 full roast only after the quick score shows a fit.",
+      keywords: ["AgentCore x402 payments", "Amazon Bedrock AgentCore payments", "AgentCore Gateway", "Coinbase x402 Bazaar MCP server", "paid API listing quality score", "x402 paid API discovery"]
     }
   ];
 }
@@ -9180,9 +9203,9 @@ export function createApp(overrides = {}) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Score paid API listing quality, x402 marketplace conversion, and agent listing conversion before promotion. Start with GET /api/listing-roast at $0.001, then upgrade to GET /api/full-listing-roast at $0.01." />
+  <meta name="description" content="Score paid API listing quality, AgentCore x402 payments readiness, x402 marketplace conversion, and agent listing conversion before promotion. Start with GET /api/listing-roast at $0.001, then upgrade to GET /api/full-listing-roast at $0.01." />
   <meta property="og:title" content="${escapeHtml(config.serviceName)}" />
-  <meta property="og:description" content="Score paid API listing quality, x402 marketplace conversion, and agent listing conversion before buyer agents skip the listing." />
+  <meta property="og:description" content="Score paid API listing quality, AgentCore x402 payments readiness, x402 marketplace conversion, and agent listing conversion before buyer agents skip the listing." />
   <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
   <meta property="og:image" content="${escapeHtml(absoluteUrl(config, ICON_SVG_PATH))}" />
   <link rel="canonical" href="${escapeHtml(config.serviceUrl)}/" />
@@ -9336,7 +9359,7 @@ score: 4/5</div>
         </div>
         <div class="card">
           <h3>What you get</h3>
-          <p class="muted">A paid API listing quality score, x402 marketplace conversion score, agent listing conversion score, structured JSON critique, or no-spend discovery audit showing whether Bazaar metadata, price, and search visibility are stale.</p>
+          <p class="muted">A paid API listing quality score, AgentCore x402 payments readiness check, x402 marketplace conversion score, agent listing conversion score, structured JSON critique, or no-spend discovery audit showing whether Bazaar metadata, price, and search visibility are stale.</p>
         </div>
       </div>
     </section>
@@ -9362,7 +9385,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Preferred indexed quick score route</h3>
           <p><code>GET ${escapeHtml(paidRoute)}</code></p>
-          <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. This keeps the already-indexed listing-roast URL payable at the lowest price for paid API listing quality, x402 marketplace conversion, and agent listing conversion score buyers.</p>
+          <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. This keeps the already-indexed listing-roast URL payable at the lowest price for paid API listing quality, AgentCore x402 payments, x402 marketplace conversion, and agent listing conversion score buyers.</p>
         </div>
         <div class="card">
           <h3>Instant score route</h3>
@@ -9497,8 +9520,8 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div class="card">
           <h3>Discovery</h3>
-          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, marketplace listing conversion API, marketplace listing conversion, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/marketplace-listing-conversion</code>, <code>/api/marketplace-product-listing-quality</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/paid-api-listing-quality-score</code>, <code>/api/listing-quality-score-api</code>, <code>/api/x402-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>GET /api/full-listing-roast</code> returns the direct full $0.01 roast, <code>POST /api/listing-roast</code> remains available for custom-body full roasts, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
-          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_SCORE_PATH)}">Paid API listing quality score</a> · <a href="${absoluteUrl(config, LISTING_QUALITY_SCORE_API_PAGE_PATH)}">Listing quality score API</a> · <a href="${absoluteUrl(config, MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH)}">Marketplace product listing quality</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH)}">Marketplace listing conversion API</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_PAGE_PATH)}">Marketplace listing conversion</a> · <a href="${absoluteUrl(config, X402_LISTING_QUALITY_PAGE_PATH)}">x402 listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
+          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, marketplace listing conversion API, marketplace listing conversion, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, AgentCore x402 payments, Coinbase x402 Bazaar MCP server buyers, x402 marketplace conversion, agent listing conversion score, x402 listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/marketplace-listing-conversion</code>, <code>/api/marketplace-product-listing-quality</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/paid-api-listing-quality-score</code>, <code>/api/listing-quality-score-api</code>, <code>/api/x402-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>GET /api/full-listing-roast</code> returns the direct full $0.01 roast, <code>POST /api/listing-roast</code> remains available for custom-body full roasts, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
+          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_SCORE_PATH)}">Paid API listing quality score</a> · <a href="${absoluteUrl(config, LISTING_QUALITY_SCORE_API_PAGE_PATH)}">Listing quality score API</a> · <a href="${absoluteUrl(config, MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH)}">Marketplace product listing quality</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH)}">Marketplace listing conversion API</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_PAGE_PATH)}">Marketplace listing conversion</a> · <a href="${absoluteUrl(config, X402_LISTING_QUALITY_PAGE_PATH)}">x402 listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a> · <a href="${absoluteUrl(config, AGENTCORE_X402_PAYMENTS_PAGE_PATH)}">AgentCore x402 payments</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
         <div class="card">
@@ -9841,13 +9864,13 @@ ${webMcpScript(config)}
       .type("text/plain")
       .send(`# Listing Roast x402
 
-Listing Roast x402 is a paid API for x402, MCP, and agent-service builders who need a paid API listing quality score, agent-service listing score, x402 marketplace conversion feedback, agent listing conversion score, or x402 service discoverability guidance before promotion.
+Listing Roast x402 is a paid API for x402, MCP, AgentCore Gateway, and agent-service builders who need a paid API listing quality score, agent-service listing score, x402 marketplace conversion feedback, agent listing conversion score, or x402 service discoverability guidance before promotion.
 
 Preferred first paid route: GET ${absoluteUrl(config, ROAST_PATH)} (${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units). Use this already-indexed quick score before generic /api, /api/v1, or /v1 entrypoints.
 
 Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
 
-Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, marketplace listing conversion API, marketplace listing conversion, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
+Quick-score aliases: GET ${formatQuickScoreAliasUrls(config)}. These aliases cost ${config.instantScorePrice}, max ${INSTANT_SCORE_AMOUNT} USDC units, and return the same quick score for marketplace listing score, marketplace listing conversion API, marketplace listing conversion, paid API listing quality, paid API listing quality score, AgentCore x402 payments, Coinbase x402 Bazaar MCP server buyer flows, x402 marketplace conversion, agent listing conversion score, x402 listing quality, buyer-agent skip reasons, and agent service clarity searches.
 
 Paid API preflight aliases: GET ${formatPreflightAliasUrls(config)}. These aliases cost ${config.siteAuditPrice}, max ${SITE_AUDIT_AMOUNT} USDC units, and return the x402 site-audit output for agents that probe common preflight URLs before paying more.
 
@@ -9886,6 +9909,7 @@ Local route router examples: GET ${absoluteUrl(config, ROUTE_PATH)}?query=x402%2
 Local x402 discovery resources: ${absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0])}
 Local x402 discovery search: ${absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0])}?query=x402%20discovery%20audit
 Local x402 merchant resources: ${absoluteUrl(config, LOCAL_DISCOVERY_MERCHANT_PATHS[0])}?payTo=${config.payTo}
+AgentCore x402 payments page: ${absoluteUrl(config, AGENTCORE_X402_PAYMENTS_PAGE_PATH)}
 Keywords: ${DISCOVERY_KEYWORDS.join(", ")}
 
 Buyer intent landing pages:
@@ -9905,7 +9929,7 @@ Preferred first paid route:
   - Command:
 ${indentText(buildGetPayCommand(config, ROAST_PATH))}
   - Output: quick paid API listing quality score from the already-indexed listing-roast URL
-  - Use first when a marketplace result points to /api/listing-roast or an agent wants the lowest-friction payable route for paid API listing quality, x402 marketplace conversion, or agent listing conversion score
+  - Use first when a marketplace result, AgentCore Gateway buyer, Coinbase x402 Bazaar MCP server search, or agent wants the lowest-friction payable route for paid API listing quality, AgentCore x402 payments readiness, x402 marketplace conversion, or agent listing conversion score
   - Exact buyer-phrase aliases: GET ${formatQuickScoreAliasUrls(config)}
 
 Recommended Paid Sequence:

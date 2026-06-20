@@ -1,6 +1,6 @@
 # Listing Roast x402 Agent Guide
 
-Listing Roast x402 is a wallet-confirmed paid API for builders who need a paid API listing quality score, buyer-agent skip reasons, agent-service clarity, or x402/Bazaar/Agent402 discovery audit before promotion.
+Listing Roast x402 is a wallet-confirmed paid API for builders, AgentCore Gateway buyers, and x402/Bazaar MCP search flows that need a paid API listing quality score, buyer-agent skip reasons, agent-service clarity, or x402/Bazaar/Agent402 discovery audit before promotion.
 
 Live service:
 
@@ -9,6 +9,7 @@ Live service:
 - Cash register: https://listing-roast-x402-service-production.up.railway.app/api/cash-register
 - OpenAPI: https://listing-roast-x402-service-production.up.railway.app/openapi.json
 - x402 manifest: https://listing-roast-x402-service-production.up.railway.app/x402.json
+- AgentCore handoff: https://listing-roast-x402-service-production.up.railway.app/agentcore-x402-payments
 - Local discovery search: https://listing-roast-x402-service-production.up.railway.app/v2/x402/discovery/search?query=paid%20API%20listing%20quality&limit=3
 
 ## Start Without Spending
@@ -17,6 +18,7 @@ Use these free checks before calling any paid route:
 
 ```text
 GET /api/paid-usage-proof
+GET /agentcore-x402-payments
 GET /api/pay-now?intent=paid%20API%20listing%20quality
 GET /api/route?query=paid%20API%20listing%20quality
 GET /v2/x402/discovery/search?query=paid%20API%20listing%20quality&limit=3
@@ -63,6 +65,8 @@ Expected payment challenge:
 Listing Roast x402 is relevant for:
 
 - paid API listing quality score
+- AgentCore x402 payments
+- Coinbase x402 Bazaar MCP server
 - paid API listing quality
 - marketplace listing score
 - marketplace listing conversion API

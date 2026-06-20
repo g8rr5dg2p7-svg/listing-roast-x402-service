@@ -190,8 +190,8 @@ describe("Listing Roast x402 service", () => {
       const home = await fetchJson(server, "/");
       expect(home.status).toBe(200);
       expect(home.headers.get("link")).toContain("/.well-known/x402.json");
-      expect(home.text).toContain("Score paid API listing quality, x402 marketplace conversion, and agent listing conversion before promotion");
-      expect(home.text).toContain("first step for marketplace listing quality, marketplace listing conversion API, marketplace listing conversion, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality, and buyer-agent skip-reason searches");
+      expect(home.text).toContain("AgentCore x402 payments readiness");
+      expect(home.text).toContain("first step for marketplace listing quality, marketplace listing conversion API, marketplace listing conversion, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, AgentCore x402 payments, Coinbase x402 Bazaar MCP server buyers");
       expect(home.text).toContain("x402 marketplace conversion score, agent listing conversion score, structured JSON critique");
       expect(home.text).toContain("Recommended paid sequence");
       expect(home.text).toContain("GET /api/listing-roast");
@@ -259,6 +259,7 @@ describe("Listing Roast x402 service", () => {
       expect(home.text).toContain("/agent-listing-conversion");
       expect(home.text).toContain("/x402-discovery-audit");
       expect(home.text).toContain("/x402-site-audit");
+      expect(home.text).toContain("/agentcore-x402-payments");
       expect(home.text).toContain("/api/preflight");
       expect(home.text).toContain("/api/v1/preflight");
       expect(home.text).toContain("/preflight");
@@ -278,6 +279,14 @@ describe("Listing Roast x402 service", () => {
       expect(paidApiListingQualityScore.text).toContain("/api/listing-roast");
       expect(paidApiListingQualityScore.text).toContain("/api/paid-usage-proof");
       expect(paidApiListingQualityScore.text).toContain("This page does not call a paid route");
+
+      const agentCoreX402Payments = await fetchJson(server, "/agentcore-x402-payments");
+      expect(agentCoreX402Payments.status).toBe(200);
+      expect(agentCoreX402Payments.text).toContain("AgentCore x402 payments route for paid API listing quality");
+      expect(agentCoreX402Payments.text).toContain("Coinbase x402 Bazaar MCP server");
+      expect(agentCoreX402Payments.text).toContain("/api/listing-roast");
+      expect(agentCoreX402Payments.text).toContain("/api/full-listing-roast");
+      expect(agentCoreX402Payments.text).toContain("This page does not call a paid route");
 
       const listingQualityScoreApi = await fetchJson(server, "/listing-quality-score-api");
       expect(listingQualityScoreApi.status).toBe(200);
@@ -613,7 +622,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(compressedX402Manifest.status).toBe(200);
       expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
-      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-full-roast-get-v1");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-agentcore-x402-v1");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -649,8 +658,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-full-roast-get-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T14:24:22.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-agentcore-x402-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T15:55:00.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -754,7 +763,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
       expect(x402Manifest.json.recommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(x402Manifest.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
-      expect(x402Manifest.json.intentLandingPages.map((page) => page.path)).toEqual(["/paid-api-listing-quality", "/paid-api-listing-quality-score", "/listing-quality-score-api", "/marketplace-product-listing-quality", "/marketplace-listing-conversion-api", "/marketplace-listing-conversion", "/x402-listing-quality", "/buyer-agent-skip-reasons", "/agent-service-clarity", "/agent-listing-conversion", "/x402-discovery-audit", "/x402-site-audit"]);
+      expect(x402Manifest.json.intentLandingPages.map((page) => page.path)).toEqual(["/paid-api-listing-quality", "/paid-api-listing-quality-score", "/listing-quality-score-api", "/marketplace-product-listing-quality", "/marketplace-listing-conversion-api", "/marketplace-listing-conversion", "/x402-listing-quality", "/buyer-agent-skip-reasons", "/agent-service-clarity", "/agent-listing-conversion", "/x402-discovery-audit", "/x402-site-audit", "/agentcore-x402-payments"]);
       expect(x402Manifest.json.intentLandingPages[0].primaryPaidAction.path).toBe("/api/listing-roast");
       expect(x402Manifest.json.intentLandingPages[0].supportingPaidAction.path).toBe("/api/paid-api-listing-quality");
       expect(x402Manifest.json.intentLandingPages[0].upgradePaidAction.path).toBe("/api/full-listing-roast");
@@ -782,6 +791,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.intentLandingPages[10].primaryPaidAction.path).toBe("/api/x402-discovery-audit");
       expect(x402Manifest.json.intentLandingPages[10].primaryPaidAction.method).toBe("GET");
       expect(x402Manifest.json.intentLandingPages[10].primaryPaidAction.maxAmountRequired).toBe("1000");
+      expect(x402Manifest.json.intentLandingPages[12].primaryPaidAction.path).toBe("/api/listing-roast");
+      expect(x402Manifest.json.intentLandingPages[12].supportingPaidAction.path).toBe("/api/full-listing-roast");
       expect(x402Manifest.json.resources.map((resource) => resource.id)).toEqual(["indexed_roast_quick_score", "marketplace_listing_score_alias", "marketplace_listing_conversion_api_alias", "marketplace_listing_conversion_alias", "marketplace_product_listing_quality_alias", "paid_api_listing_quality_alias", "paid_api_listing_quality_score_alias", "listing_quality_score_api_alias", "x402_listing_quality_alias", "buyer_agent_skip_reasons_alias", "agent_service_clarity_alias", "directory_root_post", "api_entry", "api_v1_entry", "v1_entry", "instant_listing_score", "x402_marketplace_conversion_score", "agent_listing_conversion_score", "agent_listing_conversion_score_alias", "x402_ping", "x402_site_audit", "paid_api_preflight", "api_v1_paid_api_preflight", "root_paid_api_preflight", "agent402_route_visibility_audit", "x402_discovery_audit_quick", "x402_discovery_audit", "listing_score", "full_listing_roast_get", "listing_roast"]);
       expect(x402Manifest.json.resources.map((resource) => resource.path)).toEqual(["/api/listing-roast", ...QUICK_SCORE_ALIAS_PATHS, "/", "/api", "/api/v1", "/v1", "/api/instant-listing-score", "/api/x402-marketplace-conversion", "/api/agent-listing-conversion", "/api/agent-listing-conversion-score", "/api/x402-ping", "/api/x402-site-audit", ...PREFLIGHT_ALIAS_PATHS, "/api/agent402-route-visibility", "/api/x402-discovery-audit", "/api/x402-discovery-audit", "/api/listing-score", "/api/full-listing-roast", "/api/listing-roast"]);
       expect(x402Manifest.json.capabilities.actions).toBe(PAID_RESOURCE_COUNT);
@@ -1046,8 +1057,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-full-roast-get-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T14:24:22.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-agentcore-x402-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T15:55:00.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -1104,7 +1115,7 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.agent_hint).toContain("GET /api/listing-roast");
       expect(agentTools.json.preferred_first_paid_action.path).toBe("/api/listing-roast");
       expect(agentTools.json.preferred_first_paid_action.maxAmountRequired).toBe("1000");
-      expect(agentTools.json.intent_landing_pages.map((page) => page.path)).toEqual(["/paid-api-listing-quality", "/paid-api-listing-quality-score", "/listing-quality-score-api", "/marketplace-product-listing-quality", "/marketplace-listing-conversion-api", "/marketplace-listing-conversion", "/x402-listing-quality", "/buyer-agent-skip-reasons", "/agent-service-clarity", "/agent-listing-conversion", "/x402-discovery-audit", "/x402-site-audit"]);
+      expect(agentTools.json.intent_landing_pages.map((page) => page.path)).toEqual(["/paid-api-listing-quality", "/paid-api-listing-quality-score", "/listing-quality-score-api", "/marketplace-product-listing-quality", "/marketplace-listing-conversion-api", "/marketplace-listing-conversion", "/x402-listing-quality", "/buyer-agent-skip-reasons", "/agent-service-clarity", "/agent-listing-conversion", "/x402-discovery-audit", "/x402-site-audit", "/agentcore-x402-payments"]);
       expect(agentTools.json.intent_landing_pages[1].primaryPaidAction.path).toBe("/api/listing-roast");
       expect(agentTools.json.intent_landing_pages[1].supportingPaidAction.path).toBe("/api/paid-api-listing-quality-score");
       expect(agentTools.json.intent_landing_pages[2].primaryPaidAction.path).toBe("/api/listing-roast");
@@ -1387,7 +1398,7 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
-      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-full-roast-get-v1");
+      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-agentcore-x402-v1");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -1987,7 +1998,7 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/api/x402-discovery-audit");
       expect(llms.text).toContain("/api/paid-api-listing-quality-score");
       expect(llms.text).toContain("/api/x402-listing-quality");
-      expect(llms.text).toContain("paid API listing quality score, x402 marketplace conversion, agent listing conversion score, x402 listing quality");
+      expect(llms.text).toContain("paid API listing quality score, AgentCore x402 payments");
       expect(llms.text).toContain("Buyer intent landing pages");
       expect(llms.text).toContain("/paid-api-listing-quality");
       expect(llms.text).toContain("/paid-api-listing-quality-score");
@@ -1995,6 +2006,7 @@ describe("Listing Roast x402 service", () => {
       expect(llms.text).toContain("/agent-listing-conversion");
       expect(llms.text).toContain("/x402-discovery-audit");
       expect(llms.text).toContain("/x402-site-audit");
+      expect(llms.text).toContain("/agentcore-x402-payments");
       expect(llms.text).toContain("Primary paid action: GET http://localhost:8787/api/listing-roast ($0.001, max 1000)");
       expect(llms.text).toContain("Exact intent fallback: GET http://localhost:8787/api/paid-api-listing-quality ($0.001, max 1000)");
       expect(llms.text).toContain("Upgrade paid action: GET http://localhost:8787/api/full-listing-roast ($0.01, max 10000)");
@@ -3182,7 +3194,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.payNowViews).toBe(18);
       expect(cashRegister.json.signals.pricingViews).toBe(1);
       expect(cashRegister.json.signals.findViews).toBe(10);
-      expect(cashRegister.json.signals.routeViews).toBe(23);
+      expect(cashRegister.json.signals.routeViews).toBe(24);
       expect(cashRegister.json.signals.localDiscoveryViews).toBe(17);
       expect(cashRegister.json.signals.mcpViews).toBe(6);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(5);
@@ -3521,7 +3533,7 @@ describe("Listing Roast x402 service", () => {
       expect(agentsMarkdown.text).toContain("Official CDP merchant lookup: https://api.cdp.coinbase.com/platform/v2/x402/discovery/merchant?payTo=0x000000000000000000000000000000000000dEaD");
       expect(agentsMarkdown.text).toContain("Start paid use with the already-settled indexed route: http://localhost:8787/api/listing-roast");
       expect(agentsMarkdown.text).toContain("x402 marketplace conversion read, agent listing conversion score");
-      expect(agentsMarkdown.text).toContain("paid API listing quality, x402 marketplace conversion, or agent listing conversion score");
+      expect(agentsMarkdown.text).toContain("paid API listing quality, AgentCore x402 payments readiness, x402 marketplace conversion, or agent listing conversion score");
       expect(agentsMarkdown.text).toContain("Agent payment prompt: Call this x402 endpoint with GET and pay up to 0.001 USDC: http://localhost:8787/api/listing-roast");
       expect(agentsMarkdown.text).toContain("Recommended Paid Sequence");
       expect(agentsMarkdown.text).toContain("Full roast command");
@@ -3582,7 +3594,7 @@ describe("Listing Roast x402 service", () => {
 
       const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
       expect(paymentAlias.status).toBe(200);
-      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-full-roast-get-v1");
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-agentcore-x402-v1");
       expect(paymentAlias.json.commands).toContain("/api/commands");
 
       const mcpJsonAlias = await fetchJson(server, "/mcp.json");

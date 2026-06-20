@@ -10,6 +10,8 @@
     "coinbase-bazaar",
     "buyer-agent-skip-reasons",
     "agent-service-clarity",
+    "agentcore-x402-payments",
+    "coinbase-bazaar-mcp",
     "marketplace-listing-conversion",
     "x402-discovery-audit",
     "paid-api-preflight"
