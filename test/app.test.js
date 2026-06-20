@@ -483,6 +483,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T01:05:00.000Z");
       expect(x402Manifest.json.commands).toContain("/api/commands");
       expect(x402Manifest.json.compactCommandHandoff.firstPaidAction.path).toBe("/api/listing-roast");
+      expect(x402Manifest.json.compactCommandHandoff.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
       expect(x402Manifest.json.payNow).toContain("/api/pay-now");
       expect(x402Manifest.json.startHere.path).toBe("/api/listing-roast");
       expect(x402Manifest.json.startHere.method).toBe("GET");
@@ -1017,6 +1018,7 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(examples.json.commands).toContain("/api/commands");
       expect(examples.json.compactCommandHandoff.firstPaidAction.path).toBe("/api/listing-roast");
+      expect(examples.json.compactCommandHandoff.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
       expect(examples.json.payNowUrl).toContain("/api/pay-now");
       expect(examples.json.paidUsageProofUrl).toContain("/api/paid-usage-proof");
       expect(examples.json.cashRegister).toContain("/api/cash-register");

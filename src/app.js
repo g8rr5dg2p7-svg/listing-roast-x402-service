@@ -2905,22 +2905,68 @@ function compactPaidUseProof(proof = {}) {
   };
 }
 
+function commandActionKeyForIntent(intent = "") {
+  const rawIntent = String(intent || "").trim().slice(0, 400);
+  const normalizedIntent = rawIntent.toLowerCase();
+
+  if (!rawIntent) {
+    return { intent: "", selectedActionKey: "indexedQuickScore" };
+  }
+
+  const quickAliasKey = quickScoreAliasActionKeyForQuery(rawIntent);
+  if (quickAliasKey) {
+    return { intent: rawIntent, selectedActionKey: quickAliasKey };
+  }
+
+  if (/\bping\b/.test(normalizedIntent)) {
+    return { intent: rawIntent, selectedActionKey: "x402Ping" };
+  }
+
+  if (normalizedIntent.includes("discovery audit") || normalizedIntent.includes("stale") || normalizedIntent.includes("bazaar") || normalizedIntent.includes("search visibility") || normalizedIntent.includes("route health")) {
+    return { intent: rawIntent, selectedActionKey: "discoveryAuditQuick" };
+  }
+
+  if (normalizedIntent.includes("preflight") || normalizedIntent.includes("openapi") || normalizedIntent.includes("llms") || normalizedIntent.includes("robots") || normalizedIntent.includes("sitemap") || normalizedIntent.includes("metadata")) {
+    return { intent: rawIntent, selectedActionKey: "x402SiteAudit" };
+  }
+
+  if (normalizedIntent.includes("custom") || normalizedIntent.includes("body") || normalizedIntent.includes("listing score")) {
+    return { intent: rawIntent, selectedActionKey: "listingScore" };
+  }
+
+  if (normalizedIntent.includes("full") || normalizedIntent.includes("rewrite") || normalizedIntent.includes("roast")) {
+    return { intent: rawIntent, selectedActionKey: "fullRoast" };
+  }
+
+  return { intent: rawIntent, selectedActionKey: "indexedQuickScore" };
+}
+
 function buildCommandHandoff(config, intent = "", cashRegister = {}) {
-  const handoff = buildPayNow(config, intent, cashRegister);
-  const firstPaidAction = handoff.selectedFirstPaidAction || handoff.preferredFirstPaidAction;
-  const upgradeAction = handoff.selectedPaidSequence?.find((step) => step.step === 2)?.action || handoff.upgradeRoutes.roast;
+  const intentRoutes = buildPayNowActions(config);
+  const proof = buildPaidUsageProof(config, cashRegister);
+  const selection = commandActionKeyForIntent(intent);
+  const selectedPaidAction = intentRoutes[selection.selectedActionKey] || intentRoutes.indexedQuickScore;
+  const firstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selection.selectedActionKey, selectedPaidAction);
+  const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction);
+  const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
+  const upgradeAction = selectedPaidSequence.find((step) => step.step === 2)?.action || intentRoutes.fullRoast;
 
   return {
     service: config.serviceName,
     kind: "compact-pay-command-handoff",
     metadataVersion: DISCOVERY_METADATA_VERSION,
     noSpend: true,
-    intent: handoff.intent,
+    intent: selection.intent || null,
     summary: "Compact command-first handoff for buyer agents. Fetching this JSON is free; payment happens only when the buyer calls the returned x402 route with a valid payment header.",
-    paidUseProof: compactPaidUseProof(handoff.paidUsageProof),
+    paidUseProof: compactPaidUseProof(proof),
     firstPaidAction: compactPaidAction(firstPaidAction),
-    ...(handoff.exactIntentPaidAction ? { exactIntentPaidAction: compactPaidAction(handoff.exactIntentPaidAction) } : {}),
-    expectedChallenge: handoff.expectedChallenge,
+    ...(exactIntentPaidAction ? { exactIntentPaidAction: compactPaidAction(exactIntentPaidAction) } : {}),
+    expectedChallenge: {
+      status: 402,
+      amount: firstPaidAction.maxAmountRequired,
+      network: config.network,
+      route: firstPaidAction.route
+    },
     upgradeAfterFit: compactPaidAction(upgradeAction),
     whenToPay: "Pay only when the buyer explicitly wants a paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent-service clarity check, or full listing roast.",
     whenNotToPay: "Do not pay for discovery, proof checks, pricing, route selection, or health checks; use the free links below first.",
@@ -2934,7 +2980,7 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
       x402Manifest: absoluteUrl(config, "/x402.json"),
       openApi: absoluteUrl(config, "/openapi.json")
     },
-    marketplaceNote: handoff.marketplaceNote
+    marketplaceNote: "CDP Bazaar updates indexed descriptions after a real settled payment; this free handoff reflects the current live route map without spending."
   };
 }
 
@@ -4759,7 +4805,7 @@ function buildX402Manifest(config, cashRegister = {}) {
     mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     commands: absoluteUrl(config, COMMANDS_PATH),
-    compactCommandHandoff: buildCommandHandoff(config, "", cashRegister),
+    compactCommandHandoff: buildCommandHandoff(config, "paid API listing quality", cashRegister),
     startHere,
     payNowExamples: buildPayNowIntentExamples(config),
     intentLandingPages: buildIntentLandingHandoffs(config),
@@ -7392,7 +7438,7 @@ ${webMcpScript(config)}
       mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
       payNowUrl: absoluteUrl(config, PAY_NOW_PATH),
       commands: absoluteUrl(config, COMMANDS_PATH),
-      compactCommandHandoff: buildCommandHandoff(config, "", cashRegister),
+      compactCommandHandoff: buildCommandHandoff(config, "paid API listing quality", cashRegister),
       payNow,
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
