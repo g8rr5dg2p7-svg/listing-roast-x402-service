@@ -458,8 +458,10 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-discovery-wallet-proof-v39";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T00:10:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-cached-discovery-wallet-proof-v40";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T00:35:00.000Z";
+const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
+let receiverWalletSnapshotCache = null;
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -1567,7 +1569,20 @@ function formatUsdc(rawUnits) {
   return fractionText ? `${whole}.${fractionText}` : `${whole}.00`;
 }
 
+function receiverWalletSnapshotCacheKey(config) {
+  return `${config.network}|${config.payTo}|${config.baseRpcUrl}`;
+}
+
 async function getReceiverBalanceSnapshot(config) {
+  const cacheKey = receiverWalletSnapshotCacheKey(config);
+  const nowMs = Date.now();
+  if (receiverWalletSnapshotCache && receiverWalletSnapshotCache.key === cacheKey && receiverWalletSnapshotCache.expiresAt > nowMs) {
+    return {
+      ...receiverWalletSnapshotCache.snapshot,
+      cached: true
+    };
+  }
+
   const checkedAt = new Date().toISOString();
 
   if (config.network !== BASE_MAINNET_NETWORK) {
@@ -1610,7 +1625,7 @@ async function getReceiverBalanceSnapshot(config) {
     }
 
     const rawUnits = BigInt(payload.result);
-    return {
+    const snapshot = {
       address: config.payTo,
       network: config.network,
       asset: "USDC",
@@ -1619,6 +1634,14 @@ async function getReceiverBalanceSnapshot(config) {
       checkedAt,
       source: new URL(config.baseRpcUrl).hostname
     };
+
+    receiverWalletSnapshotCache = {
+      key: cacheKey,
+      expiresAt: Date.now() + RECEIVER_WALLET_SNAPSHOT_CACHE_MS,
+      snapshot
+    };
+
+    return { ...snapshot };
   } catch {
     return {
       address: config.payTo,
