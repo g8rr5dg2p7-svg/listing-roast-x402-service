@@ -214,7 +214,7 @@ const SERVICE_TAGS = Object.freeze([
   "route health"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools directory snippets; returns route map, indexed /api/listing-roast quick-score handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent clarity, agent service clarity, paid API preflight, x402 audit, x402 discovery audit, Bazaar visibility, stale price. $0.001 GET /api/listing-roast; /api/x402-site-audit, /api/x402-discovery-audit, POST /api/listing-roast.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Score API marketplace listing quality and discoverability. $0.001 GET /api/listing-roast for paid API listing quality score, marketplace listing score, buyer-agent skip reasons, agent service clarity, paid API preflight, x402 discovery audit, Bazaar visibility, and stale price; upgrade via POST /api/listing-roast.";
 const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
   "paid API listing quality score",
   "marketplace listing score",
