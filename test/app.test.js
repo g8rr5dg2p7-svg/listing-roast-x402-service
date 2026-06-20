@@ -585,7 +585,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(compressedX402Manifest.status).toBe(200);
       expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
-      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-conversion-api-page-v1");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-402-body-mirror-v1");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -621,8 +621,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-conversion-api-page-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T05:06:37.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-402-body-mirror-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T05:15:48.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -946,8 +946,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-conversion-api-page-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T05:06:37.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-402-body-mirror-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T05:15:48.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -1216,7 +1216,7 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
-      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-conversion-api-page-v1");
+      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-402-body-mirror-v1");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -3050,7 +3050,7 @@ describe("Listing Roast x402 service", () => {
 
       const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
       expect(paymentAlias.status).toBe(200);
-      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-conversion-api-page-v1");
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-402-body-mirror-v1");
       expect(paymentAlias.json.commands).toContain("/api/commands");
 
       const mcpJsonAlias = await fetchJson(server, "/mcp.json");
@@ -3605,6 +3605,16 @@ describe("Listing Roast x402 service", () => {
         expect(challenge.accepts[0].network).toBe("eip155:84532");
         expect(challenge.accepts[0].amount).toBe("1000");
         expect(response.json.error).toBe("payment_required");
+        expect(response.json.x402Version).toBe(challenge.x402Version);
+        expect(response.json.resource.url).toBe(challenge.resource.url);
+        expect(response.json.resource.mimeType).toBe(challenge.resource.mimeType);
+        expect(response.json.resource.serviceName).toBe(challenge.resource.serviceName);
+        expect(response.json.resource.tags).toEqual(challenge.resource.tags);
+        expect(response.json.accepts[0].network).toBe(challenge.accepts[0].network);
+        expect(response.json.accepts[0].amount).toBe(challenge.accepts[0].amount);
+        expect(response.json.accepts[0].asset).toBe(challenge.accepts[0].asset);
+        expect(response.json.accepts[0].payTo).toBe(challenge.accepts[0].payTo);
+        expect(response.json.paymentRequirementsSource.authoritative).toBe("Payment-Required response header");
         expect(response.json.selectedPaidAction.path).toBe(routePath);
         expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
         expect(response.json.selectedPaidAction.command).toContain(routePath);

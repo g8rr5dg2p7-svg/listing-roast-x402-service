@@ -20,6 +20,7 @@ import { buildListingRoast, buildListingScore, listingRoastRequestSchema, normal
 const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
 const BASE_MAINNET_NETWORK = "eip155:8453";
 const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const BASE_SEPOLIA_USDC_CONTRACT = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
 const USDC_DECIMALS = 1_000_000n;
 const GZIP_RESPONSE_THRESHOLD_BYTES = 1024;
 const COMPRESSIBLE_CONTENT_TYPE = /(json|text|javascript|svg|xml|markdown|linkset)/i;
@@ -345,8 +346,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-conversion-api-page-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T05:06:37.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-402-body-mirror-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T05:15:48.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -3783,9 +3784,32 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     : selectedBase;
   const paidUseProof = buildPaidUseProofLinks(config);
   const settlementProof = buildSettlementProof(config);
+  const paymentRouteKey = paymentRouteMetadataKey(intentRouteKey, selected);
+  const paymentResource = {
+    url: absoluteUrl(config, selected.path),
+    description: selected.reason,
+    mimeType: "application/json",
+    ...routeServiceMetadata(paymentRouteKey)
+  };
+  const paymentAccepts = [{
+    scheme: "exact",
+    network: config.network,
+    amount: selected.maxAmountRequired,
+    asset: usdcAssetForNetwork(config.network),
+    payTo: config.payTo,
+    maxTimeoutSeconds: 300
+  }];
 
   return {
     error: "payment_required",
+    x402Version: 2,
+    resource: paymentResource,
+    accepts: paymentAccepts,
+    paymentRequirementsSource: {
+      authoritative: "Payment-Required response header",
+      bodyMirror: true,
+      note: "The Payment-Required header remains the source of truth. These body fields mirror the stable x402 amount, network, receiver, and resource for agents that inspect JSON first."
+    },
     service: config.serviceName,
     noSpendPreview: true,
     selectedPaidAction: selected,
@@ -3803,7 +3827,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     x402Retry: {
       paymentRequiredHeader: "Payment-Required",
       paymentHeader: "X-PAYMENT",
-      route: selected.route,
+      route: selected.path,
       method: selected.method,
       maxAmountRequired: selected.maxAmountRequired,
       command: selected.command,
@@ -7379,6 +7403,37 @@ function routeServiceMetadata(routeKey) {
     serviceName: ROUTE_SERVICE_NAMES[routeKey] || X402_SERVICE_NAME,
     tags: routeTags(routeKey)
   };
+}
+
+function paymentRouteMetadataKey(intentRouteKey, selected) {
+  const method = String(selected?.method || "GET").toUpperCase();
+  const pathname = selected?.path || "";
+
+  if (method === "GET" && [ROAST_PATH, ...QUICK_SCORE_ALIAS_PATHS].includes(pathname)) {
+    return "indexedQuickScore";
+  }
+
+  if (method === "GET" && SITE_AUDIT_PAID_PATHS.includes(pathname)) {
+    return "x402SiteAudit";
+  }
+
+  if (method === "GET" && pathname === DISCOVERY_AUDIT_PATH) {
+    return "discoveryAuditQuick";
+  }
+
+  return intentRouteKey;
+}
+
+function usdcAssetForNetwork(network) {
+  if (network === BASE_MAINNET_NETWORK) {
+    return BASE_USDC_CONTRACT;
+  }
+
+  if (network === "eip155:84532") {
+    return BASE_SEPOLIA_USDC_CONTRACT;
+  }
+
+  return "USDC";
 }
 
 function createX402Middleware(config) {
