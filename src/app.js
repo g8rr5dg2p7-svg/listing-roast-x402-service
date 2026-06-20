@@ -3399,9 +3399,9 @@ function buildRecommendedPaidSequence(intentRoutes) {
     },
     {
       step: 2,
-      use: "fullRoast",
-      action: intentRoutes.fullRoast,
-      reason: "Upgrade to the $0.01 full roast when the quick score is promising and the buyer wants rewritten copy, top fixes, and launch guidance."
+      use: "fullRoastGet",
+      action: intentRoutes.fullRoastGet,
+      reason: "Upgrade to the direct $0.01 GET full roast when the quick score is promising and the buyer wants rewritten copy, top fixes, buyer-agent skip reasons, and launch guidance without assembling a body."
     }
   ];
 }
@@ -3415,24 +3415,24 @@ const SELECTED_FOLLOWUP_ACTION_BY_KEY = {
   apiEntry: "indexedQuickScore",
   apiV1Entry: "indexedQuickScore",
   v1Entry: "indexedQuickScore",
-  indexedQuickScore: "fullRoast",
-  marketplaceListingScore: "fullRoast",
-  marketplaceListingConversion: "fullRoast",
-  marketplaceProductListingQuality: "fullRoast",
-  paidApiListingQuality: "fullRoast",
-  paidApiListingQualityScore: "fullRoast",
-  listingQualityScoreApi: "fullRoast",
-  x402ListingQuality: "fullRoast",
-  buyerAgentSkipReasons: "fullRoast",
-  agentServiceClarity: "fullRoast",
-  instantScore: "fullRoast",
-  conversionScore: "fullRoast",
-  agentListingConversion: "fullRoast",
+  indexedQuickScore: "fullRoastGet",
+  marketplaceListingScore: "fullRoastGet",
+  marketplaceListingConversion: "fullRoastGet",
+  marketplaceProductListingQuality: "fullRoastGet",
+  paidApiListingQuality: "fullRoastGet",
+  paidApiListingQualityScore: "fullRoastGet",
+  listingQualityScoreApi: "fullRoastGet",
+  x402ListingQuality: "fullRoastGet",
+  buyerAgentSkipReasons: "fullRoastGet",
+  agentServiceClarity: "fullRoastGet",
+  instantScore: "fullRoastGet",
+  conversionScore: "fullRoastGet",
+  agentListingConversion: "fullRoastGet",
   x402Ping: "indexedQuickScore",
   x402SiteAudit: "discoveryAuditQuick",
   agent402RouteVisibility: "discoveryAudit",
   discoveryAuditQuick: "discoveryAudit",
-  listingScore: "fullRoast"
+  listingScore: "fullRoastGet"
 };
 
 const QUICK_SCORE_EXACT_ALIAS_ACTION_KEYS = new Set([
@@ -3495,7 +3495,7 @@ function upgradePaidActionForLandingPage(intentRoutes, page, exactIntentPaidActi
     page.supportingAction.path === intentRoutes.indexedQuickScore.path &&
     page.supportingAction.method === intentRoutes.indexedQuickScore.method
   ) {
-    return intentRoutes.fullRoast;
+    return intentRoutes.fullRoastGet;
   }
 
   return page.supportingAction;
@@ -5847,8 +5847,8 @@ function buildStartHereHandoff(config, cashRegister = {}, intentRoutes = buildPa
   const use = options.use || firstStep?.use || "indexedQuickScore";
   const upgradeAction = options.upgradeAction === null
     ? null
-    : options.upgradeAction || followupStep?.action || (isTerminalPaidActionKey(use) ? null : intentRoutes.fullRoast);
-  const upgradeUse = options.upgradeUse || followupStep?.use || (upgradeAction ? "fullRoast" : null);
+    : options.upgradeAction || followupStep?.action || (isTerminalPaidActionKey(use) ? null : intentRoutes.fullRoastGet);
+  const upgradeUse = options.upgradeUse || followupStep?.use || (upgradeAction ? "fullRoastGet" : null);
   const proof = buildPaidUsageProof(config, cashRegister);
 
   return {

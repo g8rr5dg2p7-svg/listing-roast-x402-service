@@ -521,7 +521,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
       expect(mcp.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(mcp.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
-      expect(mcp.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(mcp.json.recommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(mcp.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(mcp.json.payment.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
       expect(mcp.json.payment.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
@@ -659,8 +659,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.startHere.buyerInstruction).toContain("start with GET /api/listing-roast");
       expect(x402Manifest.json.startHere.expectedChallenge.status).toBe(402);
       expect(x402Manifest.json.startHere.expectedChallenge.amount).toBe("1000");
-      expect(x402Manifest.json.startHere.upgradeAfterFit.path).toBe("/api/listing-roast");
-      expect(x402Manifest.json.startHere.upgradeAfterFit.method).toBe("POST");
+      expect(x402Manifest.json.startHere.upgradeAfterFit.path).toBe("/api/full-listing-roast");
+      expect(x402Manifest.json.startHere.upgradeAfterFit.method).toBe("GET");
       expect(x402Manifest.json.payNowExamples.skipReasons.selectedActionKey).toBe("buyerAgentSkipReasons");
       expect(x402Manifest.json.payNowExamples.skipReasons.route).toContain("/api/listing-roast");
       expect(x402Manifest.json.payNowExamples.skipReasons.selectedFirstPaidAction.path).toBe("/api/listing-roast");
@@ -742,13 +742,13 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.call.x402_route).toBe("/api/listing-roast");
       expect(x402Manifest.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(x402Manifest.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
-      expect(x402Manifest.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(x402Manifest.json.recommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(x402Manifest.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(x402Manifest.json.intentLandingPages.map((page) => page.path)).toEqual(["/paid-api-listing-quality", "/paid-api-listing-quality-score", "/listing-quality-score-api", "/marketplace-product-listing-quality", "/marketplace-listing-conversion-api", "/marketplace-listing-conversion", "/x402-listing-quality", "/buyer-agent-skip-reasons", "/agent-service-clarity", "/agent-listing-conversion", "/x402-discovery-audit", "/x402-site-audit"]);
       expect(x402Manifest.json.intentLandingPages[0].primaryPaidAction.path).toBe("/api/listing-roast");
       expect(x402Manifest.json.intentLandingPages[0].supportingPaidAction.path).toBe("/api/paid-api-listing-quality");
-      expect(x402Manifest.json.intentLandingPages[0].upgradePaidAction.path).toBe("/api/listing-roast");
-      expect(x402Manifest.json.intentLandingPages[0].upgradePaidAction.method).toBe("POST");
+      expect(x402Manifest.json.intentLandingPages[0].upgradePaidAction.path).toBe("/api/full-listing-roast");
+      expect(x402Manifest.json.intentLandingPages[0].upgradePaidAction.method).toBe("GET");
       expect(x402Manifest.json.intentLandingPages[1].primaryPaidAction.path).toBe("/api/listing-roast");
       expect(x402Manifest.json.intentLandingPages[1].supportingPaidAction.path).toBe("/api/paid-api-listing-quality-score");
       expect(x402Manifest.json.intentLandingPages[2].primaryPaidAction.path).toBe("/api/listing-roast");
@@ -1173,7 +1173,7 @@ describe("Listing Roast x402 service", () => {
       expect(agentCard.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
       expect(agentCard.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(agentCard.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
-      expect(agentCard.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(agentCard.json.recommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(agentCard.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(agentCard.json.payNowExamples.discoveryAudit.selectedActionKey).toBe("discoveryAuditQuick");
       expect(agentCard.json.payNowExamples.discoveryAudit.paidResponsePreview.route).toBe("/api/x402-discovery-audit");
@@ -1233,7 +1233,7 @@ describe("Listing Roast x402 service", () => {
       expect(aiPlugin.json.x_listing_roast.recommendedFirstPaidAction.maxAmountRequired).toBe("1000");
       expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
-      expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(aiPlugin.json.x_listing_roast.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(aiPlugin.json.x_listing_roast.preflightAliases).toContain("http://localhost:8787/api/preflight");
       expect(aiPlugin.json.x_listing_roast.preflightAliases).toContain("http://localhost:8787/api/v1/preflight");
@@ -1332,13 +1332,13 @@ describe("Listing Roast x402 service", () => {
         amount: "1000",
         route: "http://localhost:8787/api/listing-roast"
       });
-      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].href).toBe("http://localhost:8787/api/listing-roast");
-      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].method).toBe("POST");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].href).toBe("http://localhost:8787/api/full-listing-roast");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].method).toBe("GET");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].maxAmountRequired).toBe("10000");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].agentPaymentRequest.maxPayment).toBe("0.01");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].agentPaymentPrompt).toContain("pay up to 0.01 USDC");
-      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].command).toContain("x402 pay 'http://localhost:8787/api/listing-roast'");
-      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].command).toContain("-X POST");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].command).toContain("x402 pay 'http://localhost:8787/api/full-listing-roast'");
+      expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].command).toContain("-X GET");
       expect(apiCatalog.json.linkset[0]["recommended-paid-sequence"][1].command).toContain("--max-amount 10000");
       expect(apiCatalog.json.linkset[0]["official-cdp-discovery"][0].href).toBe("http://localhost:8787/api/listing-roast");
       expect(apiCatalog.json.linkset[0]["official-cdp-discovery"][0].indexedRouteReason).toContain("already-settled");
@@ -1503,7 +1503,7 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.route).toContain("/api/route");
       expect(examples.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(examples.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
-      expect(examples.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(examples.json.recommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(examples.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(examples.json.localDiscovery.resources).toContain("/v2/x402/discovery/resources");
       expect(examples.json.localDiscovery.officialCdpDiscovery.recommendedSearchQuery).toBe("listing roast");
@@ -1933,13 +1933,13 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json["x-listing-roast"].recommendedFirstPaidAction.route).toContain("/api/listing-roast");
       expect(openApi.json["x-recommended-paid-sequence"][0].use).toBe("indexedQuickScore");
       expect(openApi.json["x-recommended-paid-sequence"][0].action.maxAmountRequired).toBe("1000");
-      expect(openApi.json["x-recommended-paid-sequence"][1].use).toBe("fullRoast");
+      expect(openApi.json["x-recommended-paid-sequence"][1].use).toBe("fullRoastGet");
       expect(openApi.json["x-recommended-paid-sequence"][1].action.maxAmountRequired).toBe("10000");
       expect(openApi.json.info["x-recommended-paid-sequence"][0].use).toBe("indexedQuickScore");
-      expect(openApi.json.info["x-recommended-paid-sequence"][1].action.path).toBe("/api/listing-roast");
+      expect(openApi.json.info["x-recommended-paid-sequence"][1].action.path).toBe("/api/full-listing-roast");
       expect(openApi.json["x-listing-roast"].recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(openApi.json["x-listing-roast"].recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
-      expect(openApi.json["x-listing-roast"].recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(openApi.json["x-listing-roast"].recommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(openApi.json["x-listing-roast"].recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(openApi.json["x-listing-roast"].x402Manifest).toContain("/x402.json");
       expect(openApi.json["x-listing-roast"].keywords).toContain("paid API listing");
@@ -2218,10 +2218,10 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(payNow.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
       expect(payNow.json.recommendedPaidSequence[0].action.agentPaymentPrompt).toContain("pay up to 0.001 USDC");
-      expect(payNow.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(payNow.json.recommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(payNow.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(payNow.json.genericRecommendedPaidSequence[0].use).toBe("indexedQuickScore");
-      expect(payNow.json.genericRecommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(payNow.json.genericRecommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(payNow.json.paidResponsePreview.route).toBe("/api/listing-roast");
       expect(payNow.json.paidResponsePreview.example.endpoint).toBe("listing-roast-quick-score");
       expect(payNow.json.selectedFirstPaidResponsePreview.route).toBe("/api/listing-roast");
@@ -2333,15 +2333,15 @@ describe("Listing Roast x402 service", () => {
       expect(commands.json.recommendedPaidSequence[0].action.path).toBe("/api/listing-roast");
       expect(commands.json.recommendedPaidSequence[0].action.method).toBe("GET");
       expect(commands.json.recommendedPaidSequence[0].action.agentPaymentRequest.maxPayment).toBe("0.001");
-      expect(commands.json.recommendedPaidSequence[1].action.path).toBe("/api/listing-roast");
-      expect(commands.json.recommendedPaidSequence[1].action.method).toBe("POST");
+      expect(commands.json.recommendedPaidSequence[1].action.path).toBe("/api/full-listing-roast");
+      expect(commands.json.recommendedPaidSequence[1].action.method).toBe("GET");
       expect(commands.json.recommendedPaidSequence[1].action.command).toContain("--max-amount 10000");
-      expect(commands.json.genericRecommendedPaidSequence[1].action.method).toBe("POST");
+      expect(commands.json.genericRecommendedPaidSequence[1].action.method).toBe("GET");
       expect(commands.json.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
       expect(commands.json.buyerPhraseCommandPack[0].firstPaidAction.path).toBe("/api/listing-roast");
       expect(commands.json.buyerPhraseCommandPack[0].exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality-score");
-      expect(commands.json.buyerPhraseCommandPack[0].recommendedPaidSequence[1].action.path).toBe("/api/listing-roast");
-      expect(commands.json.buyerPhraseCommandPack[0].upgradeAfterFit.command).toContain("-X POST");
+      expect(commands.json.buyerPhraseCommandPack[0].recommendedPaidSequence[1].action.path).toBe("/api/full-listing-roast");
+      expect(commands.json.buyerPhraseCommandPack[0].upgradeAfterFit.command).toContain("-X GET");
       expect(commands.json.buyerPhraseCommandPack[0].commandHandoff).toContain("paid%20API%20listing%20quality%20score");
       expect(commands.json.bazaarCataloging.noSelfPay).toBe(true);
       expect(commands.json.bazaarCataloging.note).toContain("extensions.bazaar metadata");
@@ -2422,7 +2422,7 @@ describe("Listing Roast x402 service", () => {
       expect(payNowSkipReasons.json.selectedFirstPaidAction.path).toBe("/api/listing-roast");
       expect(payNowSkipReasons.json.selectedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(payNowSkipReasons.json.selectedPaidSequence[0].action.path).toBe("/api/listing-roast");
-      expect(payNowSkipReasons.json.selectedPaidSequence[1].use).toBe("fullRoast");
+      expect(payNowSkipReasons.json.selectedPaidSequence[1].use).toBe("fullRoastGet");
       expect(payNowSkipReasons.json.paidResponsePreview.route).toBe("/api/listing-roast");
       expect(payNowSkipReasons.json.paidResponsePreview.includes).toContain("verdict");
       expect(payNowSkipReasons.json.selectedFirstPaidResponsePreview.route).toBe("/api/listing-roast");
@@ -2588,7 +2588,7 @@ describe("Listing Roast x402 service", () => {
       expect(pricing.json.preferredFirstPaidResponsePreview.example.endpoint).toBe("listing-roast-quick-score");
       expect(pricing.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(pricing.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
-      expect(pricing.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(pricing.json.recommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(pricing.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(pricing.json.routes.map((route) => route.path)).toContain("/api/x402-site-audit");
       expect(pricing.json.routes.map((route) => route.path)).toContain("/api/preflight");
@@ -2630,7 +2630,7 @@ describe("Listing Roast x402 service", () => {
       expect(findDiscovery.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(findDiscovery.json.genericRecommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(findDiscovery.json.genericRecommendedPaidSequence[0].action.path).toBe("/api/listing-roast");
-      expect(findDiscovery.json.genericRecommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(findDiscovery.json.genericRecommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(findDiscovery.json.paidResponsePreview.route).toBe("/api/x402-discovery-audit");
       expect(findDiscovery.json.paidResponsePreview.includes).toContain("search visibility");
       expect(findDiscovery.json.selectedFirstPaidResponsePreview.example.endpoint).toBe("x402-discovery-audit-quick");
@@ -2761,7 +2761,7 @@ describe("Listing Roast x402 service", () => {
       expect(routeDiscovery.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(routeDiscovery.json.genericRecommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(routeDiscovery.json.genericRecommendedPaidSequence[0].action.path).toBe("/api/listing-roast");
-      expect(routeDiscovery.json.genericRecommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(routeDiscovery.json.genericRecommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(routeDiscovery.json.paidResponsePreview.route).toBe("/api/x402-discovery-audit");
       expect(routeDiscovery.json.paidResponsePreview.example.endpoint).toBe("x402-discovery-audit-quick");
       expect(routeDiscovery.json.command).toContain("/api/x402-discovery-audit");
@@ -2921,7 +2921,7 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscovery.json.preferredFirstPaidResponsePreview.example.endpoint).toBe("listing-roast-quick-score");
       expect(localDiscovery.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(localDiscovery.json.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
-      expect(localDiscovery.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(localDiscovery.json.recommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(localDiscovery.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
 
       const localDiscoveryAlias = await fetchJson(server, "/.well-known/x402/discovery/resources?limit=1");
@@ -2977,7 +2977,7 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoverySearch.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(localDiscoverySearch.json.genericRecommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(localDiscoverySearch.json.genericRecommendedPaidSequence[0].action.path).toBe("/api/listing-roast");
-      expect(localDiscoverySearch.json.genericRecommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(localDiscoverySearch.json.genericRecommendedPaidSequence[1].use).toBe("fullRoastGet");
       expect(localDiscoverySearch.json.paidResponsePreview.route).toBe("/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.paidResponsePreview.example.endpoint).toBe("x402-discovery-audit-quick");
 
@@ -3399,7 +3399,7 @@ describe("Listing Roast x402 service", () => {
       expect(apiClient.headers.get("content-type")).toContain("application/json");
       expect(apiClient.json.selectedPaidAction.path).toBe("/api/x402-site-audit");
       expect(apiClient.json.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
-      expect(apiClient.json.recommendedPaidSequence[1].use).toBe("fullRoast");
+      expect(apiClient.json.recommendedPaidSequence[1].use).toBe("fullRoastGet");
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
