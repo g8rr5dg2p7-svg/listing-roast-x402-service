@@ -3,6 +3,7 @@ import net from "node:net";
 import { z } from "zod";
 
 const CDP_DISCOVERY_BASE = "https://api.cdp.coinbase.com/platform/v2/x402/discovery";
+const AGENT402_ROUTE_URL = "https://agent402.tools/api/route";
 const DEFAULT_TIMEOUT_MS = 4500;
 const SETTLE_RESOURCE_ACTION = "Confirm the buyer/client settle request includes paymentPayload.resource for this exact endpoint and preserves the Bazaar extension metadata; Bazaar catalogs settled resources, not unpaid probes.";
 
@@ -73,6 +74,7 @@ export const discoveryAuditRequestSchema = z
     expectedAmount: z.string().trim().regex(/^\d+$/).max(24).optional(),
     expectedNetwork: z.string().trim().min(3).max(80).optional(),
     searchQuery: z.string().trim().min(2).max(180).optional(),
+    agent402Query: z.string().trim().min(2).max(180).optional(),
     requestBody: z.union([z.record(z.unknown()), z.string().max(4000)]).optional()
   })
   .strict();
@@ -82,12 +84,13 @@ export const discoveryAuditRequestExample = {
   method: "GET",
   expectedAmount: "1000",
   expectedNetwork: "eip155:8453",
-  searchQuery: "listing roast"
+  searchQuery: "listing roast",
+  agent402Query: "paid API listing quality"
 };
 
 export const discoveryAuditOutputSchema = {
   type: "object",
-  required: ["service", "endpoint", "price", "verdict", "auditedAt", "direct402", "bazaarDiscovery", "catalogRefresh", "mismatches", "nextActions", "safety"],
+  required: ["service", "endpoint", "price", "verdict", "auditedAt", "direct402", "bazaarDiscovery", "agent402Route", "catalogRefresh", "mismatches", "nextActions", "safety"],
   properties: {
     service: { type: "string" },
     endpoint: { type: "string" },
@@ -97,6 +100,7 @@ export const discoveryAuditOutputSchema = {
     input: { type: "object" },
     direct402: { type: "object" },
     bazaarDiscovery: { type: "object" },
+    agent402Route: { type: "object" },
     catalogRefresh: { type: "object" },
     mismatches: { type: "array", items: { type: "string" } },
     nextActions: { type: "array", items: { type: "string" } },
@@ -120,6 +124,23 @@ async function fetchJson(url) {
   try {
     const response = await fetch(url, {
       headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS)
+    });
+    if (!response.ok) {
+      throw new Error(`http_${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    return { error: error?.message || "request_failed" };
+  }
+}
+
+async function postJson(url, body) {
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS)
     });
     if (!response.ok) {
@@ -198,6 +219,24 @@ function compactResource(resource) {
   };
 }
 
+function compactAgent402Result(result) {
+  if (!result) {
+    return null;
+  }
+
+  return {
+    seller: result.seller || null,
+    sellerName: result.sellerName || null,
+    route: result.route || null,
+    url: result.url || null,
+    method: result.method || null,
+    price: result.price || null,
+    score: result.score ?? null,
+    health: result.health ?? null,
+    description: result.description || null
+  };
+}
+
 function discoveryResources(payload) {
   if (Array.isArray(payload?.resources)) {
     return payload.resources;
@@ -247,6 +286,31 @@ async function inspectSearch(input, direct402) {
   };
 }
 
+async function inspectAgent402Route(input, direct402) {
+  const endpointUrl = new URL(input.endpointUrl);
+  const query = input.agent402Query || input.searchQuery || direct402.description || endpointUrl.hostname;
+  const payload = await postJson(AGENT402_ROUTE_URL, {
+    query,
+    top: 10,
+    include: "external"
+  });
+  const results = Array.isArray(payload?.results) ? payload.results : [];
+  const matchIndex = results.findIndex((result) => sameUrl(result.url, input.endpointUrl));
+  const matchedResult = matchIndex >= 0 ? results[matchIndex] : null;
+
+  return {
+    query,
+    routeVisible: Boolean(matchedResult),
+    topRank: matchIndex >= 0 ? matchIndex + 1 : null,
+    count: payload.count ?? results.length,
+    sellers: payload.sellers ?? null,
+    topResult: compactAgent402Result(results[0]),
+    matchedResult: compactAgent402Result(matchedResult),
+    topResults: results.slice(0, 5).map(compactAgent402Result),
+    error: payload.error || null
+  };
+}
+
 function sameUrl(left, right) {
   try {
     return new URL(left).toString().replace(/\/+$/, "") === new URL(right).toString().replace(/\/+$/, "");
@@ -255,7 +319,7 @@ function sameUrl(left, right) {
   }
 }
 
-function buildAssessment(input, direct402, merchantDiscovery, searchDiscovery) {
+function buildAssessment(input, direct402, merchantDiscovery, searchDiscovery, agent402Route) {
   const indexedResource = merchantDiscovery.resources.find((resource) => sameUrl(resource.resource, input.endpointUrl));
   const searchResource = searchDiscovery.resources.find((resource) => sameUrl(resource.resource, input.endpointUrl));
   const mismatches = [];
@@ -296,8 +360,16 @@ function buildAssessment(input, direct402, merchantDiscovery, searchDiscovery) {
     nextActions.push("Use a natural-language route description with the buyer problem, output, price, and category terms buyers actually search.");
   }
 
-  if (direct402.ok && indexedResource && searchResource && mismatches.length === 0) {
-    nextActions.push("The route is visible and internally consistent. Start promotion and watch paid completions, unique payers, and wallet settlement.");
+  if (agent402Route.error) {
+    mismatches.push("The Agent402 route check was unavailable for the tested buyer query.");
+    nextActions.push("Retry the Agent402 route check before treating marketplace routing as promotion-ready.");
+  } else if (!agent402Route.routeVisible) {
+    mismatches.push("Agent402 did not route the tested buyer query to this endpoint.");
+    nextActions.push("Add Agent402/Bazaar routing language to the paid route description and keep the route healthy so router checks can rank it.");
+  }
+
+  if (direct402.ok && indexedResource && searchResource && agent402Route.routeVisible && !agent402Route.error && mismatches.length === 0) {
+    nextActions.push("The route is visible, router-aware, and internally consistent. Start promotion and watch paid completions, unique payers, and wallet settlement.");
   }
 
   const verdict = !direct402.ok
@@ -306,9 +378,13 @@ function buildAssessment(input, direct402, merchantDiscovery, searchDiscovery) {
       ? "needs_bazaar_settlement_refresh"
       : !searchResource
         ? "needs_search_positioning"
-        : mismatches.length
-          ? "fix_before_promotion"
-          : "ready_to_promote";
+        : agent402Route.error
+          ? "agent402_route_check_unavailable"
+          : !agent402Route.routeVisible
+          ? "needs_agent402_route_positioning"
+          : mismatches.length
+            ? "fix_before_promotion"
+            : "ready_to_promote";
 
   return {
     verdict,
@@ -380,6 +456,19 @@ export function buildDiscoveryAuditExampleOutput() {
       indexedAmount: "1000000",
       searchQuery: "listing roast"
     },
+    agent402Route: {
+      query: "paid API listing quality",
+      routeVisible: true,
+      topRank: 3,
+      matchedResult: {
+        sellerName: "Listing Roast x402",
+        route: "/api/listing-roast",
+        url: discoveryAuditRequestExample.endpointUrl,
+        method: "GET",
+        price: "$0.001"
+      },
+      error: null
+    },
     catalogRefresh: {
       status: "needs_settled_payment_with_resource_metadata",
       directChallengeReadyForCatalog: true,
@@ -405,7 +494,7 @@ export function buildDiscoveryAuditExampleOutput() {
       "Get a real settled payment on the current route; Bazaar updates catalog entries from settle traffic, not from unpaid probes.",
       SETTLE_RESOURCE_ACTION
     ],
-    safety: "No paid calls were made by this audit. It only requested unpaid 402 metadata and public discovery records."
+    safety: "No paid calls were made by this audit. It only requested unpaid 402 metadata, public Bazaar discovery records, and Agent402 router results."
   };
 }
 
@@ -414,7 +503,8 @@ export async function buildX402DiscoveryAudit(rawInput) {
   const direct402 = await inspectDirect402(input);
   const merchantDiscovery = await inspectMerchantDiscovery(direct402.payTo);
   const searchDiscovery = await inspectSearch(input, direct402);
-  const assessment = buildAssessment(input, direct402, merchantDiscovery, searchDiscovery);
+  const agent402Route = await inspectAgent402Route(input, direct402);
+  const assessment = buildAssessment(input, direct402, merchantDiscovery, searchDiscovery, agent402Route);
 
   return {
     service: "Listing Roast x402",
@@ -427,7 +517,8 @@ export async function buildX402DiscoveryAudit(rawInput) {
       method: input.method,
       expectedAmount: input.expectedAmount || null,
       expectedNetwork: input.expectedNetwork || null,
-      searchQuery: input.searchQuery || searchDiscovery.query
+      searchQuery: input.searchQuery || searchDiscovery.query,
+      agent402Query: input.agent402Query || agent402Route.query
     },
     direct402,
     bazaarDiscovery: {
@@ -440,9 +531,10 @@ export async function buildX402DiscoveryAudit(rawInput) {
       merchantLookupError: merchantDiscovery.error,
       searchLookupError: searchDiscovery.error
     },
+    agent402Route,
     catalogRefresh: buildCatalogRefresh(input, direct402, assessment),
     mismatches: assessment.mismatches,
     nextActions: assessment.nextActions,
-    safety: "No paid calls were made by this audit. It only requested unpaid 402 metadata and public discovery records."
+    safety: "No paid calls were made by this audit. It only requested unpaid 402 metadata, public Bazaar discovery records, and Agent402 router results."
   };
 }

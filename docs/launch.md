@@ -38,6 +38,7 @@ Current verified state:
 - Full x402 discovery audit route: HTTP 402, amount 10000 USDC units.
 - Score route: HTTP 402, amount 5000 USDC units.
 - Full roast route: HTTP 402, amount 10000 USDC units.
+- Discovery-audit output includes direct 402 metadata, public Bazaar visibility, Agent402 route visibility, and catalog-refresh settlement guidance without paying the audited endpoint.
 - Full-roast upgrade prompt: verified in `/api/examples`, `/api/sample-score`, and the OpenAPI 200 example as `Call this x402 endpoint with POST and pay up to 0.01 USDC: https://listing-roast-x402-service-production.up.railway.app/api/listing-roast`.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).

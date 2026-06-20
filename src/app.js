@@ -357,8 +357,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "agent listing conversion score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-intent-primary-indexed-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T12:08:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-agent402-route-audit-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T12:12:48.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -371,16 +371,16 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   agentListingConversion: ["x402", "agent listing conversion score", "agent listing conversion", "buyer-agent skip reasons", "buyer agent skip reasons", "agent service clarity", "agent service promotion readiness", "listing conversion", "paid API"],
   indexedQuickScore: ["x402", "listing quality score API", "marketplace product listing quality", "paid API listing quality score", "paid API listing quality", "marketplace listing score", "marketplace listing conversion API", "x402 marketplace conversion", "agent listing conversion", "buyer-agent skip reasons", "agent-service listing score", "x402 site audit", "x402 discovery audit", "paid API preflight", "agent service clarity", "route health"],
   x402Ping: ["x402", "payment rail", "paid API", "route health", "Base USDC"],
-  x402SiteAudit: ["x402", "x402 site audit", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
-  discoveryAuditQuick: ["x402", "Bazaar visibility", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 listing SEO audit", "x402 listing rank doctor", "paid API preflight", "route health"],
-  discoveryAudit: ["x402", "Bazaar visibility", "discovery audit", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "stale Bazaar price", "paid API preflight"],
+  x402SiteAudit: ["x402", "x402 site audit", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "Agent402 route visibility", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
+  discoveryAuditQuick: ["x402", "Bazaar visibility", "Agent402 route visibility", "Agent402 router", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 listing SEO audit", "x402 listing rank doctor", "paid API preflight", "route health"],
+  discoveryAudit: ["x402", "Bazaar visibility", "Agent402 route visibility", "Agent402 router", "discovery audit", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "stale Bazaar price", "paid API preflight"],
   fullRoast: ["x402", "listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons"]
 });
 const CHALLENGE_ROUTE_SERVICE_TAGS = Object.freeze({
   indexedQuickScore: ["x402", "paid API listing quality score", "marketplace listing score", "buyer agent skip reasons", "x402 marketplace conversion", "x402 discovery audit", "paid API preflight", "stale Bazaar price"],
-  x402SiteAudit: ["x402", "x402 site audit", "x402 marketplace SEO audit", "x402 seller growth checklist", "x402 listing SEO audit", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
-  discoveryAuditQuick: ["x402", "x402 discovery audit", "Bazaar visibility", "paid API preflight", "route health"],
-  discoveryAudit: ["x402", "x402 discovery audit", "Bazaar visibility", "stale Bazaar price", "paid API preflight"]
+  x402SiteAudit: ["x402", "x402 site audit", "x402 marketplace SEO audit", "x402 seller growth checklist", "x402 listing SEO audit", "Agent402 route visibility", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
+  discoveryAuditQuick: ["x402", "x402 discovery audit", "Bazaar visibility", "Agent402 route visibility", "paid API preflight", "route health"],
+  discoveryAudit: ["x402", "x402 discovery audit", "Bazaar visibility", "Agent402 route visibility", "stale Bazaar price", "paid API preflight"]
 });
 const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
   agentName: "Listing Roast x402",
@@ -1648,7 +1648,8 @@ function buildDiscoveryAuditInputFromQuery(query = {}) {
     method: queryValue(query.method, discoveryAuditRequestExample.method).toUpperCase(),
     expectedAmount: queryValue(query.expectedAmount || query.amount, discoveryAuditRequestExample.expectedAmount),
     expectedNetwork: queryValue(query.expectedNetwork || query.network, discoveryAuditRequestExample.expectedNetwork),
-    searchQuery: queryValue(query.searchQuery || query.query, discoveryAuditRequestExample.searchQuery)
+    searchQuery: queryValue(query.searchQuery || query.query, discoveryAuditRequestExample.searchQuery),
+    agent402Query: queryValue(query.agent402Query || query.agentQuery || query.routeQuery, discoveryAuditRequestExample.agent402Query)
   };
 
   if (requestBody) {
@@ -1671,6 +1672,7 @@ function buildDiscoveryAuditBuyerVisibleInput(input = discoveryAuditRequestExamp
     expectedAmount: input.expectedAmount || discoveryAuditRequestExample.expectedAmount,
     expectedNetwork: input.expectedNetwork || discoveryAuditRequestExample.expectedNetwork,
     searchQuery: input.searchQuery || discoveryAuditRequestExample.searchQuery,
+    agent402Query: input.agent402Query || discoveryAuditRequestExample.agent402Query,
     ...(input.requestBody ? { requestBody: input.requestBody } : {})
   };
 }
@@ -1732,6 +1734,10 @@ function normalizeDiscoveryAuditRequestBody(body) {
     || body.query
     || body.intent
     || body.goal;
+  const agent402Query = body.agent402Query
+    || body.agentQuery
+    || body.routeQuery
+    || searchQuery;
 
   return {
     ...(endpointUrl ? { endpointUrl } : {}),
@@ -1739,6 +1745,7 @@ function normalizeDiscoveryAuditRequestBody(body) {
     ...(expectedAmount ? { expectedAmount: String(expectedAmount) } : {}),
     ...(body.expectedNetwork || body.network ? { expectedNetwork: body.expectedNetwork || body.network } : {}),
     ...(searchQuery ? { searchQuery: String(searchQuery) } : {}),
+    ...(agent402Query ? { agent402Query: String(agent402Query) } : {}),
     ...(body.requestBody || body.body ? { requestBody: body.requestBody || body.body } : {})
   };
 }
@@ -1883,13 +1890,13 @@ function indexedQuickScoreFollowup(config, input) {
 
   if (wantsBazaarDiscoveryFix(intentText) || includesAny(intentText, ["route health"])) {
     return {
-      matchedBuyerIntent: "fix x402 Bazaar listing, stale price, search visibility, or route health",
-      nextStep: "This indexed quick score confirms the listing fit. For stale Bazaar pricing, route health, and search visibility, buy GET /api/x402-discovery-audit next.",
+      matchedBuyerIntent: "fix x402 Bazaar listing, Agent402 route visibility, stale price, search visibility, or route health",
+      nextStep: "This indexed quick score confirms the listing fit. For stale Bazaar pricing, Agent402 route visibility, route health, and search visibility, buy GET /api/x402-discovery-audit next.",
       upgradeEndpoint: DISCOVERY_AUDIT_PATH,
       action: buildGetNextPaidAction(config, DISCOVERY_AUDIT_PATH, {
         price: config?.siteAuditPrice || "$0.001",
         maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
-        reason: "Buy the $0.001 exact-path x402 discovery audit when you want stale Bazaar pricing, route health, direct 402 metadata, and search visibility checks."
+        reason: "Buy this $0.001 audit for stale Bazaar price, Agent402 routing, route health, direct 402 metadata, and search visibility."
       })
     };
   }
@@ -1942,11 +1949,11 @@ function indexedQuickScoreIntentHandoffs(config, input, options = {}) {
       })
     },
     {
-      intent: "fix x402 Bazaar listing, stale price, search visibility, or route health",
+      intent: "fix Bazaar/Agent402/search/health",
       action: buildGetNextPaidAction(config, DISCOVERY_AUDIT_PATH, {
         price: config?.siteAuditPrice || "$0.001",
         maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
-        reason: "Buy the $0.001 exact-path x402 discovery audit when you want stale Bazaar pricing, route health, direct 402 metadata, and search visibility checks."
+        reason: "Buy this $0.001 audit for stale Bazaar price, Agent402 routing, route health, direct 402 metadata, and search visibility."
       })
     },
     {
@@ -2456,6 +2463,10 @@ function buildDiscoveryAuditDiscovery(config) {
         searchQuery: {
           type: "string",
           description: "Buyer query to test against CDP Bazaar semantic search."
+        },
+        agent402Query: {
+          type: "string",
+          description: "Buyer query to test against Agent402 route ranking. Defaults to searchQuery."
         },
         requestBody: {
           type: "object",
@@ -3084,7 +3095,7 @@ function buildPayNowActions(config) {
       method: "GET",
       price: config.siteAuditPrice,
       maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
-      reason: "Use this when the buyer asks to fix x402 Bazaar listing visibility, stale pricing, search visibility, route health, or wants the cheapest exact-path discovery audit before the full custom audit."
+      reason: "Use this when the buyer asks to fix x402 Bazaar listing visibility, Agent402 route visibility, stale pricing, search visibility, route health, or wants the cheapest exact-path discovery audit before the full custom audit."
     }),
     apiEntry: buildRoutePaymentAction(config, {
       path: API_ENTRY_PATH,
@@ -3481,7 +3492,7 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
         use: "agentListingConversion"
       },
       {
-        when: "Buyer asks for x402 discovery audit, stale Bazaar pricing, route health, or search visibility",
+        when: "Buyer asks for x402 discovery audit, stale Bazaar pricing, Agent402 route visibility, route health, or search visibility",
         use: "discoveryAuditQuick"
       },
       {
@@ -3976,7 +3987,7 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
       example: () => buildSiteAuditExampleOutput(config)
     },
     discoveryAuditQuick: {
-      includes: ["stale pricing check", "search visibility", "route health", "next actions"],
+      includes: ["stale pricing check", "Agent402 route visibility", "search visibility", "route health", "next actions"],
       example: () => buildDiscoveryAuditQuickExampleOutput(config)
     },
     listingScore: {
@@ -3988,7 +3999,7 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
       example: () => buildListingRoast(requestExample)
     },
     discoveryAudit: {
-      includes: ["full x402 discovery audit", "mismatches", "next actions"],
+      includes: ["full x402 discovery audit", "Agent402 route visibility", "mismatches", "next actions"],
       example: () => buildDiscoveryAuditExampleOutput()
     }
   };
@@ -4335,7 +4346,7 @@ function buildWebMcpHandoff(config) {
         method: "GET",
         price: config.siteAuditPrice,
         maxAmountRequired: SITE_AUDIT_AMOUNT,
-        buyerAction: "Low-friction x402 metadata and Bazaar visibility audit."
+        buyerAction: "Low-friction x402 metadata, Bazaar visibility, and Agent402 route audit."
       },
       {
         route: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
@@ -4343,7 +4354,7 @@ function buildWebMcpHandoff(config) {
         method: "POST",
         price: config.discoveryAuditPrice,
         maxAmountRequired: DISCOVERY_AUDIT_AMOUNT,
-        buyerAction: "Full x402 discovery audit for stale marketplace pricing or search misses."
+        buyerAction: "Full x402 discovery audit for stale marketplace pricing, Agent402 routing misses, or search misses."
       },
       {
         route: absoluteUrl(config, "/api/listing-score"),
@@ -4815,6 +4826,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
             { name: "expectedAmount", in: "query", required: false, schema: { type: "string" } },
             { name: "expectedNetwork", in: "query", required: false, schema: { type: "string" } },
             { name: "searchQuery", in: "query", required: false, schema: { type: "string" } },
+            { name: "agent402Query", in: "query", required: false, schema: { type: "string" }, description: "Buyer query to test against Agent402 route ranking. Defaults to searchQuery." },
             { name: "query", in: "query", required: false, schema: { type: "string" } }
           ],
           responses: {
@@ -4834,9 +4846,9 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       [DISCOVERY_AUDIT_PATH]: {
         get: {
           operationId: "getX402DiscoveryAuditQuick",
-          tags: ["x402 discovery", "x402 discovery audit", "x402 seller discoverability", "x402 route health check", "paid API preflight", "stale Bazaar price", "paid API listing"],
+          tags: ["x402 discovery", "x402 discovery audit", "x402 seller discoverability", "Agent402 route visibility", "x402 route health check", "paid API preflight", "stale Bazaar price", "paid API listing"],
           summary: "Paid $0.001 x402 discovery audit quick check",
-          description: "Exact-path GET route for agents that ask for an x402 discovery audit and need the cheapest paid route-health, stale Bazaar price, public x402 discovery, direct 402 metadata, and search visibility check before buying the full custom audit.",
+          description: "Exact-path GET route for agents that ask for an x402 discovery audit and need the cheapest paid route-health, stale Bazaar price, Agent402 route visibility, public x402 discovery, direct 402 metadata, and search visibility check before buying the full custom audit.",
           "x-price": config.siteAuditPrice,
           "x-x402-price": config.siteAuditPrice,
           "x-payment": buildPaymentHint(config, {
@@ -4857,6 +4869,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
             { name: "expectedAmount", in: "query", required: false, schema: { type: "string" } },
             { name: "expectedNetwork", in: "query", required: false, schema: { type: "string" } },
             { name: "searchQuery", in: "query", required: false, schema: { type: "string" } },
+            { name: "agent402Query", in: "query", required: false, schema: { type: "string" }, description: "Buyer query to test against Agent402 route ranking. Defaults to searchQuery." },
             { name: "query", in: "query", required: false, schema: { type: "string" } }
           ],
           responses: {
@@ -4874,9 +4887,9 @@ function buildOpenApiDocument(config, cashRegister = {}) {
         },
         post: {
           operationId: "postX402DiscoveryAudit",
-          tags: ["x402 discovery", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "stale Bazaar price", "paid API listing"],
-          summary: "Paid $0.01 x402 Bazaar discovery audit",
-          description: "Audits a public x402 endpoint without making paid calls. Checks the direct unpaid 402 challenge, Bazaar extension metadata, CDP merchant discovery, x402 catalog metadata quality, x402 listing SEO, x402 listing rank, stale Bazaar price or stale indexed pricing, seller growth checklist, and search visibility.",
+          tags: ["x402 discovery", "fix x402 Bazaar listing", "Agent402 route visibility", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "stale Bazaar price", "paid API listing"],
+          summary: "Paid $0.01 x402 Bazaar and Agent402 discovery audit",
+          description: "Audits a public x402 endpoint without making paid calls. Checks the direct unpaid 402 challenge, Bazaar extension metadata, CDP merchant discovery, Agent402 route visibility, x402 catalog metadata quality, x402 listing SEO, x402 listing rank, stale Bazaar price or stale indexed pricing, seller growth checklist, and search visibility.",
           "x-price": config.discoveryAuditPrice,
           "x-x402-price": config.discoveryAuditPrice,
           "x-payment": buildPaymentHint(config, {
@@ -5741,8 +5754,8 @@ function buildX402Manifest(config, cashRegister = {}) {
         url: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
         price: config.siteAuditPrice,
         maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
-        description: "One-tenth-cent GET x402 discovery audit on the exact discovery-audit path for agents probing stale Bazaar pricing, search visibility, route health, paid API preflight, direct 402 metadata, and no-spend next actions before buying the full custom audit.",
-        keywords: ["x402 discovery audit", "x402 bazaar discovery audit", "x402 service discoverability audit", "paid API preflight", "x402 route health check", "bazaar search visibility", "x402 listing stale price", "stale Bazaar price", "GET paid API"],
+        description: "One-tenth-cent GET x402 discovery audit on the exact discovery-audit path for agents probing stale Bazaar pricing, Agent402 route visibility, search visibility, route health, paid API preflight, direct 402 metadata, and no-spend next actions before buying the full custom audit.",
+        keywords: ["x402 discovery audit", "x402 bazaar discovery audit", "Agent402 route visibility", "Agent402 router", "x402 service discoverability audit", "paid API preflight", "x402 route health check", "bazaar search visibility", "x402 listing stale price", "stale Bazaar price", "GET paid API"],
         command: buildGetPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT),
         input: buildDiscoveryAuditQuickDiscovery(config).input,
         outputExample: buildDiscoveryAuditQuickExampleOutput(config),
@@ -5756,8 +5769,8 @@ function buildX402Manifest(config, cashRegister = {}) {
         url: absoluteUrl(config, DISCOVERY_AUDIT_PATH),
         price: config.discoveryAuditPrice,
         maxAmountRequired: DISCOVERY_AUDIT_AMOUNT,
-        description: "One-cent x402 Bazaar discovery audit for listing SEO, listing rank, seller growth, stale indexed pricing, missing marketplace visibility, direct 402 metadata, and next actions. Makes no paid calls.",
-        keywords: ["x402 bazaar discovery audit", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "x402 listing stale price", "bazaar search visibility", "paid API listing", "x402 listing"],
+        description: "One-cent x402 Bazaar and Agent402 discovery audit for listing SEO, listing rank, seller growth, stale indexed pricing, missing marketplace visibility, Agent402 route visibility, direct 402 metadata, and next actions. Makes no paid calls.",
+        keywords: ["x402 bazaar discovery audit", "Agent402 route visibility", "Agent402 router", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "x402 listing stale price", "bazaar search visibility", "paid API listing", "x402 listing"],
         command: buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample),
         input: buildDiscoveryAuditBuyerVisibleInput(),
         outputExample: buildDiscoveryAuditExampleOutput(),
@@ -6449,6 +6462,15 @@ function wantsPaidApiPreflight(query) {
 function wantsBazaarDiscoveryFix(query) {
   return includesAny(query, [
     "discovery audit",
+    "agent402",
+    "agent 402",
+    "agent402 router",
+    "agent402 route",
+    "agent402 routing",
+    "agent router",
+    "router visibility",
+    "route visibility",
+    "route ranking",
     "bazaar",
     "stale price",
     "stale pricing",
@@ -7094,8 +7116,8 @@ function buildAgentCard(config, cashRegister = {}) {
       buildAgentSkill(config, {
         id: "x402-discovery-audit-quick",
         name: "x402 discovery audit quick check",
-        description: "$0.001 GET x402 discovery audit on the exact audit path for stale pricing, search visibility, route health, paid API preflight, and direct 402 metadata.",
-        tags: ["x402 discovery audit", "x402 bazaar discovery", "x402 route health", "paid API preflight", "stale price"],
+        description: "$0.001 GET x402 discovery audit on the exact audit path for stale pricing, Agent402 route visibility, search visibility, route health, paid API preflight, and direct 402 metadata.",
+        tags: ["x402 discovery audit", "x402 bazaar discovery", "Agent402 route visibility", "x402 route health", "paid API preflight", "stale price"],
         method: "GET",
         path: DISCOVERY_AUDIT_PATH,
         price: config.siteAuditPrice,
@@ -7106,7 +7128,7 @@ function buildAgentCard(config, cashRegister = {}) {
         id: "x402-discovery-audit",
         name: "x402 discovery audit",
         description: "$0.01 POST audit for stale pricing, search visibility, listing SEO, seller growth, and direct 402 metadata.",
-        tags: ["x402 discovery audit", "x402 bazaar discovery", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "stale price"],
+        tags: ["x402 discovery audit", "x402 bazaar discovery", "Agent402 route visibility", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "stale price"],
         method: "POST",
         path: DISCOVERY_AUDIT_PATH,
         price: config.discoveryAuditPrice,
@@ -7804,14 +7826,14 @@ function buildIntentLandingPages(config) {
     {
       path: X402_DISCOVERY_AUDIT_PAGE_PATH,
       title: "x402 discovery audit | Listing Roast x402",
-      heading: "x402 discovery audit for stale Bazaar visibility",
-      summary: "Use this when a seller needs to compare direct x402 payment metadata with marketplace search visibility, stale pricing, and route health before promotion.",
+      heading: "x402 discovery audit for stale Bazaar visibility and Agent402 routing",
+      summary: "Use this when a seller needs to compare direct x402 payment metadata with marketplace search visibility, Agent402 route visibility, stale pricing, and route health before promotion.",
       selectedActionKey: "discoveryAuditQuick",
       primaryAction: intentRoutes.discoveryAuditQuick,
       primaryLabel: "Start with the $0.001 GET discovery audit",
       supportingAction: intentRoutes.discoveryAudit,
       supportingLabel: "Use the $0.01 POST discovery audit when a custom endpoint body is needed.",
-      keywords: ["x402 discovery audit", "x402 bazaar discovery audit", "bazaar search visibility", "x402 listing stale price", "x402 route health check"]
+      keywords: ["x402 discovery audit", "x402 bazaar discovery audit", "Agent402 route visibility", "Agent402 router", "bazaar search visibility", "x402 listing stale price", "x402 route health check"]
     },
     {
       path: X402_SITE_AUDIT_PAGE_PATH,
@@ -8305,7 +8327,7 @@ function createX402Middleware(config) {
         resource: resourceUrl(DISCOVERY_AUDIT_PATH),
         ...challengeRouteServiceMetadata("discoveryAuditQuick"),
         accepts: acceptsForRoute(DISCOVERY_AUDIT_PATH, config.siteAuditPrice),
-        description: withPaidUseProofDescription(config, "Listing Roast x402 Discovery Audit Quick: $0.001 GET x402 discovery audit on the exact audit path for stale Bazaar pricing, search visibility, route health, paid API preflight, and direct 402 metadata."),
+        description: withPaidUseProofDescription(config, "Listing Roast x402 Discovery Audit Quick: $0.001 GET x402 discovery audit on the exact audit path for stale Bazaar pricing, Agent402 route visibility, search visibility, route health, paid API preflight, and direct 402 metadata."),
         mimeType: "application/json",
         customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAuditQuick"),
         unpaidResponseBody: unpaidPaymentPreview(config, "discoveryAuditQuick"),
@@ -8844,7 +8866,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Discovery audit quick route</h3>
           <p><code>GET ${escapeHtml(discoveryAuditRoute)}</code></p>
-          <p class="muted">Maximum payment: <strong>${DISCOVERY_AUDIT_QUICK_AMOUNT}</strong> USDC units. Use this exact path first when Bazaar shows stale pricing or search misses your route.</p>
+          <p class="muted">Maximum payment: <strong>${DISCOVERY_AUDIT_QUICK_AMOUNT}</strong> USDC units. Use this exact path first when Bazaar shows stale pricing, Agent402 routing misses your endpoint, or search misses your route.</p>
         </div>
         <div class="card">
           <h3>Full discovery audit route</h3>
@@ -8924,7 +8946,7 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div>
           <h2>Output built for action.</h2>
-          <p>The score response gives the first missing signal and upgrade guidance. The exact discovery audit GET route checks direct x402 metadata against Bazaar state at the same low first-click price. The full roast adds skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
+          <p>The score response gives the first missing signal and upgrade guidance. The exact discovery audit GET route checks direct x402 metadata against Bazaar and Agent402 route state at the same low first-click price. The full roast adds skip reasons, top fixes, a rewrite, and stop-or-upgrade guidance.</p>
           <p class="muted">The current public proof endpoint is available at <a href="${paidUsageProofUrl}">/api/paid-usage-proof</a>. The cash register is available at <a href="${cashRegisterUrl}">/api/cash-register</a>. A sample score is available at <a href="${sampleUrl}">/sample</a>. The command builder is available at <a href="${builderUrl}">/builder</a>. The compact command handoff is available at <a href="${commandsUrl}">/api/commands</a>. The direct pay-now handoff is available at <a href="${payNowUrl}">/api/pay-now</a> and accepts an intent query for task-specific commands. Copy-ready examples are available at <a href="${examplesUrl}">/api/examples</a>. Route schemas are available at <a href="${schemaUrl}">/api/schema</a> and <a href="${absoluteUrl(config, "/api/score-schema")}">/api/score-schema</a>.</p>
         </div>
         <pre>${escapeHtml(prettyJson(scoreOutput))}</pre>
@@ -9447,7 +9469,7 @@ ${indentText(buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT))}
   - Max amount: ${DISCOVERY_AUDIT_QUICK_AMOUNT} USDC units
   - Command:
 ${indentText(buildGetPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT))}
-  - Output: exact-path x402 discovery audit, direct 402 metadata check, Bazaar pricing check, search visibility, and no-spend fix steps
+  - Output: exact-path x402 discovery audit, direct 402 metadata check, Bazaar pricing check, Agent402 route visibility, search visibility, and no-spend fix steps
   - Use when an agent asks for an x402 discovery audit and wants the cheapest route before the custom-body audit
 
 - POST ${absoluteUrl(config, DISCOVERY_AUDIT_PATH)}
@@ -10170,7 +10192,7 @@ ${copyScript("Copy command")}
           price: config.siteAuditPrice,
           network: config.network,
           command: buildGetPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT),
-          description: "one-tenth-cent GET x402 discovery audit on the exact audit path for stale Bazaar pricing, search visibility, route health, paid API preflight, and direct 402 metadata.",
+          description: "one-tenth-cent GET x402 discovery audit on the exact audit path for stale Bazaar pricing, Agent402 route visibility, search visibility, route health, paid API preflight, and direct 402 metadata.",
           payment: buildPaymentHint(config, {
             path: DISCOVERY_AUDIT_PATH,
             method: "GET",
@@ -10178,7 +10200,7 @@ ${copyScript("Copy command")}
             maxAmountRequired: DISCOVERY_AUDIT_QUICK_AMOUNT,
             buyerAction: "Pay $0.001 for the exact x402 discovery audit path before buying the full custom audit."
           }),
-          keywords: ["x402 discovery audit", "x402 bazaar discovery audit", "x402 listing stale price", "bazaar search visibility", "paid API preflight", "x402 route health check"],
+          keywords: ["x402 discovery audit", "x402 bazaar discovery audit", "Agent402 route visibility", "Agent402 router", "x402 listing stale price", "bazaar search visibility", "paid API preflight", "x402 route health check"],
           input: buildDiscoveryAuditQuickDiscovery(config).input
         },
         {
@@ -10189,7 +10211,7 @@ ${copyScript("Copy command")}
           price: config.discoveryAuditPrice,
           network: config.network,
           command: buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample),
-          description: "Bazaar discovery audit for stale indexed pricing, missing search visibility, direct 402 metadata, and no-spend fix steps.",
+          description: "Bazaar and Agent402 discovery audit for stale indexed pricing, missing search visibility, Agent402 route visibility, direct 402 metadata, and no-spend fix steps.",
           payment: buildPaymentHint(config, {
             path: DISCOVERY_AUDIT_PATH,
             method: "POST",
@@ -10197,7 +10219,7 @@ ${copyScript("Copy command")}
             maxAmountRequired: DISCOVERY_AUDIT_AMOUNT,
             buyerAction: "Pay $0.01 for a custom-body discovery audit without making paid calls to the audited endpoint."
           }),
-          keywords: ["x402 bazaar discovery audit", "x402 listing stale price", "bazaar search visibility", "paid API listing"],
+          keywords: ["x402 bazaar discovery audit", "Agent402 route visibility", "Agent402 router", "x402 listing stale price", "bazaar search visibility", "paid API listing"],
           input: discoveryAuditRequestExample
         },
         {

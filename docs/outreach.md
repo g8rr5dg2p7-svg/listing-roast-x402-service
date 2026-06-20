@@ -4,7 +4,7 @@ Use this packet for controlled outreach to x402 builders. Keep the claim narrow:
 
 ## Primary Offer
 
-Listing Roast x402 now includes a $0.001 GET x402 site audit, a $0.001 exact-path GET x402 discovery audit, and a $0.01 full discovery audit for builders whose Bazaar or Agentic.Market listing is stale, missing from search, or showing the wrong price.
+Listing Roast x402 now includes a $0.001 GET x402 site audit, a $0.001 exact-path GET x402 discovery audit, and a $0.01 full discovery audit for builders whose Bazaar, Agentic.Market, or Agent402 routing is stale, missing from search, or showing the wrong price.
 
 Live routes:
 https://listing-roast-x402-service-production.up.railway.app/api/x402-site-audit
@@ -43,13 +43,13 @@ https://listing-roast-x402-service-production.up.railway.app
 
 If your x402 route returns the right direct price but Bazaar or Agentic.Market still shows an old price or misses the route in search, I built a $0.001 GET discovery audit for that exact gap.
 
-It checks the public route, direct unpaid 402 metadata, Bazaar metadata, merchant discovery, search visibility, and whether the next real settlement needs exact resource metadata for catalog refresh. It does not pay the target endpoint.
+It checks the public route, direct unpaid 402 metadata, Bazaar metadata, merchant discovery, search visibility, Agent402 route visibility, and whether the next real settlement needs exact resource metadata for catalog refresh. It does not pay the target endpoint.
 
 https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
 
 ## Directory PR Blurb
 
-Listing Roast x402 - Paid API for x402 and agent-service builders. Offers $0.001 listing scores, a $0.001 GET x402 site audit, a $0.001 GET x402 discovery audit quick check, a $0.01 listing roast, and a $0.01 Bazaar discovery audit for stale pricing, direct 402 metadata, search visibility, catalog-refresh settlement metadata, and no-spend next actions. Base USDC via x402.
+Listing Roast x402 - Paid API for x402 and agent-service builders. Offers $0.001 listing scores, a $0.001 GET x402 site audit, a $0.001 GET x402 discovery audit quick check, a $0.01 listing roast, and a $0.01 Bazaar/Agent402 discovery audit for stale pricing, direct 402 metadata, search visibility, Agent402 route visibility, catalog-refresh settlement metadata, and no-spend next actions. Base USDC via x402.
 
 https://listing-roast-x402-service-production.up.railway.app
 
