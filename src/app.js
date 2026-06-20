@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-mcp-jsonrpc-handoff-v10";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T17:26:29.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-mcp-resource-compat-v11";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T17:34:58.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -9048,6 +9048,79 @@ function buildMcpInitializeResult(config) {
   };
 }
 
+function buildMcpJsonRpcResources(config) {
+  return [
+    {
+      uri: "listing-roast://x402-manifest",
+      name: "Listing Roast x402 manifest",
+      title: "Listing Roast x402 paid route manifest",
+      description: "Machine-readable paid routes, prices, commands, aliases, and wallet-backed proof hints.",
+      mimeType: "application/json"
+    },
+    {
+      uri: "listing-roast://paid-usage-proof",
+      name: "Listing Roast paid-use proof",
+      title: "Wallet-backed paid-use proof",
+      description: "Public paid completion counters, latest wallet settlement evidence, and receiver wallet snapshot.",
+      mimeType: "application/json"
+    },
+    {
+      uri: "listing-roast://commands",
+      name: "Listing Roast payment commands",
+      title: "Copy-ready x402 payment commands",
+      description: "No-spend command handoff for the preferred indexed route and intent-specific paid routes.",
+      mimeType: "application/json"
+    },
+    {
+      uri: "listing-roast://route-search",
+      name: "Listing Roast route search",
+      title: "Owned paid route search",
+      description: "Default owned-route search for paid API listing quality and buyer-agent skip reasons.",
+      mimeType: "application/json"
+    }
+  ];
+}
+
+function mcpResourceText(uri, value) {
+  return {
+    contents: [
+      {
+        uri,
+        mimeType: "application/json",
+        text: JSON.stringify(value, null, 2)
+      }
+    ]
+  };
+}
+
+function buildMcpResourceReadResult(config, cashRegister, uri = "") {
+  if (uri === "listing-roast://x402-manifest") {
+    return mcpResourceText(uri, buildX402Manifest(config, cashRegister));
+  }
+
+  if (uri === "listing-roast://paid-usage-proof") {
+    return mcpResourceText(uri, {
+      paidUsageProof: buildPaidUsageProof(config, cashRegister),
+      settlementProof: buildSettlementProof(config, cashRegister),
+      cashRegister: absoluteUrl(config, "/api/cash-register")
+    });
+  }
+
+  if (uri === "listing-roast://commands") {
+    return mcpResourceText(uri, buildCommandHandoff(config, "paid API listing quality", cashRegister));
+  }
+
+  if (uri === "listing-roast://route-search") {
+    return mcpResourceText(uri, buildFindResult(config, "paid API listing quality", cashRegister));
+  }
+
+  return mcpResourceText(uri || "listing-roast://unknown", {
+    error: "unknown_resource",
+    availableResources: buildMcpJsonRpcResources(config).map((resource) => resource.uri),
+    noSpend: true
+  });
+}
+
 function buildMcpToolCallResult(config, cashRegister, name, args = {}) {
   if (name === "listing_roast_x402_handoff") {
     const intent = String(args.intent || args.query || "").slice(0, 240);
@@ -9142,6 +9215,10 @@ function mcpJsonRpcError(id, code, message) {
 function buildMcpJsonRpcResponse(config, cashRegister, payload = {}) {
   const { id = null, method, params = {} } = payload || {};
 
+  if (!id && String(method || "").startsWith("notifications/")) {
+    return null;
+  }
+
   if (method === "initialize") {
     return mcpJsonRpcResponse(id, buildMcpInitializeResult(config));
   }
@@ -9156,6 +9233,18 @@ function buildMcpJsonRpcResponse(config, cashRegister, payload = {}) {
 
   if (method === "tools/call") {
     return mcpJsonRpcResponse(id, buildMcpToolCallResult(config, cashRegister, params.name, params.arguments || {}));
+  }
+
+  if (method === "resources/list") {
+    return mcpJsonRpcResponse(id, { resources: buildMcpJsonRpcResources(config) });
+  }
+
+  if (method === "resources/read") {
+    return mcpJsonRpcResponse(id, buildMcpResourceReadResult(config, cashRegister, params.uri));
+  }
+
+  if (method === "prompts/list") {
+    return mcpJsonRpcResponse(id, { prompts: [] });
   }
 
   return mcpJsonRpcError(id, -32601, `Unsupported MCP method: ${method || "(missing method)"}`);
@@ -11409,7 +11498,13 @@ ${copyScript("Copy command")}
   app.post([WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH], async (request, response) => {
     await recordSignal("mcpViews");
     const cashRegister = await getCashRegister();
-    setFreshDiscoveryHeaders(response).json(buildMcpJsonRpcResponse(config, cashRegister, request.body));
+    const rpcResponse = buildMcpJsonRpcResponse(config, cashRegister, request.body);
+    if (!rpcResponse) {
+      setFreshDiscoveryHeaders(response).status(204).end();
+      return;
+    }
+
+    setFreshDiscoveryHeaders(response).json(rpcResponse);
   });
 
   app.get("/api/cash-register", async (_request, response) => {
