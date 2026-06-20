@@ -2157,6 +2157,15 @@ describe("Listing Roast x402 service", () => {
       expect(commandsMarketplaceListingConversion.json.exactIntentPaidAction.path).toBe("/api/marketplace-listing-conversion-api");
       expect(commandsMarketplaceListingConversion.json.exactIntentPaidAction.command).toContain("/api/marketplace-listing-conversion-api");
 
+      const commandsAgenticMarketListingScore = await fetchJson(server, "/api/commands?intent=agentic%20market%20listing%20score");
+      expect(commandsAgenticMarketListingScore.status).toBe(200);
+      expect(commandsAgenticMarketListingScore.headers.get("payment-required")).toBeNull();
+      expect(commandsAgenticMarketListingScore.json.firstPaidAction.path).toBe("/api/listing-roast");
+      expect(commandsAgenticMarketListingScore.json.firstPaidAction.method).toBe("GET");
+      expect(commandsAgenticMarketListingScore.json.firstPaidAction.maxAmountRequired).toBe("1000");
+      expect(commandsAgenticMarketListingScore.json.exactIntentPaidAction.path).toBe("/api/marketplace-listing-score");
+      expect(commandsAgenticMarketListingScore.json.expectedChallenge.route).toContain("/api/listing-roast");
+
       const commandsAgentListingConversion = await fetchJson(server, "/api/commands?intent=agent%20listing%20conversion");
       expect(commandsAgentListingConversion.status).toBe(200);
       expect(commandsAgentListingConversion.json.firstPaidAction.path).toBe("/api/agent-listing-conversion");
@@ -2798,7 +2807,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.sampleViews).toBe(3);
       expect(cashRegister.json.signals.schemaViews).toBe(4);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
-      expect(cashRegister.json.signals.commandsViews).toBe(7);
+      expect(cashRegister.json.signals.commandsViews).toBe(8);
       expect(cashRegister.json.signals.payNowViews).toBe(17);
       expect(cashRegister.json.signals.pricingViews).toBe(1);
       expect(cashRegister.json.signals.findViews).toBe(9);

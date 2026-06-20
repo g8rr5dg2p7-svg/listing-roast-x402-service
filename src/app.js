@@ -6162,7 +6162,14 @@ function quickScoreAliasActionKeyForQuery(query) {
     return "paidApiListingQuality";
   }
 
-  if (includesAny(normalizedQuery, ["marketplace listing score", "marketplace listing quality"])) {
+  if (includesAny(normalizedQuery, [
+    "agentic market listing score",
+    "agentic.market listing score",
+    "agentic market listing quality",
+    "agentic.market listing quality",
+    "marketplace listing score",
+    "marketplace listing quality"
+  ])) {
     return "marketplaceListingScore";
   }
 
@@ -6232,9 +6239,9 @@ function scoreCatalogResource(resource, query) {
     if (resource.id === "listing_roast") score += 30;
   }
 
-  if (includesAny(normalizedQuery, ["marketplace listing score", "marketplace listing quality", "paid api listing quality", "paid api listing quality score", "listing quality score", "x402 listing quality", "agent-service listing score", "agent service listing score"])) {
+  if (includesAny(normalizedQuery, ["agentic market listing score", "agentic.market listing score", "agentic market listing quality", "agentic.market listing quality", "marketplace listing score", "marketplace listing quality", "paid api listing quality", "paid api listing quality score", "listing quality score", "x402 listing quality", "agent-service listing score", "agent service listing score"])) {
     if (isIndexedRoastGet) score += 260;
-    if (resource.id === "marketplace_listing_score_alias" && includesAny(normalizedQuery, ["marketplace listing score", "marketplace listing quality"])) score += 460;
+    if (resource.id === "marketplace_listing_score_alias" && includesAny(normalizedQuery, ["agentic market listing score", "agentic.market listing score", "agentic market listing quality", "agentic.market listing quality", "marketplace listing score", "marketplace listing quality"])) score += 460;
     if (resource.id === "paid_api_listing_quality_alias" && includesAny(normalizedQuery, ["paid api listing quality", "paid api listing quality score", "paid api listing"])) score += 460;
     if (resource.id === "paid_api_listing_quality_score_alias" && includesAny(normalizedQuery, ["paid api listing quality score", "paid api listing quality"])) score += 470;
     if (resource.id === "x402_listing_quality_alias" && includesAny(normalizedQuery, ["x402 listing quality", "x402 listing quality score"])) score += 470;
