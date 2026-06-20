@@ -32,10 +32,10 @@ Live production service:
 Current verified state:
 
 - Railway deploy: successful. Latest verified deployment: 70d39f95-e996-484f-b768-057d9b9f58a5.
-- Latest live code commit: cba4fcd Add CDP domain-restricted discovery handoff.
+- Latest live code commit: pending deploy for the route-finder payable-route handoff.
 - Latest GitHub release: cdp-domain-discovery-v1.
-- Latest metadata version: 2026-06-20-cdp-domain-discovery-v26.
-- Latest repo docs refresh: CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
+- Latest metadata version: 2026-06-20-find-paid-route-v27.
+- Latest repo docs refresh: CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, explicit `/api/find` payable-route fields, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
@@ -60,6 +60,7 @@ Current verified state:
 - AgentCore handoff: verified in `/x402.json`, `/llms.txt`, `/sitemap.xml`, and direct page render; it points AgentCore Gateway and Bazaar-MCP buyers to the already-indexed $0.001 GET `/api/listing-roast` first paid action.
 - MCP JSON-RPC handoff: verified live on `POST /mcp`; no-spend `search_resources` and `proxy_tool_call` compatibility aliases return Listing Roast route commands, price caps, and proof links only. They do not execute paid calls.
 - CDP domain-restricted discovery: verified live in `/x402.json` and `/llms.txt`; `urlSubstring=listing-roast-x402-service-production.up.railway.app` returns the indexed `/api/listing-roast` CDP resource at amount 1000 without payment.
+- Route finder: `/api/find?q=buyer-agent%20skip%20reasons` now exposes explicit `selectedPaidUrl`, `firstPaidUrl`, `selectedPaidPrice`, `selectedPaidMaxAmountRequired`, and `payableRoute` fields so simple agents do not confuse the free route-selector URL with the payable x402 route.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
 - Receiver wallet balance is the durable revenue check across deploys.
