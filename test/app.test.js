@@ -1998,6 +1998,10 @@ describe("Listing Roast x402 service", () => {
       expect(robots.text).toContain("/.well-known/agent-tools.json");
       expect(robots.text).toContain("/.well-known/agent-skills/index.json");
       expect(robots.text).toContain("/.well-known/mcp/server-card.json");
+      expect(robots.text).toContain("Official CDP search: https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=listing+roast");
+      expect(robots.text).toContain("Official CDP merchant lookup: https://api.cdp.coinbase.com/platform/v2/x402/discovery/merchant?payTo=0x000000000000000000000000000000000000dEaD");
+      expect(robots.text).toContain("Official CDP indexed paid route: http://localhost:8787/api/listing-roast");
+      expect(robots.text).toContain("Official CDP refresh rule: CDP Bazaar refreshes catalog metadata after real settlement");
       expect(robots.text).toContain("Preferred paid route after explicit buyer intent");
 
       const sitemap = await fetchJson(server, "/sitemap.xml");

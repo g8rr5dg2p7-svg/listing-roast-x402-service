@@ -7445,6 +7445,7 @@ Each generic entrypoint costs ${config.instantScorePrice}, max ${INSTANT_SCORE_A
 
 function buildRobotsTxt(config) {
   const sitemapUrl = absoluteUrl(config, "/sitemap.xml");
+  const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
 
   return `User-agent: *
 Content-Signal: search=yes, ai-input=yes, ai-train=no
@@ -7495,6 +7496,11 @@ Allow: /
 # - ${absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH)}
 # - ${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}
 # - ${absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH)}
+# Official CDP search: ${officialCdpDiscovery.recommendedSearchUrl}
+# Official CDP merchant lookup: ${officialCdpDiscovery.merchantDiscoveryUrl}
+# Official CDP recommended query: ${officialCdpDiscovery.recommendedSearchQuery}
+# Official CDP indexed paid route: ${officialCdpDiscovery.indexedRoute}
+# Official CDP refresh rule: ${officialCdpDiscovery.refreshRule}
 # Pay-now handoff: ${absoluteUrl(config, PAY_NOW_PATH)}?intent=paid%20API%20listing%20quality%20score
 # Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
 # Preferred paid route after explicit buyer intent: ${absoluteUrl(config, ROAST_PATH)}
