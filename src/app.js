@@ -338,7 +338,7 @@ const SERVICE_TAGS = Object.freeze([
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools snippets; returns an included quick score, route map, indexed /api/listing-roast handoff, prices, and next paid actions.";
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Paid API listing quality score, marketplace product listing quality, Agentic.Market listing score, marketplace listing conversion API, marketplace listing score, x402 marketplace conversion, buyer-agent skip reasons, x402 site audit, paid API preflight, and x402 seller growth checklist. $0.001 GET /api/listing-roast quick score on the indexed paid-use-confirmed URL; POST upgrade.";
-const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Paid API listing quality score, marketplace conversion API, x402 marketplace conversion, buyer-agent skip reasons, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, seller growth checklist. $0.001 GET /api/listing-roast; POST upgrade.";
+const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Paid API listing quality score, marketplace conversion API, x402 marketplace conversion, buyer agent skip reasons, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, seller growth checklist. $0.001 GET /api/listing-roast; POST upgrade.";
 const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
   "listing quality score API",
   "marketplace product listing quality",
@@ -357,8 +357,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-route-audit-frontload-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T10:00:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-route-catalog-refresh-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T10:00:46.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -377,14 +377,14 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   fullRoast: ["x402", "listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons"]
 });
 const CHALLENGE_ROUTE_SERVICE_TAGS = Object.freeze({
-  indexedQuickScore: ["x402", "paid API listing quality score", "marketplace listing score", "buyer-agent skip reasons", "x402 marketplace conversion", "x402 discovery audit", "paid API preflight", "stale Bazaar price"],
+  indexedQuickScore: ["x402", "paid API listing quality score", "marketplace listing score", "buyer agent skip reasons", "x402 marketplace conversion", "x402 discovery audit", "paid API preflight", "stale Bazaar price"],
   x402SiteAudit: ["x402", "x402 site audit", "x402 seller growth checklist", "x402 listing SEO audit", "paid API preflight", "route health", "Bazaar visibility", "stale Bazaar price"],
   discoveryAuditQuick: ["x402", "x402 discovery audit", "Bazaar visibility", "paid API preflight", "route health"],
   discoveryAudit: ["x402", "x402 discovery audit", "Bazaar visibility", "stale Bazaar price", "paid API preflight"]
 });
 const LISTING_QUERY_PARAMETER_EXAMPLES = Object.freeze({
   agentName: "Listing Roast x402",
-  listingText: "Score marketplace product listing quality, Agentic.Market listing score, paid API listing quality, marketplace listing score, marketplace listing conversion API, x402 marketplace conversion, agent listing conversion score, buyer-agent skip reasons, x402 listing quality, and agent-service clarity. Start with $0.001 GET /api/listing-roast as the listing quality score API; upgrade to $0.01 POST /api/listing-roast for the full roast when the quick score shows fit.",
+  listingText: "Score marketplace product listing quality, Agentic.Market listing score, paid API listing quality, marketplace listing score, marketplace listing conversion API, x402 marketplace conversion, agent listing conversion score, buyer agent skip reasons, x402 listing quality, and agent-service clarity. Start with $0.001 GET /api/listing-roast as the listing quality score API; upgrade to $0.01 POST /api/listing-roast for the full roast when the quick score shows fit.",
   targetBuyer: "x402 and MCP builders",
   currentPrice: "$0.001 GET; $0.01 POST upgrade",
   currentCheckoutPath: "/api/listing-roast",
@@ -1900,8 +1900,8 @@ function indexedQuickScoreFollowup(config, input) {
   }
 
   return {
-    matchedBuyerIntent: "paid API listing quality score, marketplace listing score, marketplace listing conversion API, buyer-agent skip reasons, agent service clarity, or full listing roast",
-    nextStep: "This indexed $0.001 GET route fits paid API listing quality, paid API listing quality score, x402 listing quality, buyer-agent skip reasons, and agent service clarity; use POST /api/listing-roast for the full rewrite.",
+    matchedBuyerIntent: "paid API listing quality score, marketplace listing score, marketplace listing conversion API, buyer agent skip reasons, agent service clarity, or full listing roast",
+    nextStep: "This indexed $0.001 GET route fits paid API listing quality, paid API listing quality score, x402 listing quality, buyer agent skip reasons, and agent service clarity; use POST /api/listing-roast for the full rewrite.",
     upgradeEndpoint: ROAST_PATH,
     action: buildNextPaidAction(config, input, {
       source: "indexed-quick-score-upgrade",
@@ -2041,7 +2041,7 @@ function buildIndexedRoastQuickScore(input, config) {
   const buyerIntentHandoffs = indexedQuickScoreIntentHandoffs(config, input);
   const nextPaidActions = indexedQuickScoreNextPaidActions(config, input);
   const fullRoastUpgradeDecision = buildFullRoastUpgradeDecision(nextPaidActions);
-  const settlementRefreshNote = "Keep Bazaar extension metadata when paying; unpaid probes do not refresh search.";
+  const settlementRefreshNote = "Bazaar search refreshes after a real settle with paymentPayload.resource; unpaid probes do not refresh search.";
 
   return addNextPaidAction({
     ...buildInstantListingScore(input, config),
