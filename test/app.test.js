@@ -1334,6 +1334,7 @@ describe("Listing Roast x402 service", () => {
       expect(agentSkill.text).toContain("/api/paid-usage-proof");
       expect(agentSkill.text).toContain("/api/cash-register");
       expect(agentSkill.text).toContain("Full roast command");
+      expect(agentSkill.text).toContain("Agent payment prompt: Call this x402 endpoint with GET and pay up to 0.001 USDC: http://localhost:8787/api/listing-roast");
       expect(agentSkill.text).toContain("/api/listing-roast");
       expect(agentSkill.text).toContain("/api/agent-listing-conversion");
       expect(agentSkill.text).toContain("/api/preflight");
@@ -1913,6 +1914,7 @@ describe("Listing Roast x402 service", () => {
       expect(authMarkdown.text).toContain("Registration endpoint: none");
       expect(authMarkdown.text).toContain("Token endpoint: none");
       expect(authMarkdown.text).toContain("Do not make a paid call unless the buyer explicitly intends to spend USDC");
+      expect(authMarkdown.text).toContain(indexedPaymentPrompt);
 
       const wellKnownAuthMarkdown = await fetchJson(server, "/.well-known/auth.md");
       expect(wellKnownAuthMarkdown.status).toBe(200);

@@ -1042,6 +1042,8 @@ ${formatPaidUseProofMarkdown(config, cashRegister)}
 
 Do not call paid routes unless the buyer explicitly intends to pay. Paid calls require x402 payment in USDC on ${config.network}. Use the max amount shown below.
 
+Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
+
 ## Bazaar Cataloging Note
 
 ${formatBazaarCatalogingMarkdown(config)}
@@ -1055,6 +1057,8 @@ ${buildGetPayCommand(config, ROAST_PATH)}
 \`\`\`
 
 Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT} USDC units.
+
+Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
 
 Exact buyer-phrase aliases for the same quick score:
 
@@ -1152,6 +1156,12 @@ Access is HTTP-native:
 - OAuth/OIDC: not supported
 - Agent registration: not supported
 - User account: not required
+
+## Preferred First Paid Route
+
+Agent payment prompt: ${formatIndexedQuickScoreAgentPaymentPrompt(config)}
+
+Expected price: ${config.instantScorePrice}. Max amount: ${INSTANT_SCORE_AMOUNT} USDC units. Use ${absoluteUrl(config, ROAST_PATH)} first for the lowest-friction paid listing-quality score.
 
 ## Agent Registration
 
