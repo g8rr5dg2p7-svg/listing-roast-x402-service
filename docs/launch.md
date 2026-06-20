@@ -34,7 +34,7 @@ Current verified state:
 - Railway deploy: successful. Latest verified deployment: 44addfa6-63dc-43f7-aa80-efa334abd12a.
 - Latest live code commit: 826dc22 Track no-spend buyer intent handoffs.
 - Latest GitHub release: intent-signal-v1.
-- Latest metadata version: 2026-06-20-intent-signal-v28.
+- Latest metadata version: 2026-06-20-agent-intent-signal-v29.
 - Latest repo docs refresh: aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/pay-now`, `/api/find`, and `/api/route`, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.

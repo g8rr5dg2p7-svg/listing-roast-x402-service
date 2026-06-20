@@ -43,7 +43,7 @@ const SIGNAL_KEYS = new Set([
   "invalidRequests"
 ]);
 
-const INTENT_SIGNAL_SOURCES = new Set(["payNow", "find", "route"]);
+const INTENT_SIGNAL_SOURCES = new Set(["payNow", "find", "route", "localDiscovery", "mcp"]);
 const INTENT_SIGNAL_KEYS = new Set([
   "directoryPost",
   "apiEntry",
@@ -123,7 +123,9 @@ function initialIntentSignals() {
   return {
     payNow: {},
     find: {},
-    route: {}
+    route: {},
+    localDiscovery: {},
+    mcp: {}
   };
 }
 

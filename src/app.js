@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-intent-signal-v28";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T20:20:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-agent-intent-signal-v29";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T20:45:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -7221,6 +7221,9 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedIntentPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedIntentPaidAction);
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedIntentPaidAction);
+  const selectedPaidRoute = compactPaidAction(handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedIntentPaidAction));
+  const firstPaidRoute = compactPaidAction(selectedFirstPaidAction);
+  const exactIntentPaidRoute = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
   const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes, {
     selectedPaidSequence,
     use: selectedPaidSequence[0]?.use || selectedActionKey,
@@ -7251,8 +7254,26 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     ...(selected || {}),
     selectedActionKey,
+    selectedPaidRoute,
+    selectedPaidUrl: selectedPaidRoute.route,
+    selectedPaidPath: selectedPaidRoute.path,
+    selectedPaidMethod: selectedPaidRoute.method,
+    selectedPaidPrice: selectedPaidRoute.price,
+    selectedPaidMaxAmountRequired: selectedPaidRoute.maxAmountRequired,
     selectedPaidAction: handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedIntentPaidAction),
-    ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
+    firstPaidRoute,
+    firstPaidUrl: firstPaidRoute.route,
+    firstPaidPath: firstPaidRoute.path,
+    firstPaidMethod: firstPaidRoute.method,
+    firstPaidPrice: firstPaidRoute.price,
+    firstPaidMaxAmountRequired: firstPaidRoute.maxAmountRequired,
+    payableRoute: firstPaidRoute,
+    ...(exactIntentPaidAction ? {
+      exactIntentPaidAction,
+      exactIntentPaidRoute,
+      exactIntentPaidUrl: exactIntentPaidRoute.route,
+      exactIntentPaidPath: exactIntentPaidRoute.path
+    } : {}),
     selectedFirstPaidAction,
     selectedPaidSequence,
     buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedIntentPaidAction, intentRoutes.indexedQuickScore),
@@ -9413,6 +9434,7 @@ function buildMcpToolCallResult(config, cashRegister, name, args = {}) {
       noSpend: true,
       compatibility: "coinbase-bazaar-mcp-search_resources",
       query,
+      selectedActionKey: search.selectedActionKey,
       resources: search.resources,
       selectedFirstPaidAction: selected,
       selectedPaidAction: search.selectedPaidAction,
@@ -9442,6 +9464,7 @@ function buildMcpToolCallResult(config, cashRegister, name, args = {}) {
       compatibility: "coinbase-bazaar-mcp-proxy_tool_call-handoff-only",
       toolName: toolName || null,
       argumentsPreview: nestedArguments,
+      selectedActionKey: result.selectedActionKey,
       selectedFirstPaidAction: selected,
       selectedPaidAction: result.selectedPaidAction,
       exactIntentPaidAction: result.exactIntentPaidAction,
@@ -9490,6 +9513,7 @@ function buildMcpToolCallResult(config, cashRegister, name, args = {}) {
     return mcpToolContent(text, {
       noSpend: true,
       query,
+      selectedActionKey: result.selectedActionKey,
       result,
       paymentRule: result.paymentRule
     });
@@ -9965,6 +9989,11 @@ function buildIntentSignalNotice(source, selectedActionKey) {
     rawQueryStored: false,
     cashRegisterPath: "/api/cash-register"
   };
+}
+
+function selectedActionKeyFromMcpResponse(rpcResponse = {}) {
+  const structured = rpcResponse?.result?.structuredContent || {};
+  return structured.selectedActionKey || structured.result?.selectedActionKey || null;
 }
 
 function validUnpaidSignalForPath(pathname) {
@@ -11848,6 +11877,11 @@ ${copyScript("Copy command")}
       return;
     }
 
+    const selectedActionKey = selectedActionKeyFromMcpResponse(rpcResponse);
+    if (selectedActionKey) {
+      await recordIntentSignal("mcp", selectedActionKey);
+    }
+
     setFreshDiscoveryHeaders(response).json(rpcResponse);
   });
 
@@ -11923,7 +11957,12 @@ ${copyScript("Copy command")}
   app.get(LOCAL_DISCOVERY_SEARCH_PATHS, async (request, response) => {
     await recordSignal("localDiscoveryViews");
     const cashRegister = await getCashRegister();
-    setFreshDiscoveryHeaders(response).json(buildLocalDiscoverySearch(config, request.query, cashRegister));
+    const search = buildLocalDiscoverySearch(config, request.query, cashRegister);
+    await recordIntentSignal("localDiscovery", search.selectedActionKey);
+    setFreshDiscoveryHeaders(response).json({
+      ...search,
+      intentSignal: buildIntentSignalNotice("localDiscovery", search.selectedActionKey)
+    });
   });
 
   app.get(LOCAL_DISCOVERY_MERCHANT_PATHS, async (request, response) => {
