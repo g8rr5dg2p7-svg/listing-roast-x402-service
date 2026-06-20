@@ -31,10 +31,10 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: b805554e-f7a0-42ac-bc93-f787c16614b5.
-- Latest live code commit: b0cf7e1 Cache receiver wallet proof for discovery.
-- Latest GitHub release: cached-discovery-wallet-proof-v1.
-- Latest metadata version: 2026-06-20-cached-discovery-wallet-proof-v40.
+- Railway deploy: successful. Latest verified deployment: 43b2cb4e-dc50-4ee0-9a38-52977e0958d6.
+- Latest live code commit: 3bf8d8b Add cheap-cap discovery handoff.
+- Latest GitHub release: cheap-cap-discovery-handoff-v1.
+- Latest metadata version: 2026-06-20-cheap-cap-discovery-handoff-v41.
 - Latest repo docs refresh: direct terminal `paymentShortcut` guidance for the $0.01 full-roast route and stale-card `POST /api/listing-roast` path, early `paymentShortcut.upgradeAfterQuickScore` for true quick-score-to-full-roast upgrades, compact upgrade shortcuts in `/api/pay-now`, `/api/examples`, `/api/commands`, and payment hints, early `paymentShortcut` fields before bulky unpaid 402 metadata, compact top-level payable-route fields in unpaid 402 JSON bodies, aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, Bazaar-style MCP compatibility handoffs aligned with the live payment metadata, explicit public CDP search-reality fields that separate currently working marketplace queries from terms that should use owned pay-now or local discovery until the cached public card refreshes, top-level first-paid-action fields on `/api/paid-usage-proof`, receiver-wallet-confirmed paid-use proof embedded directly in `/api/pay-now` buyer handoffs, cached receiver-wallet proof shared across free discovery handoffs, and v41 `cheapCapSearchStrategy` fields that tell buyer agents to search public CDP/Bazaar with `maxUsdPrice=0.001` or use the direct proven route when broader caps surface generic competitors.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
@@ -68,7 +68,7 @@ Current verified state:
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
 - Receiver wallet balance is the durable revenue check across deploys.
-- Current public paid-use proof: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. Post-deploy no-spend verification confirmed the v40 cached discovery wallet-proof handoff, v38 pay-now wallet-proof handoff, v37 proof-action handoff, v36 search-reality handoff, manifest, health route, and unpaid `GET /api/listing-roast` 402 body and did not create a new paid completion.
+- Current public paid-use proof: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. Post-deploy no-spend verification confirmed the v41 cheap-cap discovery handoff, v40 cached discovery wallet-proof handoff, v38 pay-now wallet-proof handoff, v37 proof-action handoff, v36 search-reality handoff, manifest, health route, and unpaid `GET /api/listing-roast` 402 body and did not create a new paid completion.
 - The cash register baseline is preserved through Railway env import; use `/api/cash-register` plus the receiver wallet balance to distinguish register-confirmed and wallet-settled revenue.
 - First settlement transaction: 0x59f6d99257170dd796419a7d8a50dab7d113acb2198f0fafa993f6f30490fbf0.
 - Second settlement transaction: 0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71 for 1000 USDC units on the indexed GET `/api/listing-roast` route.
