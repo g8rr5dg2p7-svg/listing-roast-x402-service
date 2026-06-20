@@ -13,6 +13,9 @@ https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-
 Homepage:
 https://listing-roast-x402-service-production.up.railway.app
 
+AgentCore handoff:
+https://listing-roast-x402-service-production.up.railway.app/agentcore-x402-payments
+
 Paid-use proof:
 https://listing-roast-x402-service-production.up.railway.app/api/paid-usage-proof
 
@@ -56,7 +59,7 @@ https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-
 
 ## Directory PR Blurb
 
-Listing Roast x402 - Wallet-confirmed paid API for x402 and agent-service builders. Offers $0.001 paid API listing quality scores, a $0.001 GET x402 site audit, a $0.001 GET x402 discovery audit quick check, a $0.01 listing roast, and a $0.01 Bazaar/Agent402 discovery audit for stale pricing, direct 402 metadata, search visibility, Agent402 route visibility, catalog-refresh settlement metadata, and no-spend next actions. Base USDC via x402.
+Listing Roast x402 - Wallet-confirmed paid API for x402, AgentCore Gateway, Bazaar-MCP, and agent-service builders. Offers $0.001 paid API listing quality scores, a free AgentCore x402 payments handoff, a $0.001 GET x402 site audit, a $0.001 GET x402 discovery audit quick check, a $0.01 listing roast, and a $0.01 Bazaar/Agent402 discovery audit for stale pricing, direct 402 metadata, search visibility, Agent402 route visibility, catalog-refresh settlement metadata, and no-spend next actions. Base USDC via x402.
 
 https://listing-roast-x402-service-production.up.railway.app
 
@@ -65,6 +68,7 @@ https://listing-roast-x402-service-production.up.railway.app
 - GitHub: `xpaysh/awesome-x402`, under production implementations or tools/utilities.
 - GitHub: `Merit-Systems/awesome-agentic-commerce`, near x402 ecosystem tooling.
 - x402 builder threads where sellers mention stale Bazaar visibility or missing search results.
+- AgentCore Gateway or Bazaar-MCP buyer threads where agents need low-price paid x402 endpoints.
 - Agentic.Market and x402scan ecosystem discussions after a real external settled payment refreshes marketplace data.
 
 ## Guardrails

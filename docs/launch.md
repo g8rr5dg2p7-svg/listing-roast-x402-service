@@ -8,8 +8,9 @@ Live production service:
 - Sample score JSON: https://listing-roast-x402-service-production.up.railway.app/api/sample-score
 - OpenAPI: https://listing-roast-x402-service-production.up.railway.app/openapi.json
 - llms.txt: https://listing-roast-x402-service-production.up.railway.app/llms.txt
+- AgentCore handoff: https://listing-roast-x402-service-production.up.railway.app/agentcore-x402-payments
 - Instant score route: https://listing-roast-x402-service-production.up.railway.app/api/instant-listing-score
-- Indexed quick-score route: GET https://listing-roast-x402-service-production.up.railway.app/api/listing-roast for marketplace listing quality, x402 site-audit starter intent, discovery-audit triage, and paid API preflight
+- Indexed quick-score route: GET https://listing-roast-x402-service-production.up.railway.app/api/listing-roast for marketplace listing quality, AgentCore x402 payments readiness, x402 site-audit starter intent, discovery-audit triage, and paid API preflight
 - Paid x402 ping route: https://listing-roast-x402-service-production.up.railway.app/api/x402-ping
 - x402 site audit route: GET https://listing-roast-x402-service-production.up.railway.app/api/x402-site-audit
 - x402 discovery audit quick route: GET https://listing-roast-x402-service-production.up.railway.app/api/x402-discovery-audit
@@ -29,9 +30,9 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: b8770c87-7de6-4e8a-8367-1fdce069fcc5.
-- Latest live code commit: ab21513 Flatten local discovery route fields.
-- Latest repo docs commit: 5a3a207 Lead repo docs with buyer route.
+- Railway deploy: successful. Latest verified deployment: d916c457-beeb-40bf-9f8a-4528b1add6ea.
+- Latest live code commit: 7a20528 Add AgentCore x402 buyer handoff.
+- Latest repo docs refresh: AgentCore promotion materials aligned with the live handoff.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
@@ -39,6 +40,7 @@ Current verified state:
 - OpenAPI: HTTP 200.
 - llms.txt: HTTP 200.
 - x402 manifest: HTTP 200.
+- AgentCore handoff page: HTTP 200.
 - Instant score route: HTTP 402, amount 1000 USDC units.
 - x402 site audit route: HTTP 402, amount 1000 USDC units.
 - x402 discovery audit quick route: HTTP 402, amount 1000 USDC units.
@@ -49,6 +51,7 @@ Current verified state:
 - Custom-body full roast route: HTTP 402, amount 10000 USDC units. Empty-body and `{}` stale-card POST probes return the same valid x402 challenge; invalid non-empty bodies return 400 before payment.
 - Discovery-audit output includes direct 402 metadata, public Bazaar visibility, Agent402 route visibility, and catalog-refresh settlement guidance without paying the audited endpoint.
 - Direct full-roast route: verified in `/x402.json`, `/api/find`, `/api/commands`, and direct x402 details as `GET /api/full-listing-roast` with amount 10000.
+- AgentCore handoff: verified in `/x402.json`, `/llms.txt`, `/sitemap.xml`, and direct page render; it points AgentCore Gateway and Bazaar-MCP buyers to the already-indexed $0.001 GET `/api/listing-roast` first paid action.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
 - Receiver wallet balance is the durable revenue check across deploys.
@@ -56,7 +59,7 @@ Current verified state:
 - The cash register baseline is preserved through Railway env import; use `/api/cash-register` plus the receiver wallet balance to distinguish register-confirmed and wallet-settled revenue.
 - First settlement transaction: 0x59f6d99257170dd796419a7d8a50dab7d113acb2198f0fafa993f6f30490fbf0.
 - Second settlement transaction: 0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71 for 1000 USDC units on the indexed GET `/api/listing-roast` route.
-- CDP Bazaar merchant discovery: indexed for the receiver wallet. The external search card may remain cached until another real settlement refreshes Bazaar metadata.
+- CDP Bazaar merchant discovery: indexed for the receiver wallet. The external search card may remain cached until another real settlement refreshes Bazaar metadata; after the AgentCore handoff deploy, direct unpaid challenge metadata includes AgentCore/Bazaar-MCP language, while central Bazaar search still ranks Listing Roast 11 for `paid API listing quality` and absent for AgentCore-specific queries.
 - Local seller-hosted discovery now returns top-level `url`, `route`, `path`, `method`, `price`, `priceUsd`, `maxAmountRequired`, `max_amount_required`, and `command` fields for buyer agents that do not inspect nested metadata.
 
 Current production environment:
