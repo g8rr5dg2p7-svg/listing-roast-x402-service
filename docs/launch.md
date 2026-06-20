@@ -31,11 +31,11 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: e25e67a7-6f5d-43ce-8115-7894f3abce48.
-- Latest live code commit: dc883d4 Expose full-roast upgrade in payment shortcut.
-- Latest GitHub release: upgrade-shortcut-v1.
+- Railway deploy: successful. Latest verified deployment: c35b254c-ea28-4f11-b781-3c2963876cd9.
+- Latest live code commit: 306e8a3 Expose upgrade shortcut in free handoffs.
+- Latest GitHub release: upgrade-handoff-v1.
 - Latest metadata version: 2026-06-20-upgrade-handoff-v33.
-- Latest repo docs refresh: early `paymentShortcut.upgradeAfterQuickScore` for the $0.01 full-roast route, early `paymentShortcut` fields before bulky unpaid 402 metadata, compact top-level payable-route fields in unpaid 402 JSON bodies, aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/pay-now`, `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
+- Latest repo docs refresh: early `paymentShortcut.upgradeAfterQuickScore` for the $0.01 full-roast route, compact upgrade shortcuts in `/api/pay-now`, `/api/examples`, `/api/commands`, and payment hints, early `paymentShortcut` fields before bulky unpaid 402 metadata, compact top-level payable-route fields in unpaid 402 JSON bodies, aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
@@ -43,7 +43,7 @@ Current verified state:
 - OpenAPI: HTTP 200.
 - llms.txt: HTTP 200.
 - x402 manifest: HTTP 200.
-- `/api/examples`: HTTP 200; indexed quick-score sample exposes the full official CDP Bazaar handoff with `maxUsdPrice=0.001`.
+- `/api/examples`: HTTP 200; compact command, pay-now, and payment-hint sections expose `/api/listing-roast` as the first paid path and `/api/full-listing-roast` as the 10000-unit upgrade.
 - `npx awal@2.8.0 x402 details` on `GET /api/listing-roast`: HTTP 402; payment metadata exposes `officialCdpDiscovery` with `marketplace listing score`, `maxUsdPrice=0.001`, expanded alternate searches including `paid api listing quality`, `buyer-agent skip reasons`, `AgentCore x402 payments`, `Coinbase x402 Bazaar MCP server`, `x402 site audit`, `x402 discovery audit`, and `listing roast`, amount 1000, Base USDC, and the indexed `/api/listing-roast` resource. The unpaid JSON body now also exposes an early `paymentShortcut` plus top-level `selectedPaidUrl`, `selectedPaidPath`, `selectedPaidMaxAmountRequired`, `firstPaidUrl`, and `payableRoute` fields so simple or truncating JSON-first agents can find the payable route without traversing nested metadata; `paymentShortcut.upgradeAfterQuickScore` points to the $0.01 `GET /api/full-listing-roast` upgrade.
 - `GET /api/listing-roast` with stale cached `$1.00` query params: HTTP 402; payment header amount remains 1000, header has no `$1.00`, body exposes `staleCachedDirectoryInputGuard`, and paid scoring normalizes stale directory inputs to the current `$0.001 GET /api/listing-roast` defaults.
 - AgentCore handoff page: HTTP 200.
