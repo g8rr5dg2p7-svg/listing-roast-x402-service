@@ -31,11 +31,11 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: df0243db-d4e6-472b-8010-83cfabfcb5a7.
-- Latest live code commit: 2cf8a4e Expose CDP search reality handoff.
-- Latest GitHub release: search-reality-handoff-v1.
+- Railway deploy: successful. Latest verified deployment: a30b47f6-71e7-43ae-abd3-a4a1f9d8c049.
+- Latest live code commit: ffe46f6 Expose proof endpoint first paid action.
+- Latest GitHub release: proof-action-handoff-v1.
 - Latest metadata version: 2026-06-20-proof-action-handoff-v37.
-- Latest repo docs refresh: direct terminal `paymentShortcut` guidance for the $0.01 full-roast route and stale-card `POST /api/listing-roast` path, early `paymentShortcut.upgradeAfterQuickScore` for true quick-score-to-full-roast upgrades, compact upgrade shortcuts in `/api/pay-now`, `/api/examples`, `/api/commands`, and payment hints, early `paymentShortcut` fields before bulky unpaid 402 metadata, compact top-level payable-route fields in unpaid 402 JSON bodies, aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, Bazaar-style MCP compatibility handoffs aligned with the live payment metadata, and explicit public CDP search-reality fields that separate currently working marketplace queries from terms that should use owned pay-now or local discovery until the cached public card refreshes.
+- Latest repo docs refresh: direct terminal `paymentShortcut` guidance for the $0.01 full-roast route and stale-card `POST /api/listing-roast` path, early `paymentShortcut.upgradeAfterQuickScore` for true quick-score-to-full-roast upgrades, compact upgrade shortcuts in `/api/pay-now`, `/api/examples`, `/api/commands`, and payment hints, early `paymentShortcut` fields before bulky unpaid 402 metadata, compact top-level payable-route fields in unpaid 402 JSON bodies, aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, Bazaar-style MCP compatibility handoffs aligned with the live payment metadata, explicit public CDP search-reality fields that separate currently working marketplace queries from terms that should use owned pay-now or local discovery until the cached public card refreshes, and top-level first-paid-action fields on `/api/paid-usage-proof`.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
@@ -46,6 +46,7 @@ Current verified state:
 - `/api/examples`: HTTP 200; compact command, pay-now, and payment-hint sections expose `/api/listing-roast` as the first paid path and `/api/full-listing-roast` as the 10000-unit upgrade.
 - `npx awal@2.8.0 x402 details` on `GET /api/listing-roast`: HTTP 402; payment metadata exposes `officialCdpDiscovery` with `marketplace listing score`, `maxUsdPrice=0.001`, expanded alternate searches including `paid api listing quality`, `buyer-agent skip reasons`, `AgentCore x402 payments`, `Coinbase x402 Bazaar MCP server`, `x402 site audit`, `x402 discovery audit`, and `listing roast`, amount 1000, Base USDC, and the indexed `/api/listing-roast` resource. The unpaid JSON body now also exposes an early `paymentShortcut` plus top-level `selectedPaidUrl`, `selectedPaidPath`, `selectedPaidMaxAmountRequired`, `firstPaidUrl`, and `payableRoute` fields so simple or truncating JSON-first agents can find the payable route without traversing nested metadata; `paymentShortcut.upgradeAfterQuickScore` points to the $0.01 `GET /api/full-listing-roast` upgrade.
 - Search-reality handoff: `/x402.json`, unpaid 402 bodies, and local discovery expose `knownWorkingSearchQueries` for `marketplace listing score`, `paid api listing quality`, `paid API listing quality score`, `listing roast`, and `full listing roast`, plus `notYetRankingSearchQueries` for broader terms including `buyer-agent skip reasons`, `agent service clarity`, `x402 discovery audit`, `x402 site audit`, `AgentCore x402 payments`, and `Coinbase x402 Bazaar MCP server`.
+- Paid-use proof action handoff: `/api/paid-usage-proof` is free, returns no `Payment-Required` header, and now exposes top-level `paidCompletions`, `estimatedGrossRevenueUsd`, `proofText`, `settlementStatus`, `provenFirstPaidAction`, `paymentShortcut`, `command`, and `searchReality` so cautious buyer agents can verify wallet-backed use and identify the $0.001 first paid route without traversing nested proof data.
 - `GET /api/listing-roast` with stale cached `$1.00` query params: HTTP 402; payment header amount remains 1000, header has no `$1.00`, body exposes `staleCachedDirectoryInputGuard`, and paid scoring normalizes stale directory inputs to the current `$0.001 GET /api/listing-roast` defaults.
 - AgentCore handoff page: HTTP 200.
 - Instant score route: HTTP 402, amount 1000 USDC units.
@@ -65,7 +66,7 @@ Current verified state:
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
 - Receiver wallet balance is the durable revenue check across deploys.
-- Current public paid-use proof: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. Post-deploy no-spend verification confirmed the v36 search-reality handoff in the manifest, local discovery, and unpaid 402 body and did not create a new paid completion.
+- Current public paid-use proof: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. Post-deploy no-spend verification confirmed the v37 proof-action handoff, v36 search-reality handoff, manifest, local discovery, and unpaid 402 body and did not create a new paid completion.
 - The cash register baseline is preserved through Railway env import; use `/api/cash-register` plus the receiver wallet balance to distinguish register-confirmed and wallet-settled revenue.
 - First settlement transaction: 0x59f6d99257170dd796419a7d8a50dab7d113acb2198f0fafa993f6f30490fbf0.
 - Second settlement transaction: 0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71 for 1000 USDC units on the indexed GET `/api/listing-roast` route.
