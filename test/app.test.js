@@ -3252,6 +3252,7 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.url).toBe("http://localhost:8787/");
       expect(challenge.resource.description).toContain("$0.001");
       expect(challenge.resource.description).toContain("directory handoff");
+      expect(challenge.resource.description).toContain("included quick score");
       expect(challenge.resource.description).toContain("Proof before payment");
       expect(challenge.resource.description).toContain("/api/paid-usage-proof");
       expect(challenge.resource.description).toContain("/api/cash-register");
