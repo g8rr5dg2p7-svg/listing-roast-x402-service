@@ -31,11 +31,11 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: 4317c1f7-a8c9-41a1-8c6f-3ef06923f788.
-- Latest live code commit: f5063f2 Expose stale card normalization proof.
-- Latest GitHub release: stale-card-normalization-proof-v1.
+- Railway deploy: successful. Latest verified deployment: c495d0a7-f14d-428b-a736-f75741d2df38.
+- Latest live code commit: bd4bb42 Expand CDP search hints.
+- Latest GitHub release: expanded-cdp-search-hints-v1.
 - Latest metadata version: 2026-06-20-expanded-cdp-search-hints-v24.
-- Latest repo docs refresh: CDP/Bazaar price-filtered search, indexed-route handoffs, and stale cached-card normalization proof aligned with the live payment metadata.
+- Latest repo docs refresh: CDP/Bazaar price-filtered search, indexed-route handoffs, stale cached-card normalization proof, and expanded buyer-search hints aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
