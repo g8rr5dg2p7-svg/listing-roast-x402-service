@@ -4411,10 +4411,13 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.resource.tags).toEqual([
         "x402",
         "x402 site audit",
+        "x402 buyer prepay risk score",
+        "score x402 endpoint before paying",
         "x402 marketplace SEO audit",
         "x402 seller growth checklist",
         "x402 listing SEO audit",
         "paid API preflight",
+        "x402 route health check",
         "route health",
         "Bazaar search visibility",
         "stale Bazaar price"
