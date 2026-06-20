@@ -312,8 +312,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-exact-winning-phrase-aliases-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T03:20:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-buyer-phrase-command-pack-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T03:40:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -3221,6 +3221,7 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
         use: "discoveryAudit"
       }
     ],
+    buyerPhraseCommandPack: buildBuyerPhraseCommandPack(config),
     intentRoutes,
     expectedChallenge: {
       status: 402,
@@ -3299,6 +3300,51 @@ function compactPaidAction(action) {
   };
 }
 
+function buildBuyerPhraseCommandPack(config) {
+  const intentRoutes = buildPayNowActions(config);
+  const entries = [
+    {
+      intent: "paid API listing quality score",
+      actionKey: "paidApiListingQualityScore",
+      landingPage: PAID_API_LISTING_QUALITY_SCORE_PATH
+    },
+    {
+      intent: "listing quality score API",
+      actionKey: "listingQualityScoreApi",
+      landingPage: LISTING_QUALITY_SCORE_API_PAGE_PATH
+    },
+    {
+      intent: "x402 listing quality",
+      actionKey: "x402ListingQuality",
+      landingPage: X402_LISTING_QUALITY_PAGE_PATH
+    },
+    {
+      intent: "marketplace product listing quality",
+      actionKey: "marketplaceProductListingQuality",
+      landingPage: MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH
+    },
+    {
+      intent: "buyer-agent skip reasons",
+      actionKey: "buyerAgentSkipReasons",
+      landingPage: BUYER_AGENT_SKIP_REASONS_PAGE_PATH
+    }
+  ];
+
+  return entries.map((entry) => {
+    const exactAction = intentRoutes[entry.actionKey];
+    return {
+      intent: entry.intent,
+      landingPage: absoluteUrl(config, entry.landingPage),
+      firstPaidAction: compactPaidAction(intentRoutes.indexedQuickScore),
+      exactIntentPaidAction: compactPaidAction(exactAction),
+      command: exactAction.command,
+      commandHandoff: `${absoluteUrl(config, COMMANDS_PATH)}?intent=${encodeURIComponent(entry.intent)}`,
+      payNow: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent(entry.intent)}`,
+      note: "Use the proven /api/listing-roast route first for generic marketplace traffic; use this exact alias when the buyer or crawler needs the paid URL to match the phrase."
+    };
+  });
+}
+
 function compactPaidUseProof(proof = {}) {
   return {
     paidCompletions: proof.paidCompletions,
@@ -3367,6 +3413,7 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
     paidUseProof: compactPaidUseProof(proof),
     firstPaidAction: compactPaidAction(firstPaidAction),
     ...(exactIntentPaidAction ? { exactIntentPaidAction: compactPaidAction(exactIntentPaidAction) } : {}),
+    buyerPhraseCommandPack: buildBuyerPhraseCommandPack(config),
     expectedChallenge: {
       status: 402,
       amount: firstPaidAction.maxAmountRequired,
@@ -7714,6 +7761,10 @@ export function createApp(overrides = {}) {
     const fullDiscoveryAuditCommand = buildPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_AMOUNT, discoveryAuditRequestExample);
     const payCommand = buildPayCommand(config);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
+    const paidApiListingQualityScoreCommand = buildGetPayCommand(config, "/api/paid-api-listing-quality-score", INSTANT_SCORE_AMOUNT);
+    const listingQualityScoreApiCommand = buildGetPayCommand(config, "/api/listing-quality-score-api", INSTANT_SCORE_AMOUNT);
+    const x402ListingQualityCommand = buildGetPayCommand(config, "/api/x402-listing-quality", INSTANT_SCORE_AMOUNT);
+    const marketplaceProductListingQualityCommand = buildGetPayCommand(config, "/api/marketplace-product-listing-quality", INSTANT_SCORE_AMOUNT);
     const scoreOutput = buildListingScoreWithUpgrade(requestExample, config);
     const sampleOutput = buildListingRoast(requestExample);
     const cashRegister = await getCashRegister();
@@ -7853,6 +7904,10 @@ export function createApp(overrides = {}) {
             <button class="button secondary" type="button" data-copy-target="full-audit-command" data-default-text="Copy full audit command">Copy full audit command</button>
             <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
             <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy $0.01 roast command">Copy $0.01 roast command</button>
+            <button class="button" type="button" data-copy-target="paid-api-listing-quality-score-command" data-default-text="Copy exact quality-score command">Copy exact quality-score command</button>
+            <button class="button secondary" type="button" data-copy-target="listing-quality-score-api-command" data-default-text="Copy listing-quality API command">Copy listing-quality API command</button>
+            <button class="button secondary" type="button" data-copy-target="x402-listing-quality-command" data-default-text="Copy x402 listing-quality command">Copy x402 listing-quality command</button>
+            <button class="button secondary" type="button" data-copy-target="marketplace-product-listing-quality-command" data-default-text="Copy product-quality command">Copy product-quality command</button>
             <a class="button" href="${indexedPreviewUrl}">Preview paid output JSON</a>
             <a class="button secondary" href="${commandPreviewUrl}">Open compact command JSON</a>
             <a class="button secondary" href="${builderUrl}">Build your command</a>
@@ -7993,6 +8048,22 @@ score: 4/5</div>
       <div class="wrap" style="margin-top: 18px;">
         <h3>Score command</h3>
         <pre id="score-command">${escapeHtml(scoreCommand)}</pre>
+      </div>
+      <div class="wrap" style="margin-top: 18px;">
+        <h3>Exact paid API listing quality score command</h3>
+        <pre id="paid-api-listing-quality-score-command">${escapeHtml(paidApiListingQualityScoreCommand)}</pre>
+      </div>
+      <div class="wrap" style="margin-top: 18px;">
+        <h3>Exact listing quality score API command</h3>
+        <pre id="listing-quality-score-api-command">${escapeHtml(listingQualityScoreApiCommand)}</pre>
+      </div>
+      <div class="wrap" style="margin-top: 18px;">
+        <h3>Exact x402 listing quality command</h3>
+        <pre id="x402-listing-quality-command">${escapeHtml(x402ListingQualityCommand)}</pre>
+      </div>
+      <div class="wrap" style="margin-top: 18px;">
+        <h3>Exact marketplace product listing quality command</h3>
+        <pre id="marketplace-product-listing-quality-command">${escapeHtml(marketplaceProductListingQualityCommand)}</pre>
       </div>
       <div class="wrap" style="margin-top: 18px;">
         <h3>Full roast command</h3>
@@ -8137,6 +8208,7 @@ ${webMcpScript(config)}
       commands: absoluteUrl(config, COMMANDS_PATH),
       compactCommandHandoff: buildCommandHandoff(config, "paid API listing quality", cashRegister),
       payNow,
+      buyerPhraseCommandPack: buildBuyerPhraseCommandPack(config),
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       cashRegister: absoluteUrl(config, "/api/cash-register"),
       paidUsageProof: buildPaidUsageProof(config, cashRegister),

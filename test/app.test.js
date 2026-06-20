@@ -197,6 +197,15 @@ describe("Listing Roast x402 service", () => {
       expect(home.text).toContain("Copy full audit command");
       expect(home.text).toContain("Copy $0.005 score command");
       expect(home.text).toContain("Copy $0.01 roast command");
+      expect(home.text).toContain("Copy exact quality-score command");
+      expect(home.text).toContain("Exact paid API listing quality score command");
+      expect(home.text).toContain("/api/paid-api-listing-quality-score");
+      expect(home.text).toContain("Exact listing quality score API command");
+      expect(home.text).toContain("/api/listing-quality-score-api");
+      expect(home.text).toContain("Exact x402 listing quality command");
+      expect(home.text).toContain("/api/x402-listing-quality");
+      expect(home.text).toContain("Exact marketplace product listing quality command");
+      expect(home.text).toContain("/api/marketplace-product-listing-quality");
       expect(home.text).toContain("Preview paid output JSON");
       expect(home.text).toContain("/api/pay-now?intent=marketplace%20listing%20score");
       expect(home.text).toContain("Open compact command JSON");
@@ -555,7 +564,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(compressedX402Manifest.status).toBe(200);
       expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
-      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-exact-winning-phrase-aliases-v1");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-buyer-phrase-command-pack-v1");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -589,8 +598,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-exact-winning-phrase-aliases-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T03:20:00.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-buyer-phrase-command-pack-v1");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T03:40:00.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -888,8 +897,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-exact-winning-phrase-aliases-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T03:20:00.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-buyer-phrase-command-pack-v1");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T03:40:00.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -1150,7 +1159,7 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
-      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-exact-winning-phrase-aliases-v1");
+      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-buyer-phrase-command-pack-v1");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -1242,6 +1251,9 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.commands).toContain("/api/commands");
       expect(examples.json.compactCommandHandoff.firstPaidAction.path).toBe("/api/listing-roast");
       expect(examples.json.compactCommandHandoff.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
+      expect(examples.json.compactCommandHandoff.buyerPhraseCommandPack[0].exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality-score");
+      expect(examples.json.buyerPhraseCommandPack[0].firstPaidAction.path).toBe("/api/listing-roast");
+      expect(examples.json.buyerPhraseCommandPack[0].command).toContain("/api/paid-api-listing-quality-score");
       expect(examples.json.payNowUrl).toContain("/api/pay-now");
       expect(examples.json.paidUsageProofUrl).toContain("/api/paid-usage-proof");
       expect(examples.json.cashRegister).toContain("/api/cash-register");
@@ -1916,6 +1928,19 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.routeSelector.map((route) => route.use)).toContain("x402ListingQuality");
       expect(payNow.json.routeSelector.map((route) => route.use)).toContain("buyerAgentSkipReasons");
       expect(payNow.json.routeSelector.map((route) => route.use)).toContain("agentServiceClarity");
+      expect(payNow.json.buyerPhraseCommandPack.map((entry) => entry.intent)).toEqual([
+        "paid API listing quality score",
+        "listing quality score API",
+        "x402 listing quality",
+        "marketplace product listing quality",
+        "buyer-agent skip reasons"
+      ]);
+      expect(payNow.json.buyerPhraseCommandPack[0].firstPaidAction.path).toBe("/api/listing-roast");
+      expect(payNow.json.buyerPhraseCommandPack[0].exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality-score");
+      expect(payNow.json.buyerPhraseCommandPack[0].command).toContain("/api/paid-api-listing-quality-score");
+      expect(payNow.json.buyerPhraseCommandPack[1].exactIntentPaidAction.path).toBe("/api/listing-quality-score-api");
+      expect(payNow.json.buyerPhraseCommandPack[2].exactIntentPaidAction.path).toBe("/api/x402-listing-quality");
+      expect(payNow.json.buyerPhraseCommandPack[3].exactIntentPaidAction.path).toBe("/api/marketplace-product-listing-quality");
       expect(payNow.json.expectedChallenge.status).toBe(402);
       expect(payNow.json.paidUsageProof.paidCompletions).toBe(0);
       expect(payNow.json.paidUsageProof.noSpend).toBe(true);
@@ -1954,6 +1979,9 @@ describe("Listing Roast x402 service", () => {
       expect(commands.json.firstPaidAction.path).toBe("/api/listing-roast");
       expect(commands.json.firstPaidAction.command).toContain("--max-amount 1000");
       expect(commands.json.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
+      expect(commands.json.buyerPhraseCommandPack[0].firstPaidAction.path).toBe("/api/listing-roast");
+      expect(commands.json.buyerPhraseCommandPack[0].exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality-score");
+      expect(commands.json.buyerPhraseCommandPack[0].commandHandoff).toContain("paid%20API%20listing%20quality%20score");
       expect(commands.json.bazaarCataloging.noSelfPay).toBe(true);
       expect(commands.json.bazaarCataloging.note).toContain("extensions.bazaar metadata");
 
@@ -2825,7 +2853,7 @@ describe("Listing Roast x402 service", () => {
 
       const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
       expect(paymentAlias.status).toBe(200);
-      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-exact-winning-phrase-aliases-v1");
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-buyer-phrase-command-pack-v1");
       expect(paymentAlias.json.commands).toContain("/api/commands");
 
       const mcpJsonAlias = await fetchJson(server, "/mcp.json");
