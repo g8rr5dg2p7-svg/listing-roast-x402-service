@@ -6629,52 +6629,71 @@ function atomicAmountToUsd(amount) {
 function buildLocalDiscoveryItems(config) {
   const now = new Date().toISOString();
 
-  return buildX402Manifest(config).resources.map((resource) => ({
-    resource: resource.url,
-    type: "http",
-    x402Version: 2,
-    serviceName: resource.serviceName || config.serviceName,
-    description: resource.description,
-    tags: resource.tags || [],
-    keywords: resource.keywords || [],
-    accepts: [
-      {
-        scheme: "exact",
-        network: config.network,
-        amount: resource.maxAmountRequired,
-        asset: config.network === BASE_MAINNET_NETWORK ? BASE_USDC_CONTRACT : "USDC",
-        payTo: config.payTo,
-        extra: {
-          name: "USDC",
-          decimals: 6
-        }
-      }
-    ],
-    lastUpdated: now,
-    metadata: {
-      id: resource.id,
-      serviceName: config.serviceName,
+  return buildX402Manifest(config).resources.map((resource) => {
+    const amount = resource.maxAmountRequired;
+    const priceUsd = atomicAmountToUsd(amount);
+
+    return {
+      resource: resource.url,
+      url: resource.url,
+      route: resource.url,
+      type: "http",
+      x402Version: 2,
+      serviceName: resource.serviceName || config.serviceName,
       name: resource.name,
       method: resource.method,
       path: resource.path,
       price: resource.price,
-      maxAmountRequired: resource.maxAmountRequired,
-      description: resource.description,
-      serviceTags: resource.tags || [],
-      tags: uniqueTerms([...(resource.tags || []), ...(resource.keywords || [])]),
-      keywords: resource.keywords || [],
-      input: resource.input || {},
-      output: {
-        example: resource.outputExample || {}
-      },
-      schema: resource.schema,
+      priceUsd,
+      maxAmountRequired: amount,
+      max_amount_required: amount,
       command: resource.command,
-      commands: absoluteUrl(config, COMMANDS_PATH),
-      preferredFirstPaidAction: resource.id === "indexed_roast_quick_score",
-      noSpendHandoff: absoluteUrl(config, PAY_NOW_PATH),
-      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH)
-    }
-  }));
+      description: resource.description,
+      tags: resource.tags || [],
+      keywords: resource.keywords || [],
+      accepts: [
+        {
+          scheme: "exact",
+          network: config.network,
+          amount,
+          asset: config.network === BASE_MAINNET_NETWORK ? BASE_USDC_CONTRACT : "USDC",
+          payTo: config.payTo,
+          extra: {
+            name: "USDC",
+            decimals: 6
+          }
+        }
+      ],
+      lastUpdated: now,
+      metadata: {
+        id: resource.id,
+        serviceName: config.serviceName,
+        name: resource.name,
+        method: resource.method,
+        path: resource.path,
+        price: resource.price,
+        priceUsd,
+        maxAmountRequired: amount,
+        max_amount_required: amount,
+        url: resource.url,
+        route: resource.url,
+        description: resource.description,
+        serviceTags: resource.tags || [],
+        tags: uniqueTerms([...(resource.tags || []), ...(resource.keywords || [])]),
+        keywords: resource.keywords || [],
+        input: resource.input || {},
+        output: {
+          example: resource.outputExample || {}
+        },
+        schema: resource.schema,
+        command: resource.command,
+        commands: absoluteUrl(config, COMMANDS_PATH),
+        preferredFirstPaidAction: resource.id === "indexed_roast_quick_score",
+        noSpendHandoff: absoluteUrl(config, PAY_NOW_PATH),
+        paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH)
+      }
+    };
+  });
 }
 
 function buildOfficialCdpDiscoveryHandoff(config) {

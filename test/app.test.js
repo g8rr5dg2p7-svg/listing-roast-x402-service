@@ -2910,8 +2910,20 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscovery.json.items).toHaveLength(2);
       expect(localDiscovery.json.pagination.total).toBe(PAID_RESOURCE_COUNT);
       expect(localDiscovery.json.items[0].resource).toBe("http://localhost:8787/api/listing-roast");
+      expect(localDiscovery.json.items[0].url).toBe("http://localhost:8787/api/listing-roast");
+      expect(localDiscovery.json.items[0].route).toBe("http://localhost:8787/api/listing-roast");
+      expect(localDiscovery.json.items[0].path).toBe("/api/listing-roast");
+      expect(localDiscovery.json.items[0].method).toBe("GET");
+      expect(localDiscovery.json.items[0].price).toBe("$0.001");
+      expect(localDiscovery.json.items[0].priceUsd).toBe(0.001);
+      expect(localDiscovery.json.items[0].maxAmountRequired).toBe("1000");
+      expect(localDiscovery.json.items[0].max_amount_required).toBe("1000");
+      expect(localDiscovery.json.items[0].command).toContain("/api/listing-roast");
       expect(localDiscovery.json.items[0].accepts[0].amount).toBe("1000");
       expect(localDiscovery.json.items[0].metadata.id).toBe("indexed_roast_quick_score");
+      expect(localDiscovery.json.items[0].metadata.url).toBe("http://localhost:8787/api/listing-roast");
+      expect(localDiscovery.json.items[0].metadata.priceUsd).toBe(0.001);
+      expect(localDiscovery.json.items[0].metadata.max_amount_required).toBe("1000");
       expect(localDiscovery.json.items[0].metadata.commands).toContain("/api/commands");
       expect(localDiscovery.json.items[0].metadata.preferredFirstPaidAction).toBe(true);
       expect(localDiscovery.json.items[0].tags).toEqual([
@@ -2944,6 +2956,9 @@ describe("Listing Roast x402 service", () => {
 
       const localDiscoveryAlias = await fetchJson(server, "/.well-known/x402/discovery/resources?limit=1");
       expect(localDiscoveryAlias.status).toBe(200);
+      expect(localDiscoveryAlias.json.items[0].path).toBe("/api/listing-roast");
+      expect(localDiscoveryAlias.json.items[0].method).toBe("GET");
+      expect(localDiscoveryAlias.json.items[0].maxAmountRequired).toBe("1000");
       expect(localDiscoveryAlias.json.items[0].metadata.path).toBe("/api/listing-roast");
 
       const localDiscoverySearch = await fetchJson(server, "/v2/x402/discovery/search?query=x402%20discovery%20audit&limit=2");
@@ -2962,6 +2977,12 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoverySearch.json.startHere.upgradeAfterFit.path).toBe("/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.startHere.upgradeAfterFit.maxAmountRequired).toBe("10000");
       expect(localDiscoverySearch.json.resources[0].resource).toBe("http://localhost:8787/api/x402-discovery-audit");
+      expect(localDiscoverySearch.json.resources[0].url).toBe("http://localhost:8787/api/x402-discovery-audit");
+      expect(localDiscoverySearch.json.resources[0].path).toBe("/api/x402-discovery-audit");
+      expect(localDiscoverySearch.json.resources[0].method).toBe("GET");
+      expect(localDiscoverySearch.json.resources[0].price).toBe("$0.001");
+      expect(localDiscoverySearch.json.resources[0].maxAmountRequired).toBe("1000");
+      expect(localDiscoverySearch.json.resources[0].max_amount_required).toBe("1000");
       expect(localDiscoverySearch.json.selectedActionKey).toBe("discoveryAuditQuick");
       expect(localDiscoverySearch.json.selectedPaidAction.path).toBe("/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.selectedPaidAction.maxAmountRequired).toBe("1000");
@@ -3033,6 +3054,12 @@ describe("Listing Roast x402 service", () => {
       const localDiscoveryListingQualitySearch = await fetchJson(server, "/v2/x402/discovery/search?query=paid%20API%20listing%20quality&limit=2");
       expect(localDiscoveryListingQualitySearch.status).toBe(200);
       expect(localDiscoveryListingQualitySearch.headers.get("payment-required")).toBeNull();
+      expect(localDiscoveryListingQualitySearch.json.resources[0].url).toBe("http://localhost:8787/api/listing-roast");
+      expect(localDiscoveryListingQualitySearch.json.resources[0].path).toBe("/api/listing-roast");
+      expect(localDiscoveryListingQualitySearch.json.resources[0].method).toBe("GET");
+      expect(localDiscoveryListingQualitySearch.json.resources[0].price).toBe("$0.001");
+      expect(localDiscoveryListingQualitySearch.json.resources[0].maxAmountRequired).toBe("1000");
+      expect(localDiscoveryListingQualitySearch.json.resources[0].max_amount_required).toBe("1000");
       expect(localDiscoveryListingQualitySearch.json.resources[0].metadata.path).toBe("/api/listing-roast");
       expect(localDiscoveryListingQualitySearch.json.selectedActionKey).toBe("paidApiListingQuality");
       expect(localDiscoveryListingQualitySearch.json.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
@@ -3124,6 +3151,10 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoveryMerchant.json.commands).toContain("/api/commands");
       expect(localDiscoveryMerchant.json.links.commands).toContain("/api/commands");
       expect(localDiscoveryMerchant.json.resources).toHaveLength(PAID_RESOURCE_COUNT);
+      expect(localDiscoveryMerchant.json.resources[0].path).toBe("/api/listing-roast");
+      expect(localDiscoveryMerchant.json.resources[0].method).toBe("GET");
+      expect(localDiscoveryMerchant.json.resources[0].price).toBe("$0.001");
+      expect(localDiscoveryMerchant.json.resources[0].maxAmountRequired).toBe("1000");
       expect(localDiscoveryMerchant.json.resources.map((resource) => resource.metadata.path)).toContain("/api/preflight");
       expect(localDiscoveryMerchant.json.resources.map((resource) => resource.metadata.path)).toContain("/api/v1/preflight");
       expect(localDiscoveryMerchant.json.resources.map((resource) => resource.metadata.path)).toContain("/preflight");
