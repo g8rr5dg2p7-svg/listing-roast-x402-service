@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-cdp-handoff-in-examples-v21";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T18:33:10.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-homepage-cdp-proof-v22";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T18:47:54.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -9886,6 +9886,7 @@ export function createApp(overrides = {}) {
     const mcpServerCardUrl = absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH);
     const payNowUrl = absoluteUrl(config, PAY_NOW_PATH);
     const commandsUrl = absoluteUrl(config, COMMANDS_PATH);
+    const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
     const indexedPreviewUrl = `${payNowUrl}?intent=marketplace%20listing%20score`;
     const commandPreviewUrl = `${commandsUrl}?intent=paid%20API%20listing%20quality`;
     const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
@@ -10032,6 +10033,8 @@ export function createApp(overrides = {}) {
             <div><strong class="metric">${escapeHtml(indexedPaidLabel)}</strong><span class="muted">Preferred route that already converted</span></div>
             <div><strong class="metric">${escapeHtml(settlementLabel)}</strong><span class="muted">${escapeHtml(settlementText)}</span></div>
             <div><strong>${config.instantScorePrice} -> ${config.price}</strong><span class="muted">GET quick score, then GET full roast</span></div>
+            <div><strong class="metric">CDP Bazaar indexed</strong><span class="muted">Search <code>${escapeHtml(officialCdpDiscovery.recommendedSearchQuery)}</code> with max ${escapeHtml(officialCdpDiscovery.recommendedMaxUsdPrice)} USD</span></div>
+            <div><strong>Live 402 wins</strong><span class="muted">If a cached marketplace field is stale, use the live ${INSTANT_SCORE_AMOUNT}-unit GET challenge</span></div>
           </div>
           <div class="actions">
             <button class="button" type="button" data-copy-target="indexed-command" data-default-text="Copy $0.001 indexed GET command">Copy $0.001 indexed GET command</button>
@@ -10100,6 +10103,7 @@ score: 4/5</div>
           <h2>Pay the indexed ${config.instantScorePrice} route first, then upgrade when the score is promising.</h2>
           <p>All paid endpoints are protected by x402. The already-indexed <code>GET ${ROAST_PATH}</code> route is the preferred first paid action for Bazaar traffic, x402 marketplace conversion checks, and agent listing conversion score buyers; <code>GET ${FULL_ROAST_GET_PATH}</code> is the direct full one-cent roast, and <code>POST ${ROAST_PATH}</code> remains available for custom-body full roasts with safe defaults when stale directory cards omit the body. The exact <code>GET ${DISCOVERY_AUDIT_PATH}</code> route is the lowest-friction discovery audit for agents that do not want to assemble a body first.</p>
           <p class="muted">Agent payment prompt: <code>${escapeHtml(homepageAgentPaymentPrompt)}</code></p>
+          <p class="muted">Official CDP discovery: <a href="${escapeHtml(officialCdpDiscovery.recommendedSearchUrl)}">search ${escapeHtml(officialCdpDiscovery.recommendedSearchQuery)} with maxUsdPrice=${escapeHtml(officialCdpDiscovery.recommendedMaxUsdPrice)}</a> · <a href="${escapeHtml(officialCdpDiscovery.merchantDiscoveryUrl)}">merchant lookup</a>. CDP refreshes cached route metadata after real settlement; the live <code>GET ${ROAST_PATH}</code> challenge is the current price source before payment.</p>
           <p>
             <span class="tag">Base mainnet</span>
             <span class="tag">USDC</span>
