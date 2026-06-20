@@ -4184,8 +4184,8 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       [ROAST_PATH]: {
         get: {
           operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
-          tags: ["paid API listing quality", "paid API listing quality score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "agent service listing clarity", "x402 listing", "paid API listing"],
-          summary: "Paid $0.001 paid API listing quality, agent conversion, and buyer-agent skip reasons quick score",
+          tags: ["listing roast quick score", "paid API listing quality", "paid API listing quality score", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "agent service listing clarity", "x402 listing", "paid API listing"],
+          summary: "Paid $0.001 listing roast quick score for paid API listing quality and buyer-agent skip reasons",
           description: "Listing quality score API for paid API listing quality score, marketplace product listing quality, buyer-agent skip reasons, marketplace listing score, marketplace listing conversion API, agent service clarity, and agent service listing clarity. Lowest-price $0.001 score from indexed /api/listing-roast for agent listing conversion score, x402 marketplace conversion, x402 discovery audit, x402 site audit, paid API preflight, fix x402 Bazaar listing, stale price, route health, Bazaar search visibility, and conversion checks; POST same URL for $0.01 full roast.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
@@ -4214,7 +4214,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
         post: {
           operationId: "postListingRoast",
           tags: ["x402 listing", "paid API listing"],
-          summary: "Paid $0.01 marketplace listing conversion roast",
+          summary: "Paid $0.01 full roast rewrite and conversion guidance",
           description: "Returns paid API listing conversion feedback, marketplace listing quality fixes, buyer-agent skip reasons, rewritten listing copy, and stop-or-upgrade guidance after x402 payment.",
           "x-price": config.price,
           "x-x402-price": config.price,
