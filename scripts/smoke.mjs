@@ -3,6 +3,7 @@ const expectedNetwork = process.env.EXPECTED_X402_NETWORK || "eip155:84532";
 const smokePath = process.env.SMOKE_PATH || "/api/listing-roast";
 const quickScoreAliasPaths = [
   "/api/marketplace-listing-score",
+  "/api/marketplace-listing-conversion-api",
   "/api/marketplace-listing-conversion",
   "/api/marketplace-product-listing-quality",
   "/api/paid-api-listing-quality",

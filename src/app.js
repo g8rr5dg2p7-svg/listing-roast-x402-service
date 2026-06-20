@@ -33,6 +33,7 @@ const AGENT_LISTING_PATH = "/api/agent-listing-conversion";
 const ROAST_PATH = "/api/listing-roast";
 const QUICK_SCORE_ALIAS_PATHS = Object.freeze([
   "/api/marketplace-listing-score",
+  "/api/marketplace-listing-conversion-api",
   "/api/marketplace-listing-conversion",
   "/api/marketplace-product-listing-quality",
   "/api/paid-api-listing-quality",
@@ -52,6 +53,15 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     catalogTitle: "GET $0.001 marketplace listing score quick-score alias",
     description: "Marketplace listing score x402: $0.001 GET alias for marketplace listing score buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and next paid action guidance.",
     keywords: ["marketplace listing score", "marketplace listing quality", "listing quality score", "x402 listing quality", "paid API listing quality"]
+  },
+  "/api/marketplace-listing-conversion-api": {
+    id: "marketplace_listing_conversion_api_alias",
+    name: "marketplace_listing_conversion_api",
+    operationId: "getMarketplaceListingConversionApiAlias",
+    summary: "Paid $0.001 marketplace listing conversion API alias",
+    catalogTitle: "GET $0.001 marketplace listing conversion API exact-path quick-score alias",
+    description: "Marketplace listing conversion API x402: $0.001 GET exact-path alias for buyer agents searching marketplace listing conversion API. Same quick score as paid-use-confirmed /api/listing-roast, with marketplace conversion score, paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
+    keywords: ["marketplace listing conversion API", "marketplace listing conversion", "marketplace conversion score", "marketplace conversion check", "x402 marketplace conversion", "paid API listing quality", "agent listing conversion score"]
   },
   "/api/marketplace-listing-conversion": {
     id: "marketplace_listing_conversion_alias",
@@ -333,8 +343,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-conversion-api-phrase-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T04:36:51.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-conversion-api-path-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T04:54:29.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -392,6 +402,7 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   x402_ping: "x402Ping",
   x402_site_audit: "x402SiteAudit",
   marketplace_listing_score_alias: "indexedQuickScore",
+  marketplace_listing_conversion_api_alias: "indexedQuickScore",
   marketplace_listing_conversion_alias: "indexedQuickScore",
   marketplace_product_listing_quality_alias: "indexedQuickScore",
   paid_api_listing_quality_alias: "indexedQuickScore",
@@ -736,6 +747,48 @@ function buildDiscoveryLinks(config) {
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH)}>; rel="service-desc"; type="application/json"`,
     `<${absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH)}>; rel="agent-skills"; type="application/json"`,
     `<${absoluteUrl(config, ICON_SVG_PATH)}>; rel="icon"; type="image/svg+xml"`
+  ].join(", ");
+}
+
+function isPaidRouteRequest(method, pathname) {
+  const normalizedMethod = String(method || "GET").toUpperCase();
+
+  if (normalizedMethod === "POST") {
+    return [ROOT_DIRECTORY_POST_PATH, ROAST_PATH, SCORE_PATH, DISCOVERY_AUDIT_PATH].includes(pathname);
+  }
+
+  if (normalizedMethod !== "GET" && normalizedMethod !== "HEAD") {
+    return false;
+  }
+
+  return [
+    API_ENTRY_PATH,
+    API_V1_ENTRY_PATH,
+    V1_ENTRY_PATH,
+    INSTANT_SCORE_PATH,
+    CONVERSION_SCORE_PATH,
+    AGENT_LISTING_PATH,
+    ROAST_PATH,
+    PING_PATH,
+    DISCOVERY_AUDIT_PATH,
+    ...QUICK_SCORE_ALIAS_PATHS,
+    ...SITE_AUDIT_PAID_PATHS
+  ].includes(pathname);
+}
+
+function buildCompactPaidRouteLinks(config, pathname) {
+  const routePath = pathname || ROAST_PATH;
+  const routeTitle = QUICK_SCORE_ALIAS_METADATA[routePath]?.catalogTitle || (routePath === ROAST_PATH ? "GET $0.001 indexed listing-roast quick score" : "x402 paid route");
+
+  return [
+    `<${absoluteUrl(config, routePath)}>; rel="payment"; type="application/json"; title="${routeTitle}"`,
+    `<${absoluteUrl(config, "/x402.json")}>; rel="payment"; type="application/json"`,
+    `<${absoluteUrl(config, WELL_KNOWN_X402_JSON_PATH)}>; rel="service-desc"; type="application/json"`,
+    `<${absoluteUrl(config, PAY_NOW_PATH)}>; rel="help"; type="application/json"`,
+    `<${absoluteUrl(config, COMMANDS_PATH)}>; rel="help"; type="application/json"`,
+    `<${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}>; rel="service-meta"; type="application/json"`,
+    `<${absoluteUrl(config, "/openapi.json")}>; rel="describedby"; type="application/vnd.oai.openapi+json"`,
+    `<${absoluteUrl(config, WELL_KNOWN_AGENT_TOOLS_PATH)}>; rel="service-desc"; type="application/json"`
   ].join(", ");
 }
 
@@ -2374,6 +2427,7 @@ function inferPaymentHintIntentRouteKey(path, method = "GET") {
     [`POST ${DISCOVERY_AUDIT_PATH}`]: "discoveryAudit",
     [`POST ${SCORE_PATH}`]: "listingScore",
     "GET /api/marketplace-listing-score": "marketplaceListingScore",
+    "GET /api/marketplace-listing-conversion-api": "marketplaceListingConversion",
     "GET /api/marketplace-listing-conversion": "marketplaceListingConversion",
     "GET /api/marketplace-product-listing-quality": "marketplaceProductListingQuality",
     "GET /api/paid-api-listing-quality": "paidApiListingQuality",
@@ -2775,11 +2829,11 @@ function buildPayNowActions(config) {
       reason: "Use this when the buyer intent is exactly marketplace listing score or marketplace listing quality."
     }),
     marketplaceListingConversion: buildRoutePaymentAction(config, {
-      path: "/api/marketplace-listing-conversion",
+      path: "/api/marketplace-listing-conversion-api",
       method: "GET",
       price: config.instantScorePrice,
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
-      reason: "Use this when the buyer intent is exactly marketplace listing conversion API, marketplace listing conversion, marketplace conversion score, or x402 marketplace conversion."
+      reason: "Use this exact-path route when the buyer intent is marketplace listing conversion API, marketplace listing conversion, marketplace conversion score, or x402 marketplace conversion."
     }),
     marketplaceProductListingQuality: buildRoutePaymentAction(config, {
       path: "/api/marketplace-product-listing-quality",
@@ -3058,6 +3112,7 @@ function buildSelectedBuyerInstruction(selectedActionKey, selectedPaidAction, pr
 const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   indexed_roast_quick_score: "indexedQuickScore",
   marketplace_listing_score_alias: "marketplaceListingScore",
+  marketplace_listing_conversion_api_alias: "marketplaceListingConversion",
   marketplace_listing_conversion_alias: "marketplaceListingConversion",
   marketplace_product_listing_quality_alias: "marketplaceProductListingQuality",
   paid_api_listing_quality_alias: "paidApiListingQuality",
@@ -3711,9 +3766,19 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
   };
 }
 
-function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore") {
+function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore", selectedOverride = null) {
   const payNow = buildPayNow(config);
-  const selected = payNow.intentRoutes[intentRouteKey] || payNow.preferredFirstPaidAction;
+  const selectedBase = payNow.intentRoutes[intentRouteKey] || payNow.preferredFirstPaidAction;
+  const selected = selectedOverride?.path
+    ? buildRoutePaymentAction(config, {
+      path: selectedOverride.path,
+      method: selectedOverride.method || selectedBase.method,
+      price: selectedOverride.price || selectedBase.price,
+      maxAmountRequired: selectedOverride.maxAmountRequired || selectedBase.maxAmountRequired,
+      body: selectedOverride.body || selectedBase.body,
+      reason: selectedOverride.reason || selectedBase.reason
+    })
+    : selectedBase;
   const paidUseProof = buildPaidUseProofLinks(config);
   const settlementProof = buildSettlementProof(config);
 
@@ -3748,10 +3813,10 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore")
   };
 }
 
-function unpaidPaymentPreview(config, intentRouteKey) {
+function unpaidPaymentPreview(config, intentRouteKey, selectedOverride = null) {
   return () => ({
     contentType: "application/json",
-    body: buildUnpaidPaymentPreview(config, intentRouteKey)
+    body: buildUnpaidPaymentPreview(config, intentRouteKey, selectedOverride)
   });
 }
 
@@ -6032,7 +6097,8 @@ function scoreCatalogResource(resource, query) {
   }
 
   if (includesAny(normalizedQuery, ["x402 marketplace conversion", "marketplace listing conversion API", "marketplace listing conversion", "marketplace conversion score", "marketplace conversion check"])) {
-    if (resource.id === "marketplace_listing_conversion_alias") score += 470;
+    if (resource.id === "marketplace_listing_conversion_api_alias") score += 485;
+    if (resource.id === "marketplace_listing_conversion_alias") score += 455;
     if (resource.path === CONVERSION_SCORE_PATH) score += 140;
     if (isIndexedRoastGet) score += 15;
   }
@@ -7502,7 +7568,12 @@ function createX402Middleware(config) {
           description: withPaidUseProofDescription(config, metadata.description),
           mimeType: "application/json",
           customPaywallHtml: buildCustomPaywallHtml(config, intentRouteKey),
-          unpaidResponseBody: unpaidPaymentPreview(config, intentRouteKey),
+          unpaidResponseBody: unpaidPaymentPreview(config, intentRouteKey, {
+            path: routePath,
+            method: "GET",
+            price: config.instantScorePrice,
+            maxAmountRequired: INSTANT_SCORE_AMOUNT
+          }),
           extensions: declareChallengeDiscoveryExtension(buildIndexedRoastGetDiscovery(config, {
             routePath,
             inputDefaults: quickScoreAliasInputDefaults(routePath)
@@ -7791,8 +7862,9 @@ export function createApp(overrides = {}) {
   app.set("trust proxy", 1);
   app.use(gzipLargeTextResponses);
   app.use(express.json({ limit: "32kb" }));
-  app.use((_request, response, next) => {
-    response.set("Link", buildDiscoveryLinks(config));
+  app.use((request, response, next) => {
+    const pathname = new URL(request.originalUrl, "http://local").pathname;
+    response.set("Link", isPaidRouteRequest(request.method, pathname) ? buildCompactPaidRouteLinks(config, pathname) : buildDiscoveryLinks(config));
     next();
   });
 
@@ -7832,7 +7904,7 @@ export function createApp(overrides = {}) {
     const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
     const instantCommand = buildGetPayCommand(config);
     const agentListingCommand = buildGetPayCommand(config, AGENT_LISTING_PATH, INSTANT_SCORE_AMOUNT);
-    const marketplaceListingConversionCommand = buildGetPayCommand(config, "/api/marketplace-listing-conversion", INSTANT_SCORE_AMOUNT);
+    const marketplaceListingConversionCommand = buildGetPayCommand(config, "/api/marketplace-listing-conversion-api", INSTANT_SCORE_AMOUNT);
     const indexedRoastGetCommand = buildGetPayCommand(config, ROAST_PATH);
     const pingCommand = buildGetPayCommand(config, PING_PATH, PING_AMOUNT);
     const siteAuditCommand = buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT);
@@ -8068,8 +8140,8 @@ score: 4/5</div>
         </div>
         <div class="card">
           <h3>Marketplace listing conversion route</h3>
-          <p><code>GET ${escapeHtml(absoluteUrl(config, "/api/marketplace-listing-conversion"))}</code></p>
-          <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. Use this exact alias when the buyer searches for marketplace listing conversion API, marketplace listing conversion, marketplace conversion score, or x402 marketplace conversion.</p>
+          <p><code>GET ${escapeHtml(absoluteUrl(config, "/api/marketplace-listing-conversion-api"))}</code></p>
+          <p class="muted">Maximum payment: <strong>${INSTANT_SCORE_AMOUNT}</strong> USDC units. Use this exact API alias when the buyer searches for marketplace listing conversion API, marketplace listing conversion, marketplace conversion score, or x402 marketplace conversion. The shorter <code>/api/marketplace-listing-conversion</code> alias remains payable too.</p>
         </div>
         <div class="card">
           <h3>x402 ping route</h3>
