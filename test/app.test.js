@@ -367,6 +367,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.mcpAliases[0]).toContain("/.well-known/mcp");
       expect(mcp.json.mcpServerCard).toContain("/.well-known/mcp/server-card.json");
       expect(mcp.json.payNow).toContain("/api/pay-now");
+      expect(mcp.json.commands).toContain("/api/commands");
       expect(mcp.json.payNowExamples.skipReasons.selectedActionKey).toBe("buyerAgentSkipReasons");
       expect(mcp.json.payNowExamples.skipReasons.route).toContain("/api/listing-roast");
       expect(mcp.json.payNowExamples.skipReasons.selectedFirstPaidAction.path).toBe("/api/listing-roast");
@@ -392,6 +393,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.json.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(mcp.json.payment.recommendedPaidSequence[0].action.maxAmountRequired).toBe("1000");
       expect(mcp.json.payment.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
+      expect(mcp.json.payment.commands).toContain("/api/commands");
       expect(mcp.json.payment.payNowExamples.discoveryAudit.route).toContain("/api/x402-discovery-audit");
       expect(mcp.json.payment.settlementProof.cashRegister).toContain("/api/cash-register");
       expect(mcp.json.payment.paidUsageProof.cashRegister).toContain("/api/cash-register");
@@ -433,6 +435,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcpServerCard.json.serverInfo.name).toBe("Listing Roast x402");
       expect(mcpServerCard.json.transport).toBe("http");
       expect(mcpServerCard.json.payment.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
+      expect(mcpServerCard.json.payment.commands).toContain("/api/commands");
       expect(mcpServerCard.json.payment.recommendedPaidSequence[0].use).toBe("indexedQuickScore");
       expect(mcpServerCard.json.payment.recommendedPaidSequence[1].action.maxAmountRequired).toBe("10000");
       expect(mcpServerCard.json.payment.payNowExamples.skipReasons.route).toContain("/api/listing-roast");
@@ -442,6 +445,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcpServerCard.json.payment.paidUsageProof.paidCompletions).toBe(0);
       expect(mcpServerCard.json.iconUrl).toContain("/icon.svg");
       expect(mcpServerCard.json.links.cashRegister).toContain("/api/cash-register");
+      expect(mcpServerCard.json.links.commands).toContain("/api/commands");
       expect(mcpServerCard.json.links.llmsFull).toContain("/llms-full.txt");
       expect(mcpServerCard.json.links.llmsAliases[0]).toContain("/.well-known/llms.txt");
       expect(mcpServerCard.json.links.llmsFullAliases[0]).toContain("/.well-known/llms-full.txt");
@@ -463,6 +467,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.payment.network).toBe("eip155:84532");
       expect(x402Manifest.json.payment.currency).toBe("USDC");
       expect(x402Manifest.json.payment.asset).toBe("USDC");
+      expect(x402Manifest.json.payment.commands).toContain("/api/commands");
       expect(x402Manifest.json.payment.x402.primaryNetwork).toBe("base");
       expect(x402Manifest.json.payment.x402.network).toBe("eip155:84532");
       expect(x402Manifest.json.payment.x402.asset).toBe("USDC");
