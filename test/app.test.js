@@ -666,6 +666,8 @@ describe("Listing Roast x402 service", () => {
       expect(mcpRootAlias.json.mcpJsonRpcMethods).toContain("resources/list");
       expect(mcpRootAlias.json.mcpJsonRpcMethods).toContain("resources/read");
       expect(mcpRootAlias.json.mcpJsonRpcMethods).toContain("prompts/list");
+      expect(mcpRootAlias.json.mcpJsonRpcTools).toContain("search_resources");
+      expect(mcpRootAlias.json.mcpJsonRpcTools).toContain("proxy_tool_call");
       expect(mcpRootAlias.json.mcpJsonRpcTools).toContain("listing_roast_x402_handoff");
       expect(mcpRootAlias.json.mcpJsonRpcResources).toContain("listing-roast://paid-usage-proof");
 
@@ -678,7 +680,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcpInitialize.json.jsonrpc).toBe("2.0");
       expect(mcpInitialize.json.id).toBe(1);
       expect(mcpInitialize.json.result.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-20-expanded-cdp-search-hints-v24");
+      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-20-bazaar-mcp-compat-v25");
       expect(mcpInitialize.json.result.capabilities.tools).toEqual({});
 
       const mcpTools = await fetchJson(server, "/.well-known/mcp.json", {
@@ -688,10 +690,14 @@ describe("Listing Roast x402 service", () => {
       });
       expect(mcpTools.status).toBe(200);
       expect(mcpTools.json.result.tools.map((tool) => tool.name)).toEqual([
+        "search_resources",
+        "proxy_tool_call",
         "listing_roast_x402_handoff",
         "listing_roast_route_search",
         "listing_roast_paid_usage_proof"
       ]);
+      expect(mcpTools.json.result.tools.find((tool) => tool.name === "search_resources").description).toContain("Bazaar MCP-compatible");
+      expect(mcpTools.json.result.tools.find((tool) => tool.name === "proxy_tool_call").description).toContain("does not execute paid calls");
 
       const mcpHandoff = await fetchJson(server, "/mcp", {
         method: "POST",
@@ -715,6 +721,47 @@ describe("Listing Roast x402 service", () => {
       expect(mcpHandoff.json.result.structuredContent.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(mcpHandoff.json.result.structuredContent.exactIntentPaidAction.path).toBe("/api/buyer-agent-skip-reasons");
       expect(mcpHandoff.json.result.structuredContent.paymentRule).toContain("explicitly intends to pay");
+
+      const mcpSearchResources = await fetchJson(server, "/mcp", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 31,
+          method: "tools/call",
+          params: {
+            name: "search_resources",
+            arguments: { query: "AgentCore x402 payments", limit: 3 }
+          }
+        })
+      });
+      expect(mcpSearchResources.status).toBe(200);
+      expect(mcpSearchResources.json.result.isError).toBe(false);
+      expect(mcpSearchResources.json.result.structuredContent.noSpend).toBe(true);
+      expect(mcpSearchResources.json.result.structuredContent.compatibility).toBe("coinbase-bazaar-mcp-search_resources");
+      expect(mcpSearchResources.json.result.structuredContent.resources[0].resource).toContain("/api/");
+      expect(mcpSearchResources.json.result.structuredContent.paymentRule).toContain("does not spend funds");
+
+      const mcpProxyToolCall = await fetchJson(server, "/mcp", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 32,
+          method: "tools/call",
+          params: {
+            name: "proxy_tool_call",
+            arguments: { toolName: "buyer-agent skip reasons", arguments: { intent: "buyer-agent skip reasons" } }
+          }
+        })
+      });
+      expect(mcpProxyToolCall.status).toBe(200);
+      expect(mcpProxyToolCall.json.result.isError).toBe(false);
+      expect(mcpProxyToolCall.json.result.content[0].text).toContain("No paid request was executed");
+      expect(mcpProxyToolCall.json.result.structuredContent.noSpend).toBe(true);
+      expect(mcpProxyToolCall.json.result.structuredContent.compatibility).toContain("proxy_tool_call");
+      expect(mcpProxyToolCall.json.result.structuredContent.selectedFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(mcpProxyToolCall.json.result.structuredContent.paymentRule).toContain("separate explicit x402 HTTP call");
 
       const mcpProof = await fetchJson(server, "/mcp", {
         method: "POST",
@@ -777,7 +824,7 @@ describe("Listing Roast x402 service", () => {
       const mcpServerCard = await fetchJson(server, "/.well-known/mcp/server-card.json");
       expect(mcpServerCard.status).toBe(200);
       expect(mcpServerCard.json.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-20-expanded-cdp-search-hints-v24");
+      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-20-bazaar-mcp-compat-v25");
       expect(mcpServerCard.json.transport).toBe("http");
       expect(mcpServerCard.json.jsonRpcEndpoint).toContain("/mcp");
       expect(mcpServerCard.json.payment.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
@@ -807,7 +854,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(compressedX402Manifest.status).toBe(200);
       expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
-      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-expanded-cdp-search-hints-v24");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-20-bazaar-mcp-compat-v25");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -843,8 +890,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-expanded-cdp-search-hints-v24");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T19:18:00.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-bazaar-mcp-compat-v25");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T19:30:00.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -1268,8 +1315,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadata_version).toBe("2026-06-20-expanded-cdp-search-hints-v24");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T19:18:00.000Z");
+      expect(agentTools.json.metadata_version).toBe("2026-06-20-bazaar-mcp-compat-v25");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T19:30:00.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -1611,7 +1658,7 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentSkills.headers);
       expect(agentSkills.headers.get("access-control-allow-origin")).toBe("*");
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
-      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-expanded-cdp-search-hints-v24");
+      expect(agentSkills.json.metadataVersion).toBe("2026-06-20-bazaar-mcp-compat-v25");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -3523,7 +3570,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.findViews).toBe(10);
       expect(cashRegister.json.signals.routeViews).toBe(35);
       expect(cashRegister.json.signals.localDiscoveryViews).toBe(19);
-      expect(cashRegister.json.signals.mcpViews).toBe(14);
+      expect(cashRegister.json.signals.mcpViews).toBe(16);
       expect(cashRegister.json.signals.x402ManifestViews).toBe(5);
       expect(cashRegister.json.signals.agentCardViews).toBe(4);
       expect(cashRegister.json.signals.aiPluginViews).toBe(1);
@@ -3924,7 +3971,7 @@ describe("Listing Roast x402 service", () => {
 
       const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
       expect(paymentAlias.status).toBe(200);
-      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-expanded-cdp-search-hints-v24");
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-20-bazaar-mcp-compat-v25");
       expect(paymentAlias.json.commands).toContain("/api/commands");
 
       const mcpJsonAlias = await fetchJson(server, "/mcp.json");

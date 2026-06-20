@@ -60,7 +60,7 @@ If an external marketplace card looks stale, parse the live `Payment-Required` h
 - `GET /api/examples` - copy-ready request, command, sample output, official CDP Bazaar search handoff, and public paid-use proof.
 - `GET /robots.txt` - public crawl hints with AI/search agent access, content-signal preferences, and direct discovery links.
 - `GET /sitemap.xml` - public discovery URLs.
-- `GET /.well-known/mcp.json`, `GET /.well-known/mcp`, `GET /.well-known/mcp-server`, `GET /.well-known/mcp-server.json`, `GET /mcp`, `GET /mcp.json`, `GET /.well-known/mcp/server-card.json`, and `GET /mcp/server-card.json` - MCP-style discovery metadata and server-card aliases for agent-readiness scanners and MCP-aware clients.
+- `GET /.well-known/mcp.json`, `GET /.well-known/mcp`, `GET /.well-known/mcp-server`, `GET /.well-known/mcp-server.json`, `GET /mcp`, `GET /mcp.json`, `GET /.well-known/mcp/server-card.json`, and `GET /mcp/server-card.json` - MCP-style discovery metadata and server-card aliases for agent-readiness scanners and MCP-aware clients. `POST /mcp` supports no-spend JSON-RPC handoffs, including Bazaar-style `search_resources` and `proxy_tool_call` compatibility tools that return x402 route commands without making a paid call.
 - `POST /` - protected $0.001 x402 directory handoff for buyer agents following generic root-POST snippets from agent directories. It returns the paid route map and the preferred indexed `/api/listing-roast` next action after payment.
 - `GET /api`, `GET /api/v1`, and `GET /v1` - protected $0.001 x402 navigation routes with route maps and fallback quick scores for agents that start at generic API paths first.
 - `GET /api/instant-listing-score` - protected $0.001 x402 instant score route with optional query params.

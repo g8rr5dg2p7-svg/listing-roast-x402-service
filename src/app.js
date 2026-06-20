@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-expanded-cdp-search-hints-v24";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T19:18:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-bazaar-mcp-compat-v25";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T19:30:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -9045,12 +9045,12 @@ function buildMcpServerCard(config, cashRegister = {}) {
       {
         type: "http",
         url: metadataUrl,
-        note: "GET returns metadata; POST accepts a small MCP JSON-RPC bridge for no-spend tool handoff. Paid callable APIs are HTTP+JSON x402 routes described by OpenAPI and the x402 manifest."
+        note: "GET returns metadata; POST accepts a small MCP JSON-RPC bridge for no-spend tool handoff, including Bazaar-style search_resources and proxy_tool_call compatibility aliases. Paid callable APIs are HTTP+JSON x402 routes described by OpenAPI and the x402 manifest."
       },
       {
         type: "http",
         url: jsonRpcEndpoint,
-        note: "POST JSON-RPC endpoint for initialize, tools/list, tools/call, resources/list, resources/read, prompts/list, and safe no-spend handoffs."
+        note: "POST JSON-RPC endpoint for initialize, tools/list, tools/call, resources/list, resources/read, prompts/list, and safe no-spend handoffs. Bazaar-style search_resources and proxy_tool_call tool names return route handoffs only."
       }
     ],
     capabilities: {
@@ -9125,6 +9125,49 @@ function mcpToolContent(text, structuredContent = {}) {
 function buildMcpJsonRpcTools() {
   return [
     {
+      name: "search_resources",
+      title: "Search Listing Roast x402 resources",
+      description: "Bazaar MCP-compatible no-spend search over owned Listing Roast x402 paid resources. Returns matching routes, prices, schemas, commands, and proof links without making a paid call.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Free-text route search, for example paid API listing quality, buyer-agent skip reasons, AgentCore x402 payments, or x402 discovery audit."
+          },
+          limit: {
+            type: "integer",
+            minimum: 1,
+            maximum: 20,
+            description: "Maximum owned resources to return."
+          }
+        }
+      }
+    },
+    {
+      name: "proxy_tool_call",
+      title: "Listing Roast x402 paid-route handoff",
+      description: "Bazaar MCP-compatible proxy alias that returns the exact Listing Roast x402 route, command, cap, and proof link. It does not execute paid calls or spend funds.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          toolName: {
+            type: "string",
+            description: "Owned Listing Roast resource/tool name or route intent."
+          },
+          query: {
+            type: "string",
+            description: "Fallback buyer intent or route search phrase."
+          },
+          arguments: {
+            type: "object",
+            additionalProperties: true,
+            description: "Optional buyer-provided arguments; these are only echoed into the handoff and never used to make a paid call."
+          }
+        }
+      }
+    },
+    {
       name: "listing_roast_x402_handoff",
       title: "Listing Roast x402 paid route handoff",
       description: "Map a buyer intent to the safest Listing Roast x402 paid route and return copy-ready payment commands without making a paid call.",
@@ -9175,7 +9218,7 @@ function buildMcpInitializeResult(config) {
       name: config.serviceName,
       version: DISCOVERY_METADATA_VERSION
     },
-    instructions: "Use tools/list, then tools/call for no-spend route handoffs. Paid execution happens only through explicit x402 HTTP calls returned by the tools."
+    instructions: "Use tools/list, then tools/call for no-spend route handoffs. Bazaar-style search_resources and proxy_tool_call names are supported as compatibility aliases. Paid execution happens only through explicit x402 HTTP calls returned by the tools."
   };
 }
 
@@ -9253,6 +9296,66 @@ function buildMcpResourceReadResult(config, cashRegister, uri = "") {
 }
 
 function buildMcpToolCallResult(config, cashRegister, name, args = {}) {
+  if (name === "search_resources") {
+    const query = String(args.query || args.q || args.intent || "").slice(0, 240);
+    const search = buildLocalDiscoverySearch(config, {
+      query,
+      limit: args.limit || 10,
+      maxUsdPrice: args.maxUsdPrice,
+      network: args.network,
+      payTo: args.payTo
+    }, cashRegister);
+    const first = search.resources[0];
+    const selected = search.selectedFirstPaidAction || search.selectedPaidAction || search.preferredFirstPaidAction;
+    const text = [
+      `Found ${search.resources.length} owned Listing Roast x402 resources for "${query || "default"}".`,
+      first ? `Top match: ${first.resource || first.metadata?.path || selected?.path || ROAST_PATH}.` : `Top match: ${selected?.method || "GET"} ${selected?.path || ROAST_PATH}.`,
+      `Suggested first paid route: ${selected?.method || "GET"} ${selected?.path || ROAST_PATH} at ${selected?.price || config.instantScorePrice}.`,
+      `Proof before payment: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}`
+    ].join("\n");
+
+    return mcpToolContent(text, {
+      noSpend: true,
+      compatibility: "coinbase-bazaar-mcp-search_resources",
+      query,
+      resources: search.resources,
+      selectedFirstPaidAction: selected,
+      selectedPaidAction: search.selectedPaidAction,
+      selectedPaidSequence: search.selectedPaidSequence,
+      paidUsageProof: search.paidUsageProof,
+      links: search.links,
+      paymentRule: "This compatibility tool only returns owned Listing Roast route metadata. It does not call proxy_tool_call against CDP and does not spend funds."
+    });
+  }
+
+  if (name === "proxy_tool_call") {
+    const toolName = String(args.toolName || args.name || args.resource || args.path || "").slice(0, 240);
+    const nestedArguments = args.arguments && typeof args.arguments === "object" ? args.arguments : {};
+    const query = String(args.query || args.intent || nestedArguments.query || nestedArguments.intent || toolName || "paid API listing quality").slice(0, 240);
+    const result = buildFindResult(config, query, cashRegister);
+    const selected = result.selectedFirstPaidAction || result.recommendedPaidRoute || result.preferredFirstPaidAction;
+    const text = [
+      `Resolved Listing Roast tool "${toolName || query}" to ${selected?.method || "GET"} ${selected?.path || ROAST_PATH}.`,
+      `Price: ${selected?.price || config.instantScorePrice}; max amount: ${selected?.maxAmountRequired || INSTANT_SCORE_AMOUNT} USDC units.`,
+      `Command: ${selected?.command || result.command || buildGetPayCommand(config, ROAST_PATH)}`,
+      `Proof before payment: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}`,
+      "No paid request was executed by this MCP tool."
+    ].join("\n");
+
+    return mcpToolContent(text, {
+      noSpend: true,
+      compatibility: "coinbase-bazaar-mcp-proxy_tool_call-handoff-only",
+      toolName: toolName || null,
+      argumentsPreview: nestedArguments,
+      selectedFirstPaidAction: selected,
+      selectedPaidAction: result.selectedPaidAction,
+      exactIntentPaidAction: result.exactIntentPaidAction,
+      selectedPaidSequence: result.selectedPaidSequence,
+      paidUsageProof: result.paidUsageProof,
+      paymentRule: "This Listing Roast compatibility alias returns a command handoff only. A buyer must make a separate explicit x402 HTTP call to spend USDC."
+    });
+  }
+
   if (name === "listing_roast_x402_handoff") {
     const intent = String(args.intent || args.query || "").slice(0, 240);
     const handoff = buildPayNow(config, intent, cashRegister);
