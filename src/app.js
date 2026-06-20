@@ -34,6 +34,8 @@ const ROAST_PATH = "/api/listing-roast";
 const QUICK_SCORE_ALIAS_PATHS = Object.freeze([
   "/api/marketplace-listing-score",
   "/api/paid-api-listing-quality",
+  "/api/paid-api-listing-quality-score",
+  "/api/x402-listing-quality",
   "/api/buyer-agent-skip-reasons",
   "/api/agent-service-clarity"
 ]);
@@ -56,6 +58,24 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     catalogTitle: "GET $0.001 paid API listing quality quick-score alias",
     description: "Paid API listing quality score x402: $0.001 GET alias for paid API listing quality buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with marketplace listing score, agent service clarity, buyer-agent skip reasons, and upgrade guidance.",
     keywords: ["paid API listing quality", "paid API listing quality score", "paid API listing", "agent-service listing score", "marketplace listing score"]
+  },
+  "/api/paid-api-listing-quality-score": {
+    id: "paid_api_listing_quality_score_alias",
+    name: "paid_api_listing_quality_score",
+    operationId: "getPaidApiListingQualityScoreAlias",
+    summary: "Paid $0.001 paid API listing quality score alias",
+    catalogTitle: "GET $0.001 paid API listing quality score quick-score alias",
+    description: "Paid API listing quality score x402: $0.001 GET exact-phrase alias for buyer agents searching paid API listing quality score. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with marketplace listing score, buyer-agent skip reasons, and upgrade guidance.",
+    keywords: ["paid API listing quality score", "paid API listing quality", "paid API listing", "marketplace listing score", "buyer-agent skip reasons"]
+  },
+  "/api/x402-listing-quality": {
+    id: "x402_listing_quality_alias",
+    name: "x402_listing_quality",
+    operationId: "getX402ListingQualityAlias",
+    summary: "Paid $0.001 x402 listing quality alias",
+    catalogTitle: "GET $0.001 x402 listing quality quick-score alias",
+    description: "x402 listing quality score: $0.001 GET exact-phrase alias for buyer agents searching x402 listing quality. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, marketplace listing score, buyer-agent skip reasons, and upgrade guidance.",
+    keywords: ["x402 listing quality", "x402 listing quality score", "paid API listing quality score", "marketplace listing score", "buyer-agent skip reasons"]
   },
   "/api/buyer-agent-skip-reasons": {
     id: "buyer_agent_skip_reasons_alias",
@@ -317,6 +337,8 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   x402_site_audit: "x402SiteAudit",
   marketplace_listing_score_alias: "indexedQuickScore",
   paid_api_listing_quality_alias: "indexedQuickScore",
+  paid_api_listing_quality_score_alias: "indexedQuickScore",
+  x402_listing_quality_alias: "indexedQuickScore",
   buyer_agent_skip_reasons_alias: "indexedQuickScore",
   agent_service_clarity_alias: "indexedQuickScore",
   paid_api_preflight: "x402SiteAudit",
@@ -603,10 +625,10 @@ function listingQueryOpenApiParameters(defaults = LISTING_QUERY_PARAMETER_EXAMPL
 function buildDiscoveryLinks(config) {
   const exactPaidRouteLinks = [
     [ROAST_PATH, "GET $0.001 indexed listing-roast quick score"],
-    ["/api/marketplace-listing-score", "GET $0.001 marketplace listing score"],
-    ["/api/paid-api-listing-quality", "GET $0.001 paid API listing quality"],
-    ["/api/buyer-agent-skip-reasons", "GET $0.001 buyer-agent skip reasons"],
-    ["/api/agent-service-clarity", "GET $0.001 agent service clarity"]
+    ...QUICK_SCORE_ALIAS_PATHS.map((pathname) => [
+      pathname,
+      QUICK_SCORE_ALIAS_METADATA[pathname].catalogTitle.replace(" quick-score alias", "")
+    ])
   ].map(([pathname, title]) => `<${absoluteUrl(config, pathname)}>; rel="payment"; type="application/json"; title="${title}"`);
 
   return [
@@ -2288,6 +2310,8 @@ function inferPaymentHintIntentRouteKey(path, method = "GET") {
     [`POST ${SCORE_PATH}`]: "listingScore",
     "GET /api/marketplace-listing-score": "marketplaceListingScore",
     "GET /api/paid-api-listing-quality": "paidApiListingQuality",
+    "GET /api/paid-api-listing-quality-score": "paidApiListingQualityScore",
+    "GET /api/x402-listing-quality": "x402ListingQuality",
     "GET /api/buyer-agent-skip-reasons": "buyerAgentSkipReasons",
     "GET /api/agent-service-clarity": "agentServiceClarity"
   };
@@ -2677,6 +2701,20 @@ function buildPayNowActions(config) {
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
       reason: "Use this when the buyer intent is exactly paid API listing quality or paid API listing quality score."
     }),
+    paidApiListingQualityScore: buildRoutePaymentAction(config, {
+      path: "/api/paid-api-listing-quality-score",
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer intent is exactly paid API listing quality score."
+    }),
+    x402ListingQuality: buildRoutePaymentAction(config, {
+      path: "/api/x402-listing-quality",
+      method: "GET",
+      price: config.instantScorePrice,
+      maxAmountRequired: INSTANT_SCORE_AMOUNT,
+      reason: "Use this when the buyer intent is exactly x402 listing quality."
+    }),
     buyerAgentSkipReasons: buildRoutePaymentAction(config, {
       path: "/api/buyer-agent-skip-reasons",
       method: "GET",
@@ -2806,6 +2844,8 @@ const SELECTED_FOLLOWUP_ACTION_BY_KEY = {
   indexedQuickScore: "fullRoast",
   marketplaceListingScore: "fullRoast",
   paidApiListingQuality: "fullRoast",
+  paidApiListingQualityScore: "fullRoast",
+  x402ListingQuality: "fullRoast",
   buyerAgentSkipReasons: "fullRoast",
   agentServiceClarity: "fullRoast",
   instantScore: "fullRoast",
@@ -2820,6 +2860,8 @@ const SELECTED_FOLLOWUP_ACTION_BY_KEY = {
 const QUICK_SCORE_EXACT_ALIAS_ACTION_KEYS = new Set([
   "marketplaceListingScore",
   "paidApiListingQuality",
+  "paidApiListingQualityScore",
+  "x402ListingQuality",
   "buyerAgentSkipReasons",
   "agentServiceClarity"
 ]);
@@ -2910,6 +2952,8 @@ const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   indexed_roast_quick_score: "indexedQuickScore",
   marketplace_listing_score_alias: "marketplaceListingScore",
   paid_api_listing_quality_alias: "paidApiListingQuality",
+  paid_api_listing_quality_score_alias: "paidApiListingQualityScore",
+  x402_listing_quality_alias: "x402ListingQuality",
   buyer_agent_skip_reasons_alias: "buyerAgentSkipReasons",
   agent_service_clarity_alias: "agentServiceClarity",
   directory_root_post: "directoryPost",
@@ -3050,6 +3094,14 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
       {
         when: "Buyer asks exactly for paid API listing quality",
         use: "paidApiListingQuality"
+      },
+      {
+        when: "Buyer asks exactly for paid API listing quality score",
+        use: "paidApiListingQualityScore"
+      },
+      {
+        when: "Buyer asks exactly for x402 listing quality",
+        use: "x402ListingQuality"
       },
       {
         when: "Buyer asks exactly for buyer-agent skip reasons",
@@ -3398,6 +3450,14 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
     },
     paidApiListingQuality: {
       includes: ["paid API listing quality score", "first fix", "upgrade path"],
+      example: quickScoreExample
+    },
+    paidApiListingQualityScore: {
+      includes: ["paid API listing quality score", "marketplace listing score", "upgrade path"],
+      example: quickScoreExample
+    },
+    x402ListingQuality: {
+      includes: ["x402 listing quality", "paid API listing quality score", "upgrade path"],
       example: quickScoreExample
     },
     buyerAgentSkipReasons: {
@@ -5676,7 +5736,15 @@ function quickScoreAliasActionKeyForQuery(query) {
     return "agentServiceClarity";
   }
 
-  if (includesAny(normalizedQuery, ["paid api listing quality", "paid api listing quality score", "paid api listing"])) {
+  if (includesAny(normalizedQuery, ["paid api listing quality score"])) {
+    return "paidApiListingQualityScore";
+  }
+
+  if (includesAny(normalizedQuery, ["x402 listing quality", "x402 listing quality score"])) {
+    return "x402ListingQuality";
+  }
+
+  if (includesAny(normalizedQuery, ["paid api listing quality", "paid api listing"])) {
     return "paidApiListingQuality";
   }
 
@@ -5754,6 +5822,8 @@ function scoreCatalogResource(resource, query) {
     if (isIndexedRoastGet) score += 260;
     if (resource.id === "marketplace_listing_score_alias" && includesAny(normalizedQuery, ["marketplace listing score", "marketplace listing quality"])) score += 460;
     if (resource.id === "paid_api_listing_quality_alias" && includesAny(normalizedQuery, ["paid api listing quality", "paid api listing quality score", "paid api listing"])) score += 460;
+    if (resource.id === "paid_api_listing_quality_score_alias" && includesAny(normalizedQuery, ["paid api listing quality score", "paid api listing quality"])) score += 470;
+    if (resource.id === "x402_listing_quality_alias" && includesAny(normalizedQuery, ["x402 listing quality", "x402 listing quality score"])) score += 470;
     if (resource.id === "agent_service_clarity_alias" && includesAny(normalizedQuery, ["agent-service listing score", "agent service listing score"])) score += 430;
     if (resource.path === INSTANT_SCORE_PATH) score += 10;
   }
@@ -7812,7 +7882,7 @@ score: 4/5</div>
       <div class="wrap grid2">
         <div class="card">
           <h3>Discovery</h3>
-          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, paid API listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
+          <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, paid API listing quality, paid API listing quality score, x402 listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/paid-api-listing-quality-score</code>, <code>/api/x402-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>POST /api/listing-roast</code> returns the full $0.01 roast, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
           <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
