@@ -3209,6 +3209,10 @@ function firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey = "ind
   return selectedPaidAction || intentRoutes.indexedQuickScore;
 }
 
+function handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey = "indexedQuickScore", selectedPaidAction = null) {
+  return firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
+}
+
 function exactIntentPaidActionForSelection(intentRoutes, selectedActionKey = "indexedQuickScore", selectedPaidAction = null) {
   if (!isQuickScoreExactAliasActionKey(selectedActionKey)) {
     return null;
@@ -3386,7 +3390,7 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     },
     intent: selection.intent || null,
     selectedActionKey: selection.selectedActionKey,
-    selectedPaidAction,
+    selectedPaidAction: handoffSelectedPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction),
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     rankedPaidRoutes: selection.rankedPaidRoutes || [],
     route: selectedFirstPaidAction.route,
@@ -3405,7 +3409,11 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     provenFirstPaidAction,
     provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. Exact alias routes remain available for phrase-specific searches.",
     selectedFirstPaidAction,
-    paidResponsePreview: buildPaidResponsePreview(config, selection.selectedActionKey, selectedPaidAction),
+    paidResponsePreview: buildPaidResponsePreview(
+      config,
+      isQuickScoreExactAliasActionKey(selection.selectedActionKey) && !shouldUseExactAliasFirst(selection.selectedActionKey) ? "indexedQuickScore" : selection.selectedActionKey,
+      selectedFirstPaidAction
+    ),
     selectedFirstPaidResponsePreview: buildPaidResponsePreview(
       config,
       isQuickScoreExactAliasActionKey(selection.selectedActionKey) && !shouldUseExactAliasFirst(selection.selectedActionKey) ? "indexedQuickScore" : selection.selectedActionKey,
@@ -3514,7 +3522,7 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
     service: config.serviceName,
     intent,
     selectedActionKey,
-    selectedPaidAction,
+    selectedPaidAction: handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction),
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     selectedFirstPaidAction,
     selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
@@ -3530,7 +3538,11 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
       : `Selected from the buyer intent: ${intent}`,
     preferredFirstPaidAction: provenFirstPaidAction,
     provenFirstPaidAction,
-    paidResponsePreview: buildPaidResponsePreview(config, selectedActionKey, selectedPaidAction),
+    paidResponsePreview: buildPaidResponsePreview(
+      config,
+      isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
+      selectedFirstPaidAction
+    ),
     selectedFirstPaidResponsePreview: buildPaidResponsePreview(
       config,
       isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
@@ -3703,8 +3715,8 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
   const selectedPaidSequence = buildSelectedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const compactSelectedPaidSequence = compactPaidSequence(selectedPaidSequence);
   const compactGenericRecommendedPaidSequence = compactPaidSequence(buildRecommendedPaidSequence(intentRoutes));
-  const compactSelectedPaidAction = compactPaidAction(selectedPaidAction);
   const compactFirstPaidAction = compactPaidAction(firstPaidAction);
+  const compactSelectedPaidAction = compactPaidAction(handoffSelectedPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction));
   const compactExactIntentPaidAction = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
   const upgradeAction = selectedPaidSequence.find((step) => step.step === 2)?.action || intentRoutes.fullRoast;
   const commandIntentSuffix = selection.intent ? `?intent=${encodeURIComponent(selection.intent)}` : "";
@@ -6335,14 +6347,18 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     ...(selected || {}),
     selectedActionKey,
-    selectedPaidAction: selectedIntentPaidAction,
+    selectedPaidAction: handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedIntentPaidAction),
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     selectedFirstPaidAction,
     selectedPaidSequence,
     buyerInstruction: buildSelectedBuyerInstruction(selectedActionKey, selectedIntentPaidAction, intentRoutes.indexedQuickScore),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     provenFirstPaidAction: intentRoutes.indexedQuickScore,
-    paidResponsePreview: buildPaidResponsePreview(config, selectedActionKey, selectedIntentPaidAction),
+    paidResponsePreview: buildPaidResponsePreview(
+      config,
+      isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
+      selectedFirstPaidAction
+    ),
     selectedFirstPaidResponsePreview: buildPaidResponsePreview(
       config,
       isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
@@ -6683,7 +6699,7 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     recommendedPaidRoute: recommended,
     ...(selected || {}),
     selectedActionKey,
-    selectedPaidAction,
+    selectedPaidAction: handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction),
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     rankedPaidRoutes: ranked.slice(0, 5).map((route) => ({
       id: route.id,
@@ -6718,7 +6734,11 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     command: selectedFirstPaidAction.command,
     commandHandoff: `${absoluteUrl(config, COMMANDS_PATH)}?intent=${encodeURIComponent(query || selectedActionKey)}`,
     ...(exactIntentPaidAction ? { exactIntentCommand: exactIntentPaidAction.command } : {}),
-    paidResponsePreview: buildPaidResponsePreview(config, selectedActionKey, selectedPaidAction),
+    paidResponsePreview: buildPaidResponsePreview(
+      config,
+      isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
+      selectedFirstPaidAction
+    ),
     selectedFirstPaidResponsePreview: buildPaidResponsePreview(
       config,
       isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
@@ -6803,7 +6823,7 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     best: ranked[0] || null,
     ...(selected || {}),
     selectedActionKey,
-    selectedPaidAction,
+    selectedPaidAction: handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction),
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
     count: ranked.length,
     totalLocalRoutes: buildPaidRouteCatalog(config).length,
@@ -6837,7 +6857,11 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     command: selectedFirstPaidAction.command,
     commandHandoff: `${absoluteUrl(config, COMMANDS_PATH)}?intent=${encodeURIComponent(query || selectedActionKey)}`,
     ...(exactIntentPaidAction ? { exactIntentCommand: exactIntentPaidAction.command } : {}),
-    paidResponsePreview: buildPaidResponsePreview(config, selectedActionKey, selectedPaidAction),
+    paidResponsePreview: buildPaidResponsePreview(
+      config,
+      isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
+      selectedFirstPaidAction
+    ),
     selectedFirstPaidResponsePreview: buildPaidResponsePreview(
       config,
       isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
