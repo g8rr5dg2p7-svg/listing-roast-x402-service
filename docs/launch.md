@@ -31,11 +31,11 @@ Live production service:
 
 Current verified state:
 
-- Railway deploy: successful. Latest verified deployment: 44addfa6-63dc-43f7-aa80-efa334abd12a.
-- Latest live code commit: 826dc22 Track no-spend buyer intent handoffs.
-- Latest GitHub release: intent-signal-v1.
+- Railway deploy: successful. Latest verified deployment: a42a16bd-8d65-4782-bd11-d4819d907567.
+- Latest live code commit: 0111ef7 Track agent discovery intent handoffs.
+- Latest GitHub release: agent-intent-signal-v1.
 - Latest metadata version: 2026-06-20-agent-intent-signal-v29.
-- Latest repo docs refresh: aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/pay-now`, `/api/find`, and `/api/route`, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
+- Latest repo docs refresh: aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/pay-now`, `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
 - Sample page: HTTP 200.
@@ -60,11 +60,11 @@ Current verified state:
 - AgentCore handoff: verified in `/x402.json`, `/llms.txt`, `/sitemap.xml`, and direct page render; it points AgentCore Gateway and Bazaar-MCP buyers to the already-indexed $0.001 GET `/api/listing-roast` first paid action.
 - MCP JSON-RPC handoff: verified live on `POST /mcp`; no-spend `search_resources` and `proxy_tool_call` compatibility aliases return Listing Roast route commands, price caps, and proof links only. They do not execute paid calls.
 - CDP domain-restricted discovery: verified live in `/x402.json` and `/llms.txt`; `urlSubstring=listing-roast-x402-service-production.up.railway.app` returns the indexed `/api/listing-roast` CDP resource at amount 1000 without payment.
-- Pay-now, route finder, and router handoffs: `/api/pay-now?intent=buyer-agent%20skip%20reasons`, `/api/find?q=x402%20discovery%20audit`, and `/api/route?query=full%20roast%20rewrite%20top%20fixes` now expose explicit `selectedPaidUrl`, `firstPaidUrl`, `selectedPaidPrice`, `selectedPaidMaxAmountRequired`, and `payableRoute` fields so simple agents do not confuse free selector URLs with payable x402 routes. Each free handoff records only an aggregate selected intent key in `/api/cash-register.intentSignals`; raw query text is not stored.
+- Pay-now, route finder, router, local discovery, and MCP handoffs: `/api/pay-now?intent=buyer-agent%20skip%20reasons`, `/api/find?q=x402%20discovery%20audit`, `/api/route?query=full%20roast%20rewrite%20top%20fixes`, `/v2/x402/discovery/search?query=paid%20API%20listing%20quality`, and MCP `search_resources` now expose explicit selected paid route handoffs so simple agents do not confuse free selector URLs with payable x402 routes. Each free handoff records only an aggregate selected intent key in `/api/cash-register.intentSignals`; raw query text is not stored.
 - Receiving wallet: 0xd9E7a161aD06F410c28b3939ceF5F06f0a327a8C.
 - Current network: eip155:8453 (Base mainnet).
 - Receiver wallet balance is the durable revenue check across deploys.
-- Current public paid-use proof: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. Post-deploy no-spend verification added aggregate intent signals for `payNow.buyerAgentSkipReasons`, `find.discoveryAuditQuick`, and `route.fullRoastGet`; no new paid completion was created by verification.
+- Current public paid-use proof: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. Post-deploy no-spend verification added aggregate intent signals for `localDiscovery.paidApiListingQuality` and `mcp.buyerAgentSkipReasons`; no new paid completion was created by verification.
 - The cash register baseline is preserved through Railway env import; use `/api/cash-register` plus the receiver wallet balance to distinguish register-confirmed and wallet-settled revenue.
 - First settlement transaction: 0x59f6d99257170dd796419a7d8a50dab7d113acb2198f0fafa993f6f30490fbf0.
 - Second settlement transaction: 0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71 for 1000 USDC units on the indexed GET `/api/listing-roast` route.
