@@ -253,8 +253,11 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-intent-refresh-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T02:18:37.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-service-name-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T02:24:56.000Z";
+const ROUTE_SERVICE_NAMES = Object.freeze({
+  indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
+});
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -6904,7 +6907,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
 
 function routeServiceMetadata(routeKey) {
   return {
-    serviceName: X402_SERVICE_NAME,
+    serviceName: ROUTE_SERVICE_NAMES[routeKey] || X402_SERVICE_NAME,
     tags: routeTags(routeKey)
   };
 }
