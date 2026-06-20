@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-alias-payment-mirror-v7";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T16:58:48.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-openapi-alias-examples-v8";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T17:09:24.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -4905,7 +4905,7 @@ function buildOpenApiX402Security() {
   return [{ x402: [] }];
 }
 
-function buildOpenApiPaymentRequiredResponse(config, intentRouteKey = "indexedQuickScore") {
+function buildOpenApiPaymentRequiredResponse(config, intentRouteKey = "indexedQuickScore", selectedOverride = null) {
   return {
     description: "x402 payment required. Read the Payment-Required header, complete the exact USDC payment, then retry with the X-PAYMENT header.",
     headers: {
@@ -4920,7 +4920,7 @@ function buildOpenApiPaymentRequiredResponse(config, intentRouteKey = "indexedQu
     },
     content: {
       "application/json": {
-        example: buildUnpaidPaymentPreview(config, intentRouteKey)
+        example: buildUnpaidPaymentPreview(config, intentRouteKey, selectedOverride)
       }
     }
   };
@@ -5829,7 +5829,8 @@ function buildOpenApiDocument(config, cashRegister = {}) {
 
   for (const aliasPath of SITE_AUDIT_EXACT_ALIAS_PATHS) {
     const metadata = SITE_AUDIT_EXACT_ALIAS_METADATA[aliasPath];
-    paymentActionByRoute[`GET ${aliasPath}`] = "x402SiteAudit";
+    const intentRouteKey = siteAuditIntentRouteKeyForPath(aliasPath);
+    paymentActionByRoute[`GET ${aliasPath}`] = intentRouteKey;
     document.paths[aliasPath] = {
       get: {
         ...document.paths[SITE_AUDIT_PATH].get,
@@ -5842,7 +5843,8 @@ function buildOpenApiDocument(config, cashRegister = {}) {
           method: "GET",
           price: config.siteAuditPrice,
           maxAmountRequired: SITE_AUDIT_AMOUNT,
-          buyerAction: metadata.buyerAction
+          buyerAction: metadata.buyerAction,
+          intentRouteKey
         })
       }
     };
@@ -5898,8 +5900,14 @@ function buildOpenApiDocument(config, cashRegister = {}) {
     for (const method of ["get", "post", "put", "patch", "delete"]) {
       const operation = pathItem[method];
       if (operation && operation["x-payment"]) {
+        const paymentHint = operation["x-payment"];
         operation.security = buildOpenApiX402Security();
-        operation.responses[402] = buildOpenApiPaymentRequiredResponse(config, paymentActionByRoute[`${method.toUpperCase()} ${pathname}`]);
+        operation.responses = { ...(operation.responses || {}) };
+        operation.responses[402] = buildOpenApiPaymentRequiredResponse(
+          config,
+          paymentHint.selectedActionKey || paymentActionByRoute[`${method.toUpperCase()} ${pathname}`],
+          paymentHint.selectedPaidAction
+        );
       }
     }
   }
