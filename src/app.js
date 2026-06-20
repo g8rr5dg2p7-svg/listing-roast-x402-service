@@ -253,8 +253,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-payment-openapi-mcp-aliases-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T02:20:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-agent-skills-intent-aliases-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T02:30:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
   apiEntry: ["x402", "paid API", "route map", "API entrypoint", "listing quality"],
@@ -982,23 +982,59 @@ function buildAgentSkillsIndex(config) {
   const commands = absoluteUrl(config, COMMANDS_PATH);
   const payNow = absoluteUrl(config, PAY_NOW_PATH);
   const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
+  const openApiAliases = openApiAliasUrls(config);
+  const openApiYamlAliases = openApiYamlAliasUrls(config);
+  const x402ManifestAliases = x402ManifestAliasUrls(config);
+  const mcpAliases = mcpAliasUrls(config);
+  const mcpServerCardAliases = mcpServerCardAliasUrls(config);
+  const intentLandingPages = buildIntentLandingPages(config, intentRoutes);
 
   return {
     $schema: AGENT_SKILLS_SCHEMA,
+    service: X402_SERVICE_NAME,
+    metadataVersion: DISCOVERY_METADATA_VERSION,
+    metadataUpdatedAt: DISCOVERY_METADATA_UPDATED_AT,
+    description: DISCOVERY_DESCRIPTION,
+    keywords: DISCOVERY_KEYWORDS,
     commands,
     payNow,
     paidUsageProofUrl,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+    exactIntentPaidActions: {
+      paidApiListingQuality: intentRoutes.paidApiListingQuality,
+      buyerAgentSkipReasons: intentRoutes.buyerAgentSkipReasons,
+      agentServiceClarity: intentRoutes.agentServiceClarity,
+      discoveryAuditQuick: intentRoutes.discoveryAuditQuick,
+      x402SiteAudit: intentRoutes.x402SiteAudit
+    },
     recommendedPaidSequence,
+    intentLandingPages,
+    routeFinderExamples: [
+      `${absoluteUrl(config, FIND_PATH)}?q=buyer-agent%20skip%20reasons`,
+      `${absoluteUrl(config, FIND_PATH)}?q=paid%20API%20listing%20quality`,
+      `${absoluteUrl(config, FIND_PATH)}?q=x402%20discovery%20audit`
+    ],
+    localRouterExamples: [
+      `${absoluteUrl(config, ROUTE_PATH)}?query=buyer-agent%20skip%20reasons&top=3`,
+      `${absoluteUrl(config, ROUTE_PATH)}?query=paid%20API%20listing%20quality&top=3`,
+      `${absoluteUrl(config, ROUTE_PATH)}?query=x402%20discovery%20audit&top=3`
+    ],
     payment: {
       protocol: "x402",
       network: config.network,
       asset: "USDC",
       manifest: absoluteUrl(config, "/x402.json"),
+      manifestAliases: x402ManifestAliases,
       commands,
       payNow,
       paidUsageProofUrl,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
+      exactIntentPaidActions: {
+        paidApiListingQuality: intentRoutes.paidApiListingQuality,
+        buyerAgentSkipReasons: intentRoutes.buyerAgentSkipReasons,
+        discoveryAuditQuick: intentRoutes.discoveryAuditQuick,
+        x402SiteAudit: intentRoutes.x402SiteAudit
+      },
       recommendedPaidSequence
     },
     links: {
@@ -1006,8 +1042,18 @@ function buildAgentSkillsIndex(config) {
       payNow,
       paidUsageProofUrl,
       x402Manifest: absoluteUrl(config, "/x402.json"),
+      x402ManifestAliases,
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
-      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
+      openApiAliases,
+      openApiYamlAliases,
+      mcp: absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH),
+      mcpAliases,
+      mcpServerCard: absoluteUrl(config, WELL_KNOWN_MCP_SERVER_CARD_PATH),
+      mcpServerCardAliases,
+      apiCatalog: absoluteUrl(config, WELL_KNOWN_API_CATALOG_PATH),
+      routeFinder: absoluteUrl(config, FIND_PATH),
+      localRouter: absoluteUrl(config, ROUTE_PATH)
     },
     skills: [
       {
@@ -1015,10 +1061,22 @@ function buildAgentSkillsIndex(config) {
         type: "skill-md",
         description: "Use Listing Roast x402 when an agent needs a paid API listing quality score, buyer-agent skip reasons, agent-service listing clarity, x402 marketplace conversion feedback, or a discoverability audit before promoting a paid x402/API service. Start with free discovery and only pay when the buyer intends to spend USDC.",
         url: absoluteUrl(config, WELL_KNOWN_AGENT_SKILL_PATH),
+        keywords: DISCOVERY_KEYWORDS,
+        intentLandingPages,
         metadata: {
           commands,
           payNow,
           paidUsageProofUrl,
+          x402ManifestAliases,
+          openApiAliases,
+          mcpAliases,
+          mcpServerCardAliases,
+          exactIntentPaidActions: {
+            paidApiListingQuality: intentRoutes.paidApiListingQuality,
+            buyerAgentSkipReasons: intentRoutes.buyerAgentSkipReasons,
+            discoveryAuditQuick: intentRoutes.discoveryAuditQuick,
+            x402SiteAudit: intentRoutes.x402SiteAudit
+          },
           preferredFirstPaidAction: intentRoutes.indexedQuickScore,
           recommendedPaidSequence
         },
