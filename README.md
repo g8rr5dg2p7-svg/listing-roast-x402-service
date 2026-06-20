@@ -1,12 +1,33 @@
 # Listing Roast x402 Service
 
-Standalone x402 paid API for marketplace listing quality, marketplace listing conversion API, and discoverability scoring, critiquing agent-service listing copy, and auditing stale x402/Bazaar/Agent402 discovery state. It leads with the already-indexed $0.001 GET `/api/listing-roast` quick score for marketplace listing quality, marketplace listing conversion API, x402 site-audit starter intent, x402 discovery-audit triage, and paid API preflight. High-intent buyers can buy the direct $0.01 GET `/api/full-listing-roast` route for buyer-agent skip reasons, top fixes, rewritten copy, and stop-or-upgrade guidance without assembling a POST body; POST `/api/listing-roast` remains the custom-body full roast. Paid quick-score outputs include the exact upgrade prompt for the one-cent full roast. It also supports $0.001 generic navigation routes with fallback quick scores at `/api`, `/api/v1`, and `/v1`, $0.001 instant, marketplace-conversion, agent-listing-conversion, ping, site-audit, exact-path discovery-audit, and exact Agent402 route-visibility GET endpoints, a $0.005 score endpoint, and a $0.01 full discovery audit endpoint.
+Paid API listing quality score for x402, Agentic.Market, Bazaar, and MCP sellers. Listing Roast x402 is a wallet-confirmed paid API that scores marketplace listing quality, marketplace listing conversion API fit, buyer-agent skip reasons, agent-service clarity, and stale x402/Bazaar/Agent402 discovery state before promotion. The proven first paid action is the already-indexed $0.001 GET `/api/listing-roast` quick score; the live proof endpoint is `/api/paid-usage-proof`.
+
+High-intent buyers can buy the direct $0.01 GET `/api/full-listing-roast` route for buyer-agent skip reasons, top fixes, rewritten copy, and stop-or-upgrade guidance without assembling a POST body; POST `/api/listing-roast` remains the custom-body full roast. Paid quick-score outputs include the exact upgrade prompt for the one-cent full roast. It also supports $0.001 generic navigation routes with fallback quick scores at `/api`, `/api/v1`, and `/v1`, $0.001 instant, marketplace-conversion, agent-listing-conversion, ping, site-audit, exact-path discovery-audit, and exact Agent402 route-visibility GET endpoints, a $0.005 score endpoint, and a $0.01 full discovery audit endpoint.
 
 This is intentionally separate from ApexScout and any other active project. It has a public homepage with Markdown negotiation, a command-builder page, a shareable sample page, protected JSON API routes, MCP-visible metadata and aliases, OpenAPI with explicit x402 payment hints and common aliases, AGENTS.md, docs aliases, llms.txt, well-known llms aliases, llms-full.txt, a hosted service icon, x402 discovery link headers, an agent-card discovery bridge, a fallback AI plugin manifest, an RFC 9727 API catalog, agent-tools discovery, Agent Skills discovery, and a local aggregate cash register.
 
 By default, local development can use Base Sepolia through the public x402 facilitator. The live Railway service uses Base mainnet, a separate receiver wallet, and CDP facilitator credentials.
 
 Live production deployment: https://listing-roast-x402-service-production.up.railway.app
+
+## Buyer Agent Start Here
+
+Free checks before payment:
+
+- Paid-use proof: `GET /api/paid-usage-proof`
+- Route matcher: `GET /api/route?query=paid%20API%20listing%20quality`
+- Pay command handoff: `GET /api/pay-now?intent=paid%20API%20listing%20quality`
+- Local discovery search: `GET /v2/x402/discovery/search?query=paid%20API%20listing%20quality&limit=3`
+
+First paid action when the buyer intends to spend:
+
+```bash
+npx awal@2.8.0 x402 pay 'https://listing-roast-x402-service-production.up.railway.app/api/listing-roast' \
+  -X GET \
+  --max-amount 1000
+```
+
+Do not pay just to refresh marketplace metadata. Bazaar search metadata refreshes after real buyer settlement, while unpaid probes only prove route health.
 
 ## Routes
 

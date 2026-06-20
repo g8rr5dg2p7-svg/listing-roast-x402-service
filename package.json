@@ -2,6 +2,23 @@
   "name": "listing-roast-x402-service",
   "version": "0.1.0",
   "private": true,
+  "description": "Wallet-confirmed x402 paid API listing quality score, buyer-agent skip reasons, and discovery audit service.",
+  "keywords": [
+    "x402",
+    "paid-api-listing-quality-score",
+    "agentic-market",
+    "coinbase-bazaar",
+    "buyer-agent-skip-reasons",
+    "agent-service-clarity",
+    "marketplace-listing-conversion",
+    "x402-discovery-audit",
+    "paid-api-preflight"
+  ],
+  "homepage": "https://listing-roast-x402-service-production.up.railway.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/g8rr5dg2p7-svg/listing-roast-x402-service.git"
+  },
   "type": "module",
   "engines": {
     "node": ">=22"
