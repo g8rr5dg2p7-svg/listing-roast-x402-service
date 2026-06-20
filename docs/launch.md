@@ -140,4 +140,4 @@ Expected production result:
 
 Promotion rule:
 
-Promote the Railway homepage, `/builder`, `/sample`, or `/api/pay-now` page above. The service has verified production x402 challenges, two wallet-confirmed paid completions, a direct $0.01 GET full-roast route after the $0.001 quick score, and a safe custom-body POST fallback for stale directory cards.
+Promote the Railway homepage, `/builder`, `/sample`, `/api/pay-now`, or `/api/paid-usage-proof` page above. The service has verified production x402 challenges, two wallet-confirmed paid completions, a receiver-wallet snapshot on the free proof endpoint, a direct $0.01 GET full-roast route after the $0.001 quick score, and a safe custom-body POST fallback for stale directory cards.

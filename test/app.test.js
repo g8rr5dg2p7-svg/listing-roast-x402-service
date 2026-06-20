@@ -1,5 +1,6 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { createServer } from "node:http";
 import os from "node:os";
 import path from "node:path";
 
@@ -105,6 +106,15 @@ function mockFacilitatorSupportedKinds() {
             x402Version: 2,
             scheme: "exact",
             network: "eip155:84532",
+            extra: {
+              name: "USD Coin",
+              version: "2"
+            }
+          },
+          {
+            x402Version: 2,
+            scheme: "exact",
+            network: "eip155:8453",
             extra: {
               name: "USD Coin",
               version: "2"
@@ -3287,6 +3297,52 @@ describe("Listing Roast x402 service", () => {
       expect(unpaidIndexedRoast.json.settlementProof.latestWalletSettlement.payerDetails).toBe("omitted");
     } finally {
       await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  it("includes receiver wallet proof on the free paid usage proof endpoint", async () => {
+    mockFacilitatorSupportedKinds();
+    process.env.BASELINE_PAID_COMPLETIONS = "2";
+    process.env.BASELINE_ESTIMATED_GROSS_REVENUE_USD = "0.002";
+    process.env.BASELINE_INDEXED_ROAST_GET_COMPLETIONS = "1";
+    process.env.BASELINE_INDEXED_ROAST_GET_REVENUE_USD = "0.001";
+    process.env.BASELINE_LAST_PAID_AT = "2026-06-18T06:43:22.052Z";
+    process.env.BASELINE_LAST_SETTLEMENT_TX_HASH = "0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71";
+    process.env.BASELINE_LAST_SETTLEMENT_USDC_UNITS = "1000";
+    process.env.BASELINE_LAST_SETTLEMENT_CONFIRMED_AT = "2026-06-18T06:43:23.000Z";
+    process.env.BASELINE_LAST_SETTLEMENT_ROUTE_PATH = "/api/listing-roast";
+    process.env.BASELINE_LAST_SETTLEMENT_METHOD = "GET";
+    process.env.BASELINE_LAST_SETTLEMENT_MAX_AMOUNT_REQUIRED = "1000";
+
+    const rpcServer = createServer((_request, response) => {
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(JSON.stringify({ jsonrpc: "2.0", id: 1, result: `0x${1001000n.toString(16)}` }));
+    });
+    await new Promise((resolve) => rpcServer.listen(0, resolve));
+    const rpcUrl = `http://127.0.0.1:${rpcServer.address().port}`;
+
+    const app = createApp({
+      payTo: "0x000000000000000000000000000000000000dEaD",
+      network: "eip155:8453",
+      baseRpcUrl: rpcUrl
+    });
+    const server = await listen(app);
+
+    try {
+      const proof = await fetchJson(server, "/api/paid-usage-proof");
+      expect(proof.status).toBe(200);
+      expect(proof.headers.get("payment-required")).toBeNull();
+      expect(proof.json.paidUsageProof.settlementStatus).toBe("wallet-confirmed");
+      expect(proof.json.paidUsageProof.proofText).toBe("2 wallet-confirmed paid completions; $0.002 registered; receiver wallet 1.001 USDC");
+      expect(proof.json.paidUsageProof.receiverWallet.usdcUnits).toBe("1001000");
+      expect(proof.json.paidUsageProof.walletProof.status).toBe("wallet-confirmed");
+      expect(proof.json.paidUsageProof.walletProof.latestSettlementTxHash).toBe(process.env.BASELINE_LAST_SETTLEMENT_TX_HASH);
+      expect(proof.json.receiverWallet.usdcBalance).toBe("1.001");
+      expect(proof.json.purpose).toContain("wallet-confirmed paid usage");
+      expect(proof.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+      await new Promise((resolve) => rpcServer.close(resolve));
     }
   });
 

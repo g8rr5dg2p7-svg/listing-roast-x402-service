@@ -5697,7 +5697,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
   return document;
 }
 
-function buildPaidUsageProof(config, cashRegister = {}) {
+function buildPaidUsageProof(config, cashRegister = {}, receiverWallet = null) {
   const paidCompletions = Number(cashRegister.paidCompletions || 0);
   const estimatedGrossRevenueUsd = String(cashRegister.estimatedGrossRevenueUsd || "0.00").replace(/^\$/, "");
   const indexedRoastGetCompletions = Number(cashRegister.indexedRoastGetCompletions || 0);
@@ -5706,11 +5706,18 @@ function buildPaidUsageProof(config, cashRegister = {}) {
   const recentPaidCompletions = Array.isArray(cashRegister.recentPaidCompletions) ? cashRegister.recentPaidCompletions : [];
   const derivedPaidCompletion = buildDerivedPaidCompletionFromSettlement(cashRegister, latestWalletSettlement);
   const latestPaidCompletion = cashRegister.lastPaidCompletion || (derivedPaidCompletion && recentPaidCompletions.length === 0 ? derivedPaidCompletion : null);
+  const hasReceiverWalletSnapshot = receiverWallet && typeof receiverWallet === "object" && receiverWallet.address;
+  const receiverWalletHasBalance = hasReceiverWalletSnapshot && receiverWallet.usdcUnits && /^\d+$/.test(String(receiverWallet.usdcUnits));
+  const isWalletConfirmed = Boolean(paidCompletions > 0 && latestWalletSettlement && receiverWalletHasBalance);
+  const proofText = isWalletConfirmed
+    ? `${paidCompletions} wallet-confirmed paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered; receiver wallet ${receiverWallet.usdcBalance} USDC`
+    : `${paidCompletions} paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered`;
 
   return {
     paidCompletions,
     estimatedGrossRevenueUsd,
-    proofText: `${paidCompletions} paid ${paidCompletions === 1 ? "completion" : "completions"}; $${estimatedGrossRevenueUsd} registered`,
+    proofText,
+    settlementStatus: isWalletConfirmed ? "wallet-confirmed" : (latestWalletSettlement ? "wallet-settlement-linked" : "register-only"),
     lastPaidAt: cashRegister.lastPaidAt || null,
     ...(latestPaidCompletion ? { latestPaidCompletion } : {}),
     preferredConvertedRoute: {
@@ -5726,6 +5733,20 @@ function buildPaidUsageProof(config, cashRegister = {}) {
         : "The preferred indexed GET /api/listing-roast route is the current first paid action."
     },
     ...(latestWalletSettlement ? { latestWalletSettlement } : {}),
+    ...(hasReceiverWalletSnapshot ? {
+      receiverWallet,
+      walletProof: {
+        status: isWalletConfirmed ? "wallet-confirmed" : "receiver-wallet-snapshot",
+        receiverWalletUsdcBalance: receiverWallet.usdcBalance,
+        receiverWalletUsdcUnits: receiverWallet.usdcUnits || null,
+        checkedAt: receiverWallet.checkedAt,
+        source: receiverWallet.source,
+        latestSettlementTxHash: latestWalletSettlement?.txHash || null,
+        note: isWalletConfirmed
+          ? "The free proof endpoint includes the receiver wallet snapshot plus the latest public settlement transaction before payment."
+          : "The free proof endpoint includes the receiver wallet snapshot when available before payment."
+      }
+    } : {}),
     source: "public_cash_register",
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     walletEvidenceFields: ["receiverWallet.usdcBalance", "receiverWallet.usdcUnits", "receiverWallet.checkedAt"],
@@ -5733,15 +5754,16 @@ function buildPaidUsageProof(config, cashRegister = {}) {
   };
 }
 
-function buildPaidUsageProofResponse(config, cashRegister = {}) {
+function buildPaidUsageProofResponse(config, cashRegister = {}, receiverWallet = null) {
   const intentRoutes = buildPayNowActions(config);
-  const proof = buildPaidUsageProof(config, cashRegister);
+  const proof = buildPaidUsageProof(config, cashRegister, receiverWallet);
 
   return {
     service: config.serviceName,
     noSpend: true,
-    purpose: "Compact public proof that Listing Roast x402 has real paid usage and the first paid route is still the low-friction indexed GET.",
+    purpose: "Compact public proof that Listing Roast x402 has wallet-confirmed paid usage and the first paid route is still the low-friction indexed GET.",
     paidUsageProof: proof,
+    ...(receiverWallet ? { receiverWallet } : {}),
     settlementProof: buildSettlementProof(config),
     officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
@@ -10791,7 +10813,8 @@ ${copyScript("Copy command")}
   app.get([PAID_USAGE_PROOF_PATH, ...PAID_USAGE_PROOF_ALIAS_PATHS], async (_request, response) => {
     await recordSignal("proofViews");
     const cashRegister = await getCashRegister();
-    setFreshDiscoveryHeaders(response).json(buildPaidUsageProofResponse(config, cashRegister));
+    const receiverWallet = await getReceiverBalanceSnapshot(config);
+    setFreshDiscoveryHeaders(response).json(buildPaidUsageProofResponse(config, cashRegister, receiverWallet));
   });
 
   app.get(PRICING_PATH, async (_request, response) => {
