@@ -227,7 +227,7 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "buyer-agent skip reasons, agent service listing clarity, agent service promotion readiness, and agent listing conversion score: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-agent-command-links-v1";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-helper-command-links-v1";
 const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T01:05:00.000Z";
 const ROUTE_SERVICE_TAGS = Object.freeze({
   directoryPost: ["x402", "agent-tools", "directory handoff", "paid API", "route map"],
@@ -2768,6 +2768,16 @@ function buildPayNow(config, intent = "", cashRegister = {}) {
     service: config.serviceName,
     paidUsageProof: buildPaidUsageProof(config, cashRegister),
     settlementProof: buildSettlementProof(config, cashRegister),
+    commands: absoluteUrl(config, COMMANDS_PATH),
+    links: {
+      commands: absoluteUrl(config, COMMANDS_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      find: absoluteUrl(config, FIND_PATH),
+      route: absoluteUrl(config, ROUTE_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
     intent: selection.intent || null,
     selectedActionKey: selection.selectedActionKey,
     selectedPaidAction,
@@ -5078,6 +5088,14 @@ function buildPricingCatalog(config, cashRegister = {}) {
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
     route: absoluteUrl(config, ROUTE_PATH),
+    commands: absoluteUrl(config, COMMANDS_PATH),
+    links: {
+      commands: absoluteUrl(config, COMMANDS_PATH),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
     localDiscovery: {
       resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
       search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
@@ -5163,6 +5181,7 @@ function buildLocalDiscoveryItems(config) {
       },
       schema: resource.schema,
       command: resource.command,
+      commands: absoluteUrl(config, COMMANDS_PATH),
       preferredFirstPaidAction: resource.id === "indexed_roast_quick_score",
       noSpendHandoff: absoluteUrl(config, PAY_NOW_PATH),
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH)
@@ -5188,6 +5207,15 @@ function buildLocalDiscoveryResources(config, query = {}, cashRegister = {}) {
     canonicalBazaar: "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources",
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
+    commands: absoluteUrl(config, COMMANDS_PATH),
+    links: {
+      commands: absoluteUrl(config, COMMANDS_PATH),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
     startHere,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     preferredFirstPaidResponsePreview: buildPaidResponsePreview(config, "indexedQuickScore", intentRoutes.indexedQuickScore),
@@ -5249,6 +5277,15 @@ function buildLocalDiscoverySearch(config, query = {}, cashRegister = {}) {
     paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
+    commands: absoluteUrl(config, COMMANDS_PATH),
+    links: {
+      commands: absoluteUrl(config, COMMANDS_PATH),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
     startHere,
     ...(selected || {}),
     selectedActionKey,
@@ -5291,6 +5328,15 @@ function buildLocalDiscoveryMerchant(config, query = {}, cashRegister = {}) {
     paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     pricing: absoluteUrl(config, PRICING_PATH),
+    commands: absoluteUrl(config, COMMANDS_PATH),
+    links: {
+      commands: absoluteUrl(config, COMMANDS_PATH),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
     startHere,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     preferredFirstPaidResponsePreview: buildPaidResponsePreview(config, "indexedQuickScore", intentRoutes.indexedQuickScore),
@@ -5550,6 +5596,16 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
     x402Manifest: absoluteUrl(config, "/x402.json"),
     payNow: absoluteUrl(config, PAY_NOW_PATH),
+    commands: absoluteUrl(config, COMMANDS_PATH),
+    links: {
+      commands: absoluteUrl(config, COMMANDS_PATH),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      route: absoluteUrl(config, ROUTE_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
     startHere,
     preferredFirstPaidAction: provenFirstPaidAction,
     provenFirstPaidAction,
@@ -5642,6 +5698,16 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     route: absoluteUrl(config, ROUTE_PATH),
     openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH),
     x402Manifest: absoluteUrl(config, "/x402.json"),
+    commands: absoluteUrl(config, COMMANDS_PATH),
+    links: {
+      commands: absoluteUrl(config, COMMANDS_PATH),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      find: absoluteUrl(config, FIND_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
     localDiscovery: {
       resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
       search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
@@ -5967,14 +6033,38 @@ function buildAiPluginManifest(config, cashRegister = {}) {
       is_user_authenticated: false
     },
     legal_info_url: absoluteUrl(config, "/"),
+    commands: absoluteUrl(config, COMMANDS_PATH),
+    links: {
+      commands: absoluteUrl(config, COMMANDS_PATH),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      pricing: absoluteUrl(config, PRICING_PATH),
+      find: absoluteUrl(config, FIND_PATH),
+      route: absoluteUrl(config, ROUTE_PATH),
+      x402Manifest: absoluteUrl(config, "/x402.json"),
+      agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
     x_listing_roast: {
       paymentProtocol: "x402",
       network: config.network,
       asset: "USDC",
+      commands: absoluteUrl(config, COMMANDS_PATH),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       pricing: absoluteUrl(config, PRICING_PATH),
       find: absoluteUrl(config, FIND_PATH),
       route: absoluteUrl(config, ROUTE_PATH),
+      links: {
+        commands: absoluteUrl(config, COMMANDS_PATH),
+        payNow: absoluteUrl(config, PAY_NOW_PATH),
+        paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+        pricing: absoluteUrl(config, PRICING_PATH),
+        find: absoluteUrl(config, FIND_PATH),
+        route: absoluteUrl(config, ROUTE_PATH),
+        x402Manifest: absoluteUrl(config, "/x402.json"),
+        agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
+        openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+      },
       x402Manifest: absoluteUrl(config, "/x402.json"),
       agentCard: absoluteUrl(config, WELL_KNOWN_AGENT_CARD_PATH),
       agentSkills: absoluteUrl(config, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH),
