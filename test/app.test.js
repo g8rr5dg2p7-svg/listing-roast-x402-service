@@ -639,7 +639,7 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
       expect(x402Manifest.json.metadataVersion).toBe("2026-06-20-agent402-output-alignment-v1");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T13:15:00.000Z");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-20T13:14:21.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -1019,7 +1019,7 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
       expect(agentTools.json.metadata_version).toBe("2026-06-20-agent402-output-alignment-v1");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T13:15:00.000Z");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-20T13:14:21.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
