@@ -743,6 +743,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.tools.map((tool) => tool.url)).toEqual(x402Manifest.json.resources.map((resource) => resource.url));
       expect(x402Manifest.json.actions[0].path).toBe("/api/listing-roast");
       expect(x402Manifest.json.actions[0].max_amount_required).toBe("1000");
+      expect(x402Manifest.json.actions[0].agentPaymentRequest.maxPayment).toBe("0.001");
+      expect(x402Manifest.json.actions[0].agentPaymentPrompt).toContain("pay up to 0.001 USDC");
       expect(x402Manifest.json.actions[0].paymentRequired).toBe(true);
       expect(x402Manifest.json.actions[0].x402.network).toBe("eip155:84532");
       expect(x402Manifest.json.actions[0].preferredFirstPaidAction).toBe(true);
@@ -785,6 +787,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.resources[0].keywords).toContain("bazaar search visibility");
       expect(x402Manifest.json.resources[0].price).toBe("$0.001");
       expect(x402Manifest.json.resources[0].maxAmountRequired).toBe("1000");
+      expect(x402Manifest.json.resources[0].agentPaymentRequest.maxPayment).toBe("0.001");
+      expect(x402Manifest.json.resources[0].agentPaymentPrompt).toContain("pay up to 0.001 USDC");
       expect(resourcesById.marketplace_listing_score_alias.path).toBe("/api/marketplace-listing-score");
       expect(resourcesById.marketplace_listing_score_alias.price).toBe("$0.001");
       expect(resourcesById.marketplace_listing_score_alias.maxAmountRequired).toBe("1000");
@@ -976,6 +980,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.resource_samples[0].resource).toBe("http://localhost:8787/api/listing-roast");
       expect(agentTools.json.resource_samples[0].method).toBe("GET");
       expect(agentTools.json.resource_samples[0].price_usd).toBe("0.001");
+      expect(agentTools.json.resource_samples[0].agentPaymentRequest.maxPayment).toBe("0.001");
+      expect(agentTools.json.resource_samples[0].agentPaymentPrompt).toContain("pay up to 0.001 USDC");
       expect(agentTools.json.resource_samples[0].serviceName).toBe("Listing Roast x402 Paid API Listing Quality Score");
       expect(agentTools.json.resource_samples[0].description).toContain("marketplace listing score");
       expect(agentTools.json.resource_samples[0].keywords).toContain("paid API listing quality score");
@@ -996,6 +1002,9 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.x402_route).toBe("/api/listing-roast");
       expect(agentTools.json.price_usd).toBe("0.001");
       expect(agentTools.json.max_amount_required).toBe("1000");
+      expect(agentTools.json.max_payment_usd).toBe("0.001");
+      expect(agentTools.json.agentPaymentRequest.maxPayment).toBe("0.001");
+      expect(agentTools.json.agentPaymentPrompt).toContain("pay up to 0.001 USDC");
       expect(agentTools.json.call_command).toContain("x402 pay 'http://localhost:8787/api/listing-roast'");
       expect(agentTools.json.curl).toBe("curl -X GET http://localhost:8787/api/listing-roast");
       expect(agentTools.json.primary_call.endpoint_url).toBe("http://localhost:8787/api/listing-roast");
@@ -1021,6 +1030,8 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.tools.map((tool) => tool.name)).toContain("indexed_roast_quick_score");
       expect(agentTools.json.tools[0].x402_route).toBe("/api/listing-roast");
       expect(agentTools.json.tools[0].price_usd).toBe("0.001");
+      expect(agentTools.json.tools[0].agentPaymentRequest.maxPayment).toBe("0.001");
+      expect(agentTools.json.tools[0].agentPaymentPrompt).toContain("pay up to 0.001 USDC");
       expect(agentTools.json.tools[0].command).toContain("--max-amount 1000");
       expect(agentTools.json.tools.find((tool) => tool.name === "directory_root_post").x402_route).toBe("/");
       expect(agentTools.json.tools.find((tool) => tool.name === "directory_root_post").command).not.toContain("-d ");
@@ -1652,9 +1663,12 @@ describe("Listing Roast x402 service", () => {
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].cashRegister).toContain("/api/cash-register");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].paidUseProof.paidUsageProof).toContain("/api/paid-usage-proof");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].paidUseProof.cashRegister).toContain("/api/cash-register");
+      expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].agentPaymentRequest.maxPayment).toBe("0.001");
+      expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].agentPaymentPrompt).toContain("pay up to 0.001 USDC");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].x402Retry.route).toContain("/api/listing-roast");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].x402Retry.paymentRequiredHeader).toBe("Payment-Required");
       expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].x402Retry.paymentHeader).toBe("X-PAYMENT");
+      expect(openApi.json.paths["/api/listing-roast"].get["x-payment"].x402Retry.maxPaymentUsd).toBe("0.001");
       expect(openApi.json.paths["/api/listing-roast"].get["x-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/listing-roast"].get["x-x402-price"]).toBe("$0.001");
       expect(openApi.json.paths["/api/listing-roast"].post.security).toEqual([{ x402: [] }]);

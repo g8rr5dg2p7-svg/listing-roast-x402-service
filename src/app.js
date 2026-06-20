@@ -621,12 +621,17 @@ function routeTags(routeKey) {
   return ROUTE_SERVICE_TAGS[routeKey] || [];
 }
 
-function enrichManifestResource(resource) {
+function enrichManifestResource(resource, config) {
   const routeKey = MANIFEST_RESOURCE_ROUTE_KEYS[resource.id];
   const { serviceName, tags } = routeServiceMetadata(routeKey);
+  const agentPaymentRequest = buildAgentPaymentRequest(resource);
   return {
     serviceName,
     ...resource,
+    route: resource.url,
+    agentPaymentRequest,
+    agentPaymentPrompt: agentPaymentRequest.prompt,
+    maxPaymentUsd: agentPaymentRequest.maxPayment,
     tags,
     keywords: uniqueTerms([...(resource.keywords || []), ...tags])
   };
@@ -646,6 +651,10 @@ function buildManifestActionAliases(config, resources) {
     priceUsd: priceToUsd(resource.price),
     maxAmountRequired: resource.maxAmountRequired,
     max_amount_required: resource.maxAmountRequired,
+    maxPaymentUsd: resource.maxPaymentUsd,
+    max_payment_usd: resource.maxPaymentUsd,
+    agentPaymentRequest: resource.agentPaymentRequest,
+    agentPaymentPrompt: resource.agentPaymentPrompt,
     network: config.network,
     paymentRequired: true,
     x402: {
@@ -2477,11 +2486,14 @@ function buildPaymentHint(config, options) {
   const route = absoluteUrl(config, options.path);
   const intentRouteKey = options.intentRouteKey || inferPaymentHintIntentRouteKey(options.path, options.method);
   const paidAction = {
+    route,
+    url: route,
     path: options.path,
     method: options.method,
     price: options.price,
     maxAmountRequired: options.maxAmountRequired
   };
+  const agentPaymentRequest = buildAgentPaymentRequest(paidAction);
 
   return {
     protocol: "x402",
@@ -2494,6 +2506,9 @@ function buildPaymentHint(config, options) {
     route,
     preferredFirstPaidAction: Boolean(options.preferredFirstPaidAction),
     buyerAction: options.buyerAction,
+    agentPaymentRequest,
+    agentPaymentPrompt: agentPaymentRequest.prompt,
+    maxPaymentUsd: agentPaymentRequest.maxPayment,
     paidResponsePreview: buildPaidResponsePreview(config, intentRouteKey, paidAction),
     paidUsageProof: paidUseProof.paidUsageProof,
     cashRegister: paidUseProof.cashRegister,
@@ -2504,6 +2519,8 @@ function buildPaymentHint(config, options) {
       route,
       method: options.method,
       maxAmountRequired: options.maxAmountRequired,
+      maxPaymentUsd: agentPaymentRequest.maxPayment,
+      agentPaymentPrompt: agentPaymentRequest.prompt,
       instruction: "Parse the Payment-Required header, complete the exact x402 payment, then retry this same route with the X-PAYMENT header."
     }
   };
@@ -3834,9 +3851,10 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
 
 function buildAgentPaymentRequest(selected) {
   const maxPayment = priceToUsd(selected.price);
+  const route = selected.route || selected.url;
   return {
-    prompt: `Call this x402 endpoint with ${selected.method} and pay up to ${maxPayment} USDC: ${selected.route}`,
-    url: selected.route,
+    prompt: `Call this x402 endpoint with ${selected.method} and pay up to ${maxPayment} USDC: ${route}`,
+    url: route,
     path: selected.path,
     method: selected.method,
     maxPayment,
@@ -5173,6 +5191,7 @@ function buildPreflightAliasManifestResources(config) {
 
 function buildPrimaryEndpointHandoff(config, intentRoutes = buildPayNowActions(config)) {
   const action = intentRoutes.indexedQuickScore;
+  const agentPaymentRequest = buildAgentPaymentRequest(action);
   return {
     id: "indexed_roast_quick_score",
     name: "indexed_roast_quick_score",
@@ -5187,6 +5206,9 @@ function buildPrimaryEndpointHandoff(config, intentRoutes = buildPayNowActions(c
     network: config.network,
     payTo: config.payTo,
     command: action.command,
+    agentPaymentRequest,
+    agentPaymentPrompt: agentPaymentRequest.prompt,
+    maxPaymentUsd: agentPaymentRequest.maxPayment,
     reason: action.reason,
     description: INDEXED_QUICK_SCORE_DESCRIPTION,
     tags: routeTags("indexedQuickScore"),
@@ -5261,6 +5283,10 @@ function buildPrimaryResourceSample(primaryEndpoint) {
     price_usd: priceToUsd(primaryEndpoint.price),
     maxAmountRequired: primaryEndpoint.maxAmountRequired,
     max_amount_required: primaryEndpoint.maxAmountRequired,
+    maxPaymentUsd: primaryEndpoint.maxPaymentUsd,
+    max_payment_usd: primaryEndpoint.maxPaymentUsd,
+    agentPaymentRequest: primaryEndpoint.agentPaymentRequest,
+    agentPaymentPrompt: primaryEndpoint.agentPaymentPrompt,
     description: primaryEndpoint.description,
     tags: primaryEndpoint.tags,
     keywords: primaryEndpoint.keywords,
@@ -5289,6 +5315,10 @@ function buildShallowPrimaryCallAliases(primaryEndpoint) {
     price_usd: priceToUsd(primaryEndpoint.price),
     maxAmountRequired: primaryEndpoint.maxAmountRequired,
     max_amount_required: primaryEndpoint.maxAmountRequired,
+    maxPaymentUsd: primaryEndpoint.maxPaymentUsd,
+    max_payment_usd: primaryEndpoint.maxPaymentUsd,
+    agentPaymentRequest: primaryEndpoint.agentPaymentRequest,
+    agentPaymentPrompt: primaryEndpoint.agentPaymentPrompt,
     command: primaryEndpoint.command,
     callCommand: primaryEndpoint.command,
     call_command: primaryEndpoint.command,
@@ -5517,7 +5547,7 @@ function buildX402Manifest(config, cashRegister = {}) {
         outputExample: buildListingRoast(requestExample),
         schema: absoluteUrl(config, "/api/schema")
       }
-    ].map(enrichManifestResource);
+    ].map((resource) => enrichManifestResource(resource, config));
   const actionAliases = buildManifestActionAliases(config, resources);
 
   return {
@@ -5675,10 +5705,14 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
     url: resource.url,
     price_usd: priceToUsd(resource.price),
     max_amount_required: resource.maxAmountRequired,
+    max_payment_usd: resource.maxPaymentUsd,
     network: config.network,
     asset: payment.asset,
     assetName: payment.assetName,
     payment,
+    agentPaymentRequest: resource.agentPaymentRequest,
+    agentPaymentPrompt: resource.agentPaymentPrompt,
+    maxPaymentUsd: resource.maxPaymentUsd,
     command: resource.command,
     input: resource.input || {},
     output_example: resource.outputExample || {},
