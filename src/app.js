@@ -3536,7 +3536,7 @@ function commandActionKeyForIntent(intent = "") {
     return { intent: rawIntent, selectedActionKey: "discoveryAuditQuick" };
   }
 
-  if (normalizedIntent.includes("site audit") || normalizedIntent.includes("preflight") || normalizedIntent.includes("openapi") || normalizedIntent.includes("llms") || normalizedIntent.includes("robots") || normalizedIntent.includes("sitemap") || normalizedIntent.includes("metadata")) {
+  if (wantsPaidApiPreflight(normalizedIntent) || normalizedIntent.includes("site audit") || normalizedIntent.includes("openapi") || normalizedIntent.includes("llms") || normalizedIntent.includes("robots") || normalizedIntent.includes("sitemap") || normalizedIntent.includes("metadata")) {
     return { intent: rawIntent, selectedActionKey: "x402SiteAudit" };
   }
 
@@ -6083,7 +6083,11 @@ function wantsPaidApiPreflight(query) {
     "before you pay",
     "before spending",
     "pre-pay",
-    "pre pay"
+    "pre pay",
+    "seller growth checklist",
+    "growth checklist",
+    "buyer-readiness",
+    "buyer readiness"
   ]);
 }
 

@@ -2145,6 +2145,13 @@ describe("Listing Roast x402 service", () => {
       expect(commandsSiteAudit.json.firstPaidAction.maxAmountRequired).toBe("1000");
       expect(commandsSiteAudit.json.firstPaidAction.command).toContain("/api/x402-site-audit");
 
+      const commandsSellerGrowth = await fetchJson(server, "/api/commands?intent=x402%20seller%20growth%20checklist");
+      expect(commandsSellerGrowth.status).toBe(200);
+      expect(commandsSellerGrowth.json.firstPaidAction.path).toBe("/api/x402-site-audit");
+      expect(commandsSellerGrowth.json.firstPaidAction.method).toBe("GET");
+      expect(commandsSellerGrowth.json.firstPaidAction.maxAmountRequired).toBe("1000");
+      expect(commandsSellerGrowth.json.recommendedPaidSequence[1].action.path).toBe("/api/x402-discovery-audit");
+
       const commandsMarketplaceConversion = await fetchJson(server, "/api/commands?intent=x402%20marketplace%20conversion");
       expect(commandsMarketplaceConversion.status).toBe(200);
       expect(commandsMarketplaceConversion.json.firstPaidAction.path).toBe("/api/listing-roast");
@@ -2809,7 +2816,7 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.sampleViews).toBe(3);
       expect(cashRegister.json.signals.schemaViews).toBe(4);
       expect(cashRegister.json.signals.examplesViews).toBe(1);
-      expect(cashRegister.json.signals.commandsViews).toBe(8);
+      expect(cashRegister.json.signals.commandsViews).toBe(9);
       expect(cashRegister.json.signals.payNowViews).toBe(17);
       expect(cashRegister.json.signals.pricingViews).toBe(1);
       expect(cashRegister.json.signals.findViews).toBe(9);
