@@ -458,8 +458,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-post-roast-handoff-v35";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T22:55:00.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-search-reality-handoff-v36";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T23:05:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -7232,6 +7232,73 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     urlSubstring: serviceDomain,
     limit: "10"
   });
+  const buildSearchUrl = (query, maxUsdPrice = "0.001") => {
+    const params = new URLSearchParams({
+      query,
+      network: config.network,
+      maxUsdPrice,
+      limit: "10"
+    });
+    return `${CDP_DISCOVERY_BASE_URL}/search?${params.toString()}`;
+  };
+  const workingSearchQueries = [
+    {
+      query: OFFICIAL_CDP_DISCOVERY_SEARCH_QUERY,
+      maxUsdPrice: "0.001",
+      result: "Listing Roast currently ranks first for the indexed $0.001 /api/listing-roast route.",
+      searchUrl: buildSearchUrl(OFFICIAL_CDP_DISCOVERY_SEARCH_QUERY, "0.001")
+    },
+    {
+      query: "paid api listing quality",
+      maxUsdPrice: "0.001",
+      result: "Listing Roast currently ranks first for the indexed $0.001 /api/listing-roast route.",
+      searchUrl: buildSearchUrl("paid api listing quality", "0.001")
+    },
+    {
+      query: "paid API listing quality score",
+      maxUsdPrice: "0.001",
+      result: "Listing Roast currently ranks first for the indexed $0.001 /api/listing-roast route.",
+      searchUrl: buildSearchUrl("paid API listing quality score", "0.001")
+    },
+    {
+      query: "listing roast",
+      maxUsdPrice: "0.01",
+      result: "Listing Roast currently ranks first and returns the indexed $0.001 /api/listing-roast route, with upgrade handoffs to the $0.01 full roast.",
+      searchUrl: buildSearchUrl("listing roast", "0.01")
+    },
+    {
+      query: "full listing roast",
+      maxUsdPrice: "0.01",
+      result: "Listing Roast currently ranks first and returns the indexed $0.001 /api/listing-roast route, with direct /api/full-listing-roast handoffs available from owned metadata.",
+      searchUrl: buildSearchUrl("full listing roast", "0.01")
+    }
+  ];
+  const staleOrNotYetRankingQueries = [
+    {
+      query: "buyer-agent skip reasons",
+      currentPublicSearchState: "Can miss Listing Roast in CDP search until the next real settlement refreshes the public card. Use /api/pay-now?intent=buyer-agent%20skip%20reasons or local discovery search to reach the indexed paid route."
+    },
+    {
+      query: "agent service clarity",
+      currentPublicSearchState: "Can return unrelated agent-directory services in CDP search. Use /api/pay-now?intent=agent%20service%20clarity or local discovery search to reach the indexed paid route."
+    },
+    {
+      query: "x402 discovery audit",
+      currentPublicSearchState: "Can return other audit services first in CDP search until a real discovery-audit settlement refreshes public metadata. Use /api/pay-now?intent=x402%20discovery%20audit for the owned route."
+    },
+    {
+      query: "x402 site audit",
+      currentPublicSearchState: "Can return other x402 audit or health tools first in CDP search. Use /api/pay-now?intent=x402%20site%20audit for the owned route."
+    },
+    {
+      query: "AgentCore x402 payments",
+      currentPublicSearchState: "Can return agent-wallet or ERC-8004 services first in CDP search. Use /api/pay-now?intent=AgentCore%20x402%20payments for the owned route."
+    },
+    {
+      query: "Coinbase x402 Bazaar MCP server",
+      currentPublicSearchState: "Can return unrelated Base/CDP services first in CDP search. Use /api/pay-now?intent=Coinbase%20x402%20Bazaar%20MCP%20server for the owned route."
+    }
+  ];
 
   return {
     source: "coinbase-cdp-bazaar",
@@ -7243,6 +7310,10 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     domainRestrictedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${domainSearchParams.toString()}`,
     domainRestrictedRecommendedSearchUrl: `${CDP_DISCOVERY_BASE_URL}/search?${domainRecommendedSearchParams.toString()}`,
     domainRestrictedUrlSubstring: serviceDomain,
+    workingSearchQueries,
+    knownWorkingSearchQueries: workingSearchQueries,
+    staleOrNotYetRankingQueries,
+    notYetRankingSearchQueries: staleOrNotYetRankingQueries,
     alternateSearchQueries: [
       "paid api listing quality",
       "buyer-agent skip reasons",
@@ -7258,6 +7329,7 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     domainRestrictedSearchReason: "Use urlSubstring when broad CDP search is stale or noisy; it narrows discovery to this exact seller domain without payment.",
     priceFilterReason: "Use maxUsdPrice=0.001 for cheap-route discovery; current live checks show this finds the indexed route ahead of broader unfiltered marketplace results.",
     merchantDiscoveryStaleMetadataNote: "Merchant discovery can show cached Bazaar extension fields from the last real settlement; use the live 402 challenge for current price before payment.",
+    searchRealityRule: "Prefer knownWorkingSearchQueries for public CDP discovery until a real buyer settlement updates the cached public search card for broader terms.",
     refreshRule: "CDP Bazaar refreshes catalog metadata after real settlement; unpaid probes do not refresh search."
   };
 }
@@ -7279,11 +7351,14 @@ function formatOfficialCdpDiscoveryMarkdown(config) {
 - Official CDP merchant lookup: ${handoff.merchantDiscoveryUrl}
 - Recommended search query: ${handoff.recommendedSearchQuery}
 - Recommended maxUsdPrice: ${handoff.recommendedMaxUsdPrice}
+- Known working public CDP queries: ${handoff.knownWorkingSearchQueries.map((entry) => `${entry.query} (max ${entry.maxUsdPrice})`).join(", ")}
+- Not-yet-ranking public CDP queries: ${handoff.notYetRankingSearchQueries.map((entry) => entry.query).join(", ")}
 - Alternate search queries: ${handoff.alternateSearchQueries.join(", ")}
 - Start paid use with the already-settled indexed route: ${handoff.indexedRoute}
 - Domain-restricted search reason: ${handoff.domainRestrictedSearchReason}
 - Price-filter reason: ${handoff.priceFilterReason}
 - Merchant discovery stale metadata note: ${handoff.merchantDiscoveryStaleMetadataNote}
+- Search reality rule: ${handoff.searchRealityRule}
 - Refresh rule: ${handoff.refreshRule}`;
 }
 

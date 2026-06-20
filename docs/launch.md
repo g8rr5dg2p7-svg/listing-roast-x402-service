@@ -34,7 +34,7 @@ Current verified state:
 - Railway deploy: successful. Latest verified deployment: 5efda112-14bb-4b5a-a393-73dc153662cd.
 - Latest live code commit: 8c50334 Clarify POST roast payment shortcut.
 - Latest GitHub release: post-roast-handoff-v1.
-- Latest metadata version: 2026-06-20-post-roast-handoff-v35.
+- Latest metadata version: 2026-06-20-search-reality-handoff-v36.
 - Latest repo docs refresh: direct terminal `paymentShortcut` guidance for the $0.01 full-roast route and stale-card `POST /api/listing-roast` path, early `paymentShortcut.upgradeAfterQuickScore` for true quick-score-to-full-roast upgrades, compact upgrade shortcuts in `/api/pay-now`, `/api/examples`, `/api/commands`, and payment hints, early `paymentShortcut` fields before bulky unpaid 402 metadata, compact top-level payable-route fields in unpaid 402 JSON bodies, aggregate no-spend buyer-intent signals, explicit payable-route fields on `/api/find`, `/api/route`, local discovery search, and MCP search handoffs, CDP/Bazaar price-filtered search, domain-restricted CDP discovery handoffs, indexed-route handoffs, stale cached-card normalization proof, expanded buyer-search hints, and Bazaar-style MCP compatibility handoffs aligned with the live payment metadata.
 - Homepage: HTTP 200.
 - Command builder: HTTP 200.
