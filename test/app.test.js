@@ -1490,6 +1490,8 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.indexedRoastGetOutput.buyerSearchPhrases).toContain("paid API listing quality score");
       expect(examples.json.indexedRoastGetOutput.buyerSearchPhrases).toContain("buyer agent skip reasons");
       expect(examples.json.indexedRoastGetOutput.buyerSearchPhrases).toContain("agent service clarity");
+      expect(examples.json.indexedRoastGetOutput.settlementRefreshNote).toContain("Bazaar extension metadata");
+      expect(examples.json.indexedRoastGetOutput.settlementRefreshNote).toContain("unpaid probes do not refresh");
       expect(examples.json.indexedRoastGetOutput.nextPaidAction.maxAmountRequired).toBe("10000");
       expect(examples.json.indexedRoastGetOutput.nextPaidAction.command).toContain("/api/listing-roast");
       expect(examples.json.indexedRoastGetOutput.nextPaidAction.command).toContain("--max-amount 10000");
@@ -3706,6 +3708,8 @@ describe("Listing Roast x402 service", () => {
       expect(challenge.extensions.bazaar.info.output.example.price).toBe("$0.001");
       expect(challenge.extensions.bazaar.info.output.example.matchedBuyerIntent).toContain("marketplace listing score");
       expect(challenge.extensions.bazaar.info.output.example.matchedBuyerIntent).toContain("paid API listing quality score");
+      expect(challenge.extensions.bazaar.info.output.example.settlementRefreshNote).toContain("Bazaar extension metadata");
+      expect(challenge.extensions.bazaar.info.output.example.settlementRefreshNote).toContain("unpaid probes do not refresh");
       expect(challenge.extensions.bazaar.info.output.example.buyerSearchPhrases).toBeUndefined();
       expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.path).toBe("/api/listing-roast");
       expect(challenge.extensions.bazaar.info.output.example.nextPaidAction.maxAmountRequired).toBe("10000");

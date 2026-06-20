@@ -1612,7 +1612,8 @@ function buildScoreDiscovery(config) {
         nextPaidActions: {
           type: "array",
           items: paidActionWithIntentOutputSchema()
-        }
+        },
+        settlementRefreshNote: { type: "string" }
       }
     }
   });
@@ -2034,6 +2035,7 @@ function buildIndexedRoastQuickScore(input, config) {
   const buyerIntentHandoffs = indexedQuickScoreIntentHandoffs(config, input);
   const nextPaidActions = indexedQuickScoreNextPaidActions(config, input);
   const fullRoastUpgradeDecision = buildFullRoastUpgradeDecision(nextPaidActions);
+  const settlementRefreshNote = "Keep Bazaar extension metadata when paying; unpaid probes do not refresh search.";
 
   return addNextPaidAction({
     ...buildInstantListingScore(input, config),
@@ -2043,6 +2045,7 @@ function buildIndexedRoastQuickScore(input, config) {
     buyerIntentHandoffs,
     nextPaidActions,
     ...(fullRoastUpgradeDecision ? { fullRoastUpgradeDecision } : {}),
+    settlementRefreshNote,
     nextStep: followup.nextStep,
     upgradeEndpoint: followup.upgradeEndpoint
   }, followup.action);
@@ -2717,6 +2720,7 @@ function compactChallengeOutputExample(example) {
     "matchedBuyerIntent",
     "nextStep",
     "upgradeEndpoint",
+    "settlementRefreshNote",
     "message",
     "mode",
     "route",
@@ -2757,7 +2761,7 @@ function compactChallengeOutputExample(example) {
 
   if (Array.isArray(example.nextPaidActions)) {
     compact.nextPaidActions = example.nextPaidActions
-      .slice(0, 4)
+      .slice(0, 2)
       .map((action) => compactChallengeAction(action, { includeRoute: false, includeReason: false }));
   }
 
