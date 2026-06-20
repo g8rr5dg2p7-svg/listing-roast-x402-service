@@ -4780,6 +4780,13 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.selectedPaidPath).toBe("/api/listing-roast");
       expect(response.json.selectedPaidMethod).toBe("GET");
       expect(response.json.selectedPaidMaxAmountRequired).toBe("1000");
+      expect(response.json.publicCdpStaleCardOverride.status).toBe("owned-live-metadata-overrides-stale-public-card");
+      expect(response.json.publicCdpStaleCardOverride.preferredFirstPaidPath).toBe("/api/listing-roast");
+      expect(response.json.publicCdpStaleCardOverride.selectedPaidPath).toBe("/api/listing-roast");
+      expect(response.json.publicCdpStaleCardOverride.selectedPaidMaxAmountRequired).toBe("1000");
+      expect(response.json.publicCdpStaleCardOverride.directFullRoastPath).toBe("/api/full-listing-roast");
+      expect(response.json.publicCdpStaleCardOverride.stalePublicFieldsToIgnore.join(" ")).toContain("$1.00");
+      expect(response.json.publicCdpStaleCardOverride.stalePublicFieldsToIgnore.join(" ")).toContain("POST /api/listing-roast");
       expect(response.json.firstPaidUrl).toBe(response.json.resource.url);
       expect(response.json.firstPaidPath).toBe("/api/listing-roast");
       expect(response.json.firstPaidMaxAmountRequired).toBe("1000");

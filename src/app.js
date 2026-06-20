@@ -4919,11 +4919,18 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     ? buildGetPayCommandWithQuery(config, selected.path, selected.maxAmountRequired, sampleQueryInputs)
     : null;
   const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
+  const publicCdpStaleCardOverride = buildPublicCdpStaleCardOverride(
+    config,
+    payNow.intentRoutes,
+    selectedFirstPaidAction,
+    selected
+  );
 
   return {
     error: "payment_required",
     x402Version: 2,
     paymentShortcut: payableRoute,
+    publicCdpStaleCardOverride,
     selectedPaidUrl,
     selectedPaidPath: selected.path,
     selectedPaidMethod: selected.method,
