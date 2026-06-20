@@ -373,6 +373,9 @@ describe("Listing Roast x402 service", () => {
       expect(builder.text).toContain("/api/x402-ping");
       expect(builder.text).toContain("/api/x402-site-audit");
       expect(builder.text).toContain("/api/x402-discovery-audit");
+      expect(builder.text).toContain("x402 pay &#39;http://localhost:8787/api/listing-score&#39;");
+      expect(builder.text).toContain("x402 pay &#39;http://localhost:8787/api/listing-roast&#39;");
+      expect(builder.text).toContain('" + shellQuote(url) + " -X POST -d "');
       expect(builder.text).toContain("builderCommandBuilds");
 
       const sample = await fetchJson(server, "/sample");

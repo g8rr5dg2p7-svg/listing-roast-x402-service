@@ -9217,7 +9217,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
       };
     }
     function command(url, maxAmount) {
-      return "npx awal@2.8.0 x402 pay " + url + " -X POST -d " + shellQuote(JSON.stringify(payload())) + " --max-amount " + maxAmount;
+      return "npx awal@2.8.0 x402 pay " + shellQuote(url) + " -X POST -d " + shellQuote(JSON.stringify(payload())) + " --max-amount " + maxAmount;
     }
     function updateCommands(track) {
       document.getElementById("score-command").textContent = command(scoreUrl, "5000");
