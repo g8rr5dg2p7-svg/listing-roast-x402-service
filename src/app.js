@@ -1669,6 +1669,37 @@ function buildDiscoveryAuditInputFromQuery(query = {}) {
   return input;
 }
 
+function hasDiscoveryAuditEndpointOverride(query = {}) {
+  return [
+    query.endpointUrl,
+    query.url,
+    query.base_url,
+    query.baseUrl,
+    query.targetUrl,
+    query.resource,
+    query.endpoint,
+    query.route
+  ].some((value) => Boolean(queryValue(value, "")));
+}
+
+function buildAgent402RouteVisibilityInput(config, query = {}) {
+  const defaults = {
+    expectedAmount: String(DISCOVERY_AUDIT_QUICK_AMOUNT),
+    expectedNetwork: config.network,
+    searchQuery: "Agent402 route visibility",
+    agent402Query: "Agent402 route visibility"
+  };
+
+  if (!hasDiscoveryAuditEndpointOverride(query)) {
+    defaults.endpointUrl = absoluteUrl(config, AGENT402_ROUTE_VISIBILITY_PATH);
+  }
+
+  return buildDiscoveryAuditInputFromQuery({
+    ...defaults,
+    ...query
+  });
+}
+
 function buildDiscoveryAuditBuyerVisibleInput(input = discoveryAuditRequestExample) {
   const endpointUrl = input.endpointUrl || discoveryAuditRequestExample.endpointUrl;
   return {
@@ -1774,12 +1805,14 @@ function buildSiteAuditOutput(config, auditOutput) {
   };
 }
 
-function buildDiscoveryAuditQuickOutput(config, auditOutput) {
+function buildDiscoveryAuditQuickOutput(config, auditOutput, options = {}) {
+  const routePath = options.routePath || DISCOVERY_AUDIT_PATH;
+
   return {
     ...buildSiteAuditOutput(config, auditOutput),
-    endpoint: "x402-discovery-audit-quick",
-    route: DISCOVERY_AUDIT_PATH,
-    mode: "quick-get-discovery-audit",
+    endpoint: options.endpoint || "x402-discovery-audit-quick",
+    route: routePath,
+    mode: options.mode || "quick-get-discovery-audit",
     upgradeEndpoint: DISCOVERY_AUDIT_PATH,
     nextActions: [
       ...auditOutput.nextActions,
@@ -1792,8 +1825,8 @@ function buildSiteAuditExampleOutput(config) {
   return buildSiteAuditOutput(config, buildDiscoveryAuditExampleOutput());
 }
 
-function buildDiscoveryAuditQuickExampleOutput(config) {
-  return buildDiscoveryAuditQuickOutput(config, buildDiscoveryAuditExampleOutput());
+function buildDiscoveryAuditQuickExampleOutput(config, options = {}) {
+  return buildDiscoveryAuditQuickOutput(config, buildDiscoveryAuditExampleOutput(), options);
 }
 
 function buildInstantScoreInput(query = {}) {
@@ -2534,7 +2567,7 @@ function buildDiscoveryAuditQuickDiscovery(config, options = {}) {
     input: options.input || discovery.input,
     output: {
       ...discovery.output,
-      example: buildDiscoveryAuditQuickExampleOutput(config)
+      example: options.outputExample || buildDiscoveryAuditQuickExampleOutput(config)
     },
     service: {
       ...discovery.service,
@@ -2545,12 +2578,16 @@ function buildDiscoveryAuditQuickDiscovery(config, options = {}) {
 }
 
 function buildAgent402RouteVisibilityDiscovery(config) {
+  const input = buildAgent402RouteVisibilityInput(config);
+
   return buildDiscoveryAuditQuickDiscovery(config, {
     routePath: AGENT402_ROUTE_VISIBILITY_PATH,
-    input: buildDiscoveryAuditBuyerVisibleInput(buildDiscoveryAuditInputFromQuery({
-      searchQuery: "Agent402 route visibility",
-      agent402Query: "Agent402 route visibility"
-    }))
+    input: buildDiscoveryAuditBuyerVisibleInput(input),
+    outputExample: buildDiscoveryAuditQuickExampleOutput(config, {
+      routePath: AGENT402_ROUTE_VISIBILITY_PATH,
+      endpoint: "agent402-route-visibility-audit",
+      mode: "agent402-route-visibility"
+    })
   });
 }
 
@@ -4041,7 +4078,11 @@ function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", 
     },
     agent402RouteVisibility: {
       includes: ["Agent402 route visibility", "Agent402 router ranking", "search visibility", "route health", "next actions"],
-      example: () => buildDiscoveryAuditQuickExampleOutput(config)
+      example: () => buildDiscoveryAuditQuickExampleOutput(config, {
+        routePath: AGENT402_ROUTE_VISIBILITY_PATH,
+        endpoint: "agent402-route-visibility-audit",
+        mode: "agent402-route-visibility"
+      })
     },
     listingScore: {
       includes: ["custom score", "first fix", "upgrade path"],
@@ -5832,7 +5873,11 @@ function buildX402Manifest(config, cashRegister = {}) {
         keywords: ["Agent402 route visibility", "Agent402 router", "Agent402 routing", "Agent402 route visibility audit", "x402 discovery audit", "x402 bazaar discovery audit", "x402 service discoverability audit", "paid API preflight", "x402 route health check", "bazaar search visibility", "x402 listing stale price", "stale Bazaar price", "GET paid API"],
         command: buildGetPayCommand(config, AGENT402_ROUTE_VISIBILITY_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT),
         input: buildAgent402RouteVisibilityDiscovery(config).input,
-        outputExample: buildDiscoveryAuditQuickExampleOutput(config),
+        outputExample: buildDiscoveryAuditQuickExampleOutput(config, {
+          routePath: AGENT402_ROUTE_VISIBILITY_PATH,
+          endpoint: "agent402-route-visibility-audit",
+          mode: "agent402-route-visibility"
+        }),
         schema: absoluteUrl(config, "/api/discovery-audit-schema")
       },
       {
@@ -8302,6 +8347,7 @@ function createX402Middleware(config) {
   });
   const buildDiscoveryAuditQuickPaymentRoute = (routePath) => {
     const isAgent402Alias = routePath === AGENT402_ROUTE_VISIBILITY_PATH;
+    const intentRouteKey = isAgent402Alias ? "agent402RouteVisibility" : "discoveryAuditQuick";
     return {
       resource: resourceUrl(routePath),
       ...challengeRouteServiceMetadata("discoveryAuditQuick"),
@@ -8310,8 +8356,8 @@ function createX402Middleware(config) {
         ? "Listing Roast Agent402 Route Visibility Audit: $0.001 GET exact Agent402 route visibility check for Agent402 router ranking, stale Bazaar pricing, search visibility, route health, paid API preflight, and direct 402 metadata."
         : "Listing Roast x402 Discovery Audit Quick: $0.001 GET x402 discovery audit on the exact audit path for stale Bazaar pricing, Agent402 route visibility, search visibility, route health, paid API preflight, and direct 402 metadata."),
       mimeType: "application/json",
-      customPaywallHtml: buildCustomPaywallHtml(config, "discoveryAuditQuick"),
-      unpaidResponseBody: unpaidPaymentPreview(config, "discoveryAuditQuick", {
+      customPaywallHtml: buildCustomPaywallHtml(config, intentRouteKey),
+      unpaidResponseBody: unpaidPaymentPreview(config, intentRouteKey, {
         path: routePath,
         method: "GET",
         price: config.siteAuditPrice,
@@ -10546,13 +10592,27 @@ ${copyScript("Copy command")}
   });
 
   app.get(DISCOVERY_AUDIT_QUICK_PATHS, async (request, response) => {
-    const parsed = discoveryAuditRequestSchema.safeParse(buildDiscoveryAuditInputFromQuery(request.query));
+    const isAgent402RouteVisibility = request.path === AGENT402_ROUTE_VISIBILITY_PATH;
+    const input = isAgent402RouteVisibility
+      ? buildAgent402RouteVisibilityInput(config, request.query)
+      : buildDiscoveryAuditInputFromQuery(request.query);
+    const parsed = discoveryAuditRequestSchema.safeParse(input);
     if (!parsed.success) {
       response.status(400).json({ error: "invalid_request", issues: parsed.error.issues });
       return;
     }
 
-    const result = buildDiscoveryAuditQuickOutput(config, await buildX402DiscoveryAudit(parsed.data));
+    const result = buildDiscoveryAuditQuickOutput(
+      config,
+      await buildX402DiscoveryAudit(parsed.data),
+      isAgent402RouteVisibility
+        ? {
+          routePath: AGENT402_ROUTE_VISIBILITY_PATH,
+          endpoint: "agent402-route-visibility-audit",
+          mode: "agent402-route-visibility"
+        }
+        : {}
+    );
     const cashRegister = await recordPaidCompletion("x402DiscoveryAuditQuick", 0.001);
     response.json({ ...result, cashRegister });
   });

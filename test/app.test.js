@@ -782,6 +782,15 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.actions[0].x402.network).toBe("eip155:84532");
       expect(x402Manifest.json.actions[0].preferredFirstPaidAction).toBe(true);
       const resourcesById = Object.fromEntries(x402Manifest.json.resources.map((resource) => [resource.id, resource]));
+      expect(resourcesById.agent402_route_visibility_audit.path).toBe("/api/agent402-route-visibility");
+      expect(resourcesById.agent402_route_visibility_audit.input.url).toBe("http://localhost:8787/api/agent402-route-visibility");
+      expect(resourcesById.agent402_route_visibility_audit.input.base_url).toBe("http://localhost:8787/api/agent402-route-visibility");
+      expect(resourcesById.agent402_route_visibility_audit.input.endpointUrl).toBe("http://localhost:8787/api/agent402-route-visibility");
+      expect(resourcesById.agent402_route_visibility_audit.input.resource).toBe("http://localhost:8787/api/agent402-route-visibility");
+      expect(resourcesById.agent402_route_visibility_audit.input.searchQuery).toBe("Agent402 route visibility");
+      expect(resourcesById.agent402_route_visibility_audit.input.agent402Query).toBe("Agent402 route visibility");
+      expect(resourcesById.agent402_route_visibility_audit.outputExample.route).toBe("/api/agent402-route-visibility");
+      expect(resourcesById.agent402_route_visibility_audit.outputExample.endpoint).toBe("agent402-route-visibility-audit");
       expect(x402Manifest.json.resources[0].name).toBe("marketplace_listing_score_paid_api_listing_quality_score");
       expect(x402Manifest.json.resources[0].serviceName).toBe("Listing Roast x402 Paid API Listing Quality Score");
       expect(x402Manifest.json.resources[0].description).toMatch(/^Paid API Listing Quality Score by Listing Roast/);
@@ -4249,6 +4258,46 @@ describe("Listing Roast x402 service", () => {
       expect(cashRegister.json.signals.siteAuditValidUnpaidChallenges).toBe(0);
       expect(cashRegister.json.signals.discoveryAuditValidUnpaidChallenges).toBe(1);
       expect(cashRegister.json.signals.scoreValidUnpaidChallenges).toBe(0);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  }, 15000);
+
+  it("protects the Agent402 route visibility alias with exact route metadata", async () => {
+    mockFacilitatorSupportedKinds();
+    const app = createApp({ payTo: "0x000000000000000000000000000000000000dEaD" });
+    const server = await listen(app);
+    try {
+      const response = await fetchJson(server, "/api/agent402-route-visibility");
+
+      expect(response.status).toBe(402);
+      const challenge = readPaymentRequiredHeader(response.headers);
+      const input = challenge.extensions.bazaar.info.input.queryParams;
+      expect(challenge.error).toBe("Payment required");
+      expect(challenge.resource.url).toContain("/api/agent402-route-visibility");
+      expect(challenge.resource.description).toContain("Agent402 Route Visibility");
+      expect(challenge.resource.tags).toContain("Agent402 route visibility");
+      expect(input.url).toBe("http://localhost:8787/api/agent402-route-visibility");
+      expect(input.base_url).toBe("http://localhost:8787/api/agent402-route-visibility");
+      expect(input.endpointUrl).toBe("http://localhost:8787/api/agent402-route-visibility");
+      expect(input.resource).toBe("http://localhost:8787/api/agent402-route-visibility");
+      expect(input.searchQuery).toBe("Agent402 route visibility");
+      expect(input.agent402Query).toBe("Agent402 route visibility");
+      expect(challenge.extensions.bazaar.info.output.example.route).toBe("/api/agent402-route-visibility");
+      expect(challenge.extensions.bazaar.info.output.example.endpoint).toBe("agent402-route-visibility-audit");
+      expect(challenge.accepts[0].network).toBe("eip155:84532");
+      expect(challenge.accepts[0].amount).toBe("1000");
+      expect(response.json.selectedActionKey).toBe("agent402RouteVisibility");
+      expect(response.json.selectedPaidAction.path).toBe("/api/agent402-route-visibility");
+      expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
+      expect(response.json.paidResponsePreview.route).toBe("/api/agent402-route-visibility");
+      expect(response.json.paidResponsePreview.example.endpoint).toBe("agent402-route-visibility-audit");
+
+      const cashRegister = await fetchJson(server, "/api/cash-register");
+      expect(cashRegister.json.signals.unpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.validUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.discoveryAuditValidUnpaidChallenges).toBe(1);
+      expect(cashRegister.json.signals.siteAuditValidUnpaidChallenges).toBe(0);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
