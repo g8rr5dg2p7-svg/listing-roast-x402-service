@@ -357,8 +357,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "agent listing conversion score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness: $0.001 GET Listing Roast x402 score for paid API listing quality, buyer intent, x402 marketplace conversion, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-indexed-route-search-v1";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T11:42:19.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-intent-primary-indexed-v1";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T12:08:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -3226,6 +3226,18 @@ function exactIntentPaidActionForSelection(intentRoutes, selectedActionKey = "in
   }
 
   return exactAction;
+}
+
+function upgradePaidActionForLandingPage(intentRoutes, page, exactIntentPaidAction = null) {
+  if (
+    exactIntentPaidAction &&
+    page.supportingAction.path === intentRoutes.indexedQuickScore.path &&
+    page.supportingAction.method === intentRoutes.indexedQuickScore.method
+  ) {
+    return intentRoutes.fullRoast;
+  }
+
+  return page.supportingAction;
 }
 
 function buildSelectedPaidSequence(intentRoutes, selectedActionKey = "indexedQuickScore", selectedPaidAction = null) {
@@ -7847,6 +7859,7 @@ function buildIntentLandingHandoffs(config) {
     const intent = intentForLandingPage(page);
     const firstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, page.selectedActionKey, page.primaryAction);
     const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, page.selectedActionKey, page.primaryAction);
+    const upgradePaidAction = upgradePaidActionForLandingPage(intentRoutes, page, exactIntentPaidAction);
 
     return {
       path: page.path,
@@ -7858,9 +7871,10 @@ function buildIntentLandingHandoffs(config) {
       payNow: absoluteIntentUrl(config, PAY_NOW_PATH, intent),
       commands: absoluteIntentUrl(config, COMMANDS_PATH, intent),
       firstPaidAction: summarizePaidAction(firstPaidAction),
-      primaryPaidAction: summarizePaidAction(page.primaryAction),
+      primaryPaidAction: summarizePaidAction(firstPaidAction),
       ...(exactIntentPaidAction ? { exactIntentPaidAction: summarizePaidAction(exactIntentPaidAction) } : {}),
-      supportingPaidAction: summarizePaidAction(page.supportingAction),
+      supportingPaidAction: summarizePaidAction(exactIntentPaidAction || page.supportingAction),
+      upgradePaidAction: summarizePaidAction(upgradePaidAction),
       buyerInstruction: buildSelectedBuyerInstruction(page.selectedActionKey, page.primaryAction, intentRoutes.indexedQuickScore)
     };
   });
@@ -7874,6 +7888,10 @@ function buildIntentLandingPage(config, page) {
   const commandsUrl = relativeIntentUrl(COMMANDS_PATH, intent);
   const firstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, page.selectedActionKey, page.primaryAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, page.selectedActionKey, page.primaryAction);
+  const upgradePaidAction = upgradePaidActionForLandingPage(intentRoutes, page, exactIntentPaidAction);
+  const upgradeLabel = exactIntentPaidAction && upgradePaidAction.path === intentRoutes.fullRoast.path && upgradePaidAction.method === intentRoutes.fullRoast.method
+    ? "Upgrade to the $0.01 full roast for rewritten listing copy and launch guidance."
+    : page.supportingLabel;
   const firstPaidLabel = firstPaidAction.path === page.primaryAction.path && firstPaidAction.method === page.primaryAction.method
     ? page.primaryLabel
     : "Start with the proven $0.001 indexed route";
@@ -7963,9 +7981,9 @@ function buildIntentLandingPage(config, page) {
         </div>
         <div class="card">
           <h2>Upgrade path</h2>
-          <p>${escapeHtml(page.supportingLabel)}</p>
-          <p><code>${escapeHtml(page.supportingAction.method)} ${escapeHtml(page.supportingAction.path)}</code></p>
-          <p class="muted">Price: ${escapeHtml(page.supportingAction.price)}. Max amount: ${escapeHtml(page.supportingAction.maxAmountRequired)} USDC units.</p>
+          <p>${escapeHtml(upgradeLabel)}</p>
+          <p><code>${escapeHtml(upgradePaidAction.method)} ${escapeHtml(upgradePaidAction.path)}</code></p>
+          <p class="muted">Price: ${escapeHtml(upgradePaidAction.price)}. Max amount: ${escapeHtml(upgradePaidAction.maxAmountRequired)} USDC units.</p>
         </div>
         <div class="card">
           <h2>Free discovery before payment</h2>
@@ -9325,7 +9343,8 @@ Buyer intent landing pages:
 ${buildIntentLandingHandoffs(config).map((page) => `- ${page.title}: ${page.url}
   - Use when: ${page.summary}
   - Primary paid action: ${page.primaryPaidAction.method} ${absoluteUrl(config, page.primaryPaidAction.path)} (${page.primaryPaidAction.price}, max ${page.primaryPaidAction.maxAmountRequired})
-  - Supporting paid action: ${page.supportingPaidAction.method} ${absoluteUrl(config, page.supportingPaidAction.path)} (${page.supportingPaidAction.price}, max ${page.supportingPaidAction.maxAmountRequired})`).join("\n")}
+  - ${page.exactIntentPaidAction ? "Exact intent fallback" : "Supporting paid action"}: ${page.supportingPaidAction.method} ${absoluteUrl(config, page.supportingPaidAction.path)} (${page.supportingPaidAction.price}, max ${page.supportingPaidAction.maxAmountRequired})
+  - Upgrade paid action: ${page.upgradePaidAction.method} ${absoluteUrl(config, page.upgradePaidAction.path)} (${page.upgradePaidAction.price}, max ${page.upgradePaidAction.maxAmountRequired})`).join("\n")}
 
 Preferred first paid route:
 
