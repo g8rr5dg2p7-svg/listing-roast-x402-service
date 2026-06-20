@@ -164,7 +164,51 @@ const SCORE_PATH = "/api/listing-score";
 const PING_PATH = "/api/x402-ping";
 const SITE_AUDIT_PATH = "/api/x402-site-audit";
 const PREFLIGHT_ALIAS_PATHS = Object.freeze(["/api/preflight", "/api/v1/preflight", "/preflight"]);
-const SITE_AUDIT_PAID_PATHS = Object.freeze([SITE_AUDIT_PATH, ...PREFLIGHT_ALIAS_PATHS]);
+const SITE_AUDIT_EXACT_ALIAS_PATHS = Object.freeze([
+  "/api/x402-buyer-prepay-risk-score",
+  "/api/score-x402-endpoint-before-paying",
+  "/api/x402-route-health-check",
+  "/api/x402-listing-rank-doctor"
+]);
+const SITE_AUDIT_PAID_PATHS = Object.freeze([SITE_AUDIT_PATH, ...PREFLIGHT_ALIAS_PATHS, ...SITE_AUDIT_EXACT_ALIAS_PATHS]);
+const SITE_AUDIT_EXACT_ALIAS_METADATA = Object.freeze({
+  "/api/x402-buyer-prepay-risk-score": {
+    id: "x402_buyer_prepay_risk_score",
+    name: "x402_buyer_prepay_risk_score",
+    operationId: "getX402BuyerPrepayRiskScore",
+    summary: "Paid $0.001 x402 buyer prepay risk score",
+    description: "x402 buyer prepay risk score: $0.001 GET exact-path alias for buyer agents checking whether an x402 endpoint is safe and useful before paying. Returns the existing x402 site-audit output for direct 402 metadata, route health, Bazaar pricing, search visibility, OpenAPI, llms.txt, and no-spend next actions.",
+    buyerAction: "Pay $0.001 for an x402 buyer prepay risk score before spending more.",
+    keywords: ["x402 buyer prepay risk score", "buyer prepay risk score", "prepay risk score", "x402 prepay risk", "score x402 endpoint before paying", "before paying", "paid API preflight", "x402 site audit", "x402 route health check"]
+  },
+  "/api/score-x402-endpoint-before-paying": {
+    id: "score_x402_endpoint_before_paying",
+    name: "score_x402_endpoint_before_paying",
+    operationId: "getScoreX402EndpointBeforePaying",
+    summary: "Paid $0.001 score x402 endpoint before paying",
+    description: "Score x402 endpoint before paying: $0.001 GET exact-path alias for buyer agents that want a cheap prepay check before spending more. Returns the existing x402 site-audit output for direct 402 metadata, route health, Bazaar pricing, search visibility, OpenAPI, llms.txt, and no-spend next actions.",
+    buyerAction: "Pay $0.001 to score an x402 endpoint before paying more.",
+    keywords: ["score x402 endpoint before paying", "score endpoint before paying", "endpoint before paying", "before paying", "before spending", "pre-pay endpoint check", "paid API preflight", "x402 site audit", "x402 route health check"]
+  },
+  "/api/x402-route-health-check": {
+    id: "x402_route_health_check",
+    name: "x402_route_health_check",
+    operationId: "getX402RouteHealthCheck",
+    summary: "Paid $0.001 x402 route health check",
+    description: "x402 route health check: $0.001 GET exact-path alias for buyer agents checking route health, payment challenge correctness, search visibility, and direct 402 metadata before spending more. Returns the existing x402 site-audit output.",
+    buyerAction: "Pay $0.001 for an x402 route health check before buying a deeper audit.",
+    keywords: ["x402 route health check", "route health check", "x402 route health", "payment challenge health", "direct 402 metadata", "paid API preflight", "x402 site audit", "Bazaar search visibility"]
+  },
+  "/api/x402-listing-rank-doctor": {
+    id: "x402_listing_rank_doctor",
+    name: "x402_listing_rank_doctor",
+    operationId: "getX402ListingRankDoctor",
+    summary: "Paid $0.001 x402 listing rank doctor",
+    description: "x402 listing rank doctor: $0.001 GET exact-path alias for sellers and buyer agents diagnosing x402 listing rank, marketplace SEO, seller growth checklist, search visibility, and paid route health before buying the full discovery audit. Returns the existing x402 site-audit output.",
+    buyerAction: "Pay $0.001 for an x402 listing rank doctor check before buying the full audit.",
+    keywords: ["x402 listing rank doctor", "listing rank doctor", "x402 listing rank", "x402 listing SEO audit", "x402 marketplace SEO audit", "x402 seller growth checklist", "seller growth checklist", "Bazaar search visibility", "paid API preflight"]
+  }
+});
 const DISCOVERY_AUDIT_PATH = "/api/x402-discovery-audit";
 const AGENT402_ROUTE_VISIBILITY_PATH = "/api/agent402-route-visibility";
 const DISCOVERY_AUDIT_QUICK_PATHS = Object.freeze([DISCOVERY_AUDIT_PATH, AGENT402_ROUTE_VISIBILITY_PATH]);
@@ -309,6 +353,8 @@ const DISCOVERY_KEYWORDS = [
   "x402 site audit",
   "x402 service discoverability audit",
   "x402 route health check",
+  "x402 buyer prepay risk score",
+  "score x402 endpoint before paying",
   "x402 navigation",
   "API entrypoint",
   "route map",
@@ -372,6 +418,10 @@ const SERVICE_TAGS = Object.freeze([
   "x402 discovery audit",
   "paid API preflight",
   "route health",
+  "x402 buyer prepay risk score",
+  "score x402 endpoint before paying",
+  "x402 route health check",
+  "x402 listing rank doctor",
   "Coinbase x402 Bazaar MCP server",
   "x402 Bazaar MCP server"
 ]);
@@ -400,8 +450,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-bazaar-mcp-server-alias-v4";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T16:14:50.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-prepay-risk-aliases-v5";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T16:38:00.000Z";
 const ROUTE_SERVICE_NAMES = Object.freeze({
   indexedQuickScore: "Listing Roast x402 Paid API Listing Quality Score"
 });
@@ -414,7 +464,7 @@ const ROUTE_SERVICE_TAGS = Object.freeze({
   agentListingConversion: ["x402", "agent listing conversion score", "agent listing conversion", "buyer-agent skip reasons", "buyer agent skip reasons", "agent service clarity", "agent service promotion readiness", "listing conversion", "paid API"],
   indexedQuickScore: ["x402", "listing quality score API", "marketplace product listing quality", "paid API listing quality score", "paid API listing quality", "AgentCore x402 payments", "Coinbase x402 Bazaar MCP server", "marketplace listing score", "marketplace listing conversion API", "x402 marketplace conversion", "agent listing conversion", "buyer-agent skip reasons", "agent-service listing score", "x402 site audit", "x402 discovery audit", "paid API preflight", "agent service clarity", "route health"],
   x402Ping: ["x402", "payment rail", "paid API", "route health", "Base USDC"],
-  x402SiteAudit: ["x402", "x402 site audit", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
+  x402SiteAudit: ["x402", "x402 site audit", "discovery audit", "x402 buyer prepay risk score", "score x402 endpoint before paying", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 route health check", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "paid API preflight", "route health", "Bazaar search visibility", "stale Bazaar price"],
   discoveryAuditQuick: ["x402", "Bazaar visibility", "Agent402 route visibility", "Agent402 router", "discovery audit", "x402 seller discoverability", "fix x402 Bazaar listing", "x402 listing SEO audit", "x402 listing rank doctor", "paid API preflight", "route health"],
   discoveryAudit: ["x402", "Bazaar visibility", "Agent402 route visibility", "Agent402 router", "discovery audit", "fix x402 Bazaar listing", "x402 catalog metadata quality", "x402 listing SEO audit", "x402 listing rank doctor", "x402 seller growth checklist", "x402 seller intelligence", "x402 marketplace SEO audit", "stale Bazaar price", "paid API preflight"],
   fullRoast: ["x402", "listing roast", "full listing roast", "marketplace conversion", "paid API listing quality", "buyer-agent skip reasons", "top fixes", "rewritten listing"]
@@ -480,6 +530,10 @@ const MANIFEST_RESOURCE_ROUTE_KEYS = Object.freeze({
   paid_api_preflight: "x402SiteAudit",
   api_v1_paid_api_preflight: "x402SiteAudit",
   root_paid_api_preflight: "x402SiteAudit",
+  x402_buyer_prepay_risk_score: "x402SiteAudit",
+  score_x402_endpoint_before_paying: "x402SiteAudit",
+  x402_route_health_check: "x402SiteAudit",
+  x402_listing_rank_doctor: "x402SiteAudit",
   agent402_route_visibility_audit: "discoveryAuditQuick",
   x402_discovery_audit_quick: "discoveryAuditQuick",
   x402_discovery_audit: "discoveryAudit",
@@ -2962,8 +3016,8 @@ function buildLocalDiscoverySearchExamples(config) {
     },
     {
       query: "x402 route health check",
-      expectedFirstPath: DISCOVERY_AUDIT_PATH,
-      expectedAmount: DISCOVERY_AUDIT_QUICK_AMOUNT
+      expectedFirstPath: "/api/x402-route-health-check",
+      expectedAmount: SITE_AUDIT_AMOUNT
     },
     {
       query: "paid API preflight",
@@ -3637,6 +3691,10 @@ const PAY_NOW_ACTION_BY_RESOURCE_ID = {
   paid_api_preflight: "x402SiteAudit",
   api_v1_paid_api_preflight: "x402SiteAudit",
   root_paid_api_preflight: "x402SiteAudit",
+  x402_buyer_prepay_risk_score: "x402SiteAudit",
+  score_x402_endpoint_before_paying: "x402SiteAudit",
+  x402_route_health_check: "x402SiteAudit",
+  x402_listing_rank_doctor: "x402SiteAudit",
   x402_discovery_audit_quick: "discoveryAuditQuick",
   full_listing_roast_get: "fullRoastGet",
   listing_score: "listingScore",
@@ -4199,7 +4257,7 @@ function paidCompletionRouteKeyFromSettlement(method, pathname) {
     [`POST ${DISCOVERY_AUDIT_PATH}`]: "x402DiscoveryAudit"
   };
 
-  for (const aliasPath of PREFLIGHT_ALIAS_PATHS) {
+  for (const aliasPath of SITE_AUDIT_PAID_PATHS) {
     routeKeys[`GET ${aliasPath}`] = "x402SiteAudit";
   }
 
@@ -5717,6 +5775,27 @@ function buildOpenApiDocument(config, cashRegister = {}) {
     };
   }
 
+  for (const aliasPath of SITE_AUDIT_EXACT_ALIAS_PATHS) {
+    const metadata = SITE_AUDIT_EXACT_ALIAS_METADATA[aliasPath];
+    paymentActionByRoute[`GET ${aliasPath}`] = "x402SiteAudit";
+    document.paths[aliasPath] = {
+      get: {
+        ...document.paths[SITE_AUDIT_PATH].get,
+        operationId: metadata.operationId,
+        tags: ["x402 site audit", "paid API preflight", "x402 route health check", "x402 buyer prepay risk score", "x402 listing rank doctor"],
+        summary: metadata.summary,
+        description: `${metadata.description} Canonical route: GET ${SITE_AUDIT_PATH}.`,
+        "x-payment": buildPaymentHint(config, {
+          path: aliasPath,
+          method: "GET",
+          price: config.siteAuditPrice,
+          maxAmountRequired: SITE_AUDIT_AMOUNT,
+          buyerAction: metadata.buyerAction
+        })
+      }
+    };
+  }
+
   document.paths[AGENT_LISTING_SCORE_PATH] = {
     get: {
       ...document.paths[AGENT_LISTING_PATH].get,
@@ -5906,6 +5985,28 @@ function buildPreflightAliasManifestResources(config) {
     schema: absoluteUrl(config, "/api/discovery-audit-schema"),
     canonicalRoute: SITE_AUDIT_PATH
   }));
+}
+
+function buildSiteAuditExactAliasManifestResources(config) {
+  return SITE_AUDIT_EXACT_ALIAS_PATHS.map((path) => {
+    const metadata = SITE_AUDIT_EXACT_ALIAS_METADATA[path];
+    return {
+      id: metadata.id,
+      name: metadata.name,
+      method: "GET",
+      path,
+      url: absoluteUrl(config, path),
+      price: config.siteAuditPrice,
+      maxAmountRequired: SITE_AUDIT_AMOUNT,
+      description: metadata.description,
+      keywords: uniqueTerms([...metadata.keywords, "x402 site audit", "GET paid API", "prepay check", "buyer-agent risk check"]),
+      command: buildGetPayCommand(config, path, SITE_AUDIT_AMOUNT),
+      input: buildSiteAuditDiscovery(config).input,
+      outputExample: buildSiteAuditExampleOutput(config),
+      schema: absoluteUrl(config, "/api/discovery-audit-schema"),
+      canonicalRoute: SITE_AUDIT_PATH
+    };
+  });
 }
 
 function buildPrimaryEndpointHandoff(config, intentRoutes = buildPayNowActions(config)) {
@@ -6238,6 +6339,7 @@ function buildX402Manifest(config, cashRegister = {}) {
         schema: absoluteUrl(config, "/api/discovery-audit-schema")
       },
       ...buildPreflightAliasManifestResources(config),
+      ...buildSiteAuditExactAliasManifestResources(config),
       {
         id: "agent402_route_visibility_audit",
         name: "agent402_route_visibility",
@@ -6998,6 +7100,16 @@ function wantsPaidApiPreflight(query) {
     "before spending",
     "pre-pay",
     "pre pay",
+    "x402 buyer prepay risk score",
+    "buyer prepay risk score",
+    "prepay risk score",
+    "score x402 endpoint before paying",
+    "score endpoint before paying",
+    "endpoint before paying",
+    "x402 route health check",
+    "route health check",
+    "x402 listing rank doctor",
+    "listing rank doctor",
     "seller growth checklist",
     "growth checklist",
     "buyer-readiness",
@@ -7158,6 +7270,27 @@ function scoreCatalogResource(resource, query) {
     if (resource.path === SITE_AUDIT_PATH) score += 175;
     if (resource.id === "indexed_roast_quick_score") score += 25;
     if (resource.id === "x402_discovery_audit_quick") score += 20;
+  }
+
+  if (includesAny(normalizedQuery, ["x402 buyer prepay risk score", "buyer prepay risk score", "prepay risk score", "x402 prepay risk"])) {
+    if (resource.id === "x402_buyer_prepay_risk_score") score += 620;
+    if (resource.path === SITE_AUDIT_PATH) score += 120;
+  }
+
+  if (includesAny(normalizedQuery, ["score x402 endpoint before paying", "score endpoint before paying", "endpoint before paying"])) {
+    if (resource.id === "score_x402_endpoint_before_paying") score += 620;
+    if (resource.path === SITE_AUDIT_PATH) score += 120;
+  }
+
+  if (includesAny(normalizedQuery, ["x402 route health check", "route health check", "x402 route health"])) {
+    if (resource.id === "x402_route_health_check") score += 620;
+    if (resource.path === SITE_AUDIT_PATH) score += 140;
+  }
+
+  if (includesAny(normalizedQuery, ["x402 listing rank doctor", "listing rank doctor", "x402 listing rank"])) {
+    if (resource.id === "x402_listing_rank_doctor") score += 620;
+    if (resource.path === SITE_AUDIT_PATH) score += 140;
+    if (resource.id === "x402_discovery_audit") score += 60;
   }
 
   if (wantsDiscoveryFix || includesAny(normalizedQuery, ["route health"])) {
@@ -7909,6 +8042,7 @@ function buildApiCatalog(config, cashRegister = {}) {
     { href: absoluteUrl(config, PING_PATH), type: "application/json", title: "GET $0.001 paid x402 ping" },
     { href: absoluteUrl(config, SITE_AUDIT_PATH), type: "application/json", title: "GET $0.001 x402 site audit and paid API preflight" },
     ...PREFLIGHT_ALIAS_PATHS.map((pathname) => ({ href: absoluteUrl(config, pathname), type: "application/json", title: "GET $0.001 paid API preflight alias for x402 site audit" })),
+    ...SITE_AUDIT_EXACT_ALIAS_PATHS.map((pathname) => ({ href: absoluteUrl(config, pathname), type: "application/json", title: `GET $0.001 ${SITE_AUDIT_EXACT_ALIAS_METADATA[pathname].name.replaceAll("_", " ")}` })),
     { href: absoluteUrl(config, "/api/listing-score"), type: "application/json", title: "POST $0.005 paid API listing quality score" },
     { href: absoluteUrl(config, DISCOVERY_AUDIT_PATH), type: "application/json", title: "GET $0.001 and POST $0.01 x402 discovery audit" },
     { href: absoluteUrl(config, API_ENTRY_PATH), type: "application/json", title: "GET $0.001 generic x402 navigation route map" },
@@ -9519,7 +9653,7 @@ score: 4/5</div>
         <div class="card">
           <h3>x402 site audit route</h3>
           <p><code>GET ${escapeHtml(siteAuditRoute)}</code></p>
-          <p class="muted">Maximum payment: <strong>${SITE_AUDIT_AMOUNT}</strong> USDC units. Use this for a quick x402 metadata, price, and Bazaar search check.</p>
+          <p class="muted">Maximum payment: <strong>${SITE_AUDIT_AMOUNT}</strong> USDC units. Use this for a quick x402 metadata, price, and Bazaar search check. Exact aliases include <code>/api/x402-buyer-prepay-risk-score</code>, <code>/api/score-x402-endpoint-before-paying</code>, <code>/api/x402-route-health-check</code>, and <code>/api/x402-listing-rank-doctor</code>.</p>
         </div>
         <div class="card">
           <h3>Discovery audit quick route</h3>
