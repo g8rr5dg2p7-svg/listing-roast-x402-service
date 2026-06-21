@@ -120,8 +120,8 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     operationId: "getAgentCoreX402PaymentsAlias",
     summary: "Paid $0.001 AgentCore x402 payments alias",
     catalogTitle: "GET $0.001 AgentCore x402 payments quick-score alias",
-    description: "AgentCore x402 payments readiness x402: $0.001 GET exact-phrase alias for AgentCore Gateway, Amazon Bedrock AgentCore payments, and Coinbase x402 Bazaar MCP server buyers. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
-    keywords: ["AgentCore x402 payments", "Amazon Bedrock AgentCore payments", "AgentCore Gateway", "Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "AgentCore paid API discovery", "paid API listing quality score"]
+    description: "AgentCore x402 payments readiness x402: $0.001 GET exact-phrase alias for AgentCore Gateway, Amazon Bedrock AgentCore payments, Coinbase x402 Bazaar MCP server buyers, search_resources discovery, and proxy_tool_call handoffs. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
+    keywords: ["AgentCore x402 payments", "Amazon Bedrock AgentCore payments", "AgentCore Gateway", "Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "search_resources", "proxy_tool_call", "AgentCore paid API discovery", "paid API listing quality score"]
   },
   "/api/coinbase-x402-bazaar-mcp-server": {
     id: "coinbase_x402_bazaar_mcp_server_alias",
@@ -129,8 +129,8 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     operationId: "getCoinbaseX402BazaarMcpServerAlias",
     summary: "Paid $0.001 Coinbase x402 Bazaar MCP server alias",
     catalogTitle: "GET $0.001 Coinbase x402 Bazaar MCP server quick-score alias",
-    description: "Coinbase x402 Bazaar MCP server readiness x402: $0.001 GET exact-phrase alias for buyers searching Coinbase x402 Bazaar MCP server, x402 Bazaar MCP server, or Bazaar MCP tools. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with AgentCore x402 payments, paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
-    keywords: ["Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "Bazaar MCP tools", "Coinbase Bazaar MCP", "AgentCore x402 payments", "paid API listing quality score"]
+    description: "Coinbase x402 Bazaar MCP server readiness x402: $0.001 GET exact-phrase alias for buyers searching Coinbase x402 Bazaar MCP server, x402 Bazaar MCP server, Bazaar MCP tools, search_resources, proxy_tool_call, or AgentCore Gateway integrations. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with AgentCore x402 payments, paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
+    keywords: ["Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "Bazaar MCP tools", "Coinbase Bazaar MCP", "AgentCore Gateway", "search_resources", "proxy_tool_call", "AgentCore x402 payments", "paid API listing quality score"]
   },
   "/api/x402-listing-quality": {
     id: "x402_listing_quality_alias",
@@ -479,12 +479,14 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
   "x402 site audit",
   "x402 discovery audit",
   "AgentCore x402 payments",
-  "Coinbase x402 Bazaar MCP server"
+  "Coinbase x402 Bazaar MCP server",
+  "AgentCore Gateway Coinbase x402 Bazaar MCP server",
+  "search_resources proxy_tool_call"
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-indexed-lite-roast-v59";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:18:44.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-agentcore-mcp-handoff-v60";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:42:15.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -9961,25 +9963,37 @@ function buildIntentLandingPages(config) {
       path: AGENTCORE_X402_PAYMENTS_PAGE_PATH,
       title: "AgentCore x402 payments route | Listing Roast x402",
       heading: "AgentCore x402 payments route for paid API listing quality",
-      summary: "Use this when an AgentCore Gateway, MCP buyer, or Coinbase x402 Bazaar MCP search needs a wallet-confirmed $0.001 paid API listing quality score before a larger paid call.",
+      summary: "Use this when an AgentCore Gateway, MCP buyer, or Coinbase x402 Bazaar MCP search_resources flow needs a wallet-confirmed $0.001 paid API listing quality score before a larger paid call.",
       selectedActionKey: "indexedQuickScore",
       primaryAction: intentRoutes.indexedQuickScore,
       primaryLabel: "Use the wallet-confirmed $0.001 indexed Listing Roast route",
       supportingAction: intentRoutes.fullRoastGet,
       supportingLabel: "Upgrade to the $0.01 full roast only after the quick score shows a fit.",
-      keywords: ["AgentCore x402 payments", "Amazon Bedrock AgentCore payments", "AgentCore Gateway", "Coinbase x402 Bazaar MCP server", "paid API listing quality score", "x402 paid API discovery"]
+      keywords: ["AgentCore x402 payments", "Amazon Bedrock AgentCore payments", "AgentCore Gateway", "Coinbase x402 Bazaar MCP server", "search_resources", "proxy_tool_call", "https://api.cdp.coinbase.com/platform/v2/x402/discovery/mcp", "No Authorization", "paid API listing quality score", "x402 paid API discovery"],
+      integrationHeading: "AgentCore Gateway handoff",
+      integrationNotes: [
+        "AgentCore Gateway buyers can add the Coinbase x402 Bazaar MCP server target at https://api.cdp.coinbase.com/platform/v2/x402/discovery/mcp with No Authorization.",
+        "Coinbase Bazaar MCP buyers use search_resources to discover payable resources and proxy_tool_call for the paid-call path. Listing Roast's owned MCP endpoint exposes no-spend compatibility handoffs for both tool names.",
+        "Recommended no-spend sequence: inspect /x402.json, /openapi.json, and /api/paid-usage-proof, then pay GET /api/listing-roast up to 1000 USDC units only when explicitly spending."
+      ]
     },
     {
       path: COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH,
       title: "Coinbase x402 Bazaar MCP server route | Listing Roast x402",
       heading: "Coinbase x402 Bazaar MCP server route for paid API listing quality",
-      summary: "Use this when a buyer agent searches Coinbase x402 Bazaar MCP server, x402 Bazaar MCP server, or Bazaar MCP tools and needs a wallet-confirmed $0.001 paid API listing quality score before a larger paid call.",
+      summary: "Use this when a buyer agent searches Coinbase x402 Bazaar MCP server, x402 Bazaar MCP server, search_resources, proxy_tool_call, or Bazaar MCP tools and needs a wallet-confirmed $0.001 paid API listing quality score before a larger paid call.",
       selectedActionKey: "coinbaseX402BazaarMcpServer",
       primaryAction: intentRoutes.coinbaseX402BazaarMcpServer,
       primaryLabel: "Use the $0.001 Coinbase x402 Bazaar MCP server route",
       supportingAction: intentRoutes.indexedQuickScore,
       supportingLabel: "Use the indexed /api/listing-roast route first when marketplace search points there.",
-      keywords: ["Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "Bazaar MCP tools", "Coinbase Bazaar MCP", "AgentCore x402 payments", "paid API listing quality score"]
+      keywords: ["Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "Bazaar MCP tools", "Coinbase Bazaar MCP", "AgentCore Gateway", "search_resources", "proxy_tool_call", "https://api.cdp.coinbase.com/platform/v2/x402/discovery/mcp", "No Authorization", "AgentCore x402 payments", "paid API listing quality score"],
+      integrationHeading: "Bazaar MCP buyer handoff",
+      integrationNotes: [
+        "The Coinbase x402 Bazaar MCP server endpoint is https://api.cdp.coinbase.com/platform/v2/x402/discovery/mcp and the AgentCore Gateway target uses No Authorization.",
+        "Buyer agents should use search_resources for discovery and proxy_tool_call only when they intentionally want the paid call. This page is a no-spend route guide.",
+        "Start with the indexed GET /api/listing-roast route at $0.001 / 1000 USDC units; upgrade to GET /api/full-listing-roast at $0.01 / 10000 USDC units when a full rewrite is needed."
+      ]
     },
     {
       path: FULL_LISTING_ROAST_PAGE_PATH,
@@ -10038,6 +10052,7 @@ function buildIntentLandingHandoffs(config) {
       selectedActionKey: page.selectedActionKey,
       payNow: absoluteIntentUrl(config, PAY_NOW_PATH, intent),
       commands: absoluteIntentUrl(config, COMMANDS_PATH, intent),
+      ...(page.integrationNotes?.length ? { integrationNotes: page.integrationNotes } : {}),
       firstPaidAction: summarizePaidAction(firstPaidAction),
       primaryPaidAction: summarizePaidAction(firstPaidAction),
       ...(exactIntentPaidAction ? { exactIntentPaidAction: summarizePaidAction(exactIntentPaidAction) } : {}),
@@ -10157,6 +10172,10 @@ function buildIntentLandingPage(config, page) {
           <h2>Free discovery before payment</h2>
           <p><a href="/llms.txt">llms.txt</a> gives the short route guide. <a href="/x402.json">x402.json</a> gives machine-readable paid routes. <a href="/api/commands">/api/commands</a> gives the compact command handoff. <a href="/api/examples">/api/examples</a> gives command-ready examples. <a href="${PAID_USAGE_PROOF_PATH}">/api/paid-usage-proof</a> gives wallet-backed paid-use proof.</p>
         </div>
+        ${page.integrationNotes?.length ? `<div class="card">
+          <h2>${escapeHtml(page.integrationHeading || "Agent buyer handoff")}</h2>
+          ${page.integrationNotes.map((note) => `<p>${escapeHtml(note)}</p>`).join("")}
+        </div>` : ""}
         <div class="card">
           <h2>No-spend boundary</h2>
           <p class="muted">This page does not call a paid route. A buyer should only run the x402 command when they explicitly intend to spend USDC.</p>
