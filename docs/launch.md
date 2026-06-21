@@ -38,17 +38,18 @@ Official AgentCore/Bazaar references:
 
 Current verified state:
 
-- Latest verified deployment: cfd6d544-b072-4f5a-8a5a-88105fc8690e.
-- Latest live code commit: 759b3bf Prioritize direct full roast builder command.
-- Latest GitHub release: direct-full-roast-builder-v1.
-- Latest metadata version: 2026-06-21-direct-full-roast-builder-v66.
-- Revenue truth as of the 2026-06-21T03:04Z live no-spend check: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. No third paid completion has been confirmed yet.
+- Latest verified deployment: d7da3419-fd9c-4646-a9da-1e25e45d5b49.
+- Latest live code commit: 88ab2ea Align score upgrade endpoint label.
+- Latest GitHub release: score-upgrade-label-cleanup-v1.
+- Latest metadata version: 2026-06-21-score-upgrade-label-cleanup-v68.
+- Revenue truth as of the 2026-06-21T03:16Z live no-spend check: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. No third paid completion has been confirmed yet.
 - The second wallet-confirmed paid completion came through the already-indexed $0.001 `GET /api/listing-roast` route. That remains the preferred first paid action for public Bazaar, AgentCore Gateway, and Coinbase x402 Bazaar MCP buyers.
 - AgentCore Gateway and Coinbase Bazaar MCP handoff is live in `/agentcore-x402-payments`, `/coinbase-x402-bazaar-mcp-server`, `/x402.json`, `/openapi.json`, `/llms.txt`, and MCP metadata. AgentCore buyers can add the official Coinbase Bazaar MCP server at `https://api.cdp.coinbase.com/platform/v2/x402/discovery/mcp` with No Authorization, use `search_resources`, and reserve `proxy_tool_call` for intentional paid calls.
 - Agent-tools and x402 manifests now explicitly keep `GET /api/listing-roast` as the primary paid call, omit `POST /` from public resource/tool/action arrays, and expose `POST /` only as `fallbackDirectoryPost` for stale generic-snippet recovery. The root POST route remains live and protected at $0.001 / 1000 units, but crawlers should now sample the indexed GET route first.
 - Agent-tools entries now expose plain price and amount fields in both common naming styles: `price`, `priceUsd`, `price_usd`, `maxAmountRequired`, `max_amount_required`, `maxPaymentUsd`, `max_payment_usd`, `amount`, `amount_usdc_units`, and `max_usdc_units`. Live verification confirmed the first public tool is `GET /api/listing-roast` at `$0.001` / `1000` units, with no root POST tool listed.
 - The homepage now exposes `GET /api/listing-roast` as the first paid action in the first visible payment line, `x402:first-paid-action` meta tag, and top-level structured-data offer. Live verification confirmed the homepage returns 200, includes the first-paid-action meta and visible text, and its structured-data offer points to the `$0.001` indexed GET route.
 - The command builder and sample page now expose the direct no-body `$0.01` `GET /api/full-listing-roast` command before the custom-body `POST /api/listing-roast` fallback. Live verification confirmed `/builder` and `/sample` return 200 and show both the direct full-roast GET and custom-body POST fallback, while `/.well-known/x402`, `/.well-known/agent-tools.json`, and `/x402.json` still keep `GET /api/listing-roast` first.
+- Sample score, examples, and the unpaid `POST /api/listing-score` 402 preview now keep the full-roast upgrade label and detailed next paid action aligned on direct no-body `GET /api/full-listing-roast` at 10000 units. Live verification confirmed `/api/sample-score` and `/api/examples` return 200 with `upgradeEndpoint=/api/full-listing-roast`, and `/api/listing-score` returns a valid 402 at 5000 units with a paid-response preview that upgrades to `GET /api/full-listing-roast`.
 - Current public CDP search still finds Listing Roast first for `marketplace listing score`, `paid api listing quality`, and `paid API listing quality score` with `maxUsdPrice=0.001`, plus `listing roast` and `full listing roast` with `maxUsdPrice=0.01`. Public CDP search still does not reliably surface the newer AgentCore/Bazaar-MCP terms until a real buyer settlement refreshes those public cards, so owned pay-now, OpenAPI, x402 manifest, and local discovery remain the fallback handoff.
 - External directory PR remains open and clean: https://github.com/xpaysh/awesome-x402/pull/549.
 - Watch for the next real movement above this baseline: `paidCompletions > 2`, `estimatedGrossRevenueUsd > 0.002`, `receiverWallet.usdcBalance > 1.001`, or paid route counters moving beyond the current second-sale baseline.
