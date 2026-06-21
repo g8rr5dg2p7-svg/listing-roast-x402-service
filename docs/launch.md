@@ -30,6 +30,12 @@ Live production service:
 - Cash register and receiver wallet balance: https://listing-roast-x402-service-production.up.railway.app/api/cash-register
 - GitHub: https://github.com/g8rr5dg2p7-svg/listing-roast-x402-service
 
+Official AgentCore/Bazaar references:
+
+- AWS AgentCore Gateway Coinbase Bazaar setup: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/payments-connect-bazaar.html
+- Coinbase x402 Bazaar discovery and MCP server: https://docs.cdp.coinbase.com/x402/bazaar
+- Coinbase Bazaar MCP server reference: https://docs.cdp.coinbase.com/api-reference/v2/rest-api/x402-facilitator/bazaar-mcp-server
+
 Current verified state:
 
 - Latest verified deployment: ab4c504b-8733-45b9-8f5d-1a2cd51578df.

@@ -25,6 +25,12 @@ Free checks before payment:
 
 AgentCore Gateway and Coinbase Bazaar MCP buyers can add the official MCP server at `https://api.cdp.coinbase.com/platform/v2/x402/discovery/mcp` with No Authorization. Use `search_resources` to find Listing Roast, inspect `/api/paid-usage-proof`, `/x402.json`, and `/openapi.json` for no-spend proof, and call `proxy_tool_call` only when intentionally buying a paid route. The preferred paid route remains the wallet-confirmed $0.001 `GET /api/listing-roast`; high-intent buyers can upgrade to the $0.01 `GET /api/full-listing-roast`.
 
+Official integration references:
+
+- AWS AgentCore Gateway Coinbase Bazaar setup: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/payments-connect-bazaar.html
+- Coinbase x402 Bazaar discovery and MCP server: https://docs.cdp.coinbase.com/x402/bazaar
+- Coinbase Bazaar MCP server reference: https://docs.cdp.coinbase.com/api-reference/v2/rest-api/x402-facilitator/bazaar-mcp-server
+
 First paid action when the buyer intends to spend:
 
 ```bash

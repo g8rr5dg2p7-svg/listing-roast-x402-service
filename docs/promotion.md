@@ -30,6 +30,12 @@ Use this when sharing Listing Roast x402 with builders. Keep the claim tight: th
 - Cash register: https://listing-roast-x402-service-production.up.railway.app/api/cash-register
 - GitHub: https://github.com/g8rr5dg2p7-svg/listing-roast-x402-service
 
+## Official References
+
+- AWS AgentCore Gateway Coinbase Bazaar setup: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/payments-connect-bazaar.html
+- Coinbase x402 Bazaar discovery and MCP server: https://docs.cdp.coinbase.com/x402/bazaar
+- Coinbase Bazaar MCP server reference: https://docs.cdp.coinbase.com/api-reference/v2/rest-api/x402-facilitator/bazaar-mcp-server
+
 ## Proof To Mention
 
 - Two wallet-confirmed paid completions are visible on the free proof endpoint.
