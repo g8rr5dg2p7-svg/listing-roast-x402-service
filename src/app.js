@@ -463,8 +463,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-browser-payment-cors-v46";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T23:45:12.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-browser-payment-metadata-v47";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T23:54:19.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
 const ROUTE_SERVICE_NAMES = Object.freeze({
@@ -622,6 +622,39 @@ function absoluteUrl(config, pathname) {
   return `${config.serviceUrl}${pathname}`;
 }
 
+function splitHeaderList(value) {
+  return String(value || "").split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function buildBrowserPaymentSupport(config, selectedPath = ROAST_PATH) {
+  return {
+    protocol: "x402",
+    paymentRequiredStatus: 402,
+    paymentRequiredHeader: "Payment-Required",
+    paymentHeader: "X-PAYMENT",
+    paymentResponseHeader: "X-PAYMENT-RESPONSE",
+    browserPaymentReady: true,
+    cors: {
+      allowOrigin: "*",
+      allowMethods: splitHeaderList(CORS_ALLOWED_METHODS),
+      allowHeaders: splitHeaderList(CORS_ALLOWED_HEADERS),
+      exposeHeaders: splitHeaderList(CORS_EXPOSED_HEADERS)
+    },
+    preflight: {
+      method: "OPTIONS",
+      status: 204,
+      noPaymentRequired: true
+    },
+    endpoints: {
+      route: absoluteUrl(config, selectedPath),
+      payNow: absoluteUrl(config, PAY_NOW_PATH),
+      manifest: absoluteUrl(config, "/x402.json"),
+      openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
+    instruction: "Browser or hosted-agent clients can preflight with OPTIONS, read Payment-Required because CORS exposes it, then retry the same paid route with X-PAYMENT."
+  };
+}
+
 function quickScoreAliasUrls(config) {
   return QUICK_SCORE_ALIAS_PATHS.map((pathname) => absoluteUrl(config, pathname));
 }
@@ -745,6 +778,7 @@ function enrichManifestResource(resource, config) {
   const routeKey = MANIFEST_RESOURCE_ROUTE_KEYS[resource.id];
   const { serviceName, tags } = routeServiceMetadata(routeKey);
   const agentPaymentRequest = buildAgentPaymentRequest(resource);
+  const browserPayment = buildBrowserPaymentSupport(config, resource.path);
   return {
     serviceName,
     ...resource,
@@ -752,6 +786,7 @@ function enrichManifestResource(resource, config) {
     agentPaymentRequest,
     agentPaymentPrompt: agentPaymentRequest.prompt,
     maxPaymentUsd: agentPaymentRequest.maxPayment,
+    browserPayment,
     tags,
     keywords: uniqueTerms([...(resource.keywords || []), ...tags])
   };
@@ -777,11 +812,13 @@ function buildManifestActionAliases(config, resources) {
     agentPaymentPrompt: resource.agentPaymentPrompt,
     network: config.network,
     paymentRequired: true,
+    browserPayment: resource.browserPayment,
     x402: {
       network: config.network,
       asset: "USDC",
       payTo: config.payTo,
-      maxAmountRequired: resource.maxAmountRequired
+      maxAmountRequired: resource.maxAmountRequired,
+      browserPayment: resource.browserPayment
     },
     command: resource.command,
     schema: resource.schema,
@@ -1411,6 +1448,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
   const commands = absoluteUrl(config, COMMANDS_PATH);
   const payNow = absoluteUrl(config, PAY_NOW_PATH);
   const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
+  const browserPayment = buildBrowserPaymentSupport(config);
   const paidUsageProof = buildPaidUsageProof(config, cashRegister);
   const openApiAliases = openApiAliasUrls(config);
   const openApiYamlAliases = openApiYamlAliasUrls(config);
@@ -1432,6 +1470,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
     commands,
     payNow,
     paidUsageProofUrl,
+    browserPayment,
     cashRegister: absoluteUrl(config, "/api/cash-register"),
     paidUsageProof,
     officialCdpDiscovery,
@@ -3949,6 +3988,7 @@ function buildPayNow(config, intent = "", cashRegister = {}, receiverWallet = nu
     selectedFirstPaidAction,
     handoffSelectedPaidAction
   );
+  const browserPayment = buildBrowserPaymentSupport(config, selectedFirstPaidAction.path);
 
   return {
     service: config.serviceName,
@@ -3961,6 +4001,7 @@ function buildPayNow(config, intent = "", cashRegister = {}, receiverWallet = nu
     settlementProof: buildSettlementProof(config, cashRegister),
     officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     publicCdpStaleCardOverride,
+    browserPayment,
     canonicalPayNow: absoluteUrl(config, PAY_NOW_PATH),
     checkoutAliases: PAY_NOW_ALIAS_PATHS.map((pathname) => absoluteUrl(config, pathname)),
     commands: absoluteUrl(config, COMMANDS_PATH),
@@ -4932,6 +4973,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     maxAmountRequired: selected.maxAmountRequired,
     paymentRequiredHeader: "Payment-Required",
     paymentHeader: "X-PAYMENT",
+    browserPayment: buildBrowserPaymentSupport(config, selected.path),
     payNow: payNowUrl,
     commands: commandHandoffUrl,
     command: selected.command,
@@ -4958,12 +5000,14 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     selectedFirstPaidAction,
     selected
   );
+  const browserPayment = buildBrowserPaymentSupport(config, selected.path);
 
   return {
     error: "payment_required",
     x402Version: 2,
     paymentShortcut: payableRoute,
     publicCdpStaleCardOverride,
+    browserPayment,
     selectedPaidUrl,
     selectedPaidPath: selected.path,
     selectedPaidMethod: selected.method,
@@ -4997,6 +5041,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     paymentRequirementsSource: {
       authoritative: "Payment-Required response header",
       bodyMirror: true,
+      browserReadable: true,
       note: "The Payment-Required header remains the source of truth. These body fields mirror the stable x402 amount, network, receiver, and resource for agents that inspect JSON first."
     },
     catalogRefreshHint: {
@@ -5346,6 +5391,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
+  const browserPayment = buildBrowserPaymentSupport(config);
   const paymentActionByRoute = {
     [`GET ${API_ENTRY_PATH}`]: "apiEntry",
     [`GET ${API_V1_ENTRY_PATH}`]: "apiV1Entry",
@@ -5386,9 +5432,11 @@ function buildOpenApiDocument(config, cashRegister = {}) {
         payNow: absoluteUrl(config, PAY_NOW_PATH),
         paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
         officialCdpDiscovery,
+        browserPayment,
         preferredFirstPaidAction: intentRoutes.indexedQuickScore,
         recommendedPaidSequence
       },
+      "x-browser-payment": browserPayment,
       "x-recommended-first-paid-action": intentRoutes.indexedQuickScore,
       "x-recommended-paid-sequence": recommendedPaidSequence,
       "x-commands": absoluteUrl(config, COMMANDS_PATH),
@@ -5404,10 +5452,12 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       officialCdpDiscovery,
+      browserPayment,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
       buyerInstruction: "If the buyer intends to spend USDC, start with GET /api/listing-roast at $0.001 / max 1000 USDC units; read the 402 Payment-Required header, complete x402 payment, then retry with X-PAYMENT."
     },
+    "x-browser-payment": browserPayment,
     "x-recommended-first-paid-action": intentRoutes.indexedQuickScore,
     "x-recommended-paid-sequence": recommendedPaidSequence,
     "x-commands": absoluteUrl(config, COMMANDS_PATH),
@@ -6723,6 +6773,7 @@ function buildX402Manifest(config, cashRegister = {}) {
   const primaryResourceSample = buildPrimaryResourceSample(primaryEndpoint);
   const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes);
   const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
+  const browserPayment = buildBrowserPaymentSupport(config);
   const baseUrl = absoluteUrl(config, "/").replace(/\/$/, "");
   const resources = [
       {
@@ -7053,6 +7104,7 @@ function buildX402Manifest(config, cashRegister = {}) {
     pricing: absoluteUrl(config, PRICING_PATH),
     find: absoluteUrl(config, FIND_PATH),
     route: absoluteUrl(config, ROUTE_PATH),
+    browserPayment,
     localDiscovery: {
       resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
       search: absoluteUrl(config, LOCAL_DISCOVERY_SEARCH_PATHS[0]),
@@ -7076,12 +7128,14 @@ function buildX402Manifest(config, cashRegister = {}) {
       payTo: config.payTo,
       commands: absoluteUrl(config, COMMANDS_PATH),
       officialCdpDiscovery,
+      browserPayment,
       x402: {
         primaryNetwork: "base",
         network: config.network,
         asset: "USDC",
         payTo: config.payTo,
-        officialCdpDiscovery
+        officialCdpDiscovery,
+        browserPayment
       }
     },
     capabilities: {
@@ -7129,6 +7183,7 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
   const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
   const commands = absoluteUrl(config, COMMANDS_PATH);
   const paidUsageProof = buildPaidUsageProof(config, cashRegister);
+  const browserPayment = buildBrowserPaymentSupport(config);
   const payment = {
     asset: config.network === BASE_MAINNET_NETWORK ? BASE_USDC_CONTRACT : "USDC",
     assetName: config.network === BASE_MAINNET_NETWORK ? "Base mainnet USDC" : "USDC",
@@ -7138,6 +7193,7 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
     payNow: absoluteUrl(config, PAY_NOW_PATH),
     paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
     officialCdpDiscovery,
+    browserPayment,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence
   };
@@ -7160,6 +7216,7 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
     asset: payment.asset,
     assetName: payment.assetName,
     payment,
+    browserPayment: resource.browserPayment,
     agentPaymentRequest: resource.agentPaymentRequest,
     agentPaymentPrompt: resource.agentPaymentPrompt,
     maxPaymentUsd: resource.maxPaymentUsd,
@@ -7196,6 +7253,7 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
     primaryCall: buildShallowPrimaryCallAliases(primaryEndpoint),
     primary_call: buildShallowPrimaryCallAliases(primaryEndpoint),
     payment,
+    browserPayment,
     officialCdpDiscovery,
     official_cdp_discovery: officialCdpDiscovery,
     commands,
@@ -8546,6 +8604,7 @@ function buildAgentCard(config, cashRegister = {}) {
   const commands = absoluteUrl(config, COMMANDS_PATH);
   const payNow = absoluteUrl(config, PAY_NOW_PATH);
   const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
+  const browserPayment = buildBrowserPaymentSupport(config);
   const supportedInterfaces = [
     { url: absoluteUrl(config, ROAST_PATH), transport: "HTTP+JSON" },
     { url: absoluteUrl(config, API_ENTRY_PATH), transport: "HTTP+JSON" },
@@ -8590,7 +8649,8 @@ function buildAgentCard(config, cashRegister = {}) {
           params: {
             network: config.network,
             asset: "USDC",
-            manifest: absoluteUrl(config, "/x402.json")
+            manifest: absoluteUrl(config, "/x402.json"),
+            browserPayment
           }
         }
       ]
@@ -8609,6 +8669,7 @@ function buildAgentCard(config, cashRegister = {}) {
     commands,
     payNow,
     paidUsageProofUrl,
+    browserPayment,
     officialCdpDiscovery,
     preferredFirstPaidAction: intentRoutes.indexedQuickScore,
     recommendedPaidSequence,
@@ -8625,6 +8686,7 @@ function buildAgentCard(config, cashRegister = {}) {
       payNow,
       paidUsageProofUrl,
       officialCdpDiscovery,
+      browserPayment,
       preferredFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
       payNowExamples: buildPayNowIntentExamples(config),
