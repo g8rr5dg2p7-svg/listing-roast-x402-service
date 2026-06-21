@@ -481,8 +481,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-indexed-search-frontload-v55";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T01:20:44.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-full-roast-preview-v56";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T01:41:18.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -3240,6 +3240,40 @@ function pickDefined(source, keys) {
   }, {});
 }
 
+function compactText(value, maxLength) {
+  if (typeof value !== "string" || value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength - 3).trimEnd()}...`;
+}
+
+function addDirectFullRoastPreviewFields(example, compact) {
+  const isDirectFullRoastGetExample = example.endpoint === "listing-roast"
+    && example.price === "$0.01"
+    && example.input?.currentCheckoutPath === FULL_ROAST_GET_PATH;
+
+  if (!isDirectFullRoastGetExample) {
+    return;
+  }
+
+  if (Array.isArray(example.buyerAgentSkipReasons)) {
+    compact.buyerAgentSkipReasons = example.buyerAgentSkipReasons.slice(0, 2);
+  }
+
+  if (Array.isArray(example.topFixes)) {
+    compact.topFixes = example.topFixes.slice(0, 2);
+  }
+
+  if (typeof example.rewrittenListing === "string") {
+    compact.rewrittenListing = compactText(example.rewrittenListing, 260);
+  }
+
+  if (typeof example.stopOrUpgrade === "string") {
+    compact.stopOrUpgrade = compactText(example.stopOrUpgrade, 180);
+  }
+}
+
 function compactChallengeAction(action, options = {}) {
   if (!action || typeof action !== "object") {
     return action;
@@ -3324,6 +3358,8 @@ function compactChallengeOutputExample(example) {
   if (Array.isArray(example.nextActions)) {
     compact.nextActions = example.nextActions.slice(0, 2);
   }
+
+  addDirectFullRoastPreviewFields(example, compact);
 
   if (example.includedQuickScore) {
     compact.includedQuickScore = compactChallengeOutputExample(example.includedQuickScore);
