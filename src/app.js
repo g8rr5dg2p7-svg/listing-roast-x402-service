@@ -485,8 +485,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-direct-full-roast-builder-v66";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:58:02.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-direct-full-roast-score-upgrade-v67";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:07:41.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -2255,11 +2255,22 @@ function buildGetNextPaidAction(config, path, options = {}) {
 }
 
 function buildFullRoastGetNextPaidAction(config, input, options = {}) {
-  return buildGetNextPaidAction(config, FULL_ROAST_GET_PATH, {
+  const action = buildGetNextPaidAction(config, FULL_ROAST_GET_PATH, {
     price: config?.price || "$0.01",
     maxAmountRequired: "10000",
     reason: options.reason || "Buy the direct full roast when you want the rewritten listing, top fixes, buyer-agent skip reasons, and stop-or-upgrade guidance."
   });
+
+  if (!action || options.includeQuery === false) {
+    return action;
+  }
+
+  const query = buildUpgradeRequestBody(input, options.source || "full-roast-get-upgrade");
+  return {
+    ...action,
+    query,
+    command: buildGetPayCommandWithQuery(config, FULL_ROAST_GET_PATH, "10000", query)
+  };
 }
 
 function addNextPaidAction(result, action) {
@@ -2432,9 +2443,9 @@ function buildCatalogCacheNormalizationProof(input) {
 }
 
 function buildListingScoreWithUpgrade(input, config) {
-  return addNextPaidAction(buildListingScore(input), buildNextPaidAction(config, input, {
+  return addNextPaidAction(buildListingScore(input), buildFullRoastGetNextPaidAction(config, input, {
     source: "listing-score-upgrade",
-    reason: "Buy the full roast from this score when you want the rewritten listing, top fixes, and stop-or-upgrade guidance."
+    reason: "Buy the direct full roast from this score when you want the rewritten listing, top fixes, and stop-or-upgrade guidance without assembling another JSON body."
   }));
 }
 
@@ -3314,7 +3325,7 @@ function compactChallengeAction(action, options = {}) {
   return {
     ...pickDefined(action, ["intent"]),
     ...(options.includeRoute === false ? {} : pickDefined(action, ["route"])),
-    ...pickDefined(action, ["path", "method", "price", "maxAmountRequired"]),
+    ...pickDefined(action, ["path", "method", "price", "maxAmountRequired", "query"]),
     ...(options.includeBody && action.body ? { body: action.body } : {}),
     ...(options.includeReason === false ? {} : pickDefined(action, ["reason"]))
   };
@@ -4382,6 +4393,7 @@ function compactPaidAction(action) {
     agentPaymentPrompt: action.agentPaymentPrompt,
     command: action.command,
     reason: action.reason,
+    ...(action.query ? { query: action.query } : {}),
     ...(action.body ? { body: action.body } : {})
   };
 }
