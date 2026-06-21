@@ -485,9 +485,9 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-score-upgrade-label-cleanup-v68";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:14:35.000Z";
-const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-public-cdp-audit-refresh-v69";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:19:14.000Z";
+const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T03:18:07.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
 const ROUTE_SERVICE_NAMES = Object.freeze({
@@ -8010,13 +8010,13 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     missingOrCompetedQueries: [
       {
         query: "buyer-agent skip reasons",
-        observedTopResult: "Agent API Discovery Brief API",
+        observedTopResult: "no public CDP results at maxUsdPrice=0.001",
         ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("buyer-agent skip reasons")}`,
         firstPaidRoute: absoluteUrl(config, ROAST_PATH)
       },
       {
         query: "agent service clarity",
-        observedTopResult: "Policy Clarity Score API",
+        observedTopResult: "TrustLayer agent route",
         ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("agent service clarity")}`,
         firstPaidRoute: absoluteUrl(config, ROAST_PATH)
       },
@@ -8028,37 +8028,37 @@ function buildOfficialCdpDiscoveryHandoff(config) {
       },
       {
         query: "x402 site audit",
-        observedTopResult: "GPT-5.5 x402 API Gateway",
+        observedTopResult: "x402.clashofcoins.com cheap-health",
         ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("x402 site audit")}`,
         firstPaidRoute: absoluteUrl(config, SITE_AUDIT_PATH)
       },
       {
         query: "x402 listing rank doctor",
-        observedTopResult: "x402-listing-doctor",
+        observedTopResult: "x402.clashofcoins.com cheap-health",
         ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("x402 listing rank doctor")}`,
         firstPaidRoute: absoluteUrl(config, "/api/x402-listing-rank-doctor")
       },
       {
         query: "score x402 endpoint before paying",
-        observedTopResult: "x402 Endpoint Safety Verifier",
+        observedTopResult: "Venice chat completions",
         ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("score x402 endpoint before paying")}`,
         firstPaidRoute: absoluteUrl(config, "/api/score-x402-endpoint-before-paying")
       },
       {
         query: "paid API preflight",
-        observedTopResult: "x402station.io preflight",
+        observedTopResult: "Venice chat completions",
         ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("paid API preflight")}`,
         firstPaidRoute: absoluteUrl(config, SITE_AUDIT_PATH)
       },
       {
         query: "AgentCore x402 payments",
-        observedTopResult: "Alephant",
+        observedTopResult: "x402.clashofcoins.com agent wallet fund",
         ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("AgentCore x402 payments")}`,
         firstPaidRoute: absoluteUrl(config, ROAST_PATH)
       },
       {
         query: "Coinbase x402 Bazaar MCP server",
-        observedTopResult: "GPT-5.5 x402 API Gateway",
+        observedTopResult: "x402.d-bis.org paid-base-cw-cdp",
         ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("Coinbase x402 Bazaar MCP server")}`,
         firstPaidRoute: absoluteUrl(config, ROAST_PATH)
       }

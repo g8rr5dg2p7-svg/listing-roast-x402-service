@@ -330,8 +330,8 @@ describe("Listing Roast x402 service", () => {
       expect(findDiscovery.headers.get("payment-required")).toBeNull();
       expect(findDiscovery.json.service).toBe("Listing Roast x402");
       expect(findDiscovery.json.serviceName).toBe("Listing Roast x402");
-      expect(findDiscovery.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(findDiscovery.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(findDiscovery.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(findDiscovery.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(findDiscovery.json.selectedActionKey).toBe("discoveryAuditQuick");
       expect(findDiscovery.json.selectedPaidUrl).toContain("/api/x402-discovery-audit");
       expect(findDiscovery.json.intentSignal.source).toBe("find");
@@ -342,13 +342,13 @@ describe("Listing Roast x402 service", () => {
       expect(routeFullRoast.headers.get("payment-required")).toBeNull();
       expect(routeFullRoast.json.service).toBe("Listing Roast x402");
       expect(routeFullRoast.json.serviceName).toBe("Listing Roast x402");
-      expect(routeFullRoast.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(routeFullRoast.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(routeFullRoast.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(routeFullRoast.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(routeFullRoast.json.selectedActionKey).toBe("fullRoastGet");
       expect(routeFullRoast.json.selectedPaidUrl).toContain("/api/full-listing-roast");
       expect(routeFullRoast.json.payableRoute.path).toBe("/api/full-listing-roast");
       expect(routeFullRoast.json.results[0].serviceName).toBe("Listing Roast x402");
-      expect(routeFullRoast.json.results[0].metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(routeFullRoast.json.results[0].metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(routeFullRoast.json.intentSignal.source).toBe("route");
 
       const routePreflight = await fetchJson(server, "/api/route", {
@@ -358,7 +358,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(routePreflight.status).toBe(200);
       expect(routePreflight.json.serviceName).toBe("Listing Roast x402");
-      expect(routePreflight.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(routePreflight.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(routePreflight.json.selectedActionKey).toBe("x402SiteAudit");
       expect(routePreflight.json.intentSignal.rawQueryStored).toBe(false);
 
@@ -367,17 +367,17 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscovery.headers.get("payment-required")).toBeNull();
       expect(localDiscovery.json.service).toBe("Listing Roast x402");
       expect(localDiscovery.json.serviceName).toBe("Listing Roast x402");
-      expect(localDiscovery.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(localDiscovery.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(localDiscovery.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(localDiscovery.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(localDiscovery.json.selectedActionKey).toBe("paidApiListingQuality");
       expect(localDiscovery.json.selectedPaidUrl).toContain("/api/listing-roast");
       expect(localDiscovery.json.payableRoute.path).toBe("/api/listing-roast");
       expect(localDiscovery.json.exactIntentPaidUrl).toContain("/api/paid-api-listing-quality");
       expect(localDiscovery.json.resources[0].serviceName).toBe("Listing Roast x402 Paid API Listing Quality Score");
-      expect(localDiscovery.json.resources[0].metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(localDiscovery.json.resources[0].metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(localDiscovery.json.resources[0].metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(localDiscovery.json.resources[0].metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(localDiscovery.json.resources[0].metadata.serviceName).toBe("Listing Roast x402");
-      expect(localDiscovery.json.resources[0].metadata.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(localDiscovery.json.resources[0].metadata.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(localDiscovery.json.intentSignal).toEqual({
         source: "localDiscovery",
         selectedActionKey: "paidApiListingQuality",
@@ -870,10 +870,10 @@ describe("Listing Roast x402 service", () => {
       expect(mcp.status).toBe(200);
       expect(mcp.json.service).toBe("Listing Roast x402");
       expect(mcp.json.serviceName).toBe("Listing Roast x402");
-      expect(mcp.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(mcp.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(mcp.json.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(mcp.json.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(mcp.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(mcp.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(mcp.json.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(mcp.json.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(mcp.json.builder).toContain("/builder");
       expect(mcp.json.iconUrl).toContain("/icon.svg");
       expect(mcp.json.openApi).toContain("/openapi.json");
@@ -997,7 +997,7 @@ describe("Listing Roast x402 service", () => {
       expect(mcpInitialize.json.jsonrpc).toBe("2.0");
       expect(mcpInitialize.json.id).toBe(1);
       expect(mcpInitialize.json.result.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(mcpInitialize.json.result.serverInfo.version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(mcpInitialize.json.result.capabilities.tools).toEqual({});
 
       const mcpTools = await fetchJson(server, "/.well-known/mcp.json", {
@@ -1142,12 +1142,12 @@ describe("Listing Roast x402 service", () => {
       expect(mcpServerCard.status).toBe(200);
       expect(mcpServerCard.json.service).toBe("Listing Roast x402");
       expect(mcpServerCard.json.serviceName).toBe("Listing Roast x402");
-      expect(mcpServerCard.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(mcpServerCard.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(mcpServerCard.json.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(mcpServerCard.json.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(mcpServerCard.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(mcpServerCard.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(mcpServerCard.json.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(mcpServerCard.json.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(mcpServerCard.json.serverInfo.name).toBe("Listing Roast x402");
-      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(mcpServerCard.json.serverInfo.version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(mcpServerCard.json.transport).toBe("http");
       expect(mcpServerCard.json.jsonRpcEndpoint).toContain("/mcp");
       expect(mcpServerCard.json.payment.preferredFirstPaidAction.maxAmountRequired).toBe("1000");
@@ -1177,7 +1177,7 @@ describe("Listing Roast x402 service", () => {
       });
       expect(compressedX402Manifest.status).toBe(200);
       expect(compressedX402Manifest.headers.get("content-encoding")).toBe("gzip");
-      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect((await compressedX402Manifest.json()).metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(x402Manifest.json.name).toBe("Listing Roast x402");
       expect(x402Manifest.json.serviceName).toBe("Listing Roast x402");
       expect(x402Manifest.json.displayName).toBe("Listing Roast x402");
@@ -1216,8 +1216,8 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.apiCatalog).toContain("/.well-known/api-catalog");
       expect(x402Manifest.json.agentTools).toContain("/.well-known/agent-tools.json");
       expect(x402Manifest.json.agentSkills).toContain("/.well-known/agent-skills/index.json");
-      expect(x402Manifest.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
+      expect(x402Manifest.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(x402Manifest.json.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
       expect(x402Manifest.json.sampleAliases).toContain("http://localhost:8787/api/sample");
       expect(x402Manifest.json.schemaAliases).toContain("http://localhost:8787/schema.json");
       expect(x402Manifest.json.apiCatalogAliases).toContain("http://localhost:8787/.well-known/api-catalog.json");
@@ -1284,12 +1284,15 @@ describe("Listing Roast x402 service", () => {
       expect(x402Manifest.json.officialCdpDiscovery.competitiveCapRisks.find((entry) => entry.query === "marketplace listing score").riskAtMaxUsdPrice).toContain("0.01");
       const publicCdpSearchAudit = x402Manifest.json.officialCdpDiscovery.publicCdpSearchAudit;
       expect(publicCdpSearchAudit.indexedMerchantResources).toBe(1);
+      expect(publicCdpSearchAudit.observedAt).toBe("2026-06-21T03:18:07.000Z");
       expect(publicCdpSearchAudit.indexedResource).toBe("http://localhost:8787/api/listing-roast");
       expect(publicCdpSearchAudit.publicCardObservedServiceName).toBeNull();
       expect(publicCdpSearchAudit.liveChallengeServiceName).toBe("Listing Roast x402 Paid API Listing Quality Score");
       expect(publicCdpSearchAudit.rankedFirstQueries.map((entry) => entry.query)).toContain("full listing roast");
       expect(publicCdpSearchAudit.missingOrCompetedQueries.map((entry) => entry.query)).toContain("score x402 endpoint before paying");
       expect(publicCdpSearchAudit.missingOrCompetedQueries.map((entry) => entry.query)).toContain("paid API preflight");
+      expect(publicCdpSearchAudit.missingOrCompetedQueries.find((entry) => entry.query === "buyer-agent skip reasons").observedTopResult).toContain("no public CDP results");
+      expect(publicCdpSearchAudit.missingOrCompetedQueries.find((entry) => entry.query === "AgentCore x402 payments").observedTopResult).toContain("agent wallet fund");
       expect(publicCdpSearchAudit.missingOrCompetedQueries.find((entry) => entry.query === "paid API preflight").firstPaidRoute).toContain("/api/x402-site-audit");
       expect(publicCdpSearchAudit.catalogRefreshRule).toContain("real settled payments");
       expect(x402Manifest.json.officialCdpDiscovery.priceFilterReason).toContain("maxUsdPrice=0.001");
@@ -1689,10 +1692,10 @@ describe("Listing Roast x402 service", () => {
       expect(agentTools.json.icon_url).toBe("http://localhost:8787/icon.svg");
       expect(agentTools.json.category).toBe("paid-api-listing");
       expect(agentTools.json.tags).toContain("marketplace listing score");
-      expect(agentTools.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(agentTools.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(agentTools.json.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(agentTools.json.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(agentTools.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(agentTools.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(agentTools.json.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(agentTools.json.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(agentTools.json.commands).toContain("/api/commands");
       expect(agentTools.json.links.commands).toContain("/api/commands");
       expect(agentTools.json.payment.commands).toContain("/api/commands");
@@ -1811,10 +1814,10 @@ describe("Listing Roast x402 service", () => {
       expectFreshDiscoveryHeaders(agentCard.headers);
       expect(agentCard.json.service).toBe("Listing Roast x402");
       expect(agentCard.json.serviceName).toBe("Listing Roast x402");
-      expect(agentCard.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(agentCard.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(agentCard.json.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(agentCard.json.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(agentCard.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(agentCard.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(agentCard.json.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(agentCard.json.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(agentCard.json.protocolVersion).toBe("0.3.0");
       expect(agentCard.json.name).toBe("Listing Roast x402");
       expect(agentCard.json.url).toContain("/api/listing-roast");
@@ -2065,10 +2068,10 @@ describe("Listing Roast x402 service", () => {
       expect(agentSkills.json.$schema).toBe("https://schemas.agentskills.io/discovery/0.2.0/schema.json");
       expect(agentSkills.json.service).toBe("Listing Roast x402");
       expect(agentSkills.json.serviceName).toBe("Listing Roast x402");
-      expect(agentSkills.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(agentSkills.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(agentSkills.json.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(agentSkills.json.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(agentSkills.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(agentSkills.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(agentSkills.json.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(agentSkills.json.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(agentSkills.json.keywords).toContain("x402 discovery audit");
       expect(agentSkills.json.intentLandingPages.map((page) => page.path)).toContain("/x402-discovery-audit");
       expect(agentSkills.json.skills[0].name).toBe("listing-roast-x402");
@@ -2231,7 +2234,7 @@ describe("Listing Roast x402 service", () => {
       expect(examples.json.routeExamples.fullRewrite.results[0].path).toBe("/api/full-listing-roast");
       expect(examples.json.payNow.route).toContain("/api/listing-roast");
       expect(examples.json.payNow.command).toContain("--max-amount 1000");
-      expect(examples.json.payNow.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(examples.json.payNow.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(examples.json.payNow.paymentShortcut.selectedPaidPath).toBe("/api/listing-roast");
       expect(examples.json.payNow.paymentShortcut.upgradeAfterQuickScore.selectedPaidPath).toBe("/api/full-listing-roast");
       expect(examples.json.compactCommandHandoff.paymentShortcut.firstPaidPath).toBe("/api/listing-roast");
@@ -3075,10 +3078,10 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.status).toBe(200);
       expect(payNow.json.service).toBe("Listing Roast x402");
       expect(payNow.json.serviceName).toBe("Listing Roast x402");
-      expect(payNow.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(payNow.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(payNow.json.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(payNow.json.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(payNow.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(payNow.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(payNow.json.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(payNow.json.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expectBrowserPaymentSupport(payNow.json.browserPayment);
       expect(payNow.json.route).toContain("/api/listing-roast");
       expect(payNow.json.intent).toBeNull();
@@ -3160,10 +3163,10 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.expectedChallenge.status).toBe(402);
       expect(payNow.json.paidUsageProof.service).toBe("Listing Roast x402");
       expect(payNow.json.paidUsageProof.serviceName).toBe("Listing Roast x402");
-      expect(payNow.json.paidUsageProof.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(payNow.json.paidUsageProof.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(payNow.json.paidUsageProof.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(payNow.json.paidUsageProof.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(payNow.json.paidUsageProof.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(payNow.json.paidUsageProof.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(payNow.json.paidUsageProof.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(payNow.json.paidUsageProof.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(payNow.json.paidUsageProof.paidCompletions).toBe(0);
       expect(payNow.json.paidUsageProof.noSpend).toBe(true);
       expect(payNow.json.bazaarCataloging.noSelfPay).toBe(true);
@@ -3179,20 +3182,20 @@ describe("Listing Roast x402 service", () => {
       expect(paidUsageProof.headers.get("payment-required")).toBeNull();
       expect(paidUsageProof.json.service).toBe("Listing Roast x402");
       expect(paidUsageProof.json.serviceName).toBe("Listing Roast x402");
-      expect(paidUsageProof.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(paidUsageProof.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(paidUsageProof.json.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(paidUsageProof.json.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(paidUsageProof.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(paidUsageProof.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(paidUsageProof.json.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(paidUsageProof.json.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(paidUsageProof.json.noSpend).toBe(true);
       expect(paidUsageProof.json.paidCompletions).toBe(0);
       expect(paidUsageProof.json.estimatedGrossRevenueUsd).toBe("0.00");
       expect(paidUsageProof.json.proofText).toContain("0 paid completions");
       expect(paidUsageProof.json.paidUsageProof.service).toBe("Listing Roast x402");
       expect(paidUsageProof.json.paidUsageProof.serviceName).toBe("Listing Roast x402");
-      expect(paidUsageProof.json.paidUsageProof.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(paidUsageProof.json.paidUsageProof.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(paidUsageProof.json.paidUsageProof.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(paidUsageProof.json.paidUsageProof.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(paidUsageProof.json.paidUsageProof.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(paidUsageProof.json.paidUsageProof.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(paidUsageProof.json.paidUsageProof.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(paidUsageProof.json.paidUsageProof.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(paidUsageProof.json.paidUsageProof.paidCompletions).toBe(0);
       expect(paidUsageProof.json.paidUsageProof.noSpend).toBe(true);
       expect(paidUsageProof.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
@@ -3403,7 +3406,7 @@ describe("Listing Roast x402 service", () => {
       expect(payNowPaidApiListingQuality.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(payNowPaidApiListingQuality.json.exactIntentPaidAction.path).toBe("/api/paid-api-listing-quality");
       expect(payNowPaidApiListingQuality.json.selectedFirstPaidAction.path).toBe("/api/listing-roast");
-      expect(payNowPaidApiListingQuality.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(payNowPaidApiListingQuality.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(payNowPaidApiListingQuality.json.paymentShortcut.selectedPaidPath).toBe("/api/listing-roast");
       expect(payNowPaidApiListingQuality.json.paymentShortcut.firstPaidPath).toBe("/api/listing-roast");
       expect(payNowPaidApiListingQuality.json.paymentShortcut.upgradeAfterQuickScore.selectedPaidPath).toBe("/api/full-listing-roast");
@@ -3568,13 +3571,13 @@ describe("Listing Roast x402 service", () => {
       expect(pricing.headers.get("payment-required")).toBeNull();
       expect(pricing.json.service).toBe("Listing Roast x402");
       expect(pricing.json.serviceName).toBe("Listing Roast x402");
-      expect(pricing.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(pricing.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(pricing.json.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(pricing.json.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(pricing.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(pricing.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(pricing.json.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(pricing.json.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(pricing.json.noSpend).toBe(true);
       expect(pricing.json.paidUsageProof.serviceName).toBe("Listing Roast x402");
-      expect(pricing.json.paidUsageProof.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(pricing.json.paidUsageProof.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(pricing.json.paidUsageProof.paidCompletions).toBe(0);
       expect(pricing.json.paidUsageProof.cashRegister).toContain("/api/cash-register");
       expect(pricing.json.commands).toContain("/api/commands");
@@ -3602,8 +3605,8 @@ describe("Listing Roast x402 service", () => {
       expect(findDiscovery.headers.get("payment-required")).toBeNull();
       expect(findDiscovery.json.service).toBe("Listing Roast x402");
       expect(findDiscovery.json.serviceName).toBe("Listing Roast x402");
-      expect(findDiscovery.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(findDiscovery.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(findDiscovery.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(findDiscovery.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(findDiscovery.json.noSpend).toBe(true);
       expect(findDiscovery.json.paidUsageProof.paidCompletions).toBe(0);
       expect(findDiscovery.json.commands).toContain("/api/commands");
@@ -3755,8 +3758,8 @@ describe("Listing Roast x402 service", () => {
       expect(routeDiscovery.headers.get("payment-required")).toBeNull();
       expect(routeDiscovery.json.service).toBe("Listing Roast x402");
       expect(routeDiscovery.json.serviceName).toBe("Listing Roast x402");
-      expect(routeDiscovery.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(routeDiscovery.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(routeDiscovery.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(routeDiscovery.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(routeDiscovery.json.noSpend).toBe(true);
       expect(routeDiscovery.json.paidUsageProof.paidCompletions).toBe(0);
       expect(routeDiscovery.json.officialCdpDiscovery.publicCdpSearchAudit.indexedMerchantResources).toBe(1);
@@ -3771,8 +3774,8 @@ describe("Listing Roast x402 service", () => {
       expect(routeDiscovery.json.scope).toBe("owned-routes-only");
       expect(routeDiscovery.json.results).toHaveLength(3);
       expect(routeDiscovery.json.results[0].serviceName).toBe("Listing Roast x402");
-      expect(routeDiscovery.json.results[0].metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(routeDiscovery.json.results[0].metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(routeDiscovery.json.results[0].metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(routeDiscovery.json.results[0].metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(routeDiscovery.json.best.path).toBe("/api/x402-discovery-audit");
       expect(routeDiscovery.json.selectedActionKey).toBe("discoveryAuditQuick");
       expect(routeDiscovery.json.selectedPaidAction.path).toBe("/api/x402-discovery-audit");
@@ -3957,10 +3960,10 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscovery.headers.get("payment-required")).toBeNull();
       expect(localDiscovery.json.service).toBe("Listing Roast x402");
       expect(localDiscovery.json.serviceName).toBe("Listing Roast x402");
-      expect(localDiscovery.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(localDiscovery.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(localDiscovery.json.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(localDiscovery.json.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(localDiscovery.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(localDiscovery.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(localDiscovery.json.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(localDiscovery.json.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(localDiscovery.json.noSpend).toBe(true);
       expect(localDiscovery.json.paidUsageProof.paidCompletions).toBe(0);
       expect(localDiscovery.json.commands).toContain("/api/commands");
@@ -3979,10 +3982,10 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscovery.json.pagination.total).toBe(PAID_RESOURCE_COUNT);
       expect(localDiscovery.json.items[0].resource).toBe("http://localhost:8787/api/listing-roast");
       expect(localDiscovery.json.items[0].serviceName).toBe("Listing Roast x402 Paid API Listing Quality Score");
-      expect(localDiscovery.json.items[0].metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(localDiscovery.json.items[0].metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(localDiscovery.json.items[0].metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(localDiscovery.json.items[0].metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(localDiscovery.json.items[0].metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(localDiscovery.json.items[0].metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(localDiscovery.json.items[0].metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(localDiscovery.json.items[0].metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(localDiscovery.json.items[0].url).toBe("http://localhost:8787/api/listing-roast");
       expect(localDiscovery.json.items[0].route).toBe("http://localhost:8787/api/listing-roast");
       expect(localDiscovery.json.items[0].path).toBe("/api/listing-roast");
@@ -3999,10 +4002,10 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscovery.json.items[0].extensions.bazaar.schema.schemaUrl).toContain("/api/score-schema");
       expect(localDiscovery.json.items[0].metadata.id).toBe("indexed_roast_quick_score");
       expect(localDiscovery.json.items[0].metadata.serviceName).toBe("Listing Roast x402");
-      expect(localDiscovery.json.items[0].metadata.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(localDiscovery.json.items[0].metadata.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(localDiscovery.json.items[0].metadata.metadataUpdatedAt).toBe("2026-06-21T03:14:35.000Z");
-      expect(localDiscovery.json.items[0].metadata.metadata_updated_at).toBe("2026-06-21T03:14:35.000Z");
+      expect(localDiscovery.json.items[0].metadata.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(localDiscovery.json.items[0].metadata.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(localDiscovery.json.items[0].metadata.metadataUpdatedAt).toBe("2026-06-21T03:19:14.000Z");
+      expect(localDiscovery.json.items[0].metadata.metadata_updated_at).toBe("2026-06-21T03:19:14.000Z");
       expect(localDiscovery.json.items[0].metadata.url).toBe("http://localhost:8787/api/listing-roast");
       expect(localDiscovery.json.items[0].metadata.priceUsd).toBe(0.001);
       expect(localDiscovery.json.items[0].metadata.max_amount_required).toBe("1000");
@@ -4050,8 +4053,8 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoverySearch.headers.get("payment-required")).toBeNull();
       expect(localDiscoverySearch.json.service).toBe("Listing Roast x402");
       expect(localDiscoverySearch.json.serviceName).toBe("Listing Roast x402");
-      expect(localDiscoverySearch.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(localDiscoverySearch.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(localDiscoverySearch.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(localDiscoverySearch.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(localDiscoverySearch.json.noSpend).toBe(true);
       expect(localDiscoverySearch.json.paidUsageProof.paidCompletions).toBe(0);
       expect(localDiscoverySearch.json.commands).toContain("/api/commands");
@@ -4066,7 +4069,7 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoverySearch.json.startHere.upgradeAfterFit.maxAmountRequired).toBe("10000");
       expect(localDiscoverySearch.json.resources[0].resource).toBe("http://localhost:8787/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.resources[0].serviceName).toBe("Listing Roast x402");
-      expect(localDiscoverySearch.json.resources[0].metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(localDiscoverySearch.json.resources[0].metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(localDiscoverySearch.json.resources[0].url).toBe("http://localhost:8787/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.resources[0].path).toBe("/api/x402-discovery-audit");
       expect(localDiscoverySearch.json.resources[0].method).toBe("GET");
@@ -4087,7 +4090,7 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoverySearch.json.provenFirstPaidAction.path).toBe("/api/listing-roast");
       expect(localDiscoverySearch.json.resources[0].metadata.id).toBe("x402_discovery_audit_quick");
       expect(localDiscoverySearch.json.resources[0].metadata.serviceName).toBe("Listing Roast x402");
-      expect(localDiscoverySearch.json.resources[0].metadata.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(localDiscoverySearch.json.resources[0].metadata.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(localDiscoverySearch.json.resources[0].tags).toEqual([
         "x402",
         "Bazaar visibility",
@@ -4249,8 +4252,8 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoveryMerchant.headers.get("payment-required")).toBeNull();
       expect(localDiscoveryMerchant.json.service).toBe("Listing Roast x402");
       expect(localDiscoveryMerchant.json.serviceName).toBe("Listing Roast x402");
-      expect(localDiscoveryMerchant.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
-      expect(localDiscoveryMerchant.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(localDiscoveryMerchant.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
+      expect(localDiscoveryMerchant.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(localDiscoveryMerchant.json.paidUsageProof.paidCompletions).toBe(0);
       expect(localDiscoveryMerchant.json.commands).toContain("/api/commands");
       expect(localDiscoveryMerchant.json.links.commands).toContain("/api/commands");
@@ -4261,7 +4264,7 @@ describe("Listing Roast x402 service", () => {
       expect(localDiscoveryMerchant.json.pagination.total).toBe(PAID_RESOURCE_COUNT);
       expect(localDiscoveryMerchant.json.resources[0].path).toBe("/api/listing-roast");
       expect(localDiscoveryMerchant.json.resources[0].serviceName).toBe("Listing Roast x402 Paid API Listing Quality Score");
-      expect(localDiscoveryMerchant.json.resources[0].metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(localDiscoveryMerchant.json.resources[0].metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(localDiscoveryMerchant.json.resources[0].method).toBe("GET");
       expect(localDiscoveryMerchant.json.resources[0].price).toBe("$0.001");
       expect(localDiscoveryMerchant.json.resources[0].maxAmountRequired).toBe("1000");
@@ -4499,13 +4502,13 @@ describe("Listing Roast x402 service", () => {
       expect(proof.status).toBe(200);
       expect(proof.headers.get("payment-required")).toBeNull();
       expect(proof.json.serviceName).toBe("Listing Roast x402");
-      expect(proof.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(proof.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(proof.json.paidCompletions).toBe(2);
       expect(proof.json.estimatedGrossRevenueUsd).toBe("0.002");
       expect(proof.json.proofText).toBe("2 wallet-confirmed paid completions; $0.002 registered; receiver wallet 1.001 USDC");
       expect(proof.json.settlementStatus).toBe("wallet-confirmed");
       expect(proof.json.paidUsageProof.serviceName).toBe("Listing Roast x402");
-      expect(proof.json.paidUsageProof.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(proof.json.paidUsageProof.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(proof.json.paidUsageProof.settlementStatus).toBe("wallet-confirmed");
       expect(proof.json.paidUsageProof.proofText).toBe("2 wallet-confirmed paid completions; $0.002 registered; receiver wallet 1.001 USDC");
       expect(proof.json.paidUsageProof.receiverWallet.usdcUnits).toBe("1001000");
@@ -4523,7 +4526,7 @@ describe("Listing Roast x402 service", () => {
       const payNowFirstPaid = await fetchJson(server, "/api/pay-now?intent=buyer-agent%20skip%20reasons");
       expect(payNowFirstPaid.status).toBe(200);
       expect(payNowFirstPaid.json.serviceName).toBe("Listing Roast x402");
-      expect(payNowFirstPaid.json.metadata_version).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(payNowFirstPaid.json.metadata_version).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(payNowFirstPaid.json.selectedPaidAction.path).toBe("/api/listing-roast");
       expect(payNowFirstPaid.json.paymentShortcut.firstPaidPath).toBe("/api/listing-roast");
       expect(payNowFirstPaid.json.paidUsageProof.settlementStatus).toBe("wallet-confirmed");
@@ -4776,7 +4779,7 @@ describe("Listing Roast x402 service", () => {
 
       const paymentAlias = await fetchJson(server, "/.well-known/payments.json");
       expect(paymentAlias.status).toBe(200);
-      expect(paymentAlias.json.metadataVersion).toBe("2026-06-21-score-upgrade-label-cleanup-v68");
+      expect(paymentAlias.json.metadataVersion).toBe("2026-06-21-public-cdp-audit-refresh-v69");
       expect(paymentAlias.json.commands).toContain("/api/commands");
 
       const mcpJsonAlias = await fetchJson(server, "/mcp.json");
