@@ -5012,7 +5012,8 @@ describe("Listing Roast x402 service", () => {
       expect(response.json.selectedPaidAction.method).toBe("POST");
       expect(response.json.selectedPaidAction.maxAmountRequired).toBe("1000");
       expect(response.json.selectedPaidAction.command).not.toContain("-d ");
-      expect(response.json.resource.description).toContain("includes a quick score");
+      expect(response.json.resource.description).toContain("immediate quick score plus route map");
+      expect(response.json.resource.description).toContain("paid usage proof");
       expect(response.json.preferredFirstPaidAction.path).toBe("/api/listing-roast");
       expect(response.json.directoryPostConversionHint.noSpend).toBe(true);
       expect(response.json.directoryPostConversionHint.selectedFallbackPaidAction.path).toBe("/");

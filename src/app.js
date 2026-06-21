@@ -3597,7 +3597,7 @@ function buildPayNowActions(config) {
       price: config.instantScorePrice,
       maxAmountRequired: INSTANT_SCORE_AMOUNT,
       body: null,
-      reason: "Use this when a public directory or agent-tools listing shows a generic POST to the service root; the paid response includes a quick score plus the indexed /api/listing-roast handoff."
+      reason: "Use this when a public directory or agent-tools listing shows a generic POST to the service root; the paid response includes an immediate quick score plus route map, paid usage proof, and the indexed /api/listing-roast handoff."
     }),
     indexedQuickScore: buildRoutePaymentAction(config, {
       path: ROAST_PATH,
