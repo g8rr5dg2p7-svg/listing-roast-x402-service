@@ -180,13 +180,13 @@ export function buildListingScore(input) {
     nextStep: checks.score >= 4
       ? "Ready to test. Pay for the full roast only if you want the rewritten listing and stop-or-upgrade guidance."
       : "Fix the first missing signal before buying traffic or promoting broadly.",
-    upgradeEndpoint: "/api/listing-roast",
+    upgradeEndpoint: "/api/full-listing-roast",
     nextPaidAction: {
-      path: "/api/listing-roast",
-      method: "POST",
+      path: "/api/full-listing-roast",
+      method: "GET",
       price: "$0.01",
       maxAmountRequired: "10000",
-      reason: "Buy the full roast when you want the rewritten listing, top fixes, and stop-or-upgrade guidance."
+      reason: "Buy the direct full roast when you want the rewritten listing, top fixes, and stop-or-upgrade guidance without assembling another JSON body."
     }
   };
 }
