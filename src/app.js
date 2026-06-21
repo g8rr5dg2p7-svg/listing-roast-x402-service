@@ -309,6 +309,7 @@ const X402_ROUTE_HEALTH_CHECK_PAGE_PATH = "/x402-route-health-check";
 const X402_LISTING_RANK_DOCTOR_PAGE_PATH = "/x402-listing-rank-doctor";
 const AGENTCORE_X402_PAYMENTS_PAGE_PATH = "/agentcore-x402-payments";
 const COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH = "/coinbase-x402-bazaar-mcp-server";
+const FULL_LISTING_ROAST_PAGE_PATH = "/full-listing-roast";
 const INTENT_LANDING_PATHS = [
   PAID_API_LISTING_QUALITY_PATH,
   PAID_API_LISTING_QUALITY_SCORE_PATH,
@@ -327,7 +328,8 @@ const INTENT_LANDING_PATHS = [
   X402_ROUTE_HEALTH_CHECK_PAGE_PATH,
   X402_LISTING_RANK_DOCTOR_PAGE_PATH,
   AGENTCORE_X402_PAYMENTS_PAGE_PATH,
-  COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH
+  COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH,
+  FULL_LISTING_ROAST_PAGE_PATH
 ];
 const API_V1_OPENAPI_JSON_PATH = "/api/v1/openapi.json";
 const SWAGGER_JSON_PATH = "/swagger.json";
@@ -481,8 +483,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-prepay-preview-v57";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T01:55:02.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-full-roast-landing-v58";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:05:33.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -9699,6 +9701,7 @@ Allow: /
 # - ${absoluteUrl(config, X402_ROUTE_HEALTH_CHECK_PAGE_PATH)}
 # - ${absoluteUrl(config, X402_LISTING_RANK_DOCTOR_PAGE_PATH)}
 # - ${absoluteUrl(config, COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH)}
+# - ${absoluteUrl(config, FULL_LISTING_ROAST_PAGE_PATH)}
 # - ${absoluteUrl(config, "/llms.txt")}
 # - ${absoluteUrl(config, LLMS_FULL_PATH)}
 # - ${absoluteUrl(config, "/x402.json")}
@@ -9942,6 +9945,18 @@ function buildIntentLandingPages(config) {
       supportingAction: intentRoutes.indexedQuickScore,
       supportingLabel: "Use the indexed /api/listing-roast route first when marketplace search points there.",
       keywords: ["Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "Bazaar MCP tools", "Coinbase Bazaar MCP", "AgentCore x402 payments", "paid API listing quality score"]
+    },
+    {
+      path: FULL_LISTING_ROAST_PAGE_PATH,
+      title: "Full listing roast route | Listing Roast x402",
+      heading: "Full listing roast for paid API sellers",
+      summary: "Use this when a buyer agent searches for full listing roast, rewritten listing copy, top fixes, buyer-agent skip reasons, or stop-or-upgrade guidance and is ready for the direct $0.01 route.",
+      selectedActionKey: "fullRoastGet",
+      primaryAction: intentRoutes.fullRoastGet,
+      primaryLabel: "Use the direct $0.01 full listing roast route",
+      supportingAction: intentRoutes.indexedQuickScore,
+      supportingLabel: "Use the proven $0.001 indexed route first when the buyer wants a quick fit check before the full roast.",
+      keywords: ["full listing roast", "listing roast rewrite", "rewritten listing copy", "top fixes", "buyer-agent skip reasons", "stop-or-upgrade guidance", "paid API listing quality"]
     }
   ];
 }
@@ -11550,7 +11565,7 @@ score: 4/5</div>
         <div class="card">
           <h3>Discovery</h3>
           <p class="muted">The routes are declared for x402 Bazaar discovery with GET and JSON body metadata, OpenAPI, llms.txt, and example payloads. The already-indexed <code>GET /api/listing-roast</code> path is the $0.001 first step for marketplace listing quality, marketplace listing conversion API, marketplace listing conversion, marketplace product listing quality, listing quality score API, paid API listing quality, paid API listing quality score, AgentCore x402 payments, Coinbase x402 Bazaar MCP server buyers, x402 marketplace conversion, agent listing conversion score, x402 listing quality, and buyer-agent skip-reason searches; quick-score aliases <code>/api/marketplace-listing-score</code>, <code>/api/marketplace-listing-conversion</code>, <code>/api/marketplace-product-listing-quality</code>, <code>/api/paid-api-listing-quality</code>, <code>/api/paid-api-listing-quality-score</code>, <code>/api/listing-quality-score-api</code>, <code>/api/x402-listing-quality</code>, <code>/api/buyer-agent-skip-reasons</code>, and <code>/api/agent-service-clarity</code> return the same $0.001 quick score; <code>GET /api/full-listing-roast</code> returns the direct full $0.01 roast, <code>POST /api/listing-roast</code> remains available for custom-body full roasts, <code>GET /api/agent-listing-conversion</code> is the dedicated conversion deep dive, <code>GET /api/x402-discovery-audit</code> returns a $0.001 discovery audit challenge, and paid API preflight aliases <code>/api/preflight</code>, <code>/api/v1/preflight</code>, and <code>/preflight</code> return the $0.001 site-audit challenge.</p>
-          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_SCORE_PATH)}">Paid API listing quality score</a> · <a href="${absoluteUrl(config, LISTING_QUALITY_SCORE_API_PAGE_PATH)}">Listing quality score API</a> · <a href="${absoluteUrl(config, MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH)}">Marketplace product listing quality</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH)}">Marketplace listing conversion API</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_PAGE_PATH)}">Marketplace listing conversion</a> · <a href="${absoluteUrl(config, X402_LISTING_QUALITY_PAGE_PATH)}">x402 listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a> · <a href="${absoluteUrl(config, X402_BUYER_PREPAY_RISK_SCORE_PAGE_PATH)}">x402 buyer prepay risk score</a> · <a href="${absoluteUrl(config, SCORE_X402_ENDPOINT_BEFORE_PAYING_PAGE_PATH)}">Score x402 endpoint before paying</a> · <a href="${absoluteUrl(config, X402_ROUTE_HEALTH_CHECK_PAGE_PATH)}">x402 route health check</a> · <a href="${absoluteUrl(config, X402_LISTING_RANK_DOCTOR_PAGE_PATH)}">x402 listing rank doctor</a> · <a href="${absoluteUrl(config, AGENTCORE_X402_PAYMENTS_PAGE_PATH)}">AgentCore x402 payments</a> · <a href="${absoluteUrl(config, COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH)}">Coinbase x402 Bazaar MCP server</a></p>
+          <p><a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_PATH)}">Paid API listing quality</a> · <a href="${absoluteUrl(config, PAID_API_LISTING_QUALITY_SCORE_PATH)}">Paid API listing quality score</a> · <a href="${absoluteUrl(config, LISTING_QUALITY_SCORE_API_PAGE_PATH)}">Listing quality score API</a> · <a href="${absoluteUrl(config, MARKETPLACE_PRODUCT_LISTING_QUALITY_PAGE_PATH)}">Marketplace product listing quality</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_API_PAGE_PATH)}">Marketplace listing conversion API</a> · <a href="${absoluteUrl(config, MARKETPLACE_LISTING_CONVERSION_PAGE_PATH)}">Marketplace listing conversion</a> · <a href="${absoluteUrl(config, X402_LISTING_QUALITY_PAGE_PATH)}">x402 listing quality</a> · <a href="${absoluteUrl(config, BUYER_AGENT_SKIP_REASONS_PAGE_PATH)}">Buyer-agent skip reasons</a> · <a href="${absoluteUrl(config, AGENT_SERVICE_CLARITY_PAGE_PATH)}">Agent service clarity</a> · <a href="${absoluteUrl(config, AGENT_LISTING_CONVERSION_PAGE_PATH)}">Agent listing conversion</a> · <a href="${absoluteUrl(config, X402_DISCOVERY_AUDIT_PAGE_PATH)}">x402 discovery audit</a> · <a href="${absoluteUrl(config, X402_SITE_AUDIT_PAGE_PATH)}">x402 site audit</a> · <a href="${absoluteUrl(config, X402_BUYER_PREPAY_RISK_SCORE_PAGE_PATH)}">x402 buyer prepay risk score</a> · <a href="${absoluteUrl(config, SCORE_X402_ENDPOINT_BEFORE_PAYING_PAGE_PATH)}">Score x402 endpoint before paying</a> · <a href="${absoluteUrl(config, X402_ROUTE_HEALTH_CHECK_PAGE_PATH)}">x402 route health check</a> · <a href="${absoluteUrl(config, X402_LISTING_RANK_DOCTOR_PAGE_PATH)}">x402 listing rank doctor</a> · <a href="${absoluteUrl(config, AGENTCORE_X402_PAYMENTS_PAGE_PATH)}">AgentCore x402 payments</a> · <a href="${absoluteUrl(config, COINBASE_X402_BAZAAR_MCP_SERVER_PAGE_PATH)}">Coinbase x402 Bazaar MCP server</a> · <a href="${absoluteUrl(config, FULL_LISTING_ROAST_PAGE_PATH)}">Full listing roast</a></p>
           <p><a href="${mcpUrl}">MCP metadata</a> · <a href="${mcpServerCardUrl}">MCP server card</a> · <a href="${openApiUrl}">OpenAPI</a> · <a href="${llmsUrl}">llms.txt</a> · <a href="${llmsFullUrl}">llms-full.txt</a> · <a href="${absoluteUrl(config, AUTH_MARKDOWN_PATH)}">auth.md</a></p>
         </div>
         <div class="card">
