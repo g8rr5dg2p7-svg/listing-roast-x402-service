@@ -38,11 +38,11 @@ Official AgentCore/Bazaar references:
 
 Current verified state:
 
-- Latest verified deployment: 7435d8a0-88f8-4e5f-b1c1-e27fd7541632.
-- Latest live code commit: 9f244ce Refresh public CDP search audit.
-- Latest GitHub release: public-cdp-audit-refresh-v1.
+- Latest verified deployment: 465b8d1a-71d5-480c-893c-fafd453c84a6.
+- Latest live code commit: cc7f35b Expose exact intent command choices.
+- Latest GitHub release: exact-intent-command-choice-v1.
 - Latest metadata version: 2026-06-21-exact-intent-command-choice-v70.
-- Revenue truth as of the 2026-06-21T03:21Z live no-spend check: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. No third paid completion has been confirmed yet.
+- Revenue truth as of the 2026-06-21T03:33Z live no-spend check: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. No third paid completion has been confirmed yet.
 - The second wallet-confirmed paid completion came through the already-indexed $0.001 `GET /api/listing-roast` route. That remains the preferred first paid action for public Bazaar, AgentCore Gateway, and Coinbase x402 Bazaar MCP buyers.
 - AgentCore Gateway and Coinbase Bazaar MCP handoff is live in `/agentcore-x402-payments`, `/coinbase-x402-bazaar-mcp-server`, `/x402.json`, `/openapi.json`, `/llms.txt`, and MCP metadata. AgentCore buyers can add the official Coinbase Bazaar MCP server at `https://api.cdp.coinbase.com/platform/v2/x402/discovery/mcp` with No Authorization, use `search_resources`, and reserve `proxy_tool_call` for intentional paid calls.
 - Agent-tools and x402 manifests now explicitly keep `GET /api/listing-roast` as the primary paid call, omit `POST /` from public resource/tool/action arrays, and expose `POST /` only as `fallbackDirectoryPost` for stale generic-snippet recovery. The root POST route remains live and protected at $0.001 / 1000 units, but crawlers should now sample the indexed GET route first.
@@ -52,6 +52,7 @@ Current verified state:
 - Sample score, examples, and the unpaid `POST /api/listing-score` 402 preview now keep the full-roast upgrade label and detailed next paid action aligned on direct no-body `GET /api/full-listing-roast` at 10000 units. Live verification confirmed `/api/sample-score` and `/api/examples` return 200 with `upgradeEndpoint=/api/full-listing-roast`, and `/api/listing-score` returns a valid 402 at 5000 units with a paid-response preview that upgrades to `GET /api/full-listing-roast`.
 - Current public CDP search still finds Listing Roast first for `marketplace listing score`, `paid api listing quality`, and `paid API listing quality score` with `maxUsdPrice=0.001`, plus `listing roast` and `full listing roast` with `maxUsdPrice=0.01`. Public CDP search still does not reliably surface the newer AgentCore/Bazaar-MCP terms until a real buyer settlement refreshes those public cards, so owned pay-now, OpenAPI, x402 manifest, and local discovery remain the fallback handoff.
 - The owned public CDP search audit snapshot was refreshed from no-spend public CDP searches observed at 2026-06-21T03:18:07Z. Live verification confirmed `/x402.json` and `/api/paid-usage-proof` expose that timestamp and the current missing/competed-query map while keeping `/api/listing-roast` as the first public paid route.
+- Exact-intent command choice is live in `/api/commands`, `/api/pay-now`, `/api/find`, and `/api/route`: buyer phrases such as `buyer-agent skip reasons` still keep the wallet-proven `/api/listing-roast` command first, but now also expose `exactIntentCommand`, `exactIntentExpectedChallenge`, `catalogRefreshCommand`, and `catalogRefreshInstruction` for `/api/buyer-agent-skip-reasons` with explicit no-self-pay guidance. Live no-spend verification on 2026-06-21T03:33Z confirmed the new fields, `/x402.json` metadata version v70, 402 challenges at 1000 units for `/api/listing-roast` and `/api/buyer-agent-skip-reasons`, and a 10000-unit challenge for `/api/full-listing-roast`.
 - External directory PR remains open and clean: https://github.com/xpaysh/awesome-x402/pull/549.
 - Watch for the next real movement above this baseline: `paidCompletions > 2`, `estimatedGrossRevenueUsd > 0.002`, `receiverWallet.usdcBalance > 1.001`, or paid route counters moving beyond the current second-sale baseline.
 
