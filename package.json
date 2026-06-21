@@ -2,7 +2,7 @@
   "name": "listing-roast-x402-service",
   "version": "0.1.0",
   "private": true,
-  "description": "Wallet-confirmed x402 paid API listing quality score, buyer-agent skip reasons, and discovery audit service.",
+  "description": "Wallet-confirmed x402 paid API listing quality score for AgentCore Gateway search_resources, Coinbase Bazaar MCP proxy_tool_call, buyer-agent skip reasons, and discovery audits.",
   "keywords": [
     "x402",
     "x402-bazaar",
@@ -14,6 +14,9 @@
     "buyer-agent-skip-reasons",
     "agent-service-clarity",
     "agentcore-x402-payments",
+    "agentcore-gateway",
+    "search-resources",
+    "proxy-tool-call",
     "coinbase-bazaar-mcp",
     "coinbase-x402-bazaar-mcp-server",
     "marketplace-listing-conversion",

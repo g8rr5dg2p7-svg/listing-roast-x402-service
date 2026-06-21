@@ -12,6 +12,10 @@ Paid-use proof: https://listing-roast-x402-service-production.up.railway.app/api
 
 AgentCore handoff: https://listing-roast-x402-service-production.up.railway.app/agentcore-x402-payments
 
+Coinbase Bazaar MCP handoff: https://listing-roast-x402-service-production.up.railway.app/coinbase-x402-bazaar-mcp-server
+
+Official Coinbase Bazaar MCP server for AgentCore Gateway: `https://api.cdp.coinbase.com/platform/v2/x402/discovery/mcp` with No Authorization; use `search_resources`, then `proxy_tool_call` only for intentional paid calls.
+
 Instant score endpoint: `GET /api/instant-listing-score`
 
 Indexed quick-score endpoint: `GET /api/listing-roast`
@@ -32,7 +36,7 @@ Live URL: https://listing-roast-x402-service-production.up.railway.app
 
 ## Buyer-Facing Description
 
-Listing Roast x402 helps builders avoid promoting paid API/service listings that buyer agents will skip. The command builder creates a copy-ready x402 command from the buyer's own listing, the sample page shows the score output before payment, and the proof endpoint shows wallet-confirmed paid use before payment. For $0.001, the already-indexed listing-roast GET route is the preferred paid API listing quality, marketplace listing quality, AgentCore x402 payments readiness, buyer-agent skip-reason, x402 site-audit starter, discovery-audit triage, and paid API preflight quick score; the free AgentCore handoff points AgentCore Gateway and Bazaar-MCP buyers to that same route; the paid ping verifies the x402 rail; the instant GET route gives a dedicated score URL; the site audit checks public x402 metadata and Bazaar search visibility; the exact-path GET discovery audit gives the cheapest discovery-audit first touch; and `GET /api/agent402-route-visibility` gives Agent402/router searches a literal paid route. For $0.005, the score endpoint checks the buyer, output promise, price visibility, checkout clarity, and example payload. For $0.01, GET `/api/full-listing-roast` returns a structured JSON critique with skip reasons, top fixes, rewritten listing copy, and a recommendation on whether to stop editing and test traffic or fix the offer first. POST `/api/listing-roast` remains available for custom request bodies and stale directory cards; omitted bodies use safe defaults. The $0.01 POST discovery audit checks a public x402 endpoint against direct 402 metadata, Bazaar search/merchant discovery, Agent402 route visibility, and the catalog-refresh settlement requirements without making paid calls when a custom JSON body is needed.
+Listing Roast x402 helps builders avoid promoting paid API/service listings that buyer agents will skip. The command builder creates a copy-ready x402 command from the buyer's own listing, the sample page shows the score output before payment, and the proof endpoint shows wallet-confirmed paid use before payment. For $0.001, the already-indexed listing-roast GET route is the preferred paid API listing quality, marketplace listing quality, AgentCore x402 payments readiness, Coinbase Bazaar MCP search_resources/proxy_tool_call handoff, buyer-agent skip-reason, x402 site-audit starter, discovery-audit triage, and paid API preflight quick score; the free AgentCore and Coinbase Bazaar MCP handoffs point AgentCore Gateway and Bazaar-MCP buyers to that same route; the paid ping verifies the x402 rail; the instant GET route gives a dedicated score URL; the site audit checks public x402 metadata and Bazaar search visibility; the exact-path GET discovery audit gives the cheapest discovery-audit first touch; and `GET /api/agent402-route-visibility` gives Agent402/router searches a literal paid route. For $0.005, the score endpoint checks the buyer, output promise, price visibility, checkout clarity, and example payload. For $0.01, GET `/api/full-listing-roast` returns a structured JSON critique with skip reasons, top fixes, rewritten listing copy, and a recommendation on whether to stop editing and test traffic or fix the offer first. POST `/api/listing-roast` remains available for custom request bodies and stale directory cards; omitted bodies use safe defaults. The $0.01 POST discovery audit checks a public x402 endpoint against direct 402 metadata, Bazaar search/merchant discovery, Agent402 route visibility, and the catalog-refresh settlement requirements without making paid calls when a custom JSON body is needed.
 
 ## Example Request
 
@@ -67,7 +71,7 @@ Listing Roast x402 helps builders avoid promoting paid API/service listings that
 
 - x402 Bazaar discovery.
 - x402/MCP builder communities.
-- AgentCore Gateway and Bazaar-MCP buyer flows.
+- AgentCore Gateway and Bazaar-MCP buyer flows, including `search_resources` and `proxy_tool_call` handoffs.
 - GitHub README and repo topics.
 - Any directory that accepts live x402 endpoints with clear pricing.
 - Agent crawlers that read `/llms.txt` or `/openapi.json`.

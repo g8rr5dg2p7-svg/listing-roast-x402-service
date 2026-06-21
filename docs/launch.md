@@ -9,6 +9,7 @@ Live production service:
 - OpenAPI: https://listing-roast-x402-service-production.up.railway.app/openapi.json
 - llms.txt: https://listing-roast-x402-service-production.up.railway.app/llms.txt
 - AgentCore handoff: https://listing-roast-x402-service-production.up.railway.app/agentcore-x402-payments
+- Coinbase Bazaar MCP handoff: https://listing-roast-x402-service-production.up.railway.app/coinbase-x402-bazaar-mcp-server
 - Instant score route: https://listing-roast-x402-service-production.up.railway.app/api/instant-listing-score
 - Indexed quick-score route: GET https://listing-roast-x402-service-production.up.railway.app/api/listing-roast for marketplace listing quality, AgentCore x402 payments readiness, x402 site-audit starter intent, discovery-audit triage, and paid API preflight
 - Paid x402 ping route: https://listing-roast-x402-service-production.up.railway.app/api/x402-ping
@@ -30,6 +31,19 @@ Live production service:
 - GitHub: https://github.com/g8rr5dg2p7-svg/listing-roast-x402-service
 
 Current verified state:
+
+- Latest verified deployment: ab4c504b-8733-45b9-8f5d-1a2cd51578df.
+- Latest live code commit: 765d74c Expose MCP tool terms in OpenAPI snippets.
+- Latest GitHub release: openapi-mcp-snippets-v1.
+- Latest metadata version: 2026-06-21-openapi-mcp-snippets-v61.
+- Revenue truth as of the latest live no-spend check: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. No third paid completion has been confirmed yet.
+- The second wallet-confirmed paid completion came through the already-indexed $0.001 `GET /api/listing-roast` route. That remains the preferred first paid action for public Bazaar, AgentCore Gateway, and Coinbase x402 Bazaar MCP buyers.
+- AgentCore Gateway and Coinbase Bazaar MCP handoff is live in `/agentcore-x402-payments`, `/coinbase-x402-bazaar-mcp-server`, `/x402.json`, `/openapi.json`, `/llms.txt`, and MCP metadata. AgentCore buyers can add the official Coinbase Bazaar MCP server at `https://api.cdp.coinbase.com/platform/v2/x402/discovery/mcp` with No Authorization, use `search_resources`, and reserve `proxy_tool_call` for intentional paid calls.
+- Current public CDP search still finds Listing Roast first for `marketplace listing score`, `paid api listing quality`, and `paid API listing quality score` with `maxUsdPrice=0.001`, plus `listing roast` and `full listing roast` with `maxUsdPrice=0.01`. Public CDP search still does not reliably surface the newer AgentCore/Bazaar-MCP terms until a real buyer settlement refreshes those public cards, so owned pay-now, OpenAPI, x402 manifest, and local discovery remain the fallback handoff.
+- External directory PR remains open and clean: https://github.com/xpaysh/awesome-x402/pull/549.
+- Watch for the next real movement above this baseline: `paidCompletions > 2`, `estimatedGrossRevenueUsd > 0.002`, `receiverWallet.usdcBalance > 1.001`, or paid route counters moving beyond the current second-sale baseline.
+
+Historical verification context from the earlier route/CDP search pass:
 
 - Railway deploy: successful. Latest verified deployment: df86a180-e074-466d-b352-c44a60c24774.
 - Latest live code commit: 9a1c6f4 Add full roast direct handoff.
