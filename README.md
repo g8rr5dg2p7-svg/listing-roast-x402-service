@@ -40,9 +40,9 @@ If an external marketplace card looks stale, parse the live `Payment-Required` h
 - `GET /builder` - browser-side command builder for custom listing payloads.
 - `GET /sample` - buyer-facing sample score page.
 - `GET /api/sample-score` and `GET /api/sample` - free sample request, proven $0.001 first paid command, and score output.
-- `GET /openapi.json`, `GET /.well-known/openapi.json`, `GET /api/v1/openapi.json`, and `GET /swagger.json` - machine-readable API description.
+- `GET /openapi.json`, `GET /.well-known/openapi.json`, `GET /api/openapi.json`, and `GET /api-docs/openapi.json` - compact machine-readable API description for first-pass agent scanners. It keeps the current paid buyer routes first and points to the full document.
+- `GET /openapi-full.json`, `GET /.well-known/openapi-full.json`, `GET /api/openapi-full.json`, `GET /api/v1/openapi.json`, and `GET /swagger.json` - full machine-readable API description with the generic `/api`, `/api/v1`, `/v1`, root preflight, and local discovery helper aliases included.
 - `GET /openapi.yaml` and `GET /.well-known/openapi.yaml` - redirect to the JSON OpenAPI document.
-- `GET /api/openapi.json` and `GET /api-docs/openapi.json` - OpenAPI JSON aliases for scanners that start under API paths.
 - `GET /AGENTS.md`, `GET /docs`, and `GET /api-docs` - agent-readable safety, route, and discovery docs.
 - `GET /llms.txt`, `GET /.well-known/llms.txt`, `GET /llms-full.txt`, `GET /.well-known/llms-full.txt`, and `GET /index.md` - agent-readable service summaries and route guides.
 - `GET /icon.svg` and `GET /favicon.svg` - hosted service icon URLs for agent and marketplace profiles.

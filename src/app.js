@@ -331,6 +331,9 @@ const INTENT_LANDING_PATHS = [
 ];
 const API_V1_OPENAPI_JSON_PATH = "/api/v1/openapi.json";
 const SWAGGER_JSON_PATH = "/swagger.json";
+const OPENAPI_FULL_JSON_PATH = "/openapi-full.json";
+const WELL_KNOWN_OPENAPI_FULL_JSON_PATH = "/.well-known/openapi-full.json";
+const API_OPENAPI_FULL_JSON_PATH = "/api/openapi-full.json";
 const OPENAPI_YAML_PATH = "/openapi.yaml";
 const OPENAPI_JSON_PATHS = [
   "/openapi.json",
@@ -340,7 +343,21 @@ const OPENAPI_JSON_PATHS = [
   API_V1_OPENAPI_JSON_PATH,
   SWAGGER_JSON_PATH
 ];
+const OPENAPI_FULL_JSON_PATHS = [
+  OPENAPI_FULL_JSON_PATH,
+  WELL_KNOWN_OPENAPI_FULL_JSON_PATH,
+  API_OPENAPI_FULL_JSON_PATH
+];
 const OPENAPI_YAML_PATHS = [OPENAPI_YAML_PATH, WELL_KNOWN_OPENAPI_YAML_PATH];
+const COMPACT_OPENAPI_OMITTED_PATHS = Object.freeze([
+  API_ENTRY_PATH,
+  API_V1_ENTRY_PATH,
+  V1_ENTRY_PATH,
+  LOCAL_DISCOVERY_RESOURCE_PATHS[0],
+  LOCAL_DISCOVERY_SEARCH_PATHS[0],
+  LOCAL_DISCOVERY_MERCHANT_PATHS[0],
+  PREFLIGHT_ALIAS_PATHS[2]
+]);
 const SCHEMA_JSON_PATH = "/schema.json";
 const API_SAMPLE_PATH = "/api/sample";
 const API_SAMPLE_SCORE_PATH = "/api/sample-score";
@@ -463,8 +480,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-openapi-payment-info-v48";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T00:12:45.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-compact-openapi-v49";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T00:26:18.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
 const ROUTE_SERVICE_NAMES = Object.freeze({
@@ -681,6 +698,10 @@ function formatX402ManifestAliasUrls(config) {
 
 function openApiAliasUrls(config) {
   return [WELL_KNOWN_OPENAPI_JSON_PATH, API_OPENAPI_JSON_PATH, API_DOCS_OPENAPI_JSON_PATH, API_V1_OPENAPI_JSON_PATH, SWAGGER_JSON_PATH].map((pathname) => absoluteUrl(config, pathname));
+}
+
+function openApiFullAliasUrls(config) {
+  return OPENAPI_FULL_JSON_PATHS.map((pathname) => absoluteUrl(config, pathname));
 }
 
 function openApiYamlAliasUrls(config) {
@@ -5415,7 +5436,54 @@ function buildOpenApiPaymentInfo(config, paymentHint) {
   };
 }
 
-function buildOpenApiDocument(config, cashRegister = {}) {
+function countOpenApiOperations(paths) {
+  return Object.values(paths).reduce((count, pathItem) => (
+    count + ["get", "post", "put", "patch", "delete"].filter((method) => pathItem[method]).length
+  ), 0);
+}
+
+function applyCompactOpenApiProfile(document, config) {
+  for (const pathname of COMPACT_OPENAPI_OMITTED_PATHS) {
+    delete document.paths[pathname];
+  }
+
+  const fullOpenApi = absoluteUrl(config, OPENAPI_FULL_JSON_PATH);
+  const compactProfile = {
+    profile: "compact",
+    routeCount: countOpenApiOperations(document.paths),
+    fullOpenApi,
+    fullOpenApiAliases: openApiFullAliasUrls(config),
+    omittedPaths: [...COMPACT_OPENAPI_OMITTED_PATHS],
+    note: "Default OpenAPI is compact for first-pass agent discovery. The omitted paths remain live and are documented in the full OpenAPI."
+  };
+
+  document.info["x-openapi-profile"] = compactProfile.profile;
+  document.info["x-full-openapi"] = fullOpenApi;
+  document.info["x-compact-omitted-paths"] = compactProfile.omittedPaths;
+  document["x-openapi-profile"] = compactProfile;
+  if (document["x-listing-roast"]) {
+    document["x-listing-roast"].openApiProfile = compactProfile.profile;
+    document["x-listing-roast"].fullOpenApi = fullOpenApi;
+    document["x-listing-roast"].fullOpenApiAliases = openApiFullAliasUrls(config);
+    document["x-listing-roast"].compactOpenApiOmittedPaths = compactProfile.omittedPaths;
+  }
+}
+
+function applyFullOpenApiProfile(document, config) {
+  document.info["x-openapi-profile"] = "full";
+  document["x-openapi-profile"] = {
+    profile: "full",
+    routeCount: countOpenApiOperations(document.paths),
+    compactOpenApi: absoluteUrl(config, "/openapi.json")
+  };
+  if (document["x-listing-roast"]) {
+    document["x-listing-roast"].openApiProfile = "full";
+    document["x-listing-roast"].compactOpenApi = absoluteUrl(config, "/openapi.json");
+  }
+}
+
+function buildOpenApiDocument(config, cashRegister = {}, options = {}) {
+  const openApiProfile = options.profile || "compact";
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
@@ -5470,7 +5538,8 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       "x-recommended-paid-sequence": recommendedPaidSequence,
       "x-commands": absoluteUrl(config, COMMANDS_PATH),
       "x-pay-now": absoluteUrl(config, PAY_NOW_PATH),
-      "x-paid-usage-proof": absoluteUrl(config, PAID_USAGE_PROOF_PATH)
+      "x-paid-usage-proof": absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+      "x-full-openapi": absoluteUrl(config, OPENAPI_FULL_JSON_PATH)
     },
     servers: [{ url: config.serviceUrl }],
     "x402": {
@@ -5492,6 +5561,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
     "x-commands": absoluteUrl(config, COMMANDS_PATH),
     "x-pay-now": absoluteUrl(config, PAY_NOW_PATH),
     "x-paid-usage-proof": absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+    "x-full-openapi": absoluteUrl(config, OPENAPI_FULL_JSON_PATH),
     paths: {
       [ROAST_PATH]: {
         get: {
@@ -6273,6 +6343,8 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       apiEntryRoute: absoluteUrl(config, API_ENTRY_PATH),
       apiV1EntryRoute: absoluteUrl(config, API_V1_ENTRY_PATH),
       v1EntryRoute: absoluteUrl(config, V1_ENTRY_PATH),
+      fullOpenApi: absoluteUrl(config, OPENAPI_FULL_JSON_PATH),
+      fullOpenApiAliases: openApiFullAliasUrls(config),
       preferredFirstPaidRoute: absoluteUrl(config, ROAST_PATH),
       recommendedFirstPaidAction: intentRoutes.indexedQuickScore,
       recommendedPaidSequence,
@@ -6430,6 +6502,12 @@ function buildOpenApiDocument(config, cashRegister = {}) {
         operation.security = [];
       }
     }
+  }
+
+  if (openApiProfile === "full") {
+    applyFullOpenApiProfile(document, config);
+  } else {
+    applyCompactOpenApiProfile(document, config);
   }
 
   return document;
@@ -11280,7 +11358,7 @@ ${webMcpScript(config)}
 
   app.get("/sitemap.xml", (_request, response) => {
     const updated = new Date().toISOString();
-    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, FULL_ROAST_GET_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", API_SAMPLE_PATH, PAY_NOW_PATH, COMMANDS_PATH, PAID_USAGE_PROOF_PATH, ...PAID_USAGE_PROOF_ALIAS_PATHS, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ...AGENT_LISTING_PAID_PATHS, PING_PATH, ...SITE_AUDIT_PAID_PATHS, ...DISCOVERY_AUDIT_QUICK_PATHS, API_SAMPLE_SCORE_PATH, ...OPENAPI_JSON_PATHS, ...OPENAPI_YAML_PATHS, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, ...PAYMENT_MANIFEST_PATHS, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, MCP_SERVER_CARD_PATH, "/api/schema", SCHEMA_JSON_PATH, "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
+    const urls = ["/", ICON_SVG_PATH, FAVICON_SVG_PATH, ROAST_PATH, FULL_ROAST_GET_PATH, ...QUICK_SCORE_ALIAS_PATHS, ...INTENT_LANDING_PATHS, INDEX_MARKDOWN_PATH, AUTH_MARKDOWN_PATH, WELL_KNOWN_AUTH_MARKDOWN_PATH, AGENTS_MARKDOWN_PATH, DOCS_PATH, API_DOCS_PATH, "/builder", "/sample", API_SAMPLE_PATH, PAY_NOW_PATH, COMMANDS_PATH, PAID_USAGE_PROOF_PATH, ...PAID_USAGE_PROOF_ALIAS_PATHS, PRICING_PATH, FIND_PATH, ROUTE_PATH, ...LOCAL_DISCOVERY_RESOURCE_PATHS, ...LOCAL_DISCOVERY_SEARCH_PATHS, ...LOCAL_DISCOVERY_MERCHANT_PATHS, API_ENTRY_PATH, API_V1_ENTRY_PATH, V1_ENTRY_PATH, INSTANT_SCORE_PATH, CONVERSION_SCORE_PATH, ...AGENT_LISTING_PAID_PATHS, PING_PATH, ...SITE_AUDIT_PAID_PATHS, ...DISCOVERY_AUDIT_QUICK_PATHS, API_SAMPLE_SCORE_PATH, ...OPENAPI_JSON_PATHS, ...OPENAPI_FULL_JSON_PATHS, ...OPENAPI_YAML_PATHS, LLMS_PATH, WELL_KNOWN_LLMS_PATH, LLMS_FULL_PATH, WELL_KNOWN_LLMS_FULL_PATH, "/x402.json", WELL_KNOWN_X402_JSON_PATH, WELL_KNOWN_X402_PATH, API_X402_JSON_PATH, ...PAYMENT_MANIFEST_PATHS, WELL_KNOWN_AGENT_CARD_PATH, WELL_KNOWN_AGENT_JSON_PATH, API_AGENT_CARD_PATH, API_AGENT_JSON_PATH, WELL_KNOWN_AI_PLUGIN_PATH, WELL_KNOWN_API_CATALOG_PATH, WELL_KNOWN_API_CATALOG_JSON_PATH, WELL_KNOWN_AGENT_TOOLS_PATH, WELL_KNOWN_AGENT_SKILLS_INDEX_PATH, WELL_KNOWN_AGENT_SKILL_PATH, WELL_KNOWN_MCP_JSON_PATH, WELL_KNOWN_MCP_PATH, WELL_KNOWN_MCP_SERVER_PATH, WELL_KNOWN_MCP_SERVER_JSON_PATH, MCP_ROOT_PATH, MCP_JSON_PATH, WELL_KNOWN_MCP_SERVER_CARD_PATH, MCP_SERVER_CARD_PATH, "/api/schema", SCHEMA_JSON_PATH, "/api/score-schema", "/api/discovery-audit-schema", "/api/examples"].map((pathname) => {
       return `<url><loc>${escapeHtml(absoluteUrl(config, pathname))}</loc><lastmod>${updated}</lastmod></url>`;
     }).join("");
 
@@ -11789,13 +11867,21 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
 `);
   });
 
-  async function serveOpenApiDocument(_request, response) {
+  async function serveOpenApiDocument(request, response) {
     await recordSignal("openApiViews");
     const cashRegister = await getCashRegisterWithReceiverWallet(config);
-    setFreshDiscoveryHeaders(response).json(buildOpenApiDocument(config, cashRegister));
+    const profile = OPENAPI_FULL_JSON_PATHS.includes(request.path)
+      || request.path === API_V1_OPENAPI_JSON_PATH
+      || request.path === SWAGGER_JSON_PATH
+      || request.query.profile === "full"
+      || request.query.view === "full"
+      ? "full"
+      : "compact";
+    setFreshDiscoveryHeaders(response).json(buildOpenApiDocument(config, cashRegister, { profile }));
   }
 
   app.get(OPENAPI_JSON_PATHS, serveOpenApiDocument);
+  app.get(OPENAPI_FULL_JSON_PATHS, serveOpenApiDocument);
   app.get(OPENAPI_YAML_PATHS, (_request, response) => {
     response.redirect(302, absoluteUrl(config, "/openapi.json"));
   });
