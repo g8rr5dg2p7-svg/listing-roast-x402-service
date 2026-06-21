@@ -485,8 +485,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-agent-tools-call-hint-v62";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:28:56.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-hide-root-post-v63";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:42:41.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -4034,6 +4034,16 @@ function selectPayNowAction(config, intent = "") {
     };
   }
 
+  if (wantsDirectoryPostFallback(rawIntent)) {
+    return {
+      intent: rawIntent,
+      intentRoutes,
+      selectedActionKey: "directoryPost",
+      selectedPaidAction: intentRoutes.directoryPost,
+      rankedPaidRoutes: []
+    };
+  }
+
   const ranked = buildPaidRouteCatalog(config)
     .map((route) => ({ ...route, matchScore: scoreCatalogResource(route, rawIntent) }))
     .filter((route) => route.matchScore > 0)
@@ -4620,12 +4630,22 @@ function compactPaidUseProof(proof = {}) {
   };
 }
 
+function wantsDirectoryPostFallback(intent = "") {
+  const normalizedIntent = String(intent || "").toLowerCase();
+  return includesAny(normalizedIntent, ["generic root post", "root post", "post root", "post /"])
+    || (normalizedIntent.includes("directory handoff") && normalizedIntent.includes("post"));
+}
+
 function commandActionKeyForIntent(intent = "") {
   const rawIntent = String(intent || "").trim().slice(0, 400);
   const normalizedIntent = rawIntent.toLowerCase();
 
   if (!rawIntent) {
     return { intent: "", selectedActionKey: "indexedQuickScore" };
+  }
+
+  if (wantsDirectoryPostFallback(rawIntent)) {
+    return { intent: rawIntent, selectedActionKey: "directoryPost" };
   }
 
   if (includesAny(normalizedIntent, ["x402 buyer prepay risk score", "buyer prepay risk score", "prepay risk score", "x402 prepay risk"])) {
@@ -6983,6 +7003,22 @@ function buildPrimaryResourceSample(primaryEndpoint) {
   };
 }
 
+function buildDirectoryPostFallbackHandoff(config) {
+  return {
+    id: "directory_root_post",
+    name: "directory_root_post",
+    method: "POST",
+    path: ROOT_DIRECTORY_POST_PATH,
+    url: absoluteUrl(config, ROOT_DIRECTORY_POST_PATH),
+    price: config.instantScorePrice,
+    maxAmountRequired: INSTANT_SCORE_AMOUNT,
+    description: DIRECTORY_POST_DESCRIPTION,
+    command: buildPostPayCommand(config, ROOT_DIRECTORY_POST_PATH, INSTANT_SCORE_AMOUNT),
+    listedInResources: false,
+    reason: "Kept live for stale external snippets, but omitted from public resource/tool arrays so crawlers sample GET /api/listing-roast first."
+  };
+}
+
 function buildShallowPrimaryCallAliases(primaryEndpoint) {
   return {
     url: primaryEndpoint.url,
@@ -7041,21 +7077,6 @@ function buildX402Manifest(config, cashRegister = {}) {
         schema: absoluteUrl(config, "/api/score-schema")
       },
       ...buildQuickScoreAliasManifestResources(config),
-      {
-        id: "directory_root_post",
-        name: "directory_root_post",
-        method: "POST",
-        path: ROOT_DIRECTORY_POST_PATH,
-        url: absoluteUrl(config, ROOT_DIRECTORY_POST_PATH),
-        price: config.instantScorePrice,
-        maxAmountRequired: INSTANT_SCORE_AMOUNT,
-        description: DIRECTORY_POST_DESCRIPTION,
-        keywords: ["agent-tools", "directory handoff", "generic POST", "root POST", "x402 route map", "paid API directory"],
-        command: buildPostPayCommand(config, ROOT_DIRECTORY_POST_PATH, INSTANT_SCORE_AMOUNT),
-        input: {},
-        outputExample: buildDirectoryPostOutput(config),
-        schema: absoluteUrl(config, "/openapi.json")
-      },
       {
         id: "api_entry",
         name: "api_entry",
@@ -7393,6 +7414,8 @@ function buildX402Manifest(config, cashRegister = {}) {
     },
     primaryEndpoint,
     primaryPaidEndpoint: primaryEndpoint,
+    fallbackDirectoryPost: buildDirectoryPostFallbackHandoff(config),
+    fallback_directory_post: buildDirectoryPostFallbackHandoff(config),
     resource_count: resources.length,
     resource_samples: [primaryResourceSample],
     call_info: {
@@ -7553,6 +7576,8 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
     primaryPaidEndpoint: primaryEndpoint,
     primary_endpoint: primaryEndpoint,
     primary_paid_endpoint: primaryEndpoint,
+    fallbackDirectoryPost: buildDirectoryPostFallbackHandoff(config),
+    fallback_directory_post: buildDirectoryPostFallbackHandoff(config),
     endpoints: {
       primary_paid_call: {
         method: primaryEndpoint.method,
