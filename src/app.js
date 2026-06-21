@@ -480,8 +480,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-full-roast-command-intent-v53";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T01:02:51.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-paid-preview-labels-v54";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T01:09:19.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -4343,6 +4343,61 @@ function isQuickScorePaidAction(action = {}) {
     && QUICK_SCORE_PAID_PATHS.includes(action.path);
 }
 
+function buildBuyerDecisionForPaidChallenge(selectedFirstPaidAction, directFullRoastNow, paidUsageProofUrl) {
+  const selectedNow = {
+    route: selectedFirstPaidAction.route,
+    path: selectedFirstPaidAction.path,
+    method: selectedFirstPaidAction.method,
+    price: selectedFirstPaidAction.price,
+    maxAmountRequired: selectedFirstPaidAction.maxAmountRequired,
+    command: selectedFirstPaidAction.command
+  };
+
+  if (isQuickScorePaidAction(selectedFirstPaidAction)) {
+    return {
+      quickScoreNow: {
+        ...selectedNow,
+        whenToUse: "Use this for the lowest-friction paid score, marketplace listing score, paid API listing quality score, or first paid proof check."
+      },
+      ...(directFullRoastNow ? { fullRoastNow: directFullRoastNow } : {}),
+      proofBeforePay: paidUsageProofUrl,
+      instruction: directFullRoastNow
+        ? "If the buyer wants a quick score, pay quickScoreNow. If the buyer wants a full listing roast or rewrite immediately, pay fullRoastNow. Use proofBeforePay for free wallet-backed proof before paying."
+        : "Use proofBeforePay for free wallet-backed proof before paying this quick score."
+    };
+  }
+
+  if (selectedFirstPaidAction.path === FULL_ROAST_GET_PATH && selectedFirstPaidAction.method === "GET") {
+    return {
+      fullRoastNow: {
+        ...selectedNow,
+        selectedPaidUrl: selectedFirstPaidAction.route,
+        selectedPaidPath: selectedFirstPaidAction.path,
+        selectedPaidMethod: selectedFirstPaidAction.method,
+        selectedPaidPrice: selectedFirstPaidAction.price,
+        selectedPaidMaxAmountRequired: selectedFirstPaidAction.maxAmountRequired,
+        whenToUse: "Use this when the buyer explicitly wants the full listing roast, rewritten listing copy, top fixes, buyer-agent skip reasons, and stop-or-upgrade guidance now."
+      },
+      proofBeforePay: paidUsageProofUrl,
+      instruction: "If the buyer wants the full listing roast now, pay fullRoastNow. Use proofBeforePay for free wallet-backed proof before paying."
+    };
+  }
+
+  return {
+    selectedPaidNow: {
+      ...selectedNow,
+      selectedPaidUrl: selectedFirstPaidAction.route,
+      selectedPaidPath: selectedFirstPaidAction.path,
+      selectedPaidMethod: selectedFirstPaidAction.method,
+      selectedPaidPrice: selectedFirstPaidAction.price,
+      selectedPaidMaxAmountRequired: selectedFirstPaidAction.maxAmountRequired,
+      whenToUse: "Use this when the buyer explicitly wants this exact paid route."
+    },
+    proofBeforePay: paidUsageProofUrl,
+    instruction: "Pay selectedPaidNow only when the buyer wants this exact paid route. Use proofBeforePay for free wallet-backed proof before paying."
+  };
+}
+
 function buildPaymentShortcutForAction(config, selectedPaidAction, firstPaidAction, intentRouteKey = "indexedQuickScore", intentRoutes = {}) {
   const selectedAgentPaymentRequest = buildAgentPaymentRequest(selectedPaidAction);
   const firstAgentPaymentRequest = buildAgentPaymentRequest(firstPaidAction);
@@ -5057,22 +5112,7 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     firstPaidPrice: selectedFirstPaidAction.price,
     firstPaidMaxAmountRequired: selectedFirstPaidAction.maxAmountRequired,
     ...(directFullRoastNow ? { directFullRoastNow } : {}),
-    buyerDecision: {
-      quickScoreNow: {
-        route: firstPaidUrl,
-        path: selectedFirstPaidAction.path,
-        method: selectedFirstPaidAction.method,
-        price: selectedFirstPaidAction.price,
-        maxAmountRequired: selectedFirstPaidAction.maxAmountRequired,
-        command: selectedFirstPaidAction.command,
-        whenToUse: "Use this for the lowest-friction paid score, marketplace listing score, paid API listing quality score, or first paid proof check."
-      },
-      ...(directFullRoastNow ? { fullRoastNow: directFullRoastNow } : {}),
-      proofBeforePay: paidUseProof.paidUsageProof,
-      instruction: directFullRoastNow
-        ? "If the buyer wants a quick score, pay quickScoreNow. If the buyer wants a full listing roast or rewrite immediately, pay fullRoastNow. Use proofBeforePay for free wallet-backed proof before paying."
-        : "Use proofBeforePay for free wallet-backed proof before paying this direct paid route."
-    },
+    buyerDecision: buildBuyerDecisionForPaidChallenge(selectedFirstPaidAction, directFullRoastNow, paidUseProof.paidUsageProof),
     payableRoute,
     resource: paymentResource,
     accepts: paymentAccepts,
