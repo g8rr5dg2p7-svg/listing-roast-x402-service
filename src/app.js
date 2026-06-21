@@ -480,8 +480,9 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-compact-openapi-v49";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T00:26:18.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-public-cdp-search-audit-v50";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T00:36:58.000Z";
+const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
 const ROUTE_SERVICE_NAMES = Object.freeze({
@@ -6616,6 +6617,7 @@ function buildPaidUsageProofResponse(config, cashRegister = {}, receiverWallet =
       cheapCapSearchStrategy: officialCdpDiscovery.cheapCapSearchStrategy,
       fullRoastDirectHandoff: officialCdpDiscovery.fullRoastDirectHandoff,
       competitiveCapRisks: officialCdpDiscovery.competitiveCapRisks,
+      publicCdpSearchAudit: officialCdpDiscovery.publicCdpSearchAudit,
       rule: officialCdpDiscovery.searchRealityRule
     },
     preferredFirstPaidAction,
@@ -7761,6 +7763,119 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     expectedOutput: ["rewrittenListing", "topFixes", "buyerAgentSkipReasons", "stopOrUpgrade"],
     noSpend: true
   };
+  const publicCdpSearchAudit = {
+    observedAt: PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT,
+    source: "no-spend CDP discovery search and merchant lookup",
+    searchMethod: "hybrid",
+    indexedMerchantResources: 1,
+    indexedResource: absoluteUrl(config, ROAST_PATH),
+    indexedMethod: "GET",
+    indexedMaxAmountRequired: INSTANT_SCORE_AMOUNT,
+    indexedQuality: {
+      l30DaysTotalCalls: 1,
+      l30DaysUniquePayers: 1,
+      lastCalledAt: "2026-06-18T06:43:22.74Z"
+    },
+    publicCardObservedServiceName: null,
+    liveChallengeServiceName: routeServiceMetadata("indexedQuickScore").serviceName,
+    serviceNameNote: "The live 402 challenge exposes a serviceName, but the public CDP card can still show serviceName=null until another real settlement refreshes cached metadata.",
+    rankedFirstQueries: [
+      {
+        query: OFFICIAL_CDP_DISCOVERY_SEARCH_QUERY,
+        maxUsdPrice: "0.001",
+        rank: 1,
+        resource: absoluteUrl(config, ROAST_PATH),
+        amount: INSTANT_SCORE_AMOUNT
+      },
+      {
+        query: "paid api listing quality",
+        maxUsdPrice: "0.001",
+        rank: 1,
+        resource: absoluteUrl(config, ROAST_PATH),
+        amount: INSTANT_SCORE_AMOUNT
+      },
+      {
+        query: "paid API listing quality score",
+        maxUsdPrice: "0.001",
+        rank: 1,
+        resource: absoluteUrl(config, ROAST_PATH),
+        amount: INSTANT_SCORE_AMOUNT
+      },
+      {
+        query: "listing roast",
+        maxUsdPrice: "0.01",
+        rank: 1,
+        resource: absoluteUrl(config, ROAST_PATH),
+        amount: INSTANT_SCORE_AMOUNT
+      },
+      {
+        query: "full listing roast",
+        maxUsdPrice: "0.01",
+        rank: 1,
+        resource: absoluteUrl(config, ROAST_PATH),
+        amount: INSTANT_SCORE_AMOUNT,
+        directUpgrade: absoluteUrl(config, FULL_ROAST_GET_PATH)
+      }
+    ],
+    missingOrCompetedQueries: [
+      {
+        query: "buyer-agent skip reasons",
+        observedTopResult: "Agent API Discovery Brief API",
+        ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("buyer-agent skip reasons")}`,
+        firstPaidRoute: absoluteUrl(config, ROAST_PATH)
+      },
+      {
+        query: "agent service clarity",
+        observedTopResult: "Policy Clarity Score API",
+        ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("agent service clarity")}`,
+        firstPaidRoute: absoluteUrl(config, ROAST_PATH)
+      },
+      {
+        query: "x402 discovery audit",
+        observedTopResult: "GPT-5.5 x402 API Gateway",
+        ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("x402 discovery audit")}`,
+        firstPaidRoute: absoluteUrl(config, DISCOVERY_AUDIT_PATH)
+      },
+      {
+        query: "x402 site audit",
+        observedTopResult: "GPT-5.5 x402 API Gateway",
+        ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("x402 site audit")}`,
+        firstPaidRoute: absoluteUrl(config, SITE_AUDIT_PATH)
+      },
+      {
+        query: "x402 listing rank doctor",
+        observedTopResult: "x402-listing-doctor",
+        ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("x402 listing rank doctor")}`,
+        firstPaidRoute: absoluteUrl(config, "/api/x402-listing-rank-doctor")
+      },
+      {
+        query: "score x402 endpoint before paying",
+        observedTopResult: "x402 Endpoint Safety Verifier",
+        ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("score x402 endpoint before paying")}`,
+        firstPaidRoute: absoluteUrl(config, "/api/score-x402-endpoint-before-paying")
+      },
+      {
+        query: "paid API preflight",
+        observedTopResult: "x402station.io preflight",
+        ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("paid API preflight")}`,
+        firstPaidRoute: absoluteUrl(config, SITE_AUDIT_PATH)
+      },
+      {
+        query: "AgentCore x402 payments",
+        observedTopResult: "Alephant",
+        ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("AgentCore x402 payments")}`,
+        firstPaidRoute: absoluteUrl(config, ROAST_PATH)
+      },
+      {
+        query: "Coinbase x402 Bazaar MCP server",
+        observedTopResult: "GPT-5.5 x402 API Gateway",
+        ownedHandoff: `${absoluteUrl(config, PAY_NOW_PATH)}?intent=${encodeURIComponent("Coinbase x402 Bazaar MCP server")}`,
+        firstPaidRoute: absoluteUrl(config, ROAST_PATH)
+      }
+    ],
+    buyerDecision: "For ranked-first listing-quality queries, use the public CDP result or direct GET /api/listing-roast. For missing or competed queries, use the owned pay-now/local-discovery handoff; public CDP will not index exact alias routes until a real buyer settles those exact routes.",
+    catalogRefreshRule: "Only real settled payments refresh CDP/Bazaar catalog metadata; unpaid searches, details calls, OpenAPI fetches, and 402 probes do not."
+  };
   const competitiveCapRisks = [
     {
       query: "marketplace listing score",
@@ -7796,6 +7911,7 @@ function buildOfficialCdpDiscoveryHandoff(config) {
     domainRestrictedUrlSubstring: serviceDomain,
     cheapCapSearchStrategy,
     fullRoastDirectHandoff,
+    publicCdpSearchAudit,
     competitiveCapRisks,
     workingSearchQueries,
     knownWorkingSearchQueries: workingSearchQueries,
@@ -7841,6 +7957,11 @@ function formatOfficialCdpDiscoveryMarkdown(config) {
 - Cheap-cap search rule: ${handoff.cheapCapSearchStrategy.rule}
 - Known working public CDP queries: ${handoff.knownWorkingSearchQueries.map((entry) => `${entry.query} (max ${entry.maxUsdPrice})`).join(", ")}
 - Not-yet-ranking public CDP queries: ${handoff.notYetRankingSearchQueries.map((entry) => entry.query).join(", ")}
+- Fresh public CDP audit observed at: ${handoff.publicCdpSearchAudit.observedAt}
+- Public CDP indexed merchant resources: ${handoff.publicCdpSearchAudit.indexedMerchantResources}
+- Public CDP ranked-first queries: ${handoff.publicCdpSearchAudit.rankedFirstQueries.map((entry) => `${entry.query} (max ${entry.maxUsdPrice})`).join(", ")}
+- Public CDP missing or competed queries: ${handoff.publicCdpSearchAudit.missingOrCompetedQueries.map((entry) => entry.query).join(", ")}
+- Public card service-name state: ${handoff.publicCdpSearchAudit.publicCardObservedServiceName === null ? "serviceName=null on the cached public card; live 402 challenge has the current serviceName" : handoff.publicCdpSearchAudit.publicCardObservedServiceName}
 - Broader-cap risk queries: ${handoff.competitiveCapRisks.map((entry) => `${entry.query} (${entry.riskAtMaxUsdPrice})`).join(", ")}
 - Alternate search queries: ${handoff.alternateSearchQueries.join(", ")}
 - Start paid use with the already-settled indexed route: ${handoff.indexedRoute}
