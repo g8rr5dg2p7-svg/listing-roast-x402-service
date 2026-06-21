@@ -456,11 +456,12 @@ const SERVICE_TAGS = Object.freeze([
   "x402 Bazaar MCP server"
 ]);
 const DIRECTORY_POST_DESCRIPTION = "Listing Roast directory handoff: $0.001 POST root route for buyer agents following generic marketplace or agent-tools snippets; returns an included quick score, route map, indexed /api/listing-roast handoff, prices, and next paid actions.";
-const INDEXED_QUICK_SCORE_DESCRIPTION = "Listing Roast helps x402 and AgentCore sellers see why buyer agents skip a paid API. Pay $0.001 GET /api/listing-roast for a paid API listing quality score, listing quality score API, marketplace product listing quality, Agentic.Market listing score, AgentCore Gateway and AgentCore x402 payments readiness, Coinbase x402 Bazaar MCP server buyers, marketplace listing conversion API, marketplace listing score, x402 marketplace conversion, buyer-agent skip reasons, buyer agent skip reasons, agent listing conversion score, agent service clarity, agent-service listing score, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, Bazaar search visibility, and x402 seller growth checklist; upgrade with GET /api/full-listing-roast.";
-const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Listing Roast x402: $0.001 GET /api/listing-roast paid API listing quality score for listing quality score API, marketplace product listing quality, Agentic.Market listing score, AgentCore Gateway, AgentCore x402 payments, Coinbase x402 Bazaar MCP server buyers, marketplace conversion API, agent listing conversion score, buyer-agent skip reasons, buyer agent skip reasons, agent service clarity, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price; GET /api/full-listing-roast upgrade.";
+const INDEXED_QUICK_SCORE_DESCRIPTION = "Listing Roast helps x402 and AgentCore sellers see why buyer agents skip a paid API, then turn buyer-agent skip reasons, agent service clarity, marketplace listing score, and full listing roast demand into a paid path. Pay $0.001 GET /api/listing-roast for a paid API listing quality score, listing quality score API, marketplace product listing quality, Agentic.Market listing score, AgentCore Gateway and AgentCore x402 payments readiness, Coinbase x402 Bazaar MCP server buyers, marketplace listing conversion API, x402 marketplace conversion, buyer agent skip reasons, agent listing conversion score, agent-service listing score, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, Bazaar search visibility, and x402 seller growth checklist; upgrade with $0.01 GET /api/full-listing-roast for the full listing roast.";
+const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Listing Roast x402: $0.001 marketplace listing score, paid API listing quality score, buyer-agent skip reasons, agent service clarity, full listing roast. Fits listing quality score API, marketplace product listing quality, Agentic.Market listing score, AgentCore Gateway, Coinbase x402 Bazaar MCP server buyers, marketplace conversion API, agent listing conversion score, buyer agent skip reasons, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price; upgrade GET /api/full-listing-roast.";
 const FULL_ROAST_GET_DESCRIPTION = "Full Listing Roast by Listing Roast: $0.01 GET /api/full-listing-roast for high-intent buyers who want buyer-agent skip reasons, top fixes, rewritten listing copy, and stop-or-upgrade guidance without assembling a POST body. Uses query params or safe defaults; POST /api/listing-roast remains the custom-body full roast.";
 const FULL_ROAST_GET_CHALLENGE_DESCRIPTION = "Full Listing Roast x402: $0.01 GET full listing roast, buyer-agent skip reasons, top fixes, rewritten listing copy, stop-or-upgrade guidance, and launch guidance for paid API and x402 marketplace sellers.";
 const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
+  "full listing roast",
   "listing quality score API",
   "marketplace product listing quality",
   "paid API listing quality score",
@@ -480,8 +481,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-paid-preview-labels-v54";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T01:09:19.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-indexed-search-frontload-v55";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T01:20:44.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
