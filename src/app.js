@@ -480,8 +480,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-public-cdp-search-audit-v50";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T00:36:58.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-route-cdp-search-context-v51";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T00:48:56.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -8696,6 +8696,7 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
   const selectedPaidRoute = compactPaidAction(handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction));
   const firstPaidRoute = compactPaidAction(selectedFirstPaidAction);
   const exactIntentPaidRoute = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
+  const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
   const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes, {
     selectedPaidSequence,
     use: selectedPaidSequence[0]?.use || selectedActionKey,
@@ -8758,6 +8759,13 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
       paidUsageProofUrl: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
       x402Manifest: absoluteUrl(config, "/x402.json"),
       openApi: absoluteUrl(config, WELL_KNOWN_OPENAPI_JSON_PATH)
+    },
+    officialCdpDiscovery,
+    searchReality: {
+      publicCdpSearchAudit: officialCdpDiscovery.publicCdpSearchAudit,
+      knownWorkingSearchQueries: officialCdpDiscovery.knownWorkingSearchQueries,
+      notYetRankingSearchQueries: officialCdpDiscovery.notYetRankingSearchQueries,
+      rule: officialCdpDiscovery.searchRealityRule
     },
     localDiscovery: {
       resources: absoluteUrl(config, LOCAL_DISCOVERY_RESOURCE_PATHS[0]),
