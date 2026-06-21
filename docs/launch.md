@@ -41,7 +41,7 @@ Current verified state:
 - Latest verified deployment: 89d9ed98-e8d2-487b-a374-cb41b31d105f.
 - Latest live code commit: 7d75866 Expose exact intent choices in MCP handoffs.
 - Latest GitHub release: mcp-exact-intent-choice-v1.
-- Latest metadata version: 2026-06-21-mcp-exact-intent-choice-v71.
+- Latest metadata version: 2026-06-21-mcp-tool-card-handoff-v72.
 - Revenue truth as of the 2026-06-21T03:40Z live no-spend check: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. No third paid completion has been confirmed yet.
 - The second wallet-confirmed paid completion came through the already-indexed $0.001 `GET /api/listing-roast` route. That remains the preferred first paid action for public Bazaar, AgentCore Gateway, and Coinbase x402 Bazaar MCP buyers.
 - AgentCore Gateway and Coinbase Bazaar MCP handoff is live in `/agentcore-x402-payments`, `/coinbase-x402-bazaar-mcp-server`, `/x402.json`, `/openapi.json`, `/llms.txt`, and MCP metadata. AgentCore buyers can add the official Coinbase Bazaar MCP server at `https://api.cdp.coinbase.com/platform/v2/x402/discovery/mcp` with No Authorization, use `search_resources`, and reserve `proxy_tool_call` for intentional paid calls.

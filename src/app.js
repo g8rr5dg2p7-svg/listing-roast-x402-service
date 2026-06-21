@@ -485,8 +485,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-mcp-exact-intent-choice-v71";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:35:59.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-mcp-tool-card-handoff-v72";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:43:39.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T03:18:07.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -10293,6 +10293,7 @@ function buildMcpServerCard(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
+  const mcpJsonRpcToolCards = buildMcpJsonRpcToolCards(config);
 
   return {
     mcp_version: "2025-06-18",
@@ -10325,6 +10326,15 @@ function buildMcpServerCard(config, cashRegister = {}) {
         note: "POST JSON-RPC endpoint for initialize, tools/list, tools/call, resources/list, resources/read, prompts/list, and safe no-spend handoffs. Bazaar-style search_resources and proxy_tool_call tool names return route handoffs only."
       }
     ],
+    tools: mcpJsonRpcToolCards,
+    mcpJsonRpcTools: mcpJsonRpcToolCards.map((tool) => tool.name),
+    mcpJsonRpcToolCards,
+    toolRouting: {
+      firstNoSpendTool: "search_resources",
+      paidHandoffTool: "proxy_tool_call",
+      directHandoffTool: "listing_roast_x402_handoff",
+      buyerInstruction: "Use search_resources first for discovery. Use proxy_tool_call or listing_roast_x402_handoff only to return copy-ready x402 payment commands; these MCP tools do not execute paid calls."
+    },
     capabilities: {
       tools: true,
       resources: true,
@@ -10477,6 +10487,47 @@ function buildMcpJsonRpcTools() {
       }
     }
   ];
+}
+
+function buildMcpJsonRpcToolCards(config) {
+  const endpoint = absoluteUrl(config, MCP_ROOT_PATH);
+  const examples = {
+    search_resources: {
+      query: "AgentCore x402 payments",
+      limit: 3
+    },
+    proxy_tool_call: {
+      toolName: "buyer-agent skip reasons",
+      arguments: {
+        intent: "buyer-agent skip reasons"
+      }
+    },
+    listing_roast_x402_handoff: {
+      intent: "buyer-agent skip reasons"
+    },
+    listing_roast_route_search: {
+      query: "paid API listing quality"
+    },
+    listing_roast_paid_usage_proof: {}
+  };
+
+  return buildMcpJsonRpcTools().map((tool) => ({
+    ...tool,
+    endpoint,
+    jsonRpcMethod: "tools/call",
+    noSpend: true,
+    readOnly: true,
+    paymentRule: "This MCP tool returns owned Listing Roast route metadata and payment commands only. It does not execute paid calls or spend funds.",
+    callExample: {
+      jsonrpc: "2.0",
+      id: tool.name,
+      method: "tools/call",
+      params: {
+        name: tool.name,
+        arguments: examples[tool.name] || {}
+      }
+    }
+  }));
 }
 
 function buildMcpInitializeResult(config) {
@@ -12747,6 +12798,7 @@ ${copyScript("Copy command")}
     const payNowExamples = buildPayNowIntentExamples(config);
     const cashRegister = await getCashRegisterWithReceiverWallet(config);
     const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
+    const mcpJsonRpcToolCards = buildMcpJsonRpcToolCards(config);
 
     setFreshDiscoveryHeaders(response).json({
       name: config.serviceName,
@@ -12789,7 +12841,14 @@ ${copyScript("Copy command")}
       mcpJsonRpcEndpoint: absoluteUrl(config, MCP_ROOT_PATH),
       mcpJsonRpcAliases: [absoluteUrl(config, WELL_KNOWN_MCP_JSON_PATH), absoluteUrl(config, WELL_KNOWN_MCP_PATH), absoluteUrl(config, MCP_ROOT_PATH)],
       mcpJsonRpcMethods: ["initialize", "ping", "tools/list", "tools/call", "resources/list", "resources/read", "prompts/list"],
-      mcpJsonRpcTools: buildMcpJsonRpcTools().map((tool) => tool.name),
+      mcpJsonRpcTools: mcpJsonRpcToolCards.map((tool) => tool.name),
+      mcpJsonRpcToolCards,
+      toolRouting: {
+        firstNoSpendTool: "search_resources",
+        paidHandoffTool: "proxy_tool_call",
+        directHandoffTool: "listing_roast_x402_handoff",
+        buyerInstruction: "Use search_resources first for discovery. Use proxy_tool_call or listing_roast_x402_handoff only to return copy-ready x402 payment commands; these MCP tools do not execute paid calls."
+      },
       mcpJsonRpcResources: buildMcpJsonRpcResources(config).map((resource) => resource.uri),
       payNow: absoluteUrl(config, PAY_NOW_PATH),
       commands: absoluteUrl(config, COMMANDS_PATH),
