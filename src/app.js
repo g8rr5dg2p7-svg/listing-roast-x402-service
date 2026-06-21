@@ -457,7 +457,7 @@ const SERVICE_TAGS = Object.freeze([
   "Coinbase x402 Bazaar MCP server",
   "x402 Bazaar MCP server"
 ]);
-const DIRECTORY_POST_DESCRIPTION = "Listing Roast fallback directory handoff: $0.001 POST root route only for stale generic snippets. Do not use it as the primary call; the preferred first paid action is GET /api/listing-roast at $0.001 / 1000 USDC units.";
+const DIRECTORY_POST_DESCRIPTION = "Listing Roast fallback directory handoff: $0.001 POST root route for stale generic snippets. If an agent already received this POST / x402 challenge, it can pay this 1000-unit fallback and receive an immediate quick score plus route map. If choosing a clean first route from scratch, the preferred first paid action is GET /api/listing-roast at $0.001 / 1000 USDC units.";
 const INDEXED_QUICK_SCORE_DESCRIPTION = "Listing Roast helps x402 and AgentCore sellers see why buyer agents skip a paid API, then turn buyer-agent skip reasons, agent service clarity, marketplace listing score, and full listing roast demand into a paid path. Pay $0.001 GET /api/listing-roast for a paid API listing quality score, listing quality score API, marketplace product listing quality, Agentic.Market listing score, AgentCore Gateway and AgentCore x402 payments readiness, Coinbase x402 Bazaar MCP server buyers, marketplace listing conversion API, x402 marketplace conversion, buyer agent skip reasons, agent listing conversion score, agent-service listing score, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price, Bazaar search visibility, and x402 seller growth checklist; upgrade with $0.01 GET /api/full-listing-roast for the full listing roast.";
 const INDEXED_QUICK_SCORE_CHALLENGE_DESCRIPTION = "Listing Roast x402: $0.001 marketplace listing score, paid API listing quality score, buyer-agent skip reasons, agent service clarity, full listing roast. Fits listing quality score API, marketplace product listing quality, Agentic.Market listing score, AgentCore Gateway, Coinbase x402 Bazaar MCP server buyers, marketplace conversion API, agent listing conversion score, buyer agent skip reasons, x402 discovery audit, x402 site audit, paid API preflight, route health, stale Bazaar price; upgrade GET /api/full-listing-roast.";
 const FULL_ROAST_GET_DESCRIPTION = "Full Listing Roast by Listing Roast: $0.01 GET /api/full-listing-roast for high-intent buyers who want buyer-agent skip reasons, top fixes, rewritten listing copy, and stop-or-upgrade guidance without assembling a POST body. Uses query params or safe defaults; POST /api/listing-roast remains the custom-body full roast.";
@@ -485,8 +485,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-mcp-tool-card-handoff-v72";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:43:39.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-directory-post-conversion-v73";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:51:14.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T03:18:07.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -4607,6 +4607,28 @@ function buildPublicCdpStaleCardOverride(config, intentRoutes = {}, firstPaidAct
   };
 }
 
+function buildDirectoryPostConversionHint(config, intentRoutes = {}, selectedPaidAction = {}) {
+  const indexedQuickScore = intentRoutes.indexedQuickScore || {};
+
+  return {
+    noSpend: true,
+    selectedFallbackPaidAction: compactPaidAction(selectedPaidAction),
+    cleanFirstPaidAction: compactPaidAction(indexedQuickScore),
+    selectedFallbackCommand: selectedPaidAction.command,
+    cleanFirstPaidCommand: indexedQuickScore.command,
+    whenToPayFallback: "Pay POST / only when your agent already followed a stale generic directory snippet and received this exact Payment-Required challenge.",
+    whenToUseCleanRoute: "If you are still choosing a first paid route, use GET /api/listing-roast instead; it is the indexed, wallet-confirmed route.",
+    paidFallbackOutput: [
+      "includedQuickScore",
+      "preferredFirstPaidAction",
+      "paidRoutes",
+      "paidUsageProof"
+    ],
+    proofBeforePay: absoluteUrl(config, PAID_USAGE_PROOF_PATH),
+    buyerInstruction: "This POST / fallback is valid and capped at 1000 USDC units, but it exists to convert stale directory traffic. Clean buyer agents should start with the indexed GET /api/listing-roast route."
+  };
+}
+
 function compactPaidSequence(sequence = []) {
   return sequence.map((step) => ({
     step: step.step,
@@ -5256,12 +5278,16 @@ function buildUnpaidPaymentPreview(config, intentRouteKey = "indexedQuickScore",
     selectedFirstPaidAction,
     selected
   );
+  const directoryPostConversionHint = intentRouteKey === "directoryPost"
+    ? buildDirectoryPostConversionHint(config, payNow.intentRoutes, selected)
+    : null;
   const browserPayment = buildBrowserPaymentSupport(config, selected.path);
 
   return {
     error: "payment_required",
     x402Version: 2,
     paymentShortcut: payableRoute,
+    ...(directoryPostConversionHint ? { directoryPostConversionHint } : {}),
     publicCdpStaleCardOverride,
     browserPayment,
     selectedPaidUrl,
