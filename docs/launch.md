@@ -41,7 +41,7 @@ Current verified state:
 - Latest verified deployment: 7435d8a0-88f8-4e5f-b1c1-e27fd7541632.
 - Latest live code commit: 9f244ce Refresh public CDP search audit.
 - Latest GitHub release: public-cdp-audit-refresh-v1.
-- Latest metadata version: 2026-06-21-public-cdp-audit-refresh-v69.
+- Latest metadata version: 2026-06-21-exact-intent-command-choice-v70.
 - Revenue truth as of the 2026-06-21T03:21Z live no-spend check: 2 wallet-confirmed paid completions, $0.002 registered gross revenue, receiver wallet 1.001 USDC / 1001000 units. No third paid completion has been confirmed yet.
 - The second wallet-confirmed paid completion came through the already-indexed $0.001 `GET /api/listing-roast` route. That remains the preferred first paid action for public Bazaar, AgentCore Gateway, and Coinbase x402 Bazaar MCP buyers.
 - AgentCore Gateway and Coinbase Bazaar MCP handoff is live in `/agentcore-x402-payments`, `/coinbase-x402-bazaar-mcp-server`, `/x402.json`, `/openapi.json`, `/llms.txt`, and MCP metadata. AgentCore buyers can add the official Coinbase Bazaar MCP server at `https://api.cdp.coinbase.com/platform/v2/x402/discovery/mcp` with No Authorization, use `search_resources`, and reserve `proxy_tool_call` for intentional paid calls.

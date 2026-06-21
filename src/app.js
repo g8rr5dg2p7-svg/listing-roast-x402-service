@@ -485,8 +485,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-public-cdp-audit-refresh-v69";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:19:14.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-exact-intent-command-choice-v70";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:28:39.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T03:18:07.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -4100,6 +4100,7 @@ function buildPayNow(config, intent = "", cashRegister = {}, receiverWallet = nu
   const selectedPaidRoute = compactPaidAction(handoffSelectedPaidAction);
   const firstPaidRoute = compactPaidAction(selectedFirstPaidAction);
   const exactIntentPaidRoute = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
+  const exactIntentCommandChoice = buildExactIntentCommandChoice(config, exactIntentPaidAction, selectedFirstPaidAction);
   const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const recommendedPaidSequence = buildIntentRecommendedPaidSequence(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const paymentShortcut = buildPaymentShortcutForAction(
@@ -4167,6 +4168,7 @@ function buildPayNow(config, intent = "", cashRegister = {}, receiverWallet = nu
       exactIntentPaidUrl: exactIntentPaidRoute.route,
       exactIntentPaidPath: exactIntentPaidRoute.path
     } : {}),
+    ...(exactIntentCommandChoice || {}),
     rankedPaidRoutes: selection.rankedPaidRoutes || [],
     route: selectedFirstPaidAction.route,
     method: selectedFirstPaidAction.method,
@@ -4299,6 +4301,7 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
   const provenFirstPaidAction = intentRoutes.indexedQuickScore;
   const selectedFirstPaidAction = firstPaidActionForSelectedIntent(intentRoutes, selectedActionKey, selectedPaidAction);
   const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
+  const exactIntentCommandChoice = buildExactIntentCommandChoice(config, exactIntentPaidAction, selectedFirstPaidAction);
   const genericRecommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
   const recommendedPaidSequence = buildIntentRecommendedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction);
   const handoffSelectedPaidAction = handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
@@ -4327,6 +4330,7 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
     ...(paymentShortcut.upgradeAfterQuickScore ? { upgradeAfterQuickScore: paymentShortcut.upgradeAfterQuickScore } : {}),
     selectedPaidAction: handoffSelectedPaidAction,
     ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
+    ...(exactIntentCommandChoice || {}),
     selectedFirstPaidAction,
     selectedPaidSequence: buildSelectedPaidSequence(intentRoutes, selectedActionKey, selectedPaidAction),
     route: selectedFirstPaidAction.route,
@@ -4395,6 +4399,42 @@ function compactPaidAction(action) {
     reason: action.reason,
     ...(action.query ? { query: action.query } : {}),
     ...(action.body ? { body: action.body } : {})
+  };
+}
+
+function buildExactIntentCommandChoice(config, exactIntentPaidAction, firstPaidAction = {}) {
+  if (!exactIntentPaidAction) {
+    return null;
+  }
+
+  const exactIntentExpectedChallenge = {
+    status: 402,
+    amount: exactIntentPaidAction.maxAmountRequired,
+    network: config.network,
+    route: exactIntentPaidAction.route
+  };
+  const catalogRefreshInstruction = "Use exactIntentCommand only when the real buyer explicitly wants the phrase-specific paid URL or when that real buyer's payment should help public CDP/Bazaar learn the exact phrase route. Do not self-pay or pay only to refresh catalog search; use command/firstPaidCommand for the proven indexed route.";
+
+  return {
+    exactIntentCommand: exactIntentPaidAction.command,
+    exactIntentAgentPaymentRequest: exactIntentPaidAction.agentPaymentRequest,
+    exactIntentAgentPaymentPrompt: exactIntentPaidAction.agentPaymentPrompt,
+    exactIntentExpectedChallenge,
+    exactIntentCommandChoice: {
+      noSpend: true,
+      noSelfPay: true,
+      firstPaidPath: firstPaidAction.path,
+      firstPaidCommand: firstPaidAction.command,
+      exactIntentPaidPath: exactIntentPaidAction.path,
+      exactIntentCommand: exactIntentPaidAction.command,
+      exactIntentExpectedChallenge,
+      useWhen: "The buyer explicitly wants the phrase-specific paid URL.",
+      instruction: catalogRefreshInstruction
+    },
+    catalogRefreshPaidAction: compactPaidAction(exactIntentPaidAction),
+    catalogRefreshCommand: exactIntentPaidAction.command,
+    catalogRefreshExpectedChallenge: exactIntentExpectedChallenge,
+    catalogRefreshInstruction
   };
 }
 
@@ -4738,6 +4778,7 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
   const handoffSelectedPaidAction = handoffSelectedPaidActionForSelection(intentRoutes, selection.selectedActionKey, selectedPaidAction);
   const compactSelectedPaidAction = compactPaidAction(handoffSelectedPaidAction);
   const compactExactIntentPaidAction = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
+  const exactIntentCommandChoice = buildExactIntentCommandChoice(config, exactIntentPaidAction, firstPaidAction);
   const paymentShortcut = buildPaymentShortcutForAction(
     config,
     handoffSelectedPaidAction,
@@ -4763,6 +4804,7 @@ function buildCommandHandoff(config, intent = "", cashRegister = {}) {
     selectedPaidAction: compactSelectedPaidAction,
     selectedFirstPaidAction: compactFirstPaidAction,
     ...(compactExactIntentPaidAction ? { exactIntentPaidAction: compactExactIntentPaidAction } : {}),
+    ...(exactIntentCommandChoice || {}),
     agentPaymentRequest: firstPaidAction.agentPaymentRequest,
     agentPaymentPrompt: firstPaidAction.agentPaymentPrompt,
     maxPaymentUsd: firstPaidAction.maxPaymentUsd,
@@ -8732,6 +8774,7 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
   const selectedPaidRoute = compactPaidAction(handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction));
   const firstPaidRoute = compactPaidAction(selectedFirstPaidAction);
   const exactIntentPaidRoute = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
+  const exactIntentCommandChoice = buildExactIntentCommandChoice(config, exactIntentPaidAction, selectedFirstPaidAction);
   const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
   const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes, {
     selectedPaidSequence,
@@ -8811,7 +8854,7 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     selectedFirstPaidAction,
     command: selectedFirstPaidAction.command,
     commandHandoff: `${absoluteUrl(config, COMMANDS_PATH)}?intent=${encodeURIComponent(query || selectedActionKey)}`,
-    ...(exactIntentPaidAction ? { exactIntentCommand: exactIntentPaidAction.command } : {}),
+    ...(exactIntentCommandChoice || {}),
     paidResponsePreview: buildPaidResponsePreview(
       config,
       isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
@@ -8888,6 +8931,7 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
   const selectedPaidRoute = compactPaidAction(handoffSelectedPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction));
   const firstPaidRoute = compactPaidAction(selectedFirstPaidAction);
   const exactIntentPaidRoute = exactIntentPaidAction ? compactPaidAction(exactIntentPaidAction) : null;
+  const exactIntentCommandChoice = buildExactIntentCommandChoice(config, exactIntentPaidAction, selectedFirstPaidAction);
   const officialCdpDiscovery = buildOfficialCdpDiscoveryHandoff(config);
   const startHere = buildStartHereHandoff(config, cashRegister, intentRoutes, {
     selectedPaidSequence,
@@ -8973,7 +9017,7 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     selectedFirstPaidAction,
     command: selectedFirstPaidAction.command,
     commandHandoff: `${absoluteUrl(config, COMMANDS_PATH)}?intent=${encodeURIComponent(query || selectedActionKey)}`,
-    ...(exactIntentPaidAction ? { exactIntentCommand: exactIntentPaidAction.command } : {}),
+    ...(exactIntentCommandChoice || {}),
     paidResponsePreview: buildPaidResponsePreview(
       config,
       isQuickScoreExactAliasActionKey(selectedActionKey) && !shouldUseExactAliasFirst(selectedActionKey) ? "indexedQuickScore" : selectedActionKey,
