@@ -485,8 +485,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-exact-intent-command-choice-v70";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:28:39.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-mcp-exact-intent-choice-v71";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:35:59.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T03:18:07.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -10570,6 +10570,7 @@ function buildMcpResourceReadResult(config, cashRegister, uri = "") {
 function buildMcpToolCallResult(config, cashRegister, name, args = {}) {
   if (name === "search_resources") {
     const query = String(args.query || args.q || args.intent || "").slice(0, 240);
+    const intentRoutes = buildPayNowActions(config);
     const search = buildLocalDiscoverySearch(config, {
       query,
       limit: args.limit || 10,
@@ -10579,21 +10580,28 @@ function buildMcpToolCallResult(config, cashRegister, name, args = {}) {
     }, cashRegister);
     const first = search.resources[0];
     const selected = search.selectedFirstPaidAction || search.selectedPaidAction || search.preferredFirstPaidAction;
+    const selectedActionKey = search.selectedActionKey || quickScoreAliasActionKeyForQuery(query) || "indexedQuickScore";
+    const selectedPaidAction = intentRoutes[selectedActionKey] || search.selectedPaidAction || selected;
+    const exactIntentPaidAction = exactIntentPaidActionForSelection(intentRoutes, selectedActionKey, selectedPaidAction);
+    const exactIntentCommandChoice = buildExactIntentCommandChoice(config, exactIntentPaidAction, selected);
     const text = [
       `Found ${search.resources.length} owned Listing Roast x402 resources for "${query || "default"}".`,
       first ? `Top match: ${first.resource || first.metadata?.path || selected?.path || ROAST_PATH}.` : `Top match: ${selected?.method || "GET"} ${selected?.path || ROAST_PATH}.`,
       `Suggested first paid route: ${selected?.method || "GET"} ${selected?.path || ROAST_PATH} at ${selected?.price || config.instantScorePrice}.`,
+      exactIntentPaidAction ? `Exact phrase route: ${exactIntentPaidAction.method} ${exactIntentPaidAction.path} at ${exactIntentPaidAction.price}.` : null,
       `Proof before payment: ${absoluteUrl(config, PAID_USAGE_PROOF_PATH)}`
-    ].join("\n");
+    ].filter(Boolean).join("\n");
 
     return mcpToolContent(text, {
       noSpend: true,
       compatibility: "coinbase-bazaar-mcp-search_resources",
       query,
-      selectedActionKey: search.selectedActionKey,
+      selectedActionKey,
       resources: search.resources,
       selectedFirstPaidAction: selected,
       selectedPaidAction: search.selectedPaidAction,
+      ...(exactIntentPaidAction ? { exactIntentPaidAction } : {}),
+      ...(exactIntentCommandChoice || {}),
       selectedPaidSequence: search.selectedPaidSequence,
       paidUsageProof: search.paidUsageProof,
       links: search.links,
@@ -10624,6 +10632,13 @@ function buildMcpToolCallResult(config, cashRegister, name, args = {}) {
       selectedFirstPaidAction: selected,
       selectedPaidAction: result.selectedPaidAction,
       exactIntentPaidAction: result.exactIntentPaidAction,
+      ...(result.exactIntentCommand ? { exactIntentCommand: result.exactIntentCommand } : {}),
+      ...(result.exactIntentExpectedChallenge ? { exactIntentExpectedChallenge: result.exactIntentExpectedChallenge } : {}),
+      ...(result.exactIntentCommandChoice ? { exactIntentCommandChoice: result.exactIntentCommandChoice } : {}),
+      ...(result.catalogRefreshPaidAction ? { catalogRefreshPaidAction: result.catalogRefreshPaidAction } : {}),
+      ...(result.catalogRefreshCommand ? { catalogRefreshCommand: result.catalogRefreshCommand } : {}),
+      ...(result.catalogRefreshExpectedChallenge ? { catalogRefreshExpectedChallenge: result.catalogRefreshExpectedChallenge } : {}),
+      ...(result.catalogRefreshInstruction ? { catalogRefreshInstruction: result.catalogRefreshInstruction } : {}),
       selectedPaidSequence: result.selectedPaidSequence,
       paidUsageProof: result.paidUsageProof,
       paymentRule: "This Listing Roast compatibility alias returns a command handoff only. A buyer must make a separate explicit x402 HTTP call to spend USDC."
@@ -10648,6 +10663,13 @@ function buildMcpToolCallResult(config, cashRegister, name, args = {}) {
       selectedFirstPaidAction: selected,
       selectedPaidAction: handoff.selectedPaidAction,
       exactIntentPaidAction: handoff.exactIntentPaidAction,
+      ...(handoff.exactIntentCommand ? { exactIntentCommand: handoff.exactIntentCommand } : {}),
+      ...(handoff.exactIntentExpectedChallenge ? { exactIntentExpectedChallenge: handoff.exactIntentExpectedChallenge } : {}),
+      ...(handoff.exactIntentCommandChoice ? { exactIntentCommandChoice: handoff.exactIntentCommandChoice } : {}),
+      ...(handoff.catalogRefreshPaidAction ? { catalogRefreshPaidAction: handoff.catalogRefreshPaidAction } : {}),
+      ...(handoff.catalogRefreshCommand ? { catalogRefreshCommand: handoff.catalogRefreshCommand } : {}),
+      ...(handoff.catalogRefreshExpectedChallenge ? { catalogRefreshExpectedChallenge: handoff.catalogRefreshExpectedChallenge } : {}),
+      ...(handoff.catalogRefreshInstruction ? { catalogRefreshInstruction: handoff.catalogRefreshInstruction } : {}),
       selectedPaidSequence: handoff.selectedPaidSequence,
       paidUsageProof: handoff.paidUsageProof,
       links: handoff.links,
