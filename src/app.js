@@ -483,8 +483,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-full-roast-landing-v58";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:05:33.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-indexed-lite-roast-v59";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:18:44.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -2380,6 +2380,23 @@ function buildFullRoastUpgradeDecision(nextPaidActions = []) {
   };
 }
 
+function buildIndexedLiteRoastPreview(input, fullRoastAction = null) {
+  const roast = buildListingRoast(input);
+
+  return {
+    type: "lite-roast-preview",
+    includedIn: "$0.001 indexed quick score",
+    purpose: "Give buyers who land on the already-indexed /api/listing-roast route useful roast signal before the full $0.01 rewrite.",
+    verdict: roast.verdict,
+    score: roast.score,
+    buyerAgentSkipReasons: roast.buyerAgentSkipReasons.slice(0, 2),
+    topFixes: roast.topFixes.slice(0, 2),
+    rewrittenListingPreview: compactText(roast.rewrittenListing, 240),
+    stopOrUpgrade: compactText(roast.stopOrUpgrade, 180),
+    ...(fullRoastAction ? { fullRoastUpgrade: compactPaidAction(fullRoastAction) } : {})
+  };
+}
+
 function buildCatalogCacheNormalizationProof(input) {
   if (input.source !== INDEXED_QUICK_SCORE_STALE_SOURCE) {
     return null;
@@ -2458,6 +2475,7 @@ function buildIndexedRoastQuickScore(input, config) {
   const buyerIntentHandoffs = indexedQuickScoreIntentHandoffs(config, input);
   const nextPaidActions = indexedQuickScoreNextPaidActions(config, input);
   const fullRoastUpgradeDecision = buildFullRoastUpgradeDecision(nextPaidActions);
+  const fullRoastAction = nextPaidActions.find((action) => action.path === FULL_ROAST_GET_PATH && action.method === "GET") || null;
   const catalogCacheNormalization = buildCatalogCacheNormalizationProof(input);
   const settlementRefreshNote = "Bazaar search refreshes after a real settle with paymentPayload.resource; unpaid probes do not refresh search.";
 
@@ -2470,6 +2488,7 @@ function buildIndexedRoastQuickScore(input, config) {
     buyerIntentHandoffs,
     nextPaidActions,
     ...(fullRoastUpgradeDecision ? { fullRoastUpgradeDecision } : {}),
+    liteRoastPreview: buildIndexedLiteRoastPreview(input, fullRoastAction),
     officialCdpDiscovery: buildOfficialCdpDiscoveryHandoff(config),
     settlementRefreshNote,
     nextStep: followup.nextStep,
@@ -2493,6 +2512,7 @@ function buildIndexedRoastQuickScoreDiscoveryExample(input, config) {
     officialCdpDiscovery: compactOfficialCdpDiscoveryHandoff(buildOfficialCdpDiscoveryHandoff(config)),
     checkedSignals: undefined,
     catalogCacheNormalization: undefined,
+    liteRoastPreview: undefined,
     buyerIntentHandoffs: undefined,
     fullRoastUpgradeDecision: undefined,
     nextPaidAction: compactNextPaidAction,
@@ -3359,6 +3379,21 @@ function compactChallengeOutputExample(example) {
 
   if (Array.isArray(example.nextActions)) {
     compact.nextActions = example.nextActions.slice(0, 2);
+  }
+
+  if (example.liteRoastPreview && typeof example.liteRoastPreview === "object" && !Array.isArray(example.liteRoastPreview)) {
+    compact.liteRoastPreview = {
+      ...pickDefined(example.liteRoastPreview, ["type", "includedIn", "purpose", "verdict", "score", "rewrittenListingPreview", "stopOrUpgrade"]),
+      ...(Array.isArray(example.liteRoastPreview.buyerAgentSkipReasons)
+        ? { buyerAgentSkipReasons: example.liteRoastPreview.buyerAgentSkipReasons.slice(0, 2) }
+        : {}),
+      ...(Array.isArray(example.liteRoastPreview.topFixes)
+        ? { topFixes: example.liteRoastPreview.topFixes.slice(0, 2) }
+        : {}),
+      ...(example.liteRoastPreview.fullRoastUpgrade
+        ? { fullRoastUpgrade: compactChallengeAction(example.liteRoastPreview.fullRoastUpgrade) }
+        : {})
+    };
   }
 
   addDirectFullRoastPreviewFields(example, compact);
@@ -4846,7 +4881,7 @@ function buildPublicCashRegister(config, cashRegister = {}, receiverWallet = {})
 }
 
 function buildPaidResponsePreview(config, intentRouteKey = "indexedQuickScore", selectedPaidAction = null) {
-  const quickScoreExample = () => buildIndexedRoastQuickScoreDiscoveryExample(buildInstantScoreInput(), config);
+  const quickScoreExample = () => buildIndexedRoastQuickScore(buildInstantScoreInput(), config);
   const siteAuditPreview = {
     includes: ["direct 402 check", "metadata readiness", "search visibility", "route health", "next actions"],
     example: () => buildSiteAuditExampleOutput(config)
