@@ -485,8 +485,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-hide-root-post-v63";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:42:41.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-agent-tools-price-fields-v64";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:49:56.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -7472,6 +7472,7 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
 
   const tools = x402Manifest.resources.map((resource) => ({
     name: resource.id,
+    id: resource.id,
     title: resource.name,
     description: resource.description,
     category: resource.id === "x402_site_audit" || resource.id === "x402_discovery_audit" || resource.canonicalRoute === SITE_AUDIT_PATH ? "x402-discovery" : "paid-api-listing",
@@ -7481,9 +7482,16 @@ function buildAgentToolsManifest(config, cashRegister = {}) {
     local_route: resource.path,
     x402_route: resource.path,
     url: resource.url,
+    price: resource.price,
+    priceUsd: priceToUsd(resource.price),
     price_usd: priceToUsd(resource.price),
+    maxAmountRequired: resource.maxAmountRequired,
     max_amount_required: resource.maxAmountRequired,
+    maxPaymentUsd: resource.maxPaymentUsd,
     max_payment_usd: resource.maxPaymentUsd,
+    amount: resource.maxAmountRequired,
+    amount_usdc_units: resource.maxAmountRequired,
+    max_usdc_units: resource.maxAmountRequired,
     network: config.network,
     asset: payment.asset,
     assetName: payment.assetName,
