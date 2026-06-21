@@ -485,8 +485,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-first-paid-homepage-v65";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:50:12.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-direct-full-roast-builder-v66";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:58:02.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -12321,7 +12321,8 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
     const paidUsageProofUrl = absoluteUrl(config, PAID_USAGE_PROOF_PATH);
     const cashRegisterUrl = absoluteUrl(config, "/api/cash-register");
     const scoreRoute = absoluteUrl(config, "/api/listing-score");
-    const roastRoute = absoluteUrl(config, ROAST_PATH);
+    const fullRoastRoute = absoluteUrl(config, FULL_ROAST_GET_PATH);
+    const customRoastRoute = absoluteUrl(config, ROAST_PATH);
     const sampleUrl = absoluteUrl(config, "/sample");
     const sampleScoreApi = absoluteUrl(config, "/api/sample-score");
     const instantCommand = buildGetPayCommand(config);
@@ -12332,7 +12333,8 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
     const siteAuditCommand = buildGetPayCommand(config, SITE_AUDIT_PATH, SITE_AUDIT_AMOUNT);
     const discoveryAuditCommand = buildGetPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
-    const roastCommand = buildPayCommand(config);
+    const fullRoastCommand = buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000");
+    const customRoastCommand = buildPayCommand(config);
     const cashRegister = await getCashRegister();
     const paidCompletionCount = Number(cashRegister.paidCompletions || 0);
     const paidCompletionLabel = `${paidCompletionCount} paid ${paidCompletionCount === 1 ? "completion" : "completions"}`;
@@ -12394,7 +12396,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
   <main>
     <div class="wrap">
       <h1>Build a paid score command from your listing.</h1>
-      <p class="lead">Paste the offer you are trying to sell. This page leads with the already-indexed ${config.instantScorePrice} GET command, then gives exact $0.001 commands for buyer-agent skip reasons, discovery audit, site audit, instant scoring, the ${config.scorePrice} score route, and optional ${config.price} full roast route.</p>
+      <p class="lead">Paste the offer you are trying to sell. This page leads with the already-indexed ${config.instantScorePrice} GET command, then gives exact $0.001 commands for buyer-agent skip reasons, discovery audit, site audit, instant scoring, the ${config.scorePrice} score route, and the direct no-body ${config.price} full roast upgrade.</p>
       <div class="proof" aria-label="Paid-use proof">
         <div><strong class="metric">${escapeHtml(paidCompletionLabel)}</strong><span class="muted">$${escapeHtml(grossRevenueUsd)} registered in the public cash register</span></div>
         <div><strong class="metric">${escapeHtml(indexedPaidLabel)}</strong><span class="muted">Preferred route that already converted</span></div>
@@ -12452,10 +12454,13 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
             <button class="button" type="button" data-copy-target="score-command" data-default-text="Copy score command">Copy score command</button>
           </div>
           <div class="card">
-            <h2>Full roast command <span class="metric">${config.price}</span></h2>
-            <p class="muted"><code>POST ${escapeHtml(roastRoute)}</code></p>
-            <pre id="pay-command">${escapeHtml(roastCommand)}</pre>
-            <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy full roast command">Copy full roast command</button>
+            <h2>Direct full roast command <span class="metric">${config.price}</span></h2>
+            <p class="muted"><code>GET ${escapeHtml(fullRoastRoute)}</code></p>
+            <pre id="pay-command">${escapeHtml(fullRoastCommand)}</pre>
+            <button class="button secondary" type="button" data-copy-target="pay-command" data-default-text="Copy direct full roast command">Copy direct full roast command</button>
+            <p class="muted" style="margin-top: 16px;">Custom body fallback: <code>POST ${escapeHtml(customRoastRoute)}</code></p>
+            <pre id="custom-roast-command">${escapeHtml(customRoastCommand)}</pre>
+            <button class="button secondary" type="button" data-copy-target="custom-roast-command" data-default-text="Copy custom-body roast command">Copy custom-body roast command</button>
           </div>
         </div>
       </div>
@@ -12463,7 +12468,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
   </main>
   <script>
     const scoreUrl = ${JSON.stringify(scoreRoute)};
-    const roastUrl = ${JSON.stringify(roastRoute)};
+    const customRoastUrl = ${JSON.stringify(customRoastRoute)};
     function fieldValue(id) {
       return document.getElementById(id).value.trim();
     }
@@ -12485,7 +12490,7 @@ Use the indexed $0.001 GET /api/listing-roast route first when a buyer agent wan
     }
     function updateCommands(track) {
       document.getElementById("score-command").textContent = command(scoreUrl, "5000");
-      document.getElementById("pay-command").textContent = command(roastUrl, "10000");
+      document.getElementById("custom-roast-command").textContent = command(customRoastUrl, "10000");
       if (track) {
         fetch("/api/track", {
           method: "POST",
@@ -12512,7 +12517,8 @@ ${copyScript("Copy command")}
     const buyerSkipCommand = buildGetPayCommand(config, "/api/buyer-agent-skip-reasons", INSTANT_SCORE_AMOUNT);
     const discoveryAuditCommand = buildGetPayCommand(config, DISCOVERY_AUDIT_PATH, DISCOVERY_AUDIT_QUICK_AMOUNT);
     const scoreCommand = buildPayCommand(config, "/api/listing-score", "5000");
-    const roastCommand = buildPayCommand(config);
+    const fullRoastCommand = buildGetPayCommand(config, FULL_ROAST_GET_PATH, "10000");
+    const customRoastCommand = buildPayCommand(config);
     const scoreOutput = buildListingScoreWithUpgrade(requestExample, config);
     const indexedOutput = buildIndexedRoastQuickScore(buildInstantScoreInput(), config);
     const builderUrl = absoluteUrl(config, "/builder");
@@ -12521,7 +12527,8 @@ ${copyScript("Copy command")}
     const buyerSkipRoute = absoluteUrl(config, "/api/buyer-agent-skip-reasons");
     const discoveryAuditRoute = absoluteUrl(config, DISCOVERY_AUDIT_PATH);
     const paidRoute = absoluteUrl(config, "/api/listing-score");
-    const roastRoute = absoluteUrl(config, "/api/listing-roast");
+    const fullRoastRoute = absoluteUrl(config, FULL_ROAST_GET_PATH);
+    const customRoastRoute = absoluteUrl(config, ROAST_PATH);
 
     response.type("html").send(`<!doctype html>
 <html lang="en">
@@ -12575,6 +12582,7 @@ ${copyScript("Copy command")}
         <button class="button secondary" type="button" data-copy-target="buyer-skip-command" data-default-text="Copy $0.001 buyer-skip command">Copy $0.001 buyer-skip command</button>
         <button class="button secondary" type="button" data-copy-target="discovery-audit-command" data-default-text="Copy $0.001 discovery-audit command">Copy $0.001 discovery-audit command</button>
         <button class="button secondary" type="button" data-copy-target="score-command" data-default-text="Copy $0.005 score command">Copy $0.005 score command</button>
+        <button class="button secondary" type="button" data-copy-target="full-roast-command" data-default-text="Copy $0.01 direct full roast command">Copy $0.01 direct full roast command</button>
         <a class="button secondary" href="${builderUrl}">Build your command</a>
         <a class="button secondary" href="${sampleScoreApi}">Open sample JSON</a>
       </div>
@@ -12593,8 +12601,8 @@ ${copyScript("Copy command")}
           <p><code>GET ${escapeHtml(discoveryAuditRoute)}</code></p>
           <p class="muted">Price: <span class="metric">${config.siteAuditPrice}</span>; exact path for stale Bazaar pricing, route health, and search visibility checks.</p>
           <h2>Upgrade route</h2>
-          <p><code>POST ${escapeHtml(roastRoute)}</code></p>
-          <p class="muted">The full roast adds skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade call.</p>
+          <p><code>GET ${escapeHtml(fullRoastRoute)}</code></p>
+          <p class="muted">The direct full roast adds skip reasons, top fixes, a rewritten listing, and a stop-or-upgrade call without requiring a JSON body. Custom-body fallback: <code>POST ${escapeHtml(customRoastRoute)}</code>.</p>
         </div>
         <pre>${escapeHtml(prettyJson(scoreOutput))}</pre>
       </div>
@@ -12618,8 +12626,10 @@ ${copyScript("Copy command")}
           <pre id="discovery-audit-command">${escapeHtml(discoveryAuditCommand)}</pre>
         </div>
         <div class="card">
-          <h2>Full roast command</h2>
-          <pre>${escapeHtml(roastCommand)}</pre>
+          <h2>Direct full roast command</h2>
+          <pre id="full-roast-command">${escapeHtml(fullRoastCommand)}</pre>
+          <h2>Custom-body full roast command</h2>
+          <pre>${escapeHtml(customRoastCommand)}</pre>
         </div>
       </div>
     </div>
