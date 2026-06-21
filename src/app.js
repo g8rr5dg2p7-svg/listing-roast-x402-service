@@ -463,8 +463,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-20-browser-payment-metadata-v47";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-20T23:54:19.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-20-openapi-payment-info-v48";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T00:12:45.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
 const ROUTE_SERVICE_NAMES = Object.freeze({
@@ -5387,6 +5387,34 @@ function buildOpenApiPaymentRequiredResponse(config, intentRouteKey = "indexedQu
   };
 }
 
+function buildOpenApiPaymentInfo(config, paymentHint) {
+  return {
+    price: {
+      mode: "fixed",
+      currency: "USD",
+      amount: paymentHint.maxPaymentUsd || priceToUsd(paymentHint.price)
+    },
+    protocols: [
+      {
+        x402: {
+          network: paymentHint.network || config.network,
+          asset: paymentHint.asset || "USDC",
+          payTo: paymentHint.payTo || config.payTo,
+          resource: paymentHint.route,
+          method: paymentHint.method,
+          maxAmountRequired: paymentHint.maxAmountRequired,
+          paymentRequiredHeader: "Payment-Required",
+          paymentHeader: "X-PAYMENT",
+          paymentResponseHeader: "X-PAYMENT-RESPONSE",
+          manifest: absoluteUrl(config, "/x402.json"),
+          payNow: paymentHint.payNow || absoluteUrl(config, PAY_NOW_PATH),
+          paidUsageProof: paymentHint.paidUsageProof || absoluteUrl(config, PAID_USAGE_PROOF_PATH)
+        }
+      }
+    ]
+  };
+}
+
 function buildOpenApiDocument(config, cashRegister = {}) {
   const intentRoutes = buildPayNowActions(config);
   const recommendedPaidSequence = buildRecommendedPaidSequence(intentRoutes);
@@ -5424,6 +5452,7 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       "x-category": SERVICE_CATEGORY,
       "x-tags": SERVICE_TAGS,
       "x-keywords": DISCOVERY_KEYWORDS,
+      "x-guidance": "Paid operations return HTTP 402 with a Payment-Required header. Read each operation's x-payment-info field for the fixed USD price and x402 protocol details, complete the exact USDC payment, then retry the same route with the X-PAYMENT header. Free handoff and proof routes do not require payment.",
       "x402": {
         network: config.network,
         asset: "USDC",
@@ -6390,12 +6419,15 @@ function buildOpenApiDocument(config, cashRegister = {}) {
       if (operation && operation["x-payment"]) {
         const paymentHint = operation["x-payment"];
         operation.security = buildOpenApiX402Security();
+        operation["x-payment-info"] = buildOpenApiPaymentInfo(config, paymentHint);
         operation.responses = { ...(operation.responses || {}) };
         operation.responses[402] = buildOpenApiPaymentRequiredResponse(
           config,
           paymentHint.selectedActionKey || paymentActionByRoute[`${method.toUpperCase()} ${pathname}`],
           paymentHint.selectedPaidAction
         );
+      } else if (operation && operation.security === undefined) {
+        operation.security = [];
       }
     }
   }
