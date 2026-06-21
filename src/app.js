@@ -485,8 +485,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-agent-tools-price-fields-v64";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:49:56.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-first-paid-homepage-v65";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:50:12.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -1048,6 +1048,14 @@ function buildStructuredData(config) {
       audienceType: "x402, MCP, and agent-service builders"
     },
     keywords: DISCOVERY_KEYWORDS.join(", "),
+    offers: {
+      "@type": "Offer",
+      name: "Preferred first paid action: GET /api/listing-roast",
+      price: "0.001",
+      priceCurrency: "USD",
+      url: absoluteUrl(config, ROAST_PATH),
+      description: "Start here before any full-roast upgrade. This is the already-indexed Listing Roast quick score route at 1000 USDC units."
+    },
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Listing Roast x402 paid routes",
@@ -11332,6 +11340,9 @@ export function createApp(overrides = {}) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Score paid API listing quality, AgentCore x402 payments readiness, x402 marketplace conversion, and agent listing conversion before promotion. Start with GET /api/listing-roast at $0.001, then upgrade to GET /api/full-listing-roast at $0.01." />
+  <meta name="x402:first-paid-action" content="GET /api/listing-roast; price $0.001; max 1000 USDC units" />
+  <meta name="x402:preferred-route" content="${escapeHtml(absoluteUrl(config, ROAST_PATH))}" />
+  <meta name="x402:preferred-max-amount" content="${INSTANT_SCORE_AMOUNT}" />
   <meta property="og:title" content="${escapeHtml(config.serviceName)}" />
   <meta property="og:description" content="Score paid API listing quality, AgentCore x402 payments readiness, x402 marketplace conversion, and agent listing conversion before buyer agents skip the listing." />
   <meta property="og:url" content="${escapeHtml(config.serviceUrl)}" />
@@ -11424,6 +11435,7 @@ export function createApp(overrides = {}) {
       <div class="wrap heroGrid">
         <div>
           <h1>Find out why buyer agents skip your paid API listing.</h1>
+          <p class="lead"><strong>First paid action: ${config.instantScorePrice} GET <code>${ROAST_PATH}</code>, max ${INSTANT_SCORE_AMOUNT} USDC units.</strong> Use this already-indexed quick score before any ${config.price} full-roast upgrade.</p>
           <p class="lead">Score API marketplace listing quality, x402 marketplace conversion, and agent listing conversion before buyer agents skip the listing. Recommended paid sequence: start with the already-indexed ${config.instantScorePrice} <code>GET ${ROAST_PATH}</code> quick score, then upgrade to <code>GET ${FULL_ROAST_GET_PATH}</code> at ${config.price} for the full roast.</p>
           <div class="proof" aria-label="Proof points">
             <div><strong class="metric">${escapeHtml(paidCompletionLabel)}</strong><span class="muted">${escapeHtml(grossRevenueLabel)} in the public cash register</span></div>
