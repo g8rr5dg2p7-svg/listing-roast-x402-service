@@ -118,8 +118,8 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     id: "agentcore_x402_payments_alias",
     name: "agentcore_x402_payments",
     operationId: "getAgentCoreX402PaymentsAlias",
-    summary: "Paid $0.001 AgentCore x402 payments alias",
-    catalogTitle: "GET $0.001 AgentCore x402 payments quick-score alias",
+    summary: "Paid $0.001 AgentCore Gateway search_resources x402 payments alias",
+    catalogTitle: "GET $0.001 AgentCore Gateway search_resources quick-score alias",
     description: "AgentCore x402 payments readiness x402: $0.001 GET exact-phrase alias for AgentCore Gateway, Amazon Bedrock AgentCore payments, Coinbase x402 Bazaar MCP server buyers, search_resources discovery, and proxy_tool_call handoffs. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
     keywords: ["AgentCore x402 payments", "Amazon Bedrock AgentCore payments", "AgentCore Gateway", "Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "search_resources", "proxy_tool_call", "AgentCore paid API discovery", "paid API listing quality score"]
   },
@@ -127,8 +127,8 @@ const QUICK_SCORE_ALIAS_METADATA = Object.freeze({
     id: "coinbase_x402_bazaar_mcp_server_alias",
     name: "coinbase_x402_bazaar_mcp_server",
     operationId: "getCoinbaseX402BazaarMcpServerAlias",
-    summary: "Paid $0.001 Coinbase x402 Bazaar MCP server alias",
-    catalogTitle: "GET $0.001 Coinbase x402 Bazaar MCP server quick-score alias",
+    summary: "Paid $0.001 Coinbase x402 Bazaar MCP search_resources proxy_tool_call alias",
+    catalogTitle: "GET $0.001 Coinbase x402 Bazaar MCP search_resources proxy_tool_call quick-score alias",
     description: "Coinbase x402 Bazaar MCP server readiness x402: $0.001 GET exact-phrase alias for buyers searching Coinbase x402 Bazaar MCP server, x402 Bazaar MCP server, Bazaar MCP tools, search_resources, proxy_tool_call, or AgentCore Gateway integrations. Returns the same quick score as the indexed, paid-use-confirmed /api/listing-roast route, with AgentCore x402 payments, paid API listing quality, buyer-agent skip reasons, and upgrade guidance.",
     keywords: ["Coinbase x402 Bazaar MCP server", "x402 Bazaar MCP server", "Bazaar MCP tools", "Coinbase Bazaar MCP", "AgentCore Gateway", "search_resources", "proxy_tool_call", "AgentCore x402 payments", "paid API listing quality score"]
   },
@@ -485,8 +485,8 @@ const INDEXED_QUICK_SCORE_SEARCH_PHRASES = Object.freeze([
 ]);
 const AGENT_LISTING_CONVERSION_DESCRIPTION = "Agent Listing Conversion Score by Listing Roast: $0.001 GET agent listing conversion score, agent_listing_conversion_score, agent listing conversion, buyer-agent skip reasons, buyer agent skip reasons, agent service listing clarity, and agent service promotion readiness for paid API and x402 marketplace sellers. Exact score alias /api/agent-listing-conversion-score and canonical /api/agent-listing-conversion return the same paid JSON score, buyer intent read, and first-fix upgrade guidance.";
 const X402_SERVICE_NAME = "Listing Roast x402";
-const DISCOVERY_METADATA_VERSION = "2026-06-21-agentcore-mcp-handoff-v60";
-const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T02:42:15.000Z";
+const DISCOVERY_METADATA_VERSION = "2026-06-21-openapi-mcp-snippets-v61";
+const DISCOVERY_METADATA_UPDATED_AT = "2026-06-21T03:11:42.000Z";
 const PUBLIC_CDP_SEARCH_AUDIT_UPDATED_AT = "2026-06-21T00:33:50.000Z";
 const RECEIVER_WALLET_SNAPSHOT_CACHE_MS = 60000;
 let receiverWalletSnapshotCache = null;
@@ -5705,8 +5705,8 @@ function buildOpenApiDocument(config, cashRegister = {}, options = {}) {
         get: {
           operationId: "getPaidApiListingQualityBuyerAgentSkipReasonsListingRoastQuickScore",
           tags: ["listing roast quick score", "paid API listing quality", "paid API listing quality score", "AgentCore x402 payments", "Coinbase x402 Bazaar MCP server", "buyer-agent skip reasons", "buyer agent skip reasons", "agent-service listing score", "agent service listing clarity", "x402 listing", "paid API listing"],
-          summary: "Paid $0.001 paid API listing quality score, AgentCore x402 payments route, Listing Roast quick score, and buyer-agent skip reasons",
-          description: "Listing quality score API for paid API listing quality score, AgentCore x402 payments readiness, Coinbase x402 Bazaar MCP server buyers, marketplace product listing quality, buyer-agent skip reasons, marketplace listing score, marketplace listing conversion API, agent service clarity, and agent service listing clarity. Lowest-price $0.001 score from indexed /api/listing-roast for AgentCore Gateway discovery, agent listing conversion score, x402 marketplace conversion, x402 discovery audit, x402 site audit, paid API preflight, fix x402 Bazaar listing, stale price, route health, Bazaar search visibility, and conversion checks; GET /api/full-listing-roast is the $0.01 direct full-roast upgrade.",
+          summary: "Paid $0.001 Listing Roast quick score, paid API listing quality score, AgentCore Gateway search_resources handoff, Coinbase Bazaar MCP route, and buyer-agent skip reasons",
+          description: "Listing quality score API for paid API listing quality score, AgentCore x402 payments readiness, Coinbase x402 Bazaar MCP server buyers, search_resources discovery, proxy_tool_call paid-call handoffs, marketplace product listing quality, buyer-agent skip reasons, marketplace listing score, marketplace listing conversion API, agent service clarity, and agent service listing clarity. Lowest-price $0.001 score from indexed /api/listing-roast for AgentCore Gateway discovery, agent listing conversion score, x402 marketplace conversion, x402 discovery audit, x402 site audit, paid API preflight, fix x402 Bazaar listing, stale price, route health, Bazaar search visibility, and conversion checks; GET /api/full-listing-roast is the $0.01 direct full-roast upgrade.",
           "x-price": config.instantScorePrice,
           "x-x402-price": config.instantScorePrice,
           "x-payment": buildPaymentHint(config, {
