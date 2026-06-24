@@ -1517,6 +1517,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
       agentCoreX402Payments: intentRoutes.agentCoreX402Payments,
       buyerAgentSkipReasons: intentRoutes.buyerAgentSkipReasons,
       agentServiceClarity: intentRoutes.agentServiceClarity,
+      agentListingConversion: intentRoutes.agentListingConversion,
       discoveryAuditQuick: intentRoutes.discoveryAuditQuick,
       x402SiteAudit: intentRoutes.x402SiteAudit
     },
@@ -1553,6 +1554,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
         paidApiListingQuality: intentRoutes.paidApiListingQuality,
         agentCoreX402Payments: intentRoutes.agentCoreX402Payments,
         buyerAgentSkipReasons: intentRoutes.buyerAgentSkipReasons,
+        agentListingConversion: intentRoutes.agentListingConversion,
         discoveryAuditQuick: intentRoutes.discoveryAuditQuick,
         x402SiteAudit: intentRoutes.x402SiteAudit
       },
@@ -1602,6 +1604,7 @@ function buildAgentSkillsIndex(config, cashRegister = {}) {
             paidApiListingQuality: intentRoutes.paidApiListingQuality,
             agentCoreX402Payments: intentRoutes.agentCoreX402Payments,
             buyerAgentSkipReasons: intentRoutes.buyerAgentSkipReasons,
+            agentListingConversion: intentRoutes.agentListingConversion,
             discoveryAuditQuick: intentRoutes.discoveryAuditQuick,
             x402SiteAudit: intentRoutes.x402SiteAudit
           },
@@ -3878,7 +3881,8 @@ const QUICK_SCORE_EXACT_ALIAS_ACTION_KEYS = new Set([
   "coinbaseX402BazaarMcpServer",
   "x402ListingQuality",
   "buyerAgentSkipReasons",
-  "agentServiceClarity"
+  "agentServiceClarity",
+  "agentListingConversion"
 ]);
 
 const EXACT_ALIAS_FIRST_ACTION_KEYS = new Set([]);
@@ -4675,6 +4679,11 @@ function buildBuyerPhraseCommandPack(config) {
       intent: "Agentic.Market listing score",
       actionKey: "marketplaceListingScore",
       landingPage: "/api/marketplace-listing-score"
+    },
+    {
+      intent: "agent listing conversion score",
+      actionKey: "agentListingConversion",
+      landingPage: AGENT_LISTING_CONVERSION_PAGE_PATH
     }
   ];
 
@@ -8555,6 +8564,10 @@ function quickScoreAliasActionKeyForQuery(query) {
 
   if (includesAny(normalizedQuery, ["agent service clarity", "agent-service clarity", "agent service listing clarity", "agent-service listing score", "agent service listing score", "listing clarity"])) {
     return "agentServiceClarity";
+  }
+
+  if (includesAny(normalizedQuery, ["agent listing conversion score", "agent_listing_conversion_score", "agent listing conversion", "agent listing clarity"])) {
+    return "agentListingConversion";
   }
 
   if (includesAny(normalizedQuery, ["paid api listing quality score"])) {

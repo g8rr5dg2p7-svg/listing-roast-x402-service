@@ -3177,7 +3177,8 @@ describe("Listing Roast x402 service", () => {
         "marketplace listing conversion API",
         "marketplace product listing quality",
         "buyer-agent skip reasons",
-        "Agentic.Market listing score"
+        "Agentic.Market listing score",
+        "agent listing conversion score"
       ]);
       expect(payNow.json.buyerPhraseCommandPack[0].firstPaidAction.path).toBe("/api/listing-roast");
       expect(payNow.json.buyerPhraseCommandPack[0].firstPaidAction.agentPaymentRequest.maxPayment).toBe("0.001");
@@ -3190,6 +3191,7 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.buyerPhraseCommandPack[3].exactIntentPaidAction.path).toBe("/api/marketplace-listing-conversion-api");
       expect(payNow.json.buyerPhraseCommandPack[4].exactIntentPaidAction.path).toBe("/api/marketplace-product-listing-quality");
       expect(payNow.json.buyerPhraseCommandPack[6].exactIntentPaidAction.path).toBe("/api/marketplace-listing-score");
+      expect(payNow.json.buyerPhraseCommandPack[7].exactIntentPaidAction.path).toBe("/api/agent-listing-conversion-score");
       expect(payNow.json.expectedChallenge.status).toBe(402);
       expect(payNow.json.paidUsageProof.service).toBe("Listing Roast x402");
       expect(payNow.json.paidUsageProof.serviceName).toBe("Listing Roast x402");
@@ -3409,10 +3411,13 @@ describe("Listing Roast x402 service", () => {
 
       const commandsAgentListingConversion = await fetchJson(server, "/api/commands?intent=agent%20listing%20conversion");
       expect(commandsAgentListingConversion.status).toBe(200);
-      expect(commandsAgentListingConversion.json.firstPaidAction.path).toBe("/api/agent-listing-conversion-score");
+      expect(commandsAgentListingConversion.json.firstPaidAction.path).toBe("/api/listing-roast");
       expect(commandsAgentListingConversion.json.firstPaidAction.method).toBe("GET");
       expect(commandsAgentListingConversion.json.firstPaidAction.maxAmountRequired).toBe("1000");
-      expect(commandsAgentListingConversion.json.firstPaidAction.command).toContain("/api/agent-listing-conversion-score");
+      expect(commandsAgentListingConversion.json.firstPaidAction.command).toContain("/api/listing-roast");
+      expect(commandsAgentListingConversion.json.exactIntentPaidAction.path).toBe("/api/agent-listing-conversion-score");
+      expect(commandsAgentListingConversion.json.exactIntentCommand).toContain("/api/agent-listing-conversion-score");
+      expect(commandsAgentListingConversion.json.exactIntentCommandChoice.firstPaidPath).toBe("/api/listing-roast");
 
       const payNowSkipReasons = await fetchJson(server, "/api/pay-now?intent=buyer-agent%20skip%20reasons");
       expect(payNowSkipReasons.status).toBe(200);
@@ -3587,11 +3592,13 @@ describe("Listing Roast x402 service", () => {
       const payNowAgentListingConversion = await fetchJson(server, "/api/pay-now?intent=agent%20listing%20conversion");
       expect(payNowAgentListingConversion.status).toBe(200);
       expect(payNowAgentListingConversion.json.selectedActionKey).toBe("agentListingConversion");
-      expect(payNowAgentListingConversion.json.route).toContain("/api/agent-listing-conversion-score");
+      expect(payNowAgentListingConversion.json.route).toContain("/api/listing-roast");
       expect(payNowAgentListingConversion.json.maxAmountRequired).toBe("1000");
-      expect(payNowAgentListingConversion.json.selectedPaidAction.path).toBe("/api/agent-listing-conversion-score");
-      expect(payNowAgentListingConversion.json.selectedFirstPaidAction.path).toBe("/api/agent-listing-conversion-score");
-      expect(payNowAgentListingConversion.json.command).toContain("/api/agent-listing-conversion-score");
+      expect(payNowAgentListingConversion.json.selectedPaidAction.path).toBe("/api/listing-roast");
+      expect(payNowAgentListingConversion.json.exactIntentPaidAction.path).toBe("/api/agent-listing-conversion-score");
+      expect(payNowAgentListingConversion.json.selectedFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(payNowAgentListingConversion.json.command).toContain("/api/listing-roast");
+      expect(payNowAgentListingConversion.json.exactIntentCommand).toContain("/api/agent-listing-conversion-score");
 
       const payNowFullRoast = await fetchJson(server, "/api/pay-now?intent=full%20roast%20rewrite%20top%20fixes");
       expect(payNowFullRoast.status).toBe(200);
@@ -3742,10 +3749,12 @@ describe("Listing Roast x402 service", () => {
       expect(findAgentListingConversion.status).toBe(200);
       expect(findAgentListingConversion.json.recommended.path).toBe("/api/agent-listing-conversion-score");
       expect(findAgentListingConversion.json.selectedActionKey).toBe("agentListingConversion");
-      expect(findAgentListingConversion.json.selectedPaidAction.path).toBe("/api/agent-listing-conversion-score");
+      expect(findAgentListingConversion.json.selectedPaidAction.path).toBe("/api/listing-roast");
+      expect(findAgentListingConversion.json.exactIntentPaidAction.path).toBe("/api/agent-listing-conversion-score");
       expect(findAgentListingConversion.json.selectedPaidAction.maxAmountRequired).toBe("1000");
-      expect(findAgentListingConversion.json.selectedFirstPaidAction.path).toBe("/api/agent-listing-conversion-score");
-      expect(findAgentListingConversion.json.command).toContain("/api/agent-listing-conversion-score");
+      expect(findAgentListingConversion.json.selectedFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(findAgentListingConversion.json.command).toContain("/api/listing-roast");
+      expect(findAgentListingConversion.json.exactIntentCommand).toContain("/api/agent-listing-conversion-score");
 
       const findMarketplaceListingConversion = await fetchJson(server, "/api/find?q=marketplace%20listing%20conversion");
       expect(findMarketplaceListingConversion.status).toBe(200);
@@ -3953,10 +3962,12 @@ describe("Listing Roast x402 service", () => {
       expect(routeAgentListingConversion.headers.get("payment-required")).toBeNull();
       expect(routeAgentListingConversion.json.best.path).toBe("/api/agent-listing-conversion-score");
       expect(routeAgentListingConversion.json.selectedActionKey).toBe("agentListingConversion");
-      expect(routeAgentListingConversion.json.selectedPaidAction.path).toBe("/api/agent-listing-conversion-score");
+      expect(routeAgentListingConversion.json.selectedPaidAction.path).toBe("/api/listing-roast");
+      expect(routeAgentListingConversion.json.exactIntentPaidAction.path).toBe("/api/agent-listing-conversion-score");
       expect(routeAgentListingConversion.json.selectedPaidAction.maxAmountRequired).toBe("1000");
-      expect(routeAgentListingConversion.json.selectedFirstPaidAction.path).toBe("/api/agent-listing-conversion-score");
-      expect(routeAgentListingConversion.json.command).toContain("/api/agent-listing-conversion-score");
+      expect(routeAgentListingConversion.json.selectedFirstPaidAction.path).toBe("/api/listing-roast");
+      expect(routeAgentListingConversion.json.command).toContain("/api/listing-roast");
+      expect(routeAgentListingConversion.json.exactIntentCommand).toContain("/api/agent-listing-conversion-score");
 
       const routeMarketplaceListingConversion = await fetchJson(server, "/api/route?query=marketplace%20listing%20conversion&top=3");
       expect(routeMarketplaceListingConversion.status).toBe(200);
