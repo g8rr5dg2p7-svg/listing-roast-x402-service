@@ -4648,6 +4648,61 @@ describe("Listing Roast x402 service", () => {
     }
   });
 
+  it("falls back to another Base RPC when the primary wallet snapshot RPC is unavailable", async () => {
+    mockFacilitatorSupportedKinds();
+    process.env.BASELINE_PAID_COMPLETIONS = "2";
+    process.env.BASELINE_ESTIMATED_GROSS_REVENUE_USD = "0.002";
+    process.env.BASELINE_INDEXED_ROAST_GET_COMPLETIONS = "1";
+    process.env.BASELINE_INDEXED_ROAST_GET_REVENUE_USD = "0.001";
+    process.env.BASELINE_LAST_PAID_AT = "2026-06-18T06:43:22.052Z";
+    process.env.BASELINE_LAST_SETTLEMENT_TX_HASH = "0xa124906f1310b2100f02255c7467f2b89dae95594b36e8c70c98e6dc16a4da71";
+    process.env.BASELINE_LAST_SETTLEMENT_USDC_UNITS = "1000";
+    process.env.BASELINE_LAST_SETTLEMENT_CONFIRMED_AT = "2026-06-18T06:43:23.000Z";
+    process.env.BASELINE_LAST_SETTLEMENT_ROUTE_PATH = "/api/listing-roast";
+    process.env.BASELINE_LAST_SETTLEMENT_METHOD = "GET";
+    process.env.BASELINE_LAST_SETTLEMENT_MAX_AMOUNT_REQUIRED = "1000";
+
+    let primaryHits = 0;
+    let fallbackHits = 0;
+
+    const primaryRpcServer = createServer((_request, response) => {
+      primaryHits += 1;
+      response.writeHead(503, { "content-type": "application/json" });
+      response.end(JSON.stringify({ error: "unavailable" }));
+    });
+    const fallbackRpcServer = createServer((_request, response) => {
+      fallbackHits += 1;
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(JSON.stringify({ jsonrpc: "2.0", id: 1, result: `0x${1001000n.toString(16)}` }));
+    });
+    await new Promise((resolve) => primaryRpcServer.listen(0, resolve));
+    await new Promise((resolve) => fallbackRpcServer.listen(0, resolve));
+    const primaryRpcUrl = `http://127.0.0.1:${primaryRpcServer.address().port}`;
+    const fallbackRpcUrl = `http://127.0.0.1:${fallbackRpcServer.address().port}`;
+
+    const app = createApp({
+      payTo: "0x000000000000000000000000000000000000dEaD",
+      network: "eip155:8453",
+      baseRpcUrl: primaryRpcUrl,
+      baseRpcUrls: [primaryRpcUrl, fallbackRpcUrl]
+    });
+    const server = await listen(app);
+
+    try {
+      const proof = await fetchJson(server, "/api/paid-usage-proof");
+      expect(proof.status).toBe(200);
+      expect(proof.json.settlementStatus).toBe("wallet-confirmed");
+      expect(proof.json.proofText).toBe("2 wallet-confirmed paid completions; $0.002 registered; receiver wallet 1.001 USDC");
+      expect(proof.json.receiverWallet.usdcUnits).toBe("1001000");
+      expect(primaryHits).toBe(1);
+      expect(fallbackHits).toBe(1);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+      await new Promise((resolve) => primaryRpcServer.close(resolve));
+      await new Promise((resolve) => fallbackRpcServer.close(resolve));
+    }
+  });
+
   it("shows wallet-derived paid completion proof on the cash register for imported baselines", async () => {
     mockFacilitatorSupportedKinds();
     process.env.BASELINE_PAID_COMPLETIONS = "2";

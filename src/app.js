@@ -21,6 +21,12 @@ const DEFAULT_DEV_PAY_TO = "0x000000000000000000000000000000000000dEaD";
 const BASE_MAINNET_NETWORK = "eip155:8453";
 const BASE_USDC_CONTRACT = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const BASE_SEPOLIA_USDC_CONTRACT = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+const DEFAULT_BASE_MAINNET_RPC_URLS = Object.freeze([
+  "https://mainnet.base.org",
+  "https://base-rpc.publicnode.com",
+  "https://base.drpc.org",
+  "https://1rpc.io/base"
+]);
 const USDC_DECIMALS = 1_000_000n;
 const GZIP_RESPONSE_THRESHOLD_BYTES = 1024;
 const COMPRESSIBLE_CONTENT_TYPE = /(json|text|javascript|svg|xml|markdown|linkset)/i;
@@ -624,6 +630,9 @@ export function getConfig(overrides = {}) {
     throw new Error("PAY_TO must be set to a valid 0x wallet address before running this service.");
   }
 
+  const baseRpcUrl = overrides.baseRpcUrl || process.env.BASE_RPC_URL || DEFAULT_BASE_MAINNET_RPC_URLS[0];
+  const baseRpcUrls = normalizeBaseRpcUrls(overrides.baseRpcUrls || process.env.BASE_RPC_URLS || DEFAULT_BASE_MAINNET_RPC_URLS, baseRpcUrl);
+
   return {
     serviceName: "Listing Roast x402",
     serviceUrl: (overrides.serviceUrl || process.env.SERVICE_URL || "http://localhost:8787").replace(/\/+$/, ""),
@@ -632,7 +641,8 @@ export function getConfig(overrides = {}) {
     network: overrides.network || process.env.X402_NETWORK || "eip155:84532",
     cdpApiKeyId: overrides.cdpApiKeyId || process.env.CDP_API_KEY_ID || "",
     cdpApiKeySecret: overrides.cdpApiKeySecret || process.env.CDP_API_KEY_SECRET || "",
-    baseRpcUrl: overrides.baseRpcUrl || process.env.BASE_RPC_URL || "https://mainnet.base.org",
+    baseRpcUrl,
+    baseRpcUrls,
     price: "$0.01",
     scorePrice: "$0.005",
     instantScorePrice: "$0.001",
@@ -647,6 +657,16 @@ function absoluteUrl(config, pathname) {
 
 function splitHeaderList(value) {
   return String(value || "").split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function normalizeBaseRpcUrls(value, primaryUrl) {
+  const urls = Array.isArray(value) ? value : splitHeaderList(value);
+  return [primaryUrl, ...urls].filter(Boolean).reduce((uniqueUrls, url) => {
+    if (!uniqueUrls.includes(url)) {
+      uniqueUrls.push(url);
+    }
+    return uniqueUrls;
+  }, []);
 }
 
 function buildBrowserPaymentSupport(config, selectedPath = ROAST_PATH) {
@@ -1663,7 +1683,7 @@ function formatUsdc(rawUnits) {
 }
 
 function receiverWalletSnapshotCacheKey(config) {
-  return `${config.network}|${config.payTo}|${config.baseRpcUrl}`;
+  return `${config.network}|${config.payTo}|${(config.baseRpcUrls || [config.baseRpcUrl]).join(",")}`;
 }
 
 async function getReceiverBalanceSnapshot(config) {
@@ -1689,63 +1709,69 @@ async function getReceiverBalanceSnapshot(config) {
     };
   }
 
-  try {
-    const rpcResponse = await fetch(config.baseRpcUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "eth_call",
-        params: [
-          {
-            to: BASE_USDC_CONTRACT,
-            data: encodeBalanceOf(config.payTo)
-          },
-          "latest"
-        ]
-      }),
-      signal: AbortSignal.timeout(4500)
-    });
+  const rpcUrls = normalizeBaseRpcUrls(config.baseRpcUrls || [], config.baseRpcUrl);
 
-    if (!rpcResponse.ok) {
-      throw new Error("rpc_unavailable");
+  for (const rpcUrl of rpcUrls) {
+    try {
+      const rpcResponse = await fetch(rpcUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "eth_call",
+          params: [
+            {
+              to: BASE_USDC_CONTRACT,
+              data: encodeBalanceOf(config.payTo)
+            },
+            "latest"
+          ]
+        }),
+        signal: AbortSignal.timeout(4500)
+      });
+
+      if (!rpcResponse.ok) {
+        throw new Error("rpc_unavailable");
+      }
+
+      const payload = await rpcResponse.json();
+      if (payload.error || !payload.result) {
+        throw new Error("rpc_error");
+      }
+
+      const rawUnits = BigInt(payload.result);
+      const snapshot = {
+        address: config.payTo,
+        network: config.network,
+        asset: "USDC",
+        usdcBalance: formatUsdc(rawUnits),
+        usdcUnits: rawUnits.toString(),
+        checkedAt,
+        source: new URL(rpcUrl).hostname
+      };
+
+      receiverWalletSnapshotCache = {
+        key: cacheKey,
+        expiresAt: Date.now() + RECEIVER_WALLET_SNAPSHOT_CACHE_MS,
+        snapshot
+      };
+
+      return { ...snapshot };
+    } catch {
+      // Try the next configured read-only RPC before weakening public proof.
     }
-
-    const payload = await rpcResponse.json();
-    if (payload.error || !payload.result) {
-      throw new Error("rpc_error");
-    }
-
-    const rawUnits = BigInt(payload.result);
-    const snapshot = {
-      address: config.payTo,
-      network: config.network,
-      asset: "USDC",
-      usdcBalance: formatUsdc(rawUnits),
-      usdcUnits: rawUnits.toString(),
-      checkedAt,
-      source: new URL(config.baseRpcUrl).hostname
-    };
-
-    receiverWalletSnapshotCache = {
-      key: cacheKey,
-      expiresAt: Date.now() + RECEIVER_WALLET_SNAPSHOT_CACHE_MS,
-      snapshot
-    };
-
-    return { ...snapshot };
-  } catch {
-    return {
-      address: config.payTo,
-      network: config.network,
-      asset: "USDC",
-      usdcBalance: null,
-      checkedAt,
-      source: "base_rpc",
-      error: "unavailable"
-    };
   }
+
+  return {
+    address: config.payTo,
+    network: config.network,
+    asset: "USDC",
+    usdcBalance: null,
+    checkedAt,
+    source: "base_rpc",
+    error: "unavailable"
+  };
 }
 
 async function getCashRegisterWithReceiverWallet(config) {
