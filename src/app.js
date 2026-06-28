@@ -4206,7 +4206,7 @@ function buildPayNow(config, intent = "", cashRegister = {}, receiverWallet = nu
     maxAmountRequired: selectedFirstPaidAction.maxAmountRequired,
     network: config.network,
     payTo: config.payTo,
-    command: selectedFirstPaidAction.command,
+    ...commandFirstPaymentFields(selectedFirstPaidAction),
     reason: selection.intent
       ? (exactIntentPaidAction
         ? `Selected from the buyer intent: ${selection.intent}; first paid command uses the already-indexed wallet-backed route before the phrase-specific alias.`
@@ -4369,7 +4369,7 @@ function buildPayNowIntentExample(config, intent, selectedActionKey) {
     maxAmountRequired: selectedFirstPaidAction.maxAmountRequired,
     network: config.network,
     payTo: config.payTo,
-    command: selectedFirstPaidAction.command,
+    ...commandFirstPaymentFields(selectedFirstPaidAction),
     reason: exactIntentPaidAction
       ? `Selected from the buyer intent: ${intent}; first paid command uses the already-indexed wallet-backed route before the phrase-specific alias.`
       : `Selected from the buyer intent: ${intent}`,
@@ -4429,6 +4429,22 @@ function compactPaidAction(action) {
     reason: action.reason,
     ...(action.query ? { query: action.query } : {}),
     ...(action.body ? { body: action.body } : {})
+  };
+}
+
+function commandFirstPaymentFields(action = {}) {
+  const compactAction = compactPaidAction(action);
+
+  return {
+    command: action.command,
+    payCommand: action.command,
+    x402PayCommand: action.command,
+    pay_command: action.command,
+    agentPaymentRequest: action.agentPaymentRequest,
+    agentPaymentPrompt: action.agentPaymentPrompt,
+    nextPaidAction: compactAction,
+    paymentRequiredHeader: "Payment-Required",
+    paymentHeader: "X-PAYMENT"
   };
 }
 
@@ -4526,7 +4542,7 @@ function buildBuyerDecisionForPaidChallenge(selectedFirstPaidAction, directFullR
     method: selectedFirstPaidAction.method,
     price: selectedFirstPaidAction.price,
     maxAmountRequired: selectedFirstPaidAction.maxAmountRequired,
-    command: selectedFirstPaidAction.command
+    ...commandFirstPaymentFields(selectedFirstPaidAction)
   };
 
   if (isQuickScorePaidAction(selectedFirstPaidAction)) {
@@ -8917,7 +8933,7 @@ function buildFindResult(config, rawQuery = "", cashRegister = {}) {
     provenFirstPaidAction,
     provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. The recommended route may still point to a phrase-specific alias.",
     selectedFirstPaidAction,
-    command: selectedFirstPaidAction.command,
+    ...commandFirstPaymentFields(selectedFirstPaidAction),
     commandHandoff: `${absoluteUrl(config, COMMANDS_PATH)}?intent=${encodeURIComponent(query || selectedActionKey)}`,
     ...(exactIntentCommandChoice || {}),
     paidResponsePreview: buildPaidResponsePreview(
@@ -9080,7 +9096,7 @@ function buildRouteResult(config, payload = {}, cashRegister = {}) {
     provenFirstPaidAction,
     provenFirstPaidReason: "Use this first when the buyer wants the already-indexed route with wallet-backed paid-use proof. The best match may still point to a phrase-specific alias.",
     selectedFirstPaidAction,
-    command: selectedFirstPaidAction.command,
+    ...commandFirstPaymentFields(selectedFirstPaidAction),
     commandHandoff: `${absoluteUrl(config, COMMANDS_PATH)}?intent=${encodeURIComponent(query || selectedActionKey)}`,
     ...(exactIntentCommandChoice || {}),
     paidResponsePreview: buildPaidResponsePreview(

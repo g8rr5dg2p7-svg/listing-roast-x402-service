@@ -316,6 +316,11 @@ describe("Listing Roast x402 service", () => {
       expect(payNow.json.selectedPaidPath).toBe("/api/listing-roast");
       expect(payNow.json.firstPaidUrl).toContain("/api/listing-roast");
       expect(payNow.json.payableRoute.path).toBe("/api/listing-roast");
+      expect(payNow.json.payCommand).toContain("/api/listing-roast");
+      expect(payNow.json.x402PayCommand).toBe(payNow.json.payCommand);
+      expect(payNow.json.pay_command).toBe(payNow.json.payCommand);
+      expect(payNow.json.agentPaymentRequest.url).toContain("/api/listing-roast");
+      expect(payNow.json.nextPaidAction.path).toBe("/api/listing-roast");
       expect(payNow.json.exactIntentPaidUrl).toContain("/api/buyer-agent-skip-reasons");
       expect(payNow.json.intentSignal).toEqual({
         source: "payNow",
@@ -334,6 +339,10 @@ describe("Listing Roast x402 service", () => {
       expect(findDiscovery.json.metadata_version).toBe("2026-06-21-directory-post-conversion-v73");
       expect(findDiscovery.json.selectedActionKey).toBe("discoveryAuditQuick");
       expect(findDiscovery.json.selectedPaidUrl).toContain("/api/x402-discovery-audit");
+      expect(findDiscovery.json.payCommand).toContain("/api/x402-discovery-audit");
+      expect(findDiscovery.json.x402PayCommand).toBe(findDiscovery.json.payCommand);
+      expect(findDiscovery.json.agentPaymentRequest.url).toContain("/api/x402-discovery-audit");
+      expect(findDiscovery.json.nextPaidAction.path).toBe("/api/x402-discovery-audit");
       expect(findDiscovery.json.intentSignal.source).toBe("find");
       expect(findDiscovery.json.intentSignal.rawQueryStored).toBe(false);
 
@@ -347,6 +356,10 @@ describe("Listing Roast x402 service", () => {
       expect(routeFullRoast.json.selectedActionKey).toBe("fullRoastGet");
       expect(routeFullRoast.json.selectedPaidUrl).toContain("/api/full-listing-roast");
       expect(routeFullRoast.json.payableRoute.path).toBe("/api/full-listing-roast");
+      expect(routeFullRoast.json.payCommand).toContain("/api/full-listing-roast");
+      expect(routeFullRoast.json.x402PayCommand).toBe(routeFullRoast.json.payCommand);
+      expect(routeFullRoast.json.agentPaymentRequest.url).toContain("/api/full-listing-roast");
+      expect(routeFullRoast.json.nextPaidAction.path).toBe("/api/full-listing-roast");
       expect(routeFullRoast.json.results[0].serviceName).toBe("Listing Roast x402");
       expect(routeFullRoast.json.results[0].metadata_version).toBe("2026-06-21-directory-post-conversion-v73");
       expect(routeFullRoast.json.intentSignal.source).toBe("route");
@@ -360,6 +373,9 @@ describe("Listing Roast x402 service", () => {
       expect(routePreflight.json.serviceName).toBe("Listing Roast x402");
       expect(routePreflight.json.metadata_version).toBe("2026-06-21-directory-post-conversion-v73");
       expect(routePreflight.json.selectedActionKey).toBe("x402SiteAudit");
+      expect(routePreflight.json.payCommand).toContain("/api/x402-site-audit");
+      expect(routePreflight.json.agentPaymentRequest.url).toContain("/api/x402-site-audit");
+      expect(routePreflight.json.nextPaidAction.path).toBe("/api/x402-site-audit");
       expect(routePreflight.json.intentSignal.rawQueryStored).toBe(false);
 
       const localDiscovery = await fetchJson(server, "/v2/x402/discovery/search?query=paid%20API%20listing%20quality&limit=2");
